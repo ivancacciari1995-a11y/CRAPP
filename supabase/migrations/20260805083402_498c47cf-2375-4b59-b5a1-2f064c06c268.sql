@@ -1,0 +1,1 @@
+ALTER TABLE public.eventi_app ADD COLUMN IF NOT EXISTS casa boolean NOT NULL DEFAULT true;
