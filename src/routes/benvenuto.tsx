@@ -7,7 +7,7 @@ import { impostaGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
 export const Route = createFileRoute("/benvenuto")({
   head: () => ({
     meta: [
-      { title: "Benvenuto — CrAPP" },
+      { title: "Benvenuto — CrAPP TEST" },
       {
         name: "description",
         content: "Seleziona il tuo profilo giocatore per iniziare.",
