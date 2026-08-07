@@ -7,12 +7,12 @@ import { impostaGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
 export const Route = createFileRoute("/benvenuto")({
   head: () => ({
     meta: [
-      { title: "Benvenuto — CrAPP" },
+      { title: "Benvenuto — CrAPP DEVELOP" },
       {
         name: "description",
         content: "Seleziona il tuo profilo giocatore per iniziare.",
       },
-      { property: "og:title", content: "Benvenuto — CrAPP" },
+      { property: "og:title", content: "Benvenuto — CrAPP DEVELOP" },
       {
         property: "og:description",
         content: "Seleziona il tuo profilo giocatore per iniziare.",
@@ -36,7 +36,7 @@ function Benvenuto() {
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <TeamLogo className="h-20 w-20" />
       <h1 className="mt-6 text-center font-display text-4xl uppercase leading-none">
-        Benvenuto in CrAPP TEST
+        Benvenuto in CrAPP DEVELOP
       </h1>
       <p className="mt-2 text-center text-sm text-muted-foreground">
         Seleziona chi sei per personalizzare l'app.
