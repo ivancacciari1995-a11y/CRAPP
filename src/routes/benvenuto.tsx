@@ -12,7 +12,7 @@ export const Route = createFileRoute("/benvenuto")({
         name: "description",
         content: "Seleziona il tuo profilo giocatore per iniziare.",
       },
-      { property: "og:title", content: "Benvenuto — CrAPP" },
+      { property: "og:title", content: "Benvenuto — CrAPP TEST" },
       {
         property: "og:description",
         content: "Seleziona il tuo profilo giocatore per iniziare.",
