@@ -1,118 +1,95 @@
-# CRAP Volley Hub
+# CrAPP 🏐
 
-CrAPP – App per CRAP Volley
+CrAPP è una Progressive Web App sviluppata per digitalizzare completamente la gestione di una squadra di pallavolo.
 
-Vorrei sviluppare un’app mobile per la squadra di pallavolo CRAP Volley, con nome CrAPP, disponibile per Android e iOS. L’obiettivo è creare un’app semplice da usare, moderna, bella da vedere e più coinvolgente rispetto a SportEasy, includendo anche funzionalità normalmente a pagamento in altre app.
+## Funzionalità principali
 
-Funzionalità principali
+- Gestione squadra
+- Gestione presenze
+- Calendario allenamenti e partite
+- Scout Live
+- Badge e gamification
+- Statistiche
+- Notifiche intelligenti
+- Gestione amministrativa
+- AI per la pianificazione degli allenamenti (in sviluppo)
 
-Gestione presenze/assenze
+---
 
-Partite
+## Stack tecnologico
 
-Allenamenti
+- React 19
+- TypeScript
+- TanStack Start
+- Vite
+- Tailwind CSS
+- Supabase
+- GitHub
+- Vercel
 
-Eventi extra
+---
 
-Stati rapidi: presente, assente, forse, in ritardo, indisponibile, infortunato
+## Ambienti
 
-Statistiche giocatori
+- `main` → Produzione
+- `develop` → Sviluppo
 
-Presenze totali
+---
 
-Presenze consecutive
+## Avvio locale
 
-Gol/punti o altre statistiche specifiche della pallavolo
-
-MVP, migliori performance, medie stagione
-
-Statistiche partite
-
-Risultati
-
-Formazioni
-
-Andamento set
-
-Storico match
-
-Campionato in tempo reale
-
-Visualizzazione classifica e risultati
-
-Dati presi direttamente dal sito del CSI
-
-Aggiornamento automatico o importazione periodica
-
-Calendario squadra
-
-Allenamenti
-
-Partite
-
-Promemoria
-
-Vista mensile e lista eventi
-
-Profilo giocatore
-
-Foto
-
-Ruolo
-
-Statistiche personali
-
-Badge e obiettivi
-
-Idea di stile
-
-Interfaccia sportiva, pulita e moderna
-
-Molto mobile-first
-
-Design divertente, energico e più “premium”
-
-Inserire in seguito il logo della squadra
-
-Possibile uso di badge, livelli, premi e mini-gamification per rendere l’app più piacevole da usare
-
-Extra che sarebbe bello aggiungere
-
-Notifiche push per convocazioni e cambi orario
-
-Chat o bacheca squadra
-
-Report automatici dopo le partite
-
-Sondaggi rapidi per disponibilità
-
-Sezione “Best of the match”
-
-Obiettivi di gruppo per presenza e continuità
-
-Obiettivo finale
-
-Realizzare una app che non sia solo utile per la gestione della squadra, ma anche piacevole, coinvolgente e bella da usare ogni giorno.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://volley-cronos-app.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+```bash
+npm install
 npm run dev
+```
+
+L'app sarà disponibile su:
+
+```
+http://localhost:8080
+```
+
+---
+
+## Build
+
+```bash
+npm run build
+```
+
+---
+
+## Deploy
+
+Il deploy è automatico tramite Vercel ad ogni push sul branch `main`.
+
+Le modifiche sviluppate nel branch `develop` vengono pubblicate automaticamente come Preview Deployment.
+
+---
+
+## Variabili d'ambiente
+
+Il progetto richiede le seguenti variabili:
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+---
+
+## Repository
+
+Il codice sorgente è gestito tramite GitHub.
+
+Flusso di sviluppo:
+
+```
+develop
+    ↓
+Test
+    ↓
+Merge su main
+    ↓
+Deploy automatico Vercel
 ```
