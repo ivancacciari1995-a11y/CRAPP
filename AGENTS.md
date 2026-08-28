@@ -28,8 +28,9 @@ Prima di implementare qualsiasi modifica leggere sempre:
 3. docs/ROADMAP.md
 4. docs/ARCHITECTURE.md
 5. docs/DATABASE.md
-6. docs/TODO.md
-7. il documento interessato in docs/modules/
+6. docs/DESIGN_DECISIONS.md
+7. docs/TODO.md
+8. il documento interessato in docs/modules/
 
 Non implementare funzionalità non documentate.
 
@@ -172,6 +173,7 @@ Aggiornare sempre, quando necessario:
 - CHANGELOG.md
 - TODO.md
 - DATABASE.md (se il database cambia)
+- DESIGN_DECISIONS.md (se si prende una decisione architetturale importante)
 ---
 
 # Struttura della documentazione
@@ -185,6 +187,7 @@ La cartella `docs/` rappresenta la documentazione ufficiale del progetto.
 - ROADMAP.md → evoluzione prevista
 - ARCHITECTURE.md → architettura tecnica
 - DATABASE.md → struttura del database
+- DESIGN_DECISIONS.md → registro delle decisioni di progetto
 - CHANGELOG.md → cronologia delle modifiche
 - TODO.md → attività pianificate
 
