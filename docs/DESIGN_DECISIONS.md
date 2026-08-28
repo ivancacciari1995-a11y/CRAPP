@@ -356,6 +356,51 @@ Se si adotta un servizio che viola questa regola.
 
 ---
 
+### DD-016 — Schema dati Profilo Giocatore v1.1 (F0)
+
+**Data:** agosto 2026  
+**Stato:** Accettata
+
+**Contesto**  
+La progettazione F0 del modulo Profilo Giocatore ha definito come persistere dati personali, documenti e certificati, in coesistenza con l’anagrafica attuale (`g1`…`g17` nel codice) e con la tabella `giocatori` UUID già presente ma non usata. Serviva una scelta chiara su dove salvare i dati, come collegare l’autenticazione e come proteggere documenti sensibili — senza toccare le tabelle v1.0 già operative.
+
+**Decisione**  
+Per la v1.1 si introducono **due nuove tabelle additive**:
+
+- **`giocatori_squadra`** — anagrafica squadra con ID testuali (`g1`…`g17`), dati gestiti dagli admin (nome, cognome, numero, ruolo) e collegamento account (`auth_user_id`).
+- **`profili_giocatore`** — dati personali, metadati documento identità, certificato medico e path dei file, in relazione 1:1 con `giocatori_squadra`.
+
+Regole vincolanti:
+
+1. **`giocatori_squadra` diventa progressivamente la source of truth** per l’anagrafica squadra. Durante la transizione, `crapp-data.ts` resta come **fallback** se il database non è disponibile o i dati non sono ancora migrati.
+2. L’associazione **`auth_user_id` ↔ giocatore** è un’operazione **controllata e atomica** (es. al primo accesso da `/benvenuto`, con `UPDATE … WHERE auth_user_id IS NULL`). Il giocatore **non può modificare liberamente** `auth_user_id`; solo un admin può resettarlo in casi eccezionali.
+3. I file (documento identità, certificato, foto tessera) vivono nel bucket Storage **`profili-giocatore`**, configurato come **privato**.
+4. Documenti personali e sanitari **non devono mai essere esposti tramite URL pubblici**. Accesso solo tramite client autenticato con policy RLS, o signed URL a scadenza breve per download admin.
+5. Le **tabelle v1.0 esistenti non vengono modificate** (`eventi_app`, `risposte_presenze`, voti, palloni, scout, push, ecc.). Il profilo si aggancia agli ID `g1`…`g17` già in uso, senza migrare verso UUID in v1.1 (coerente con DD-012).
+6. La tabella `giocatori` (UUID) resta **invariata e non usata** dal modulo profilo in v1.1.
+
+**Alternative scartate**  
+- Estendere la tabella `giocatori` UUID → conflitto con ID operativi del codice e rischio di regressioni.  
+- Salvare file come base64 nel database → ingestibile, difficile da gestire e da scaricare.  
+- Bucket pubblico con URL permanenti → inaccettabile per dati sanitari e documenti d’identità.  
+- Permettere al giocatore di cambiare `auth_user_id` liberamente → rischio di impersonazione e race condition.  
+- Modificare tabelle v1.0 per aggiungere FK verso il profilo → viola DD-004 e DD-012.
+
+**Conseguenze**  
+- Coesistono temporaneamente tre rappresentazioni dell’anagrafica: `crapp-data.ts` (fallback), `giocatori_squadra` (target), `giocatori` UUID (dormiente).  
+- `src/lib/rosa.ts` dovrà leggere prima dal database e ricadere su `crapp-data.ts` in caso di errore o assenza dati.  
+- Il completamento profilo (30/30/30/10) si calcola in app, non si persiste nel database.  
+- Lo storico certificati non viene conservato in v1 (coerente con DD-010).  
+- Le migration M1–M3 (tabelle, RLS, bucket) restano **additive**: solo `CREATE`, nessun `ALTER`/`DROP` su schema esistente.  
+- Raffina e attua quanto proposto in DD-015 per la rosa anagrafica, senza sostituire formalmente quella voce.
+
+**Riesame**  
+- Quando `giocatori_squadra` è stabile in produzione e il fallback `crapp-data.ts` non serve più.  
+- Quando si pianifica la convergenza verso UUID (DD-012, post v1.1).  
+- Se il CSI o il regolamento richiedono conservazione storica documenti o consensi privacy dedicati.
+
+---
+
 ## Decisioni in valutazione
 
 ---
@@ -444,9 +489,10 @@ Copiare questo blocco in fondo al documento quando serve registrare una nuova sc
 | DD-011 | Auth reale prima del profilo | Accettata |
 | DD-012 | Non migrare ID in v1.1 | Accettata |
 | DD-013 | Portabilità dello stack | Accettata |
+| DD-016 | Schema dati Profilo Giocatore v1.1 | Accettata |
 | DD-014 | Convergenza schema DB | In valutazione |
 | DD-015 | Rosa da hardcoded a DB | In valutazione |
 
 ---
 
-*Ultimo aggiornamento: 7 agosto 2026*
+*Ultimo aggiornamento: 28 agosto 2026*
