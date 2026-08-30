@@ -31,9 +31,9 @@
 
 ## Versione 2.0
 
-- [ ] Collegamento CSI
-- [ ] Classifica automatica
-- [ ] Risultati campionato
+- [x] Collegamento CSI (stagione 2025/26)
+- [x] Classifica automatica
+- [x] Risultati campionato
 - [ ] Calendario ufficiale
 
 ---

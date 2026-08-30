@@ -17,7 +17,8 @@
 
 - AI Allenamenti.
 - Dashboard amministratore.
-- Collegamento CSI.
+- Collegamento CSI: aggiornare `project_id` e `team_id` per la stagione 2026/27
+  (base implementata, vedi `docs/modules/collegamento-csi.md`).
 
 ---
 

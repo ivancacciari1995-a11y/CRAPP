@@ -19,6 +19,7 @@ import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SquadraRouteImport } from './routes/squadra'
 import { Route as AllenamentoIdRouteImport } from './routes/allenamento.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
+import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
 import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/public/promemoria-palloni'
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
 import { Route as ApiPublicPushMessaggioRouteImport } from './routes/api/public/push-messaggio'
@@ -75,6 +76,11 @@ const PartitaIdRoute = PartitaIdRouteImport.update({
   path: '/partita/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCsiRoute = ApiPublicCsiRouteImport.update({
+  id: '/api/public/csi',
+  path: '/api/public/csi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPromemoriaPalloniRoute =
   ApiPublicPromemoriaPalloniRouteImport.update({
     id: '/api/public/promemoria-palloni',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   SquadraRoute: typeof SquadraRoute
   AllenamentoIdRoute: typeof AllenamentoIdRoute
   PartitaIdRoute: typeof PartitaIdRoute
+  ApiPublicCsiRoute: typeof ApiPublicCsiRoute
   ApiPublicPromemoriaPalloniRoute: typeof ApiPublicPromemoriaPalloniRoute
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
   ApiPublicPushMessaggioRoute: typeof ApiPublicPushMessaggioRoute
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartitaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/csi': {
+      id: '/api/public/csi'
+      path: '/api/public/csi'
+      fullPath: '/api/public/csi'
+      preLoaderRoute: typeof ApiPublicCsiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/promemoria-palloni': {
       id: '/api/public/promemoria-palloni'
       path: '/api/public/promemoria-palloni'
@@ -348,6 +368,7 @@ const rootRouteChildren: RootRouteChildren = {
   SquadraRoute: SquadraRoute,
   AllenamentoIdRoute: AllenamentoIdRoute,
   PartitaIdRoute: PartitaIdRoute,
+  ApiPublicCsiRoute: ApiPublicCsiRoute,
   ApiPublicPromemoriaPalloniRoute: ApiPublicPromemoriaPalloniRoute,
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,
   ApiPublicPushMessaggioRoute: ApiPublicPushMessaggioRoute,

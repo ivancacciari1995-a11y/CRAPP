@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { storicoMatch } from "@/lib/crapp-data";
 import { classificaConScout, useScoutMatches } from "@/lib/scout-store";
+import { useCsi } from "@/lib/csi";
+import { isNostraSquadra, partiteGiocate } from "@/lib/csi-core";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 
 export const Route = createFileRoute("/classifica")({
@@ -21,27 +23,50 @@ export const Route = createFileRoute("/classifica")({
   component: Classifica,
 });
 
+function formatAggiornamento(iso: string) {
+  const d = new Date(iso);
+  const oggi = new Date().toDateString() === d.toDateString();
+  const ora = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  return oggi ? `oggi alle ${ora}` : `il ${d.toLocaleDateString("it-IT")} alle ${ora}`;
+}
+
 function Classifica() {
   const scoutMatches = useScoutMatches();
-  const classifica = classificaConScout(scoutMatches);
-  const risultati = [
-    ...scoutMatches.map((m) => ({
-      id: m.id,
-      avversario: m.avversario,
-      casa: m.casa,
-      setNostri: m.setNostri,
-      setLoro: m.setLoro,
-    })),
-    ...storicoMatch,
-  ];
+  const { data: csi } = useCsi();
+
+  const classifica = csi?.classifica.length ? csi.classifica : classificaConScout(scoutMatches);
+  const risultati = csi?.partite.length
+    ? partiteGiocate(csi.partite).map((p) => ({
+        id: p.id,
+        avversario: p.avversario,
+        casa: p.casa,
+        setNostri: p.setNostri ?? 0,
+        setLoro: p.setLoro ?? 0,
+      }))
+    : [
+        ...scoutMatches.map((m) => ({
+          id: m.id,
+          avversario: m.avversario,
+          casa: m.casa,
+          setNostri: m.setNostri,
+          setLoro: m.setLoro,
+        })),
+        ...storicoMatch,
+      ];
+
   return (
     <>
-      <PageHeader titolo="Campionato" sottotitolo="Girone C · CSI Milano" />
+      <PageHeader
+        titolo="Campionato"
+        sottotitolo={csi ? `${csi.girone} · CSI Bologna` : "CSI Bologna"}
+      />
 
       <div className="px-5 pt-4">
         <div className="flex items-center gap-2 rounded-2xl bg-secondary px-3 py-2 text-xs text-muted-foreground">
           <RefreshCw className="h-3.5 w-3.5 text-accent" />
-          Dati CSI aggiornati oggi alle 08:40 (demo)
+          {csi
+            ? `Dati CSI aggiornati ${formatAggiornamento(csi.aggiornato)}`
+            : "Dati CSI in arrivo"}
         </div>
         <div className="mt-2">
           <ScoutEntry variante="compatto" />
@@ -58,7 +83,7 @@ function Classifica() {
             <span className="text-center">Pt</span>
           </div>
           {classifica.map((r) => {
-            const noi = r.squadra === "CRAP Volley";
+            const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
             return (
               <div
                 key={r.pos}
@@ -82,7 +107,7 @@ function Classifica() {
         </div>
       </Section>
 
-      <Section titolo="Ultimi risultati del girone">
+      <Section titolo="Ultimi risultati ufficiali">
         <div className="space-y-2">
           {risultati.map((m) => (
             <div
