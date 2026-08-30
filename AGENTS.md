@@ -42,6 +42,20 @@ idea → progettazione → documento in docs/modules/ → database → implement
   modifica deve mantenere l'app perfettamente funzionante.
 - `develop` = sviluppo e preview; tutte le nuove implementazioni nascono qui.
 
+### Commit
+
+- **Si committa solo quando l'utente lo chiede**, mai di propria iniziativa. Lo stesso vale
+  per il push, che su `develop` fa partire un deploy di preview.
+- Quando l'utente lo chiede, **il messaggio lo scrive l'assistente in autonomia**, senza
+  farlo approvare prima.
+- **Il messaggio è in inglese**, all'imperativo presente (`Add medical certificate expiry`),
+  riga di riepilogo sotto i 72 caratteri. È l'unica eccezione all'italiano: codice, commenti
+  e documentazione restano in italiano. I commit precedenti sono in italiano e non vanno
+  riscritti.
+- Se il lavoro attua una decisione registrata, il messaggio la cita: `DD-017: ...`.
+- Nel commit entrano insieme codice e documentazione: la checklist
+  [Fine lavoro](#fine-lavoro-cosa-aggiornare-sempre) va eseguita prima, non in un commit a parte.
+
 ## Vincoli tecnici da non violare
 
 - `src/routeTree.gen.ts` e `src/integrations/supabase/{client.ts,types.ts}` sono **generati**:
