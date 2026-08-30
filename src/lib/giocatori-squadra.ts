@@ -90,6 +90,80 @@ export function useGiocatoriSquadra() {
   return { ...query, righe, daDatabase: !!query.data?.length };
 }
 
+/** Dati squadra: li gestisce solo un amministratore (DD-017). */
+export type DatiSquadra = Pick<GiocatoreSquadra, "nome" | "cognome" | "numero" | "ruolo">;
+
+/**
+ * Controlli che rispecchiano i vincoli della tabella (`numero > 0`, campi obbligatori):
+ * meglio dirlo qui che far tornare un errore Postgres all'utente.
+ * Restituisce il messaggio da mostrare, oppure `null` se va bene.
+ */
+export function validaDatiSquadra(dati: DatiSquadra): string | null {
+  if (!dati.nome.trim()) return "Il nome non può essere vuoto.";
+  if (!dati.cognome.trim()) return "Il cognome non può essere vuoto.";
+  if (!Number.isInteger(dati.numero) || dati.numero <= 0)
+    return "Il numero di maglia deve essere maggiore di zero.";
+  if (!dati.ruolo.trim()) return "Il ruolo non può essere vuoto.";
+  return null;
+}
+
+/** Numeri di maglia doppi: il database li accetta, la squadra no. */
+export function numeroGiaUsato(
+  righe: GiocatoreSquadra[],
+  giocatoreId: string,
+  numero: number,
+): boolean {
+  return righe.some((g) => g.id !== giocatoreId && g.attivo && g.numero === numero);
+}
+
+/** Modifica dei dati squadra. Solo un admin passa le policy di M1. */
+export function useSalvaDatiSquadra() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { giocatoreId: string; dati: DatiSquadra }) => {
+      const { error } = await supabaseNuoveTabelle
+        .from("giocatori_squadra")
+        .update({
+          nome: input.dati.nome.trim(),
+          cognome: input.dati.cognome.trim(),
+          numero: input.dati.numero,
+          ruolo: input.dati.ruolo.trim(),
+        })
+        .eq("id", input.giocatoreId);
+      if (error) throw error;
+      return input;
+    },
+    onSuccess: (input) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
+      );
+    },
+  });
+}
+
+/**
+ * Libera uno slot occupato per errore (DD-016 regola 2, DD-017). Il giocatore
+ * potrà ricollegarsi al primo accesso; i dati del profilo restano dove sono.
+ */
+export function useScollegaAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (giocatoreId: string) => {
+      const { error } = await supabaseNuoveTabelle
+        .from("giocatori_squadra")
+        .update({ auth_user_id: null })
+        .eq("id", giocatoreId);
+      if (error) throw error;
+      return giocatoreId;
+    },
+    onSuccess: (giocatoreId) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        (prec ?? []).map((g) => (g.id === giocatoreId ? { ...g, authUserId: null } : g)),
+      );
+    },
+  });
+}
+
 /**
  * Collega l'account al giocatore scelto. Il trigger di M1 accetta l'operazione solo se
  * lo slot è libero e se nessun altro campo cambia (DD-016 regola 2): il vincolo vive nel

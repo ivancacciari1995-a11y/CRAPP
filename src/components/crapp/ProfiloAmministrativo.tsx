@@ -12,9 +12,17 @@ import {
   useSalvaProfilo,
   type SezioneFile,
 } from "@/lib/profili";
-import { completamento, profiloVuoto, sezioniComplete, type Profilo } from "@/lib/profili-core";
+import {
+  completamento,
+  profiloVuoto,
+  sezioniComplete,
+  type Profilo,
+  type Sezione,
+} from "@/lib/profili-core";
 
 const TIPI_DOCUMENTO = ["Carta d'identità", "Patente", "Passaporto"];
+
+const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -27,7 +35,14 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
+function Intestazione({ titolo, completa }: { titolo: string; completa: boolean }) {
+  return (
+    <div className="flex items-center gap-2 pt-2">
+      <h3 className="font-display text-sm uppercase tracking-wide">{titolo}</h3>
+      {completa ? <Check className="h-4 w-4 text-success" /> : null}
+    </div>
+  );
+}
 
 function CampoFile({
   label,
@@ -106,6 +121,144 @@ function CampoFile({
 }
 
 /**
+ * I campi del profilo, condivisi tra il giocatore e la dashboard amministratore (DD-017).
+ * Gli upload arrivano come slot: l'admin non carica file al posto di altri, quindi da lì
+ * quelle righe semplicemente non compaiono.
+ */
+export function CampiProfilo({
+  corrente,
+  aggiorna,
+  sezioni,
+  fileDocumento,
+  fileCertificato,
+  fileFoto,
+}: {
+  corrente: Profilo;
+  aggiorna: (patch: Partial<Profilo>) => void;
+  sezioni: Record<Sezione, boolean>;
+  fileDocumento?: React.ReactNode;
+  fileCertificato?: React.ReactNode;
+  fileFoto?: React.ReactNode;
+}) {
+  return (
+    <>
+      <Intestazione titolo="Dati personali" completa={sezioni.dati} />
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Data di nascita">
+          <input
+            type="date"
+            value={corrente.dataNascita ?? ""}
+            onChange={(e) => aggiorna({ dataNascita: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Luogo di nascita">
+          <input
+            value={corrente.luogoNascita ?? ""}
+            maxLength={80}
+            onChange={(e) => aggiorna({ luogoNascita: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <Campo label="Indirizzo di residenza">
+        <input
+          value={corrente.indirizzo ?? ""}
+          maxLength={120}
+          onChange={(e) => aggiorna({ indirizzo: e.target.value })}
+          className={classiInput}
+        />
+      </Campo>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Telefono">
+          <input
+            type="tel"
+            value={corrente.telefono ?? ""}
+            maxLength={20}
+            onChange={(e) => aggiorna({ telefono: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Email">
+          <input
+            type="email"
+            value={corrente.email ?? ""}
+            maxLength={120}
+            onChange={(e) => aggiorna({ email: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+
+      <Intestazione titolo="Documento di identità" completa={sezioni.documento} />
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Tipo">
+          <select
+            value={corrente.documentoTipo ?? ""}
+            onChange={(e) => aggiorna({ documentoTipo: e.target.value })}
+            className={classiInput}
+          >
+            <option value="">—</option>
+            {TIPI_DOCUMENTO.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Numero">
+          <input
+            value={corrente.documentoNumero ?? ""}
+            maxLength={40}
+            onChange={(e) => aggiorna({ documentoNumero: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <Campo label="Rilasciato da">
+        <input
+          value={corrente.documentoRilasciatoDa ?? ""}
+          maxLength={80}
+          onChange={(e) => aggiorna({ documentoRilasciatoDa: e.target.value })}
+          className={classiInput}
+        />
+      </Campo>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Data emissione">
+          <input
+            type="date"
+            value={corrente.documentoEmissione ?? ""}
+            onChange={(e) => aggiorna({ documentoEmissione: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Data scadenza">
+          <input
+            type="date"
+            value={corrente.documentoScadenza ?? ""}
+            onChange={(e) => aggiorna({ documentoScadenza: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      {fileDocumento}
+
+      <Intestazione titolo="Certificato medico" completa={sezioni.certificato} />
+      <Campo label="Data di scadenza">
+        <input
+          type="date"
+          value={corrente.certificatoScadenza ?? ""}
+          onChange={(e) => aggiorna({ certificatoScadenza: e.target.value })}
+          className={classiInput}
+        />
+      </Campo>
+      {fileCertificato}
+      {fileFoto}
+    </>
+  );
+}
+
+/**
  * Dati amministrativi del giocatore: quello che la dashboard amministratore poi legge.
  * Ogni giocatore scrive solo la propria riga — è la RLS a garantirlo, non questo componente.
  */
@@ -152,7 +305,7 @@ export function ProfiloAmministrativo({
     <Section
       titolo="Dati per il tesseramento"
       indice={indice}
-      azione={<span className="text-xs font-bold text-muted-foreground tabular-nums">{perc}%</span>}
+      azione={<span className="text-xs font-bold tabular-nums text-muted-foreground">{perc}%</span>}
     >
       <div className="space-y-3 rounded-3xl bg-card p-4 shadow-card">
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -166,146 +319,49 @@ export function ProfiloAmministrativo({
           Servono agli amministratori per il tesseramento CSI. Li vedi solo tu e loro.
         </p>
 
-        <Intestazione titolo="Dati personali" completa={sezioni.dati} />
-        <div className="grid grid-cols-2 gap-3">
-          <Campo label="Data di nascita">
-            <input
-              type="date"
-              value={corrente.dataNascita ?? ""}
-              onChange={(e) => aggiorna({ dataNascita: e.target.value })}
-              className={classiInput}
+        <CampiProfilo
+          corrente={corrente}
+          aggiorna={aggiorna}
+          sezioni={sezioni}
+          fileDocumento={
+            <div className="divide-y divide-border">
+              <CampoFile
+                label="Foto fronte"
+                path={corrente.documentoFrontePath}
+                sezione="documento-fronte"
+                giocatoreId={giocatoreId}
+                onCaricato={caricato("documentoFrontePath")}
+              />
+              <CampoFile
+                label="Foto retro"
+                path={corrente.documentoRetroPath}
+                sezione="documento-retro"
+                giocatoreId={giocatoreId}
+                onCaricato={caricato("documentoRetroPath")}
+              />
+            </div>
+          }
+          fileCertificato={
+            <CampoFile
+              label="Certificato medico"
+              path={corrente.certificatoPath}
+              sezione="certificato"
+              giocatoreId={giocatoreId}
+              onCaricato={caricato("certificatoPath")}
             />
-          </Campo>
-          <Campo label="Luogo di nascita">
-            <input
-              value={corrente.luogoNascita ?? ""}
-              maxLength={80}
-              onChange={(e) => aggiorna({ luogoNascita: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-        </div>
-        <Campo label="Indirizzo di residenza">
-          <input
-            value={corrente.indirizzo ?? ""}
-            maxLength={120}
-            onChange={(e) => aggiorna({ indirizzo: e.target.value })}
-            className={classiInput}
-          />
-        </Campo>
-        <div className="grid grid-cols-2 gap-3">
-          <Campo label="Telefono">
-            <input
-              type="tel"
-              value={corrente.telefono ?? ""}
-              maxLength={20}
-              onChange={(e) => aggiorna({ telefono: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-          <Campo label="Email">
-            <input
-              type="email"
-              value={corrente.email ?? ""}
-              maxLength={120}
-              onChange={(e) => aggiorna({ email: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-        </div>
-
-        <Intestazione titolo="Documento di identità" completa={sezioni.documento} />
-        <div className="grid grid-cols-2 gap-3">
-          <Campo label="Tipo">
-            <select
-              value={corrente.documentoTipo ?? ""}
-              onChange={(e) => aggiorna({ documentoTipo: e.target.value })}
-              className={classiInput}
-            >
-              <option value="">—</option>
-              {TIPI_DOCUMENTO.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Campo>
-          <Campo label="Numero">
-            <input
-              value={corrente.documentoNumero ?? ""}
-              maxLength={40}
-              onChange={(e) => aggiorna({ documentoNumero: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-        </div>
-        <Campo label="Rilasciato da">
-          <input
-            value={corrente.documentoRilasciatoDa ?? ""}
-            maxLength={80}
-            onChange={(e) => aggiorna({ documentoRilasciatoDa: e.target.value })}
-            className={classiInput}
-          />
-        </Campo>
-        <div className="grid grid-cols-2 gap-3">
-          <Campo label="Data emissione">
-            <input
-              type="date"
-              value={corrente.documentoEmissione ?? ""}
-              onChange={(e) => aggiorna({ documentoEmissione: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-          <Campo label="Data scadenza">
-            <input
-              type="date"
-              value={corrente.documentoScadenza ?? ""}
-              onChange={(e) => aggiorna({ documentoScadenza: e.target.value })}
-              className={classiInput}
-            />
-          </Campo>
-        </div>
-        <div className="divide-y divide-border">
-          <CampoFile
-            label="Foto fronte"
-            path={corrente.documentoFrontePath}
-            sezione="documento-fronte"
-            giocatoreId={giocatoreId}
-            onCaricato={caricato("documentoFrontePath")}
-          />
-          <CampoFile
-            label="Foto retro"
-            path={corrente.documentoRetroPath}
-            sezione="documento-retro"
-            giocatoreId={giocatoreId}
-            onCaricato={caricato("documentoRetroPath")}
-          />
-        </div>
-
-        <Intestazione titolo="Certificato medico" completa={sezioni.certificato} />
-        <Campo label="Data di scadenza">
-          <input
-            type="date"
-            value={corrente.certificatoScadenza ?? ""}
-            onChange={(e) => aggiorna({ certificatoScadenza: e.target.value })}
-            className={classiInput}
-          />
-        </Campo>
-        <CampoFile
-          label="Certificato medico"
-          path={corrente.certificatoPath}
-          sezione="certificato"
-          giocatoreId={giocatoreId}
-          onCaricato={caricato("certificatoPath")}
-        />
-
-        <Intestazione titolo="Foto tessera" completa={sezioni.foto} />
-        <CampoFile
-          label="Foto tessera"
-          path={corrente.fotoPath}
-          sezione="foto"
-          giocatoreId={giocatoreId}
-          onCaricato={caricato("fotoPath")}
+          }
+          fileFoto={
+            <>
+              <Intestazione titolo="Foto tessera" completa={sezioni.foto} />
+              <CampoFile
+                label="Foto tessera"
+                path={corrente.fotoPath}
+                sezione="foto"
+                giocatoreId={giocatoreId}
+                onCaricato={caricato("fotoPath")}
+              />
+            </>
+          }
         />
 
         <button
@@ -357,14 +413,5 @@ export function CompletaProfilo({
         </p>
       </Link>
     </Reveal>
-  );
-}
-
-function Intestazione({ titolo, completa }: { titolo: string; completa: boolean }) {
-  return (
-    <div className="flex items-center gap-2 pt-2">
-      <h3 className="font-display text-sm uppercase tracking-wide">{titolo}</h3>
-      {completa ? <Check className="h-4 w-4 text-success" /> : null}
-    </div>
   );
 }

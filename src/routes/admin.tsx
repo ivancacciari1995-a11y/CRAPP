@@ -1,14 +1,34 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown, Download, FileText, IdCard, Image, Loader2, Lock } from "lucide-react";
+import {
+  ChevronDown,
+  Download,
+  FileText,
+  IdCard,
+  Image,
+  Loader2,
+  Lock,
+  Unlink,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
-import { useGiocatoriSquadra, nomeCompleto } from "@/lib/giocatori-squadra";
-import { useProfili, scaricaFile } from "@/lib/profili";
+import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
+import {
+  nomeCompleto,
+  numeroGiaUsato,
+  useGiocatoriSquadra,
+  useSalvaDatiSquadra,
+  useScollegaAccount,
+  validaDatiSquadra,
+  type DatiSquadra,
+  type GiocatoreSquadra,
+} from "@/lib/giocatori-squadra";
+import { scaricaFile, useProfili, useSalvaProfilo } from "@/lib/profili";
 import {
   completamento,
   csvTesseramento,
+  profiloVuoto,
   sezioniComplete,
   statoScadenza,
   type Profilo,
@@ -46,11 +66,159 @@ const statoClasse: Record<StatoScadenza | "presente" | "assente", string> = {
   assente: "bg-secondary text-muted-foreground",
 };
 
-function Riga({ etichetta, valore }: { etichetta: string; valore: string | null }) {
+const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
+
+function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1 text-sm">
-      <span className="shrink-0 text-muted-foreground">{etichetta}</span>
-      <span className="truncate text-right font-medium">{valore || "—"}</span>
+    <label className="block">
+      <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="mt-1 block">{children}</span>
+    </label>
+  );
+}
+
+/**
+ * Pannello di modifica dell'admin (DD-017): dati squadra, dati personali e collegamento
+ * all'account. I file restano fuori: l'admin li scarica, non li carica al posto di altri.
+ */
+function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profilo | undefined }) {
+  const { righe } = useGiocatoriSquadra();
+  const salvaSquadra = useSalvaDatiSquadra();
+  const salvaProfilo = useSalvaProfilo();
+  const scollega = useScollegaAccount();
+
+  const [datiSquadra, setDatiSquadra] = useState<DatiSquadra | null>(null);
+  const [bozza, setBozza] = useState<Profilo | null>(null);
+
+  const squadraCorrente: DatiSquadra = datiSquadra ?? {
+    nome: g.nome,
+    cognome: g.cognome,
+    numero: g.numero,
+    ruolo: g.ruolo,
+  };
+  const profiloCorrente = bozza ?? profilo ?? profiloVuoto(g.id);
+
+  async function confermaSquadra() {
+    const errore = validaDatiSquadra(squadraCorrente);
+    if (errore) {
+      toast.error(errore);
+      return;
+    }
+    if (numeroGiaUsato(righe, g.id, squadraCorrente.numero)) {
+      toast.warning(`Il numero ${squadraCorrente.numero} è già assegnato a un altro giocatore.`);
+    }
+    try {
+      await salvaSquadra.mutateAsync({ giocatoreId: g.id, dati: squadraCorrente });
+      setDatiSquadra(null);
+      toast.success("Dati squadra aggiornati");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Salvataggio non riuscito");
+    }
+  }
+
+  async function confermaProfilo() {
+    try {
+      await salvaProfilo.mutateAsync(profiloCorrente);
+      setBozza(null);
+      toast.success("Profilo aggiornato");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Salvataggio non riuscito");
+    }
+  }
+
+  async function confermaScollega() {
+    if (
+      !confirm(
+        `Scollegare l'account di ${nomeCompleto(g)}? Potrà ricollegarsi al prossimo accesso.`,
+      )
+    )
+      return;
+    try {
+      await scollega.mutateAsync(g.id);
+      toast.success("Account scollegato");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Operazione non riuscita");
+    }
+  }
+
+  return (
+    <div className="mt-3 space-y-3 border-t border-border pt-3">
+      <h3 className="font-display text-sm uppercase tracking-wide">Dati squadra</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Nome">
+          <input
+            value={squadraCorrente.nome}
+            maxLength={40}
+            onChange={(e) => setDatiSquadra({ ...squadraCorrente, nome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Cognome">
+          <input
+            value={squadraCorrente.cognome}
+            maxLength={40}
+            onChange={(e) => setDatiSquadra({ ...squadraCorrente, cognome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Numero">
+          <input
+            type="number"
+            min={1}
+            value={squadraCorrente.numero}
+            onChange={(e) => setDatiSquadra({ ...squadraCorrente, numero: Number(e.target.value) })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Ruolo">
+          <input
+            value={squadraCorrente.ruolo}
+            maxLength={30}
+            onChange={(e) => setDatiSquadra({ ...squadraCorrente, ruolo: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <button
+        type="button"
+        onClick={confermaSquadra}
+        disabled={!datiSquadra || salvaSquadra.isPending}
+        className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+      >
+        Salva dati squadra
+      </button>
+
+      <CampiProfilo
+        corrente={profiloCorrente}
+        aggiorna={(patch) => setBozza({ ...profiloCorrente, ...patch })}
+        sezioni={sezioniComplete(profiloCorrente)}
+      />
+      <button
+        type="button"
+        onClick={confermaProfilo}
+        disabled={!bozza || salvaProfilo.isPending}
+        className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+      >
+        Salva dati personali
+      </button>
+
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
+        <span className="min-w-0 text-muted-foreground">
+          {g.authUserId ? "Account collegato" : "Nessun account collegato"}
+        </span>
+        {g.authUserId ? (
+          <button
+            type="button"
+            onClick={confermaScollega}
+            disabled={scollega.isPending}
+            className="premi flex shrink-0 items-center gap-1.5 rounded-xl bg-destructive px-3 py-2 font-bold text-destructive-foreground disabled:opacity-50"
+          >
+            <Unlink className="h-3.5 w-3.5" /> Scollega
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -98,21 +266,19 @@ function Documento({
 }
 
 function SchedaGiocatore({
-  nome,
-  ruolo,
-  numero,
+  g,
   profilo,
   oggi,
   indice,
 }: {
-  nome: string;
-  ruolo: string;
-  numero: number;
+  g: GiocatoreSquadra;
   profilo: Profilo | undefined;
   oggi: string;
   indice: number;
 }) {
   const [aperta, setAperta] = useState(false);
+  const nome = nomeCompleto(g);
+  const { ruolo, numero } = g;
   const perc = completamento(profilo);
   const sezioni = sezioniComplete(profilo);
   const certificato = statoScadenza(profilo?.certificatoScadenza, profilo?.certificatoPath, oggi);
@@ -177,26 +343,7 @@ function SchedaGiocatore({
         />
       </div>
 
-      {aperta ? (
-        <div className="mt-3 border-t border-border pt-3">
-          <Riga etichetta="Data di nascita" valore={profilo?.dataNascita ?? null} />
-          <Riga etichetta="Luogo di nascita" valore={profilo?.luogoNascita ?? null} />
-          <Riga etichetta="Indirizzo" valore={profilo?.indirizzo ?? null} />
-          <Riga etichetta="Telefono" valore={profilo?.telefono ?? null} />
-          <Riga etichetta="Email" valore={profilo?.email ?? null} />
-          <Riga
-            etichetta="Documento"
-            valore={
-              profilo?.documentoNumero
-                ? `${profilo.documentoTipo ?? ""} ${profilo.documentoNumero}`.trim()
-                : null
-            }
-          />
-          <Riga etichetta="Rilasciato da" valore={profilo?.documentoRilasciatoDa ?? null} />
-          <Riga etichetta="Scadenza documento" valore={profilo?.documentoScadenza ?? null} />
-          <Riga etichetta="Scadenza certificato" valore={profilo?.certificatoScadenza ?? null} />
-        </div>
-      ) : null}
+      {aperta ? <ModificaGiocatore g={g} profilo={profilo} /> : null}
     </Reveal>
   );
 }
@@ -262,15 +409,7 @@ function Dashboard() {
         ) : (
           <div className="space-y-3">
             {attivi.map((g, i) => (
-              <SchedaGiocatore
-                key={g.id}
-                nome={nomeCompleto(g)}
-                ruolo={g.ruolo}
-                numero={g.numero}
-                profilo={profili[g.id]}
-                oggi={oggi}
-                indice={i}
-              />
+              <SchedaGiocatore key={g.id} g={g} profilo={profili[g.id]} oggi={oggi} indice={i} />
             ))}
           </div>
         )}
