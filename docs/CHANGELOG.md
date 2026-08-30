@@ -6,6 +6,13 @@ Tutte le modifiche significative del progetto vengono registrate in questo docum
 
 ## Versione attuale
 
+### Test
+
+- Suite di test in `test/` (unit, integration, end-to-end) eseguita con bun,
+  senza nuove dipendenze: `npm run test` e `npm run test:all`.
+- Corretto un difetto emerso dai test: una sessione Scout Live con timestamp
+  illeggibile restava bloccata per sempre invece di scadere.
+
 ### Collegamento CSI
 
 - Classifica e risultati ufficiali letti dal portale Livescore CSI Bologna
