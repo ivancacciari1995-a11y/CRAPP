@@ -12,6 +12,36 @@ Serve a rispondere a domande del tipo:
 
 ---
 
+## Indice
+
+**Accettate**
+
+| ID | Titolo |
+|---|---|
+| [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable) | Indipendenza da Lovable |
+| [DD-002](#dd-002--sviluppo-document-first) | Sviluppo document-first |
+| [DD-003](#dd-003--due-branch-main-stabile-develop-per-il-lavoro) | Branch main / develop |
+| [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive) | Ogni versione aggiunge, non riscrive |
+| [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi) | Mobile-first |
+| [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale) | AI solo se utile |
+| [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database) | Badge calcolati, non in DB |
+| [DD-008](#dd-008--gamification-equa-tra-ruoli) | Gamification equa tra ruoli |
+| [DD-009](#dd-009--tesseramento-csi-manuale-in-v11-integrazione-api-in-v20) | CSI manuale v1.1, API v2.0 |
+| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati-in-v1) | Niente storico certificati v1 |
+| [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo) | Auth reale prima del profilo |
+| [DD-012](#dd-012--non-migrare-gli-id-giocatore-in-v11) | Non migrare ID in v1.1 |
+| [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi) | Portabilità dello stack |
+| [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0) | Schema dati Profilo Giocatore v1.1 |
+
+**In valutazione**
+
+| ID | Titolo |
+|---|---|
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
+| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database) | Rosa da hardcoded a DB |
+
+---
+
 ## Come usare questo registro
 
 Ogni decisione segue lo stesso schema:
@@ -38,6 +68,11 @@ Ogni decisione segue lo stesso schema:
 - dettagli implementativi locali;
 - scelte estetiche minori;
 - bugfix o correzioni puntuali.
+
+**Come registrare una nuova decisione**
+
+Copiare [`_template-dd.md`](_template-dd.md) in fondo al documento, assegnare il primo ID
+libero e aggiungerlo all'indice.
 
 ---
 
@@ -442,57 +477,3 @@ Il profilo v1.1 può agganciarsi agli ID attuali; la migrazione rosa può essere
 In parallelo o subito dopo il rollout auth.
 
 ---
-
-## Template per nuove decisioni
-
-Copiare questo blocco in fondo al documento quando serve registrare una nuova scelta.
-
----
-
-### DD-XXX — [Titolo breve della decisione]
-
-**Data:**  
-**Stato:** Accettata · In valutazione · Sostituita · Obsoleta
-
-**Contesto**  
-[Quale problema stavamo risolvendo?]
-
-**Decisione**  
-[Cosa abbiamo scelto?]
-
-**Alternative scartate**  
-- [Alternativa 1] → [perché no]  
-- [Alternativa 2] → [perché no]
-
-**Conseguenze**  
-[Cosa cambia per utenti, admin e team di sviluppo]
-
-**Riesame**  
-[Quando o in quali condizioni rivedere la decisione]
-
----
-
-## Indice rapido
-
-| ID | Titolo | Stato |
-|---|---|---|
-| DD-001 | Indipendenza da Lovable | Accettata |
-| DD-002 | Sviluppo document-first | Accettata |
-| DD-003 | Branch main / develop | Accettata |
-| DD-004 | Ogni versione aggiunge, non riscrive | Accettata |
-| DD-005 | Mobile-first | Accettata |
-| DD-006 | AI solo se utile | Accettata |
-| DD-007 | Badge calcolati, non in DB | Accettata |
-| DD-008 | Gamification equa tra ruoli | Accettata |
-| DD-009 | CSI manuale v1.1, API v2.0 | Accettata |
-| DD-010 | Niente storico certificati v1 | Accettata |
-| DD-011 | Auth reale prima del profilo | Accettata |
-| DD-012 | Non migrare ID in v1.1 | Accettata |
-| DD-013 | Portabilità dello stack | Accettata |
-| DD-016 | Schema dati Profilo Giocatore v1.1 | Accettata |
-| DD-014 | Convergenza schema DB | In valutazione |
-| DD-015 | Rosa da hardcoded a DB | In valutazione |
-
----
-
-*Ultimo aggiornamento: 28 agosto 2026*

@@ -1,159 +1,60 @@
 # Database CrAPP
 
-## Obiettivo
+Struttura del database Supabase (PostgreSQL) e ruolo di ogni tabella. Lo schema autoritativo
+sono le migration in `supabase/migrations/`: **una tabella nuova va documentata qui nella
+stessa modifica che la crea**. Le funzionalità future stanno in [ROADMAP.md](ROADMAP.md),
+non in questo file.
 
-Questo documento descrive la struttura del database Supabase e il ruolo di ogni tabella.
+## Anagrafica e utenti
 
----
+| Tabella | Scopo | Note |
+|---|---|---|
+| `giocatori_squadra` | Anagrafica operativa della squadra, con ID testuali (`g1`…`gN`), dati gestiti dagli admin (nome, cognome, numero, ruolo) e collegamento all'account (`auth_user_id`). | Introdotta dalla migration `m1_giocatori_squadra`, già popolata (17 giocatori) ma **non ancora letta dal codice**: la rosa arriva tuttora da `src/lib/crapp-data.ts`, che resta il fallback anche dopo il passaggio. Destinata a diventare la source of truth. Vedi DD-015 e DD-016. |
+| `giocatori` | Anagrafica giocatori con UUID. | Presente ma **non usata** dal codice attuale: la convergenza è rinviata (DD-012, DD-014). |
+| `profili_giocatore` | Dati personali, metadati del documento d'identità, certificato medico e path dei file, in relazione 1:1 con `giocatori_squadra`. | **Prevista** per la v1.1 (DD-016), non ancora creata. |
+| `user_roles` | Ruoli applicativi (es. amministratore, giocatore). | |
 
-# Utenti
+`giocatori_squadra` / `giocatori` sono usate da: Squadra, Profili, Presenze, Scout, Badge, Pagelle.
 
-## giocatori
+## Eventi e presenze
 
-Contiene l'anagrafica dei giocatori.
+| Tabella | Scopo | Note |
+|---|---|---|
+| `eventi_app` | Eventi gestionali utilizzati dall'app. | Modello in uso dal codice attuale. |
+| `risposte_presenze` | Risposte dei giocatori agli eventi. | Modello in uso dal codice attuale. |
+| `eventi` | Calendario generale: allenamenti, partite, eventi della squadra. | Modello "nuovo" con autenticazione e vincoli, non ancora adottato (DD-014). |
+| `presenze` | Presenze agli eventi. | Come sopra (DD-014). |
 
-Utilizzato da:
+## Scout
 
-- Squadra
-- Profili
-- Presenze
-- Scout
-- Badge
-- Pagelle
+| Tabella | Scopo | Note |
+|---|---|---|
+| `scout_sessioni` | Sessioni di Scout Live: una sessione corrisponde a una partita. | **Non ancora usata dal codice**: oggi lo stato della sessione vive in `localStorage` (`src/lib/scout-live.ts`, `scout-store.ts`) e sul database finiscono solo le azioni in `scout_live`. |
+| `scout_live` | Eventi registrati durante lo Scout Live. | Serve esclusivamente per statistiche di squadra, mai per classifiche individuali (DD-008). |
 
----
+## Votazioni
 
-## user_roles
+| Tabella | Scopo | Note |
+|---|---|---|
+| `mvp_voti` | Voti MVP assegnati a fine partita. | |
+| `pagelle_voti` | Voti anonimi assegnati ai giocatori. | Usati per il voto medio. |
+| `badge_social_voti` | Voti social per i badge. | |
 
-Definisce i ruoli applicativi.
+## Turni e notifiche
 
-Esempi:
+| Tabella | Scopo | Note |
+|---|---|---|
+| `turni_palloni` | Gestione dei turni palloni. | |
+| `push_subscriptions` | Dispositivi registrati per le notifiche Push. | |
+| `promemoria_push` | Storico dei promemoria inviati. | |
 
-- amministratore
-- giocatore
+## Funzioni speciali
 
----
+| Tabella | Scopo | Note |
+|---|---|---|
+| `cacche_partita` | Sondaggio prepartita. | Usato per statistiche e badge segreti. |
 
-# Eventi
+## Badge
 
-## eventi
-
-Calendario generale.
-
-Comprende:
-
-- allenamenti
-- partite
-- eventi della squadra
-
----
-
-## eventi_app
-
-Eventi gestionali utilizzati dall'app.
-
----
-
-# Presenze
-
-## presenze
-
-Gestisce le presenze agli eventi.
-
----
-
-## risposte_presenze
-
-Memorizza le risposte dei giocatori.
-
----
-
-# Scout
-
-## scout_sessioni
-
-Sessioni di Scout Live.
-
-Una sessione corrisponde ad una partita.
-
----
-
-## scout_live
-
-Eventi registrati durante lo Scout Live.
-
-Serve esclusivamente per statistiche di squadra.
-
----
-
-# Votazioni
-
-## mvp_voti
-
-Voti MVP assegnati a fine partita.
-
----
-
-## pagelle_voti
-
-Voti anonimi assegnati ai giocatori.
-
-Utilizzati per il voto medio.
-
----
-
-## badge_social_voti
-
-Voti social per i badge.
-
----
-
-# Badge
-
-Attualmente i badge vengono calcolati dall'applicazione.
-
-Non esiste una tabella dedicata.
-
----
-
-# Turni
-
-## turni_palloni
-
-Gestione dei turni palloni.
-
----
-
-# Notifiche
-
-## push_subscriptions
-
-Dispositivi registrati per le notifiche Push.
-
----
-
-## promemoria_push
-
-Storico dei promemoria inviati.
-
----
-
-# Funzioni speciali
-
-## cacche_partita
-
-Sondaggio prepartita.
-
-Utilizzato per statistiche e badge segreti.
-
----
-
-# Moduli futuri
-
-Da implementare
-
-- Certificati medici
-- Tesseramenti CSI
-- Database allenamenti
-- AI Allenamenti
-- Integrazione CSI
+Non esiste una tabella dedicata: i badge vengono **calcolati a runtime** dall'applicazione a
+partire dai dati esistenti (DD-007).

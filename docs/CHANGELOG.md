@@ -1,10 +1,10 @@
 # Changelog
 
-Tutte le modifiche significative del progetto vengono registrate in questo documento.
+Tutte le modifiche significative del progetto vengono registrate in questo documento, in
+ordine dalla più recente. L'elenco delle funzionalità disponibili e previste non si ripete
+qui: sta in [ROADMAP.md](ROADMAP.md).
 
----
-
-## Versione attuale
+## Versione attuale — agosto 2026
 
 ### Test
 
@@ -18,7 +18,7 @@ Tutte le modifiche significative del progetto vengono registrate in questo docum
 - Classifica e risultati ufficiali letti dal portale Livescore CSI Bologna
   (stagione 2025/26, Campionato Open Misto Eccellenza, Girone B).
 - La pagina Campionato non usa più dati dimostrativi.
-- Dettagli e limiti in `docs/modules/collegamento-csi.md`.
+- Dettagli e limiti in [modules/collegamento-csi.md](modules/collegamento-csi.md).
 
 ### Infrastruttura
 
@@ -28,17 +28,7 @@ Tutte le modifiche significative del progetto vengono registrate in questo docum
 - Deploy automatico tramite Vercel.
 - Branch main e develop.
 
----
+## Versione 1.0 — luglio 2026
 
-## Funzionalità implementate
-
-- Gestione squadra
-- Calendario
-- Presenze
-- Scout Live
-- Badge
-- Obiettivi di squadra
-- Pagelle
-- Badge social
-- Serie di presenze
-- Notifiche intelligenti
+Prima versione usata dalla squadra. Funzionalità incluse: vedi
+[ROADMAP.md § Versione 1.0](ROADMAP.md#versione-10--rilasciata).
