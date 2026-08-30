@@ -32,6 +32,7 @@ Serve a rispondere a domande del tipo:
 | [DD-012](#dd-012--non-migrare-gli-id-giocatore-in-v11) | Non migrare ID in v1.1 |
 | [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi) | Portabilità dello stack |
 | [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0) | Schema dati Profilo Giocatore v1.1 |
+| [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore) | L'admin scrive al posto del giocatore |
 
 **In valutazione**
 
@@ -433,6 +434,43 @@ Regole vincolanti:
 - Quando `giocatori_squadra` è stabile in produzione e il fallback `crapp-data.ts` non serve più.  
 - Quando si pianifica la convergenza verso UUID (DD-012, post v1.1).  
 - Se il CSI o il regolamento richiedono conservazione storica documenti o consensi privacy dedicati.
+
+---
+
+### DD-017 — L'amministratore può compilare i dati al posto del giocatore
+
+**Data:** agosto 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Il modulo Profilo Giocatore era costruito su un confine netto: ognuno scrive solo la propria riga, l'amministratore legge e scarica. Nella pratica quel confine blocca il lavoro che il modulo doveva togliere: se metà squadra non compila i propri dati, l'export per il tesseramento CSI resta incompleto e l'admin torna a chiedere le informazioni in chat — esattamente ciò che CrAPP deve eliminare. Inoltre le docs assegnavano già agli admin la gestione dei dati squadra (nome, cognome, numero, ruolo) e il reset del collegamento all'account (DD-016 regola 2), senza che esistesse una schermata per farlo.
+
+**Decisione**  
+Dalla dashboard amministratore, un admin può:
+
+1. modificare i **dati squadra** di qualsiasi giocatore (nome, cognome, numero, ruolo);
+2. compilare e correggere i **dati personali e del documento** di qualsiasi giocatore;
+3. **scollegare** un account da un profilo, liberando lo slot.
+
+Restano fuori, e non cambiano:
+
+- i **file** (documento, certificato, foto): l'admin li scarica ma non li carica né li sostituisce. Un documento d'identità lo produce il suo titolare, e la catena di responsabilità deve restare leggibile;
+- il **giocatore**, che continua a non poter toccare i propri dati squadra.
+
+**Alternative scartate**  
+- Lasciare tutto al giocatore → l'export CSI resta incompleto e il lavoro amministrativo torna in chat, contro la missione del progetto.  
+- Dare all'admin anche l'upload dei file → confonde chi ha fornito un documento, su dati sanitari e d'identità dove serve il contrario.  
+- Un ruolo intermedio (segreteria) per i soli dati personali → un ruolo in più per una squadra sola, con gli stessi tre amministratori di adesso.
+
+**Conseguenze**  
+- Il modello dei permessi non è più "ognuno i suoi": è "ognuno i suoi, più l'admin su tutti, tranne i file". Le policy RLS di M1 e M2 lo consentivano già, quindi non servono migration.  
+- Un admin può correggere un errore di battitura in un numero di documento senza inseguire il giocatore.  
+- Un admin vede e scrive dati personali altrui: è un potere reale, dato a tre persone su diciassette. Va assegnato con la stessa cura di prima (una riga in `user_roles`, nessuna auto-promozione).  
+- Il completamento del profilo smette di essere un indicatore di *chi ha risposto* e diventa un indicatore di *quali dati mancano*, chiunque li abbia inseriti.
+
+**Riesame**  
+- Se la squadra cresce al punto da rendere sensato un ruolo di sola segreteria.  
+- Se serve tracciare *chi* ha modificato un dato: oggi non c'è audit, e con la scrittura condivisa la domanda prima o poi arriva.
 
 ---
 

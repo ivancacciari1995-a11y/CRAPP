@@ -18,6 +18,10 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   certificato e foto tessera, export CSV per il tesseramento CSI.
 - Migration `m2_profili_giocatore` (tabella dei profili) e `m3_bucket_profili` (bucket
   privato), entrambe additive.
+- Dalla dashboard l'amministratore modifica i dati squadra (nome, cognome, numero, ruolo),
+  compila i dati personali al posto di un giocatore e scollega un account da un profilo
+  (DD-017). I file restano esclusi: li carica solo il giocatore. Nessuna migration: le
+  policy di M1 e M2 lo consentivano già.
 
 ### Test
 

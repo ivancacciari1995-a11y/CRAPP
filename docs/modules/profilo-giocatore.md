@@ -26,6 +26,12 @@ Può:
 - scaricare documenti e certificati
 - esportare i dati necessari al tesseramento CSI
 - verificare lo stato di completamento dei profili
+- modificare i dati squadra di qualsiasi giocatore (nome, cognome, numero, ruolo)
+- compilare e correggere i dati personali e del documento al posto di un giocatore (DD-017)
+- scollegare un account da un profilo, liberando lo slot
+
+Non può caricare o sostituire i file altrui: documento, certificato e foto restano
+responsabilità del giocatore che li fornisce.
 
 ## Flusso utente
 
@@ -152,6 +158,8 @@ Azioni disponibili.
 - Scarica certificato
 - Scarica documento
 - Scarica foto tessera
+- Modifica dati squadra e dati personali del giocatore (DD-017)
+- Scollega account, per liberare uno slot assegnato per errore
 
 ## Esportazione CSI
 
@@ -189,7 +197,9 @@ Quando tutte le sezioni risultano complete il profilo raggiunge il 100%.
 
 **Giocatore** — può modificare esclusivamente il proprio profilo.
 
-**Amministratore** — può visualizzare tutti i profili, scaricare tutti i documenti ed esportare i dati.
+**Amministratore** — può visualizzare tutti i profili, scaricare tutti i documenti, esportare i
+dati, modificare dati squadra e dati personali di chiunque e scollegare un account (DD-017).
+Non carica file al posto di altri.
 
 ## Versione 1
 
