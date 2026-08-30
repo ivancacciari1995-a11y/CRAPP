@@ -11,9 +11,11 @@ import {
 } from "@/lib/profili-core";
 import {
   dividiNome,
+  numeroGiaUsato,
   rosaFallback,
   slotDi,
   slotLiberi,
+  validaDatiSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
 
@@ -153,6 +155,29 @@ assert.deepEqual(
   slotLiberi([...squadra, { ...squadra[0]!, id: "g3", attivo: false }]).map((g) => g.id),
   ["g1"],
   "i giocatori non attivi restano fuori",
+);
+
+// --- dati squadra modificabili dall'admin (DD-017) ---------------------------
+const datiOk = { nome: "Ivan", cognome: "Cacciari", numero: 23, ruolo: "Banda" };
+assert.equal(validaDatiSquadra(datiOk), null);
+assert.match(validaDatiSquadra({ ...datiOk, nome: "  " }) ?? "", /nome/i);
+assert.match(validaDatiSquadra({ ...datiOk, cognome: "" }) ?? "", /cognome/i);
+assert.match(validaDatiSquadra({ ...datiOk, ruolo: " " }) ?? "", /ruolo/i);
+assert.match(
+  validaDatiSquadra({ ...datiOk, numero: 0 }) ?? "",
+  /numero/i,
+  "il database rifiuta numero <= 0: meglio dirlo prima",
+);
+assert.match(validaDatiSquadra({ ...datiOk, numero: -3 }) ?? "", /numero/i);
+assert.match(validaDatiSquadra({ ...datiOk, numero: 1.5 }) ?? "", /numero/i);
+
+assert.equal(numeroGiaUsato(squadra, "g1", 7), true, "il 7 è di g2");
+assert.equal(numeroGiaUsato(squadra, "g2", 7), false, "il proprio numero non è un conflitto");
+assert.equal(numeroGiaUsato(squadra, "g1", 99), false);
+assert.equal(
+  numeroGiaUsato([{ ...squadra[1]!, attivo: false }], "g1", 7),
+  false,
+  "chi non è più in rosa non blocca il numero",
 );
 
 const fallback = rosaFallback();
