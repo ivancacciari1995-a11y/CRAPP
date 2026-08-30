@@ -48,6 +48,7 @@ try {
       ["/profilo", /Profilo|CrAPP/],
       ["/eventi", /Eventi|CrAPP/],
       ["/scout", /Scout|CrAPP/],
+      ["/admin", /Dashboard|CrAPP/],
     ];
     for (const [percorso, atteso] of attesi) {
       assert.match(titolo(await pagina(percorso)), atteso, `${percorso}: titolo corretto`);
