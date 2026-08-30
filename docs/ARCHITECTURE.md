@@ -44,7 +44,12 @@ docs/           documentazione ufficiale
   server functions, `attachSupabaseAuth`).
 - **Supabase**: `src/integrations/supabase/client.ts` (browser/SSR, chiave publishable — file
   generato) e `client.server.ts` (`supabaseAdmin`, solo server). `types.ts` è generato dallo
-  schema.
+  schema; finché non viene rigenerato, le tabelle introdotte da M1/M2 si usano tramite
+  `client-nuove-tabelle.ts`, con i tipi di riga dichiarati nei moduli di `src/lib/`.
+- **Autenticazione**: login Google via Supabase Auth (`src/lib/auth.ts`, DD-011); i permessi
+  di amministrazione arrivano da `user_roles` (`src/lib/ruoli.ts`). La variabile
+  `VITE_AUTH_OBBLIGATORIA` decide se `/benvenuto` accetta ancora la selezione libera del
+  giocatore: finché è spenta, login e vecchio accesso convivono.
 
 ## Livello dati
 
@@ -94,6 +99,19 @@ npm run test:integration  # route server vere
 npm run test:e2e          # percorsi sull'app servita
 npm run test:all          # tutto
 ```
+
+Database di sviluppo in locale (Docker), alternativo al progetto Supabase cloud:
+
+```bash
+npx supabase start   # avvia lo stack locale e applica tutte le migration
+npx supabase stop    # spegne i container
+npx supabase db reset # ricrea il database da zero: migration + supabase/seed.sql
+npx supabase db push  # applica le migration al progetto cloud
+```
+
+`supabase/seed.sql` popola qualche profilo di prova e gira **solo in locale**. Serve perché
+il progetto cloud è uno solo, condiviso tra sviluppo e produzione: lo stack locale è il posto
+dove provare le migration distruttive senza toccare i dati veri.
 
 ## Branch e flusso di sviluppo
 

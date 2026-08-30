@@ -6,6 +6,19 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Autenticazione e dashboard amministratore (su `develop`, non ancora in produzione)
+
+- Login con Google tramite Supabase Auth (DD-011). Al primo accesso l'account si collega a
+  un giocatore di `giocatori_squadra`, e il collegamento non è più modificabile dal
+  giocatore stesso (DD-016 regola 2).
+- I permessi di amministrazione arrivano da `user_roles` (`src/lib/ruoli.ts`) e non più
+  dalla lista di nomi in `crapp-data.ts`, che resta solo come ponte finché
+  `VITE_AUTH_OBBLIGATORIA` non viene acceso.
+- Nuova schermata `/admin`: stato dei profili della squadra, download di documento,
+  certificato e foto tessera, export CSV per il tesseramento CSI.
+- Migration `m2_profili_giocatore` (tabella dei profili) e `m3_bucket_profili` (bucket
+  privato), entrambe additive.
+
 ### Test
 
 - Suite di test in `test/` (unit, integration, end-to-end) eseguita con bun,

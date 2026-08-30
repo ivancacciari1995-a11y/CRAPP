@@ -6,9 +6,16 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 ## In corso
 
 - Documentazione tecnica del progetto.
+- Autenticazione Google e dashboard amministratore: implementate su `develop`. Restano da
+  fare, in quest'ordine: configurazione del provider Google in Supabase, applicazione delle
+  migration M2/M3, inserimento del primo admin in `user_roles`, collegamento dei 17 account,
+  e solo alla fine `VITE_AUTH_OBBLIGATORIA=true` + rimozione delle policy `anon`.
+  Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
 
 ## Prossimo
 
+- Profilo giocatore lato giocatore: senza le schermate di caricamento di documento,
+  certificato e foto, la dashboard amministratore resta a zero dati.
 - Certificati medici (roadmap v1.1).
 - Gestione tesseramenti CSI (roadmap v1.1).
 
@@ -31,5 +38,4 @@ Non documentate nemmeno le route API pubbliche in `src/routes/api/public/` (`csi
 ## Backlog
 
 - AI Allenamenti (roadmap v1.2).
-- Dashboard amministratore (roadmap v1.1).
 - Backup automatici (roadmap, idee future).

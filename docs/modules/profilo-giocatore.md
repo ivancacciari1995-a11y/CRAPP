@@ -31,7 +31,9 @@ Può:
 
 ### Primo accesso
 
-1. Login tramite Google oppure Email.
+1. Login tramite Google oppure Email. *Implementato con il solo Google: la squadra ha tutti
+   un account Google, e un secondo metodo è additivo (un bottone in più sulla stessa
+   schermata) il giorno che serve.*
 2. Selezione del proprio giocatore.
 3. Accesso alla Home.
 
@@ -134,7 +136,8 @@ Contiene.
 
 ## Dashboard amministratore
 
-Gli amministratori dispongono di una schermata dedicata.
+Gli amministratori dispongono di una schermata dedicata (`/admin`, raggiungibile da
+Profilo → Impostazioni).
 
 Per ogni giocatore vengono mostrati.
 
@@ -145,7 +148,7 @@ Per ogni giocatore vengono mostrati.
 
 Azioni disponibili.
 
-- Visualizza profilo
+- Visualizza profilo (la scheda si apre in linea nell'elenco: nessuna schermata separata)
 - Scarica certificato
 - Scarica documento
 - Scarica foto tessera

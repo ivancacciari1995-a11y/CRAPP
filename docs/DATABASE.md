@@ -11,10 +11,16 @@ non in questo file.
 |---|---|---|
 | `giocatori_squadra` | Anagrafica operativa della squadra, con ID testuali (`g1`…`gN`), dati gestiti dagli admin (nome, cognome, numero, ruolo) e collegamento all'account (`auth_user_id`). | Introdotta dalla migration `m1_giocatori_squadra`, già popolata (17 giocatori) ma **non ancora letta dal codice**: la rosa arriva tuttora da `src/lib/crapp-data.ts`, che resta il fallback anche dopo il passaggio. Destinata a diventare la source of truth. Vedi DD-015 e DD-016. |
 | `giocatori` | Anagrafica giocatori con UUID. | Presente ma **non usata** dal codice attuale: la convergenza è rinviata (DD-012, DD-014). |
-| `profili_giocatore` | Dati personali, metadati del documento d'identità, certificato medico e path dei file, in relazione 1:1 con `giocatori_squadra`. | **Prevista** per la v1.1 (DD-016), non ancora creata. |
-| `user_roles` | Ruoli applicativi (es. amministratore, giocatore). | |
+| `profili_giocatore` | Dati personali, metadati del documento d'identità, certificato medico e path dei file, in relazione 1:1 con `giocatori_squadra`. | Creata dalla migration `m2_profili_giocatore` (DD-016). Letta da `src/lib/profili.ts`; le policy mostrano al giocatore solo il proprio profilo e all'admin tutti. I file non stanno qui: la tabella conserva i path nel bucket. |
+| `user_roles` | Ruoli applicativi (es. amministratore, giocatore). | Fonte dei permessi di amministrazione, letta da `src/lib/ruoli.ts` (DD-011). Il primo admin va inserito a mano; vedi [PROJECT_STATE.md](../PROJECT_STATE.md). |
 
 `giocatori_squadra` / `giocatori` sono usate da: Squadra, Profili, Presenze, Scout, Badge, Pagelle.
+
+## Storage
+
+| Bucket | Scopo | Note |
+|---|---|---|
+| `profili-giocatore` | Documento d'identità, certificato medico e foto tessera, in cartelle per giocatore (`<giocatore_id>/<sezione>.<est>`). | **Privato** e destinato a restare tale: contiene documenti e dati sanitari, che non devono mai avere URL pubblici (DD-016 regola 4). Il giocatore gestisce solo la propria cartella, l'admin può scaricare tutto tramite signed URL a scadenza breve. Creato dalla migration `m3_bucket_profili`. |
 
 ## Eventi e presenze
 

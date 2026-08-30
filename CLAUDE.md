@@ -16,6 +16,11 @@ npm run build     # build di produzione (nitro)
 npm run lint      # eslint (include prettier come regola)
 npm run format    # prettier --write .
 npm run test      # suite di test (test/); npm run test:all per quella completa
+
+npx supabase start    # database locale in Docker (migration applicate + seed)
+npx supabase stop     # spegne i container
+npx supabase db reset # ricrea il database locale da zero
+npx supabase db push  # applica le migration al progetto cloud
 ```
 
 Verifica minima prima di consegnare: `npm run lint` + `npm run test`.
