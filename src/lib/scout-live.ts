@@ -24,7 +24,10 @@ export type SessioneScout = {
 
 export function sessioneScaduta(s: SessioneScout | null): boolean {
   if (!s) return true;
-  return Date.now() - new Date(s.aggiornato_il).getTime() > SCADENZA_MINUTI * 60_000;
+  const aggiornato = new Date(s.aggiornato_il).getTime();
+  // Timestamp illeggibile: meglio liberare la sessione che lasciarla bloccata per sempre.
+  if (Number.isNaN(aggiornato)) return true;
+  return Date.now() - aggiornato > SCADENZA_MINUTI * 60_000;
 }
 
 const storageKey = (eventoId: string) => `crap-scout-session-${eventoId}`;
@@ -82,7 +85,10 @@ export function useSessioneScout(eventoId: string | null) {
     } catch {
       const onStorage = (e: StorageEvent) => {
         if (e.key === storageKey(eventoId)) {
-          queryClient.setQueryData(SESSIONE_KEY(eventoId), e.newValue ? (JSON.parse(e.newValue) as SessioneScout) : null);
+          queryClient.setQueryData(
+            SESSIONE_KEY(eventoId),
+            e.newValue ? (JSON.parse(e.newValue) as SessioneScout) : null,
+          );
         }
       };
       window.addEventListener("storage", onStorage);
@@ -140,7 +146,11 @@ export function useChiudiSessioneScout() {
 }
 
 /** Mantiene viva la sessione mentre lo scout è aperto. */
-export function useHeartbeatScout(eventoId: string | null, giocatoreId: string | null, attivo: boolean) {
+export function useHeartbeatScout(
+  eventoId: string | null,
+  giocatoreId: string | null,
+  attivo: boolean,
+) {
   useEffect(() => {
     if (!attivo || !eventoId || !giocatoreId || typeof window === "undefined") return;
     const id = window.setInterval(() => {
