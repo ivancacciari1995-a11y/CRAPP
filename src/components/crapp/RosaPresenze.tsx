@@ -4,9 +4,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
-import { giocatori, isAdmin, statoMeta, type Stato } from "@/lib/crapp-data";
+import { giocatori, statoMeta, type Stato } from "@/lib/crapp-data";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useIsAdmin } from "@/lib/ruoli";
 
 const ordine: Stato[] = ["presente", "ritardo", "forse", "infortunato", "assente"];
 
@@ -14,6 +15,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
   const { risposte, isPending } = usePresenzeEvento(eventoId);
   const salva = useSalvaPresenza();
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const [sollecito, setSollecito] = useState(false);
 
   const mancanti = giocatori.filter((g) => !risposte[g.id]);
@@ -105,7 +107,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
           </div>
         ) : null}
 
-        {io && isAdmin(io.id) ? (
+        {admin ? (
           <button
             type="button"
             onClick={sollecita}

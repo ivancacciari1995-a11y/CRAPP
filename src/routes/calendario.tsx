@@ -5,9 +5,9 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { isAdmin } from "@/lib/crapp-data";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useIsAdmin } from "@/lib/ruoli";
 import {
   Drawer,
   DrawerClose,
@@ -97,6 +97,7 @@ function Calendario() {
   const [giornoSelezionato, setGiornoSelezionato] = useState<number | null>(null);
   const [drawerAperto, setDrawerAperto] = useState(false);
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const { eventi } = useEventi();
   const { anno, mese, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
@@ -245,7 +246,7 @@ function Calendario() {
         </Section>
       ) : null}
 
-      {io && isAdmin(io.id) ? (
+      {admin ? (
         <div className="px-5 pt-4">
           <Link
             to="/eventi"

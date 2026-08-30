@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BenvenutoRouteImport } from './routes/benvenuto'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as ClassificaRouteImport } from './routes/classifica'
@@ -29,6 +30,11 @@ import { Route as ApiPublicSollecitaPresenzeRouteImport } from './routes/api/pub
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BenvenutoRoute = BenvenutoRouteImport.update({
@@ -111,6 +117,7 @@ const ApiPublicSollecitaPresenzeRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -148,6 +156,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -223,6 +235,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   BenvenutoRoute: typeof BenvenutoRoute
   CalendarioRoute: typeof CalendarioRoute
   ClassificaRoute: typeof ClassificaRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/benvenuto': {
@@ -359,6 +379,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   BenvenutoRoute: BenvenutoRoute,
   CalendarioRoute: CalendarioRoute,
   ClassificaRoute: ClassificaRoute,
