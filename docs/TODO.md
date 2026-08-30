@@ -6,7 +6,9 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 ## In corso
 
 - Documentazione tecnica del progetto.
-- Autenticazione Google e dashboard amministratore: implementate su `develop`. Restano da
+- Autenticazione Google e dashboard amministratore: implementate su `develop`, ma in dev il
+  login risponde ancora `provider is not enabled` perché il provider Google non è stato
+  acceso in Supabase. Restano da
   fare, in quest'ordine: configurazione del provider Google in Supabase, applicazione delle
   migration M2/M3, inserimento del primo admin in `user_roles`, collegamento dei 17 account,
   e solo alla fine `VITE_AUTH_OBBLIGATORIA=true` + rimozione delle policy `anon`.
@@ -14,10 +16,12 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 
 ## Prossimo
 
-- Profilo giocatore lato giocatore: senza le schermate di caricamento di documento,
-  certificato e foto, la dashboard amministratore resta a zero dati.
-- Certificati medici (roadmap v1.1).
-- Gestione tesseramenti CSI (roadmap v1.1).
+- Gestione tesseramenti CSI (roadmap v1.1): la raccolta dati e l'export CSV ci sono, manca
+  il tracciamento di chi è già tesserato (numero e data di tessera).
+
+Il profilo giocatore lato giocatore e i certificati medici sono fatti: `ProfiloAmministrativo`
+in `src/routes/profilo.tsx` carica documento, certificato e foto con le date di scadenza, e
+la dashboard amministratore legge quei dati.
 
 ## Debito di documentazione
 

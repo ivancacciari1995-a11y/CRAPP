@@ -14,6 +14,9 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 - I permessi di amministrazione arrivano da `user_roles` (`src/lib/ruoli.ts`) e non più
   dalla lista di nomi in `crapp-data.ts`, che resta solo come ponte finché
   `VITE_AUTH_OBBLIGATORIA` non viene acceso.
+- Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica
+  documento, certificato medico e foto tessera con le relative scadenze
+  ([modules/profilo-giocatore.md](modules/profilo-giocatore.md)).
 - Nuova schermata `/admin`: stato dei profili della squadra, download di documento,
   certificato e foto tessera, export CSV per il tesseramento CSI.
 - Migration `m2_profili_giocatore` (tabella dei profili) e `m3_bucket_profili` (bucket
