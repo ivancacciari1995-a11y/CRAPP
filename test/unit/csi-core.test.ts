@@ -10,7 +10,7 @@ import {
   partiteGiocate,
   urlClassifica,
   urlPartite,
-} from "./csi-core";
+} from "@/lib/csi-core";
 
 const htmlClassifica = `
 <table class="ranking">
