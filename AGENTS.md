@@ -1,141 +1,450 @@
-# AGENTS.md — CrAPP
+# CrAPP - AI Development Guide
 
-Regole che qualsiasi assistente AI (Claude Code, Codex, Cursor, ChatGPT o altri) deve seguire
-quando lavora su questo progetto. **È l'unica fonte delle regole**: `CLAUDE.md` e
-`.cursor/rules/` rimandano qui, non ripetono nulla.
+Questo documento definisce le regole che qualsiasi assistente AI (Cursor, Claude Code, Codex, ChatGPT o altri) deve seguire quando lavora su questo progetto.
 
-> **Qualsiasi cosa venga aggiunta o modificata — una regola, una funzionalità, una decisione,
-> una tabella — va registrata nei file di riferimento del progetto prima di considerare il
-> lavoro finito**, indipendentemente dall'assistente con cui è stata fatta. Vedi
-> [Fine lavoro](#fine-lavoro-cosa-aggiornare-sempre): non è un passaggio opzionale.
+---
 
-CrAPP è una Progressive Web App per la gestione di una squadra di pallavolo amatoriale (CRAP
-Volley). Obiettivi e principi in [docs/VISION.md](docs/VISION.md), architettura in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+# Obiettivo del progetto
 
-**Codice, commenti, nomi di variabili e documentazione sono in italiano**: mantieni questa
-convenzione.
+CrAPP è una Progressive Web App sviluppata per digitalizzare completamente la gestione di una squadra di pallavolo.
 
-## Prima di modificare il codice
+L'obiettivo principale è:
 
-Leggere sempre, nell'ordine:
+- ridurre il lavoro amministrativo degli amministratori;
 
-1. [docs/README.md](docs/README.md) — indice della documentazione
-2. [docs/VISION.md](docs/VISION.md)
-3. [docs/ROADMAP.md](docs/ROADMAP.md)
-4. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-5. [docs/DATABASE.md](docs/DATABASE.md)
-6. [docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md)
-7. [docs/TODO.md](docs/TODO.md)
-8. il documento del modulo interessato in [docs/modules/](docs/modules/)
+- aumentare il coinvolgimento dei giocatori;
 
-**Non implementare funzionalità non documentate** (DD-002).
+- centralizzare tutte le informazioni della squadra;
 
-## Workflow
+- utilizzare l'intelligenza artificiale solo quando porta un reale beneficio.
 
-```
-idea → progettazione → documento in docs/modules/ → database → implementazione su develop
-→ test → merge su main → deploy automatico Vercel
-```
+---
 
-- `main` = produzione, sempre funzionante: **non si modifica direttamente**. Qualsiasi
-  modifica deve mantenere l'app perfettamente funzionante.
-- `develop` = sviluppo e preview; tutte le nuove implementazioni nascono qui.
+# Prima di modificare il codice
 
-### Commit
+Prima di implementare qualsiasi modifica leggere sempre:
 
-- **Si committa solo quando l'utente lo chiede**, mai di propria iniziativa. Lo stesso vale
-  per il push, che su `develop` fa partire un deploy di preview.
-- Quando l'utente lo chiede, **il messaggio lo scrive l'assistente in autonomia**, senza
-  farlo approvare prima.
-- **Il messaggio è in inglese**, all'imperativo presente (`Add medical certificate expiry`),
-  riga di riepilogo sotto i 72 caratteri. È l'unica eccezione all'italiano: codice, commenti
-  e documentazione restano in italiano. I commit precedenti sono in italiano e non vanno
-  riscritti.
-- Se il lavoro attua una decisione registrata, il messaggio la cita: `DD-017: ...`.
-- Nel commit entrano insieme codice e documentazione: la checklist
-  [Fine lavoro](#fine-lavoro-cosa-aggiornare-sempre) va eseguita prima, non in un commit a parte.
+1. docs/[README.md](http://README.md)
 
-## Vincoli tecnici da non violare
+2. docs/[VISION.md](http://VISION.md)
 
-- `src/routeTree.gen.ts` e `src/integrations/supabase/{client.ts,types.ts}` sono **generati**:
-  non modificarli a mano.
-- **Non ri-aggiungere** i plugin Vite (devtools, tanstackStart, viteReact, tailwind,
-  tsconfig-paths, nitro) già inclusi da `@lovable.dev/vite-tanstack-config` in
-  `vite.config.ts`: l'app si rompe.
-- Nessun accesso al database dai componenti: solo tramite i moduli in `src/lib/`, così il
-  backend resta sostituibile in un solo punto (DD-013).
-- Efficienza cloud: niente polling, cache lunga, e dopo una mutazione `setQueryData` invece di
-  `invalidateQueries`. Regole complete in [docs/EFFICIENZA_CLOUD.md](docs/EFFICIENZA_CLOUD.md).
-- Badge e statistiche si calcolano a runtime, non si persistono (DD-007); la gamification
-  resta equa tra ruoli (DD-008): niente metriche che favoriscano attaccanti o liberi.
-- L'app deve poter girare su Node.js + PostgreSQL standard: niente servizi esclusivi
-  Lovable/Vercel (DD-001, DD-013, [docs/PORTABILITA.md](docs/PORTABILITA.md)).
+3. docs/[ROADMAP.md](http://ROADMAP.md)
 
-## Database
+4. docs/[ARCHITECTURE.md](http://ARCHITECTURE.md)
 
-- Non eliminare tabelle esistenti.
-- Non modificare lo schema senza creare una migration in `supabase/migrations/`.
-- Preferire una nuova tabella all'aggiunta di molte colonne, quando il modulo è indipendente.
-- Preferire strutture scalabili; evitare duplicazione dei dati.
-- Riferimento: [docs/DATABASE.md](docs/DATABASE.md), da aggiornare nella stessa modifica che
-  cambia lo schema.
+5. docs/[DATABASE.md](http://DATABASE.md)
 
-## Codice e componenti
+6. docs/DESIGN_[DECISIONS.md](http://DECISIONS.md)
 
-- TypeScript, funzioni piccole, nomi descrittivi.
-- Componenti piccoli, riutilizzabili, a responsabilità singola.
-- Nessuna duplicazione: riusare sempre i componenti e i moduli esistenti.
-- Commentare solo il codice realmente complesso.
-- Nessuna nuova dipendenza senza reale necessità; mantenere la struttura esistente.
-- Le dipendenze si installano con **bun**; `bunfig.toml` impone `minimumReleaseAge = 24h` come
-  guardia supply-chain: aggiungere un pacchetto a `minimumReleaseAgeExcludes` richiede
-  conferma esplicita dell'utente.
+7. docs/[TODO.md](http://TODO.md)
 
-## Interfaccia
+8. il documento interessato in docs/modules/
 
-Stile coerente con l'esistente: semplice, moderna, pulita, veloce, ottimizzata per
-smartphone, poche schermate e pochi click (DD-005). Riusare i componenti in
-`src/components/crapp/` (`ui-bits.tsx` per `PageHeader`, `Section`, `StatTile`) e le primitive
-shadcn in `src/components/ui/`.
+Inoltre, prima di iniziare una nuova attività:
 
-## Fine lavoro: cosa aggiornare sempre
+- verificare lo stato attuale del repository;
 
-Il lavoro **non è finito** finché non è registrato dove va. Vale per tutti gli assistenti allo
-stesso modo: chi fa la modifica aggiorna i file, chiunque la stia facendo e da qualunque
-strumento. Un cambiamento che vive solo nel codice o solo nella chat è un cambiamento perso.
+- controllare le modifiche e i commit recenti;
 
-| Cosa hai aggiunto o cambiato | Dove va registrato |
-|---|---|
-| Una **regola** per gli assistenti (convenzione, divieto, vincolo di lavoro) | **Questo file, e solo questo.** Mai in `CLAUDE.md` o `.cursor/rules/`: rimandano qui, e una regola scritta lì la vedrebbe un assistente solo |
-| Una **funzionalità** | `docs/modules/<modulo>.md` (**prima** di scrivere il codice), poi `docs/ROADMAP.md` e `docs/CHANGELOG.md` |
-| Una **decisione** architetturale o di prodotto | `docs/DESIGN_DECISIONS.md`, formato `DD-XXX` (copiare `docs/_template-dd.md`) e aggiungerla all'indice in cima |
-| Una **modifica allo schema** del database | una migration in `supabase/migrations/` **e** `docs/DATABASE.md`, nella stessa modifica |
-| Lavoro iniziato, sospeso o concluso | `docs/TODO.md` e `PROJECT_STATE.md` |
-| Un **comando** o uno script nuovo | `docs/ARCHITECTURE.md` (sezione Comandi) e `CLAUDE.md` |
+- verificare eventuali modifiche introdotte da altri sviluppatori o assistenti AI;
 
-Quale informazione vive in quale file — e perché non va duplicata altrove — è spiegato in
-[docs/README.md](docs/README.md).
+- leggere la documentazione aggiornata relativa alla funzionalità interessata.
 
-## Cosa l'AI non deve fare
+Non implementare funzionalità non documentate.
+
+Non presumere che il progetto sia nello stesso stato dell'ultima sessione o conversazione.
+
+---
+
+# Workflow di sviluppo
+
+Ogni nuova funzionalità segue sempre questo processo.
+
+Idea
+
+↓
+
+Progettazione
+
+↓
+
+Documentazione
+
+↓
+
+Database
+
+↓
+
+Implementazione
+
+↓
+
+Test
+
+↓
+
+Pull Request
+
+↓
+
+Merge su develop
+
+↓
+
+Verifica
+
+↓
+
+Merge su main
+
+↓
+
+Deploy
+
+Le funzionalità possono essere sviluppate in parallelo da persone diverse, ciascuna sul proprio branch.
+
+---
+
+# Git
+
+Il repository utilizza due branch principali.
+
+## main
+
+Versione stabile.
+
+Qualsiasi modifica deve mantenere l'app perfettamente funzionante.
+
+`main` rappresenta la versione destinata alla produzione.
+
+## develop
+
+Branch di integrazione e test.
+
+Le nuove funzionalità vengono integrate in `develop` prima di arrivare in `main`.
+
+Non lavorare direttamente su `main`.
+
+Evitare modifiche dirette a `develop`, salvo attività esplicitamente concordate.
+
+---
+
+# Branch di sviluppo
+
+Ogni sviluppatore deve lavorare su un branch dedicato creato a partire da `develop`.
+
+Esempi:
+
+- `feature/profilo-giocatore`
+
+- `feature/integrazione-csi`
+
+- `fix/presenze`
+
+- `refactor/supabase-client`
+
+Non utilizzare lo stesso branch contemporaneamente per attività indipendenti.
+
+Prima di iniziare un'attività verificare che il branch sia aggiornato rispetto a `develop`.
+
+---
+
+# Integrazione delle modifiche
+
+Le modifiche significative devono essere integrate tramite Pull Request verso `develop`.
+
+Una Pull Request dovrebbe permettere di capire:
+
+- cosa è stato modificato;
+
+- perché è stato modificato;
+
+- quali file o moduli sono coinvolti;
+
+- se il database è stato modificato;
+
+- quali test sono stati eseguiti;
+
+- eventuali rischi o conseguenze.
+
+Prima del merge verificare eventuali conflitti con il lavoro sviluppato nel frattempo dagli altri collaboratori.
+
+---
+
+# Tracciabilità delle modifiche
+
+Ogni modifica significativa deve lasciare una traccia nel progetto.
+
+Devono essere utilizzati:
+
+- commit con messaggi descrittivi;
+
+- Pull Request per l'integrazione;
+
+- [CHANGELOG.md](http://CHANGELOG.md) quando una modifica deve essere registrata nella cronologia del progetto;
+
+- PROJECT_[STATE.md](http://STATE.md) quando cambia lo stato generale del progetto;
+
+- DESIGN_[DECISIONS.md](http://DECISIONS.md) per decisioni architetturali significative.
+
+La documentazione deve permettere a uno sviluppatore o a un assistente AI di ricostruire cosa è successo senza dipendere dalla cronologia delle conversazioni.
+
+---
+
+# Aggiornamento del contesto dopo la sincronizzazione
+
+Quando vengono scaricate modifiche da GitHub, l'assistente AI deve considerare il repository come fonte di verità.
+
+Prima di iniziare una nuova attività deve:
+
+1. verificare i nuovi commit;
+
+2. identificare le modifiche rilevanti;
+
+3. leggere la documentazione modificata;
+
+4. verificare eventuali modifiche al database;
+
+5. tenere conto delle nuove decisioni architetturali.
+
+Non ignorare modifiche introdotte da altri collaboratori.
+
+Non sovrascrivere modifiche esistenti senza averne compreso lo scopo.
+
+---
+
+# Architettura
+
+Frontend
+
+- React
+
+- TypeScript
+
+- TanStack Start
+
+- Tailwind CSS
+
+Backend
+
+- Supabase
+
+Hosting
+
+- Vercel
+
+Repository
+
+- GitHub
+
+---
+
+# Database
+
+Il database utilizza Supabase.
+
+Regole:
+
+- non eliminare tabelle esistenti;
+
+- non modificare lo schema senza creare una migration;
+
+- preferire strutture scalabili;
+
+- evitare duplicazione dei dati;
+
+- non modificare migration già applicate;
+
+- ogni modifica allo schema deve essere rappresentata da una nuova migration.
+
+Fare sempre riferimento a:
+
+docs/[DATABASE.md](http://DATABASE.md)
+
+---
+
+# Componenti
+
+Preferire:
+
+- componenti piccoli;
+
+- componenti riutilizzabili;
+
+- responsabilità singola;
+
+- codice semplice da mantenere.
+
+Evitare duplicazioni.
+
+Prima di creare un nuovo componente verificare se esiste già un componente riutilizzabile.
+
+---
+
+# Interfaccia
+
+Lo stile dell'app deve rimanere coerente.
+
+Principi:
+
+- semplice;
+
+- moderna;
+
+- pulita;
+
+- veloce;
+
+- ottimizzata per smartphone;
+
+- poche schermate;
+
+- pochi click.
+
+---
+
+# Documentazione
+
+Ogni nuova funzionalità deve essere documentata prima dello sviluppo.
+
+La documentazione dei moduli si trova in:
+
+docs/modules/
+
+Aggiornare sempre, quando necessario:
+
+- [ROADMAP.md](http://ROADMAP.md)
+
+- [CHANGELOG.md](http://CHANGELOG.md)
+
+- [TODO.md](http://TODO.md)
+
+- [DATABASE.md](http://DATABASE.md) (se il database cambia)
+
+- DESIGN_[DECISIONS.md](http://DECISIONS.md) (se si prende una decisione architetturale importante)
+
+- PROJECT_[STATE.md](http://STATE.md) (se cambia lo stato generale del progetto)
+
+---
+
+# Struttura della documentazione
+
+La cartella `docs/` rappresenta la documentazione ufficiale del progetto.
+
+## Documenti principali
+
+- [README.md](http://README.md) → panoramica del progetto
+
+- [VISION.md](http://VISION.md) → obiettivi e filosofia
+
+- [ROADMAP.md](http://ROADMAP.md) → evoluzione prevista
+
+- [ARCHITECTURE.md](http://ARCHITECTURE.md) → architettura tecnica
+
+- [DATABASE.md](http://DATABASE.md) → struttura del database
+
+- DESIGN_[DECISIONS.md](http://DECISIONS.md) → registro delle decisioni di progetto
+
+- [CHANGELOG.md](http://CHANGELOG.md) → cronologia delle modifiche
+
+- [TODO.md](http://TODO.md) → attività pianificate
+
+- PROJECT_[STATE.md](http://STATE.md) → stato attuale del progetto
+
+## Moduli
+
+La cartella `docs/modules/` contiene una specifica funzionale per ogni modulo dell'applicazione.
+
+Ogni nuovo modulo deve essere progettato e documentato prima dell'implementazione.
+
+---
+
+# Regola anti-regressione
+
+Le nuove versioni devono principalmente aggiungere funzionalità.
+
+Non riscrivere o modificare profondamente moduli già funzionanti senza una motivazione esplicita e una verifica degli impatti.
+
+Evitare refactoring trasversali durante lo sviluppo di nuove funzionalità, salvo quando sono necessari per la funzionalità stessa.
+
+Prima di modificare un modulo esistente verificare quali altre parti dell'app lo utilizzano.
+
+---
+
+# Regole per il database e le migration
+
+Le migration già applicate sono parte della storia del database e non devono essere riscritte.
+
+Per modificare il database:
+
+1. progettare la modifica;
+
+2. documentarla quando necessario;
+
+3. creare una nuova migration;
+
+4. testarla;
+
+5. applicarla all'ambiente di sviluppo;
+
+6. verificare l'assenza di regressioni;
+
+7. solo successivamente applicarla all'ambiente di produzione.
+
+---
+
+# Regole
+
+L'AI non deve:
 
 - introdurre librerie senza necessità;
-- modificare il database senza motivazione;
-- eliminare funzionalità esistenti;
-- modificare il comportamento dell'app senza richiesta esplicita.
 
-## Cosa l'AI deve fare
+- modificare il database senza motivazione;
+
+- eliminare funzionalità esistenti;
+
+- modificare il comportamento dell'app senza richiesta esplicita;
+
+- sovrascrivere modifiche di altri collaboratori senza comprenderle;
+
+- riscrivere migration già applicate;
+
+- lavorare direttamente su `main`;
+
+- assumere che il repository sia invariato rispetto all'ultima sessione.
+
+L'AI deve:
 
 - spiegare le modifiche importanti;
+
 - mantenere compatibilità con il codice esistente;
+
 - privilegiare la semplicità;
-- riutilizzare i componenti esistenti.
 
-## Filosofia
+- riutilizzare i componenti esistenti;
 
-Prima di scrivere codice, chiedersi sempre:
+- controllare il lavoro recente degli altri collaboratori;
 
-- questa modifica rende CrAPP più semplice?
-- riduce il lavoro degli amministratori?
-- migliora l'esperienza dei giocatori?
-- è coerente con la documentazione?
+- mantenere aggiornata la documentazione quando necessario;
+
+- segnalare conflitti, rischi e possibili regressioni prima di modificare parti sensibili.
+
+---
+
+# Filosofia del progetto
+
+Prima di scrivere codice chiedersi sempre:
+
+Questa modifica rende CrAPP più semplice?
+
+Riduce il lavoro degli amministratori?
+
+Migliora l'esperienza dei giocatori?
+
+È coerente con la documentazione?
+
+Riduce oppure aumenta la complessità futura?
+
+Se almeno una risposta è negativa, rivalutare la soluzione proposta.
+
