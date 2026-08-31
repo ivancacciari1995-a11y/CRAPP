@@ -3,15 +3,10 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Autenticazione reale con Google (DD-011). Il login non ha ancora sostituito la
- * selezione del giocatore: finché `VITE_AUTH_OBBLIGATORIA` non è `true`, `/benvenuto`
- * offre entrambe le strade, così la produzione continua a funzionare mentre la squadra
- * collega gli account.
+ * Autenticazione reale con Google (DD-011). Il login ha sostituito la selezione del
+ * giocatore: senza sessione non si entra, e i permessi di amministrazione arrivano solo
+ * da `user_roles` (vedi `ruoli.ts`).
  */
-export function authObbligatoria(): boolean {
-  return import.meta.env["VITE_AUTH_OBBLIGATORIA"] === "true";
-}
-
 export function useSessione() {
   const [sessione, setSessione] = useState<Session | null>(null);
   const [pronta, setPronta] = useState(false);

@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { TeamLogo } from "@/components/crapp/ui-bits";
-import { giocatori } from "@/lib/crapp-data";
-import { accediConGoogle, authObbligatoria, useSessione } from "@/lib/auth";
+import { accediConGoogle, useSessione } from "@/lib/auth";
 import {
   nomeCompleto,
   slotDi,
@@ -13,7 +12,7 @@ import {
   useGiocatoriSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
-import { impostaGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
+import { impostaGiocatore, resetGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
 
 export const Route = createFileRoute("/benvenuto")({
   head: () => ({
@@ -65,23 +64,24 @@ function Benvenuto() {
   const navigate = useNavigate();
   const giocatore = useGiocatoreCorrente();
   const { pronta, utenteId } = useSessione();
-  const { righe } = useGiocatoriSquadra();
+  const { righe, daDatabase } = useGiocatoriSquadra();
   const collega = useCollegaGiocatore();
   const [inCorso, setInCorso] = useState(false);
 
   const mioSlot = slotDi(righe, utenteId);
-  // Con l'auth obbligatoria si entra solo da loggati; finché non lo è, la selezione
-  // diretta resta come ponte per chi non ha ancora collegato l'account (DD-011).
-  const puoEntrare = !!giocatore && (!!utenteId || !authObbligatoria());
+  // Si entra solo da loggati e con uno slot collegato (DD-011).
+  const puoEntrare = !!giocatore && !!utenteId;
 
   useEffect(() => {
     if (puoEntrare) navigate({ to: "/" });
   }, [puoEntrare, navigate]);
 
-  // L'account è già collegato a uno slot: nessuna scelta da fare.
+  // Chi sei lo dice lo slot collegato all'account, non quello che c'è in localStorage:
+  // senza slot la scelta salvata dalla vecchia selezione libera va buttata.
   useEffect(() => {
     if (mioSlot) impostaGiocatore(mioSlot.id);
-  }, [mioSlot]);
+    else if (utenteId && daDatabase) resetGiocatore();
+  }, [mioSlot, utenteId, daDatabase]);
 
   async function accedi() {
     setInCorso(true);
@@ -125,25 +125,6 @@ function Benvenuto() {
           >
             <LogIn className="h-4 w-4" /> Accedi con Google
           </button>
-
-          {authObbligatoria() ? null : (
-            <div className="mt-10 w-full max-w-sm">
-              <p className="mb-3 text-center text-xs text-muted-foreground">
-                Oppure entra scegliendo il tuo nome, come prima.
-              </p>
-              <div className="space-y-2">
-                {giocatori.map((g) => (
-                  <Scheda
-                    key={g.id}
-                    titolo={g.nome}
-                    sottotitolo={`#${g.numero} · ${g.ruolo}`}
-                    iniziali={g.iniziali}
-                    onClick={() => impostaGiocatore(g.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </>
       ) : (
         <>

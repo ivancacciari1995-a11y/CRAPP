@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Flame, Camera, Users, Trash2, Bell, LogOut, ShieldCheck } from "lucide-react";
+import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
@@ -19,7 +19,7 @@ import {
   statoNotifiche,
 } from "@/lib/push-client";
 import { resetGiocatore } from "@/lib/user-store";
-import { esci, useSessione } from "@/lib/auth";
+import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { Reveal } from "@/components/motion/Reveal";
 
@@ -42,7 +42,6 @@ function Profilo() {
   const votiSocial = useVotiSocial();
   const g = useIo();
   const admin = useIsAdmin();
-  const { sessione } = useSessione();
   const ultimoMese = usePresenzeUltimoMese(g?.id);
   const inputRef = useRef<HTMLInputElement>(null);
   const foto = useAvatar(g?.id);
@@ -230,22 +229,12 @@ function Profilo() {
           ) : null}
           <button
             type="button"
-            onClick={() => resetGiocatore()}
+            onClick={logout}
             className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
           >
-            <span className="min-w-0 truncate">Cambia giocatore</span>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="min-w-0 truncate">Esci</span>
+            <LogOut className="h-4 w-4 text-muted-foreground" />
           </button>
-          {sessione ? (
-            <button
-              type="button"
-              onClick={logout}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-            >
-              <span className="min-w-0 truncate">Esci</span>
-              <LogOut className="h-4 w-4 text-muted-foreground" />
-            </button>
-          ) : null}
         </div>
       </Section>
     </>

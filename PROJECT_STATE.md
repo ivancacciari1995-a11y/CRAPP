@@ -55,19 +55,19 @@ admin) implementati su `develop`, da attivare in produzione seguendo i passaggi 
 
 ## Autenticazione e dashboard amministratore
 
-Implementate su `develop`, **non ancora attive in produzione**. Il codice è additivo: finché
-i passaggi qui sotto non sono fatti, l'app si comporta esattamente come prima.
+Implementate su `develop`. **Il login è l'unica via d'accesso** (31/08/2026): la selezione
+libera del giocatore non esiste più, senza sessione Google si resta su `/benvenuto`, e i
+permessi di amministrazione arrivano solo da `user_roles`.
 
-**Stato in sviluppo (30/08/2026):** il codice c'è ed è completo, ma il login non funziona
-ancora. Con `npm run dev`, «Accedi con Google» risponde:
+**Attenzione all'ordine:** finché il provider Google è spento in Supabase, «Accedi con
+Google» risponde
 
 ```
 {"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}
 ```
 
-Non è un difetto dell'app: l'errore arriva da Supabase, dove il provider Google è spento.
-È il passo 1 qui sotto, ancora da fare. Tutto il resto dell'app in dev funziona normalmente,
-perché l'accesso avviene ancora scegliendo il proprio nome.
+e **nessuno entra nell'app**, né in dev né sulla preview di `develop`. Il passo 1 qui sotto
+va fatto prima di mandare questa versione in produzione.
 
 Passaggi in ordine, nessuno dei quali è reversibile a metà:
 
@@ -88,9 +88,9 @@ Passaggi in ordine, nessuno dei quali è reversibile a metà:
    `INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = '<mail>';`
 4. **Collegamento dei 17 account**: ciascuno accede con Google e sceglie il proprio nome una
    volta sola. Uno slot già collegato può essere liberato solo da un admin.
-5. **Solo a squadra collegata**: `VITE_AUTH_OBBLIGATORIA=true` su Vercel (fa sparire la
-   selezione libera del giocatore), poi la migration che rimuove le policy `anon` dalle
-   tabelle v1.0. È l'unico passo che cambia il comportamento per tutti.
+5. **Solo a squadra collegata**: migration `m4_solo_autenticati`, che toglie al ruolo `anon`
+   l'accesso alle tabelle v1.0. Da lì in poi i dati sono raggiungibili solo con una sessione;
+   le route in `src/routes/api/public/` usano la service role e continuano a funzionare.
 
 Attenzione: dev e produzione condividono lo stesso progetto Supabase. Un account di prova che
 collega uno slot lo occupa anche in produzione, e va liberato da un admin.

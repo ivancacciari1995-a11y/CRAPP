@@ -6,13 +6,11 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 ## In corso
 
 - Documentazione tecnica del progetto.
-- Autenticazione Google e dashboard amministratore: implementate su `develop`, ma in dev il
-  login risponde ancora `provider is not enabled` perché il provider Google non è stato
-  acceso in Supabase. Restano da
-  fare, in quest'ordine: configurazione del provider Google in Supabase, applicazione delle
-  migration M2/M3, inserimento del primo admin in `user_roles`, collegamento dei 17 account,
-  e solo alla fine `VITE_AUTH_OBBLIGATORIA=true` + rimozione delle policy `anon`.
-  Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
+- Autenticazione Google e dashboard amministratore: il codice è completo su `develop` e il
+  login è ora l'unica via d'accesso. Restano i passaggi di configurazione, in quest'ordine:
+  provider Google in Supabase (senza, nessuno entra), migration M2/M3, primo admin in
+  `user_roles`, collegamento dei 17 account, e infine la migration M4 che chiude gli accessi
+  `anon`. Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
 
 ## Prossimo
 

@@ -11,9 +11,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 - Login con Google tramite Supabase Auth (DD-011). Al primo accesso l'account si collega a
   un giocatore di `giocatori_squadra`, e il collegamento non è più modificabile dal
   giocatore stesso (DD-016 regola 2).
-- I permessi di amministrazione arrivano da `user_roles` (`src/lib/ruoli.ts`) e non più
-  dalla lista di nomi in `crapp-data.ts`, che resta solo come ponte finché
-  `VITE_AUTH_OBBLIGATORIA` non viene acceso.
+- La selezione libera del giocatore è stata rimossa: `/benvenuto` offre solo l'accesso con
+  Google e senza sessione non si entra in nessuna schermata. Sparita anche la variabile
+  `VITE_AUTH_OBBLIGATORIA` (non serve più) e il pulsante «Cambia giocatore» in `/profilo`.
+- I permessi di amministrazione arrivano solo da `user_roles` (`src/lib/ruoli.ts`): la lista
+  di nomi in `crapp-data.ts` è stata eliminata, altrimenti bastava scegliere il nome giusto
+  per amministrare.
+- Migration `m4_solo_autenticati`: toglie al ruolo `anon` l'accesso alle tabelle v1.0.
+  **Da applicare solo a squadra collegata**, altrimenti chi non ha ancora fatto login vede
+  l'app vuota.
 - Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica
   documento, certificato medico e foto tessera con le relative scadenze
   ([modules/profilo-giocatore.md](modules/profilo-giocatore.md)).

@@ -1,14 +1,6 @@
 /** Check dei dati di base della rosa: `bun test/unit/crapp-data.test.ts`. */
 import assert from "node:assert/strict";
-import {
-  adminNomi,
-  classifica,
-  formatData,
-  giocatori,
-  isAdmin,
-  statoMeta,
-  storicoMatch,
-} from "@/lib/crapp-data";
+import { classifica, formatData, giocatori, statoMeta, storicoMatch } from "@/lib/crapp-data";
 
 // --- rosa --------------------------------------------------------------------
 assert.ok(giocatori.length > 0, "la rosa non è vuota");
@@ -31,17 +23,6 @@ for (const g of giocatori) {
   assert.ok(g.mediaVoto >= 0 && g.mediaVoto <= 10, `${g.id}: media voto nel range 1-10`);
   assert.ok(g.presenze <= g.totaliEventi, `${g.id}: presenze mai oltre gli eventi totali`);
 }
-
-// --- amministratori ----------------------------------------------------------
-for (const nome of adminNomi) {
-  const admin = giocatori.find((g) => g.nome === nome);
-  assert.ok(admin, `l'amministratore ${nome} è in rosa`);
-  assert.equal(isAdmin(admin.id), true);
-}
-const nonAdmin = giocatori.find((g) => !adminNomi.includes(g.nome))!;
-assert.equal(isAdmin(nonAdmin.id), false);
-assert.equal(isAdmin("g999"), false, "un id inesistente non è amministratore");
-assert.equal(isAdmin(""), false);
 
 // --- formatData --------------------------------------------------------------
 assert.equal(formatData("2026-09-01"), "mar 01 settembre");

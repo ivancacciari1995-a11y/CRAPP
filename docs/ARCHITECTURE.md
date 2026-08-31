@@ -46,10 +46,10 @@ docs/           documentazione ufficiale
   generato) e `client.server.ts` (`supabaseAdmin`, solo server). `types.ts` è generato dallo
   schema; finché non viene rigenerato, le tabelle introdotte da M1/M2 si usano tramite
   `client-nuove-tabelle.ts`, con i tipi di riga dichiarati nei moduli di `src/lib/`.
-- **Autenticazione**: login Google via Supabase Auth (`src/lib/auth.ts`, DD-011); i permessi
-  di amministrazione arrivano da `user_roles` (`src/lib/ruoli.ts`). La variabile
-  `VITE_AUTH_OBBLIGATORIA` decide se `/benvenuto` accetta ancora la selezione libera del
-  giocatore: finché è spenta, login e vecchio accesso convivono.
+- **Autenticazione**: login Google via Supabase Auth (`src/lib/auth.ts`, DD-011). È l'unica
+  strada di accesso: `__root.tsx` rimanda a `/benvenuto` chi non ha sessione, e l'identità
+  del giocatore è lo slot di `giocatori_squadra` collegato all'account. I permessi di
+  amministrazione arrivano solo da `user_roles` (`src/lib/ruoli.ts`).
 
 ## Livello dati
 
