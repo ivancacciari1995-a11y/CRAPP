@@ -63,7 +63,13 @@ function arrotonda(n: number) {
 export function statisticheCacche(righe: RigaCacche[]): Record<string, StatCacche> {
   const out: Record<string, StatCacche> = {};
   for (const r of righe) {
-    const cur = out[r.giocatore_id] ?? { totale: 0, giornate: 0, media: 0, record: 0, giornateTop: 0 };
+    const cur = out[r.giocatore_id] ?? {
+      totale: 0,
+      giornate: 0,
+      media: 0,
+      record: 0,
+      giornateTop: 0,
+    };
     cur.totale += r.quantita;
     cur.giornate += 1;
     cur.record = Math.max(cur.record, r.quantita);

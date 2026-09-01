@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Giocatore } from "./crapp-data";
-import {
-  microcopyObiettivo,
-  progressoObiettivo,
-  type ObiettivoSquadra,
-} from "./obiettivi";
-import {
-  badgeGiocatore,
-  badgeSegretiSbloccati,
-  gradoMeta,
-  prossimoTraguardo,
-} from "./badges";
+import { microcopyObiettivo, progressoObiettivo, type ObiettivoSquadra } from "./obiettivi";
+import { badgeGiocatore, badgeSegretiSbloccati, gradoMeta, prossimoTraguardo } from "./badges";
 import { serieGiocatore } from "./serie";
 import { badgeSocialVinti, categorieSocial, type VotoSocial } from "./badge-social";
 

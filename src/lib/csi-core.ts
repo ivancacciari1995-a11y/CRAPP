@@ -161,3 +161,16 @@ export function partiteDaEventi(eventi: unknown): PartitaCsi[] {
 export function partiteGiocate(partite: PartitaCsi[]): PartitaCsi[] {
   return partite.filter((p) => p.setNostri !== null && p.setLoro !== null);
 }
+
+/** Converte una gara CSI già giocata nella forma comune usata nelle liste risultati. */
+export function matchDaPartitaCsi(p: PartitaCsi) {
+  return {
+    id: p.id,
+    data: p.data,
+    avversario: p.avversario,
+    casa: p.casa,
+    setNostri: p.setNostri ?? 0,
+    setLoro: p.setLoro ?? 0,
+    parziali: p.parziali,
+  };
+}

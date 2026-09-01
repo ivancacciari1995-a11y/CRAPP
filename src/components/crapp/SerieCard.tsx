@@ -19,7 +19,9 @@ export function SerieGriglia({ g }: { g: Giocatore }) {
               <span
                 className={cn(
                   "grid h-10 w-10 shrink-0 place-items-center rounded-2xl",
-                  attiva ? "bg-accent-grad text-accent-foreground" : "bg-secondary text-muted-foreground",
+                  attiva
+                    ? "bg-accent-grad text-accent-foreground"
+                    : "bg-secondary text-muted-foreground",
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -29,7 +31,9 @@ export function SerieGriglia({ g }: { g: Giocatore }) {
                 <p className="text-[11px] text-muted-foreground">{s.def.descrizione}</p>
               </div>
               <span className="inline-flex items-center gap-1 font-display text-2xl leading-none">
-                <Flame className={cn("h-4 w-4", attiva ? "text-accent" : "text-muted-foreground/40")} />
+                <Flame
+                  className={cn("h-4 w-4", attiva ? "text-accent" : "text-muted-foreground/40")}
+                />
                 {s.valore}
               </span>
             </div>

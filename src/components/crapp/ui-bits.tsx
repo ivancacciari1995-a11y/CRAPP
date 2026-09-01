@@ -62,7 +62,7 @@ export function StatoBadge({ stato, className }: { stato: Stato; className?: str
         className,
       )}
     >
-{meta.label}
+      {meta.label}
     </span>
   );
 }

@@ -39,7 +39,12 @@ async function importaChiave(publicKey: string, privateKey: string) {
   );
 }
 
-async function creaVapidJwt(audience: string, subject: string, publicKey: string, privateKey: string) {
+async function creaVapidJwt(
+  audience: string,
+  subject: string,
+  publicKey: string,
+  privateKey: string,
+) {
   const header = encodeJson({ typ: "JWT", alg: "ES256" });
   const payload = encodeJson({
     aud: audience,

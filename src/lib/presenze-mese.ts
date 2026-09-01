@@ -60,8 +60,7 @@ export function usePresenzeUltimoMeseTutti(): Record<
 
     const out: Record<string, { presenti: number; totali: number; percentuale: number }> = {};
     for (const e of rilevanti) {
-      const ids =
-        e.convocati.length > 0 ? e.convocati : giocatori.map((g) => g.id);
+      const ids = e.convocati.length > 0 ? e.convocati : giocatori.map((g) => g.id);
       for (const id of ids) {
         const rec = (out[id] ??= { presenti: 0, totali: 0, percentuale: 0 });
         rec.totali += 1;

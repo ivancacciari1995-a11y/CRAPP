@@ -120,7 +120,9 @@ function GestioneEventi() {
       </div>
 
       {bozza ? (
-        <Section titolo={eventi.some((e) => e.id === bozza.id) ? "Modifica evento" : "Nuovo evento"}>
+        <Section
+          titolo={eventi.some((e) => e.id === bozza.id) ? "Modifica evento" : "Nuovo evento"}
+        >
           <div className="space-y-3 rounded-3xl bg-card p-4 shadow-card">
             <div className="grid grid-cols-4 gap-1 rounded-full bg-secondary p-1">
               {tipi.map((t) => (
@@ -241,7 +243,9 @@ function GestioneEventi() {
                       }
                       className={cn(
                         "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
-                        scelto ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground",
+                        scelto
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-secondary text-muted-foreground",
                       )}
                     >
                       {g.nome}
@@ -278,7 +282,10 @@ function GestioneEventi() {
         ) : (
           <div className="space-y-2">
             {eventi.map((e) => (
-              <div key={e.id} className="flex items-center gap-2 rounded-3xl bg-card p-3 shadow-card">
+              <div
+                key={e.id}
+                className="flex items-center gap-2 rounded-3xl bg-card p-3 shadow-card"
+              >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
                   <p className="text-[11px] text-muted-foreground">

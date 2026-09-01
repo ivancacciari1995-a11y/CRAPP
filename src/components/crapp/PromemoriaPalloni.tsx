@@ -1,11 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { formatData } from "@/lib/crapp-data";
-import {
-  eventiPalloni,
-  eventoPrecedente,
-  eventoSuccessivo,
-  oggiISO,
-} from "@/lib/palloni-core";
+import { eventiPalloni, eventoPrecedente, eventoSuccessivo, oggiISO } from "@/lib/palloni-core";
 import { useTurniPalloni } from "@/lib/palloni";
 import { useEventi } from "@/lib/eventi";
 import { useGiocatoreCorrente } from "@/lib/user-store";

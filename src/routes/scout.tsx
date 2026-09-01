@@ -53,7 +53,17 @@ export const Route = createFileRoute("/scout")({
 
 const ordineAzioni: AzioneTipo[] = ["attacco", "ace", "muro", "errore"];
 
-function Blocco({ icona, titolo, testo, children }: { icona: React.ReactNode; titolo: string; testo: string; children?: React.ReactNode }) {
+function Blocco({
+  icona,
+  titolo,
+  testo,
+  children,
+}: {
+  icona: React.ReactNode;
+  titolo: string;
+  testo: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="px-5 py-10">
       <div className="rounded-3xl bg-card p-6 text-center shadow-card">
@@ -101,7 +111,9 @@ function Scout() {
   }
 
   if (!pronto || sessione.isLoading || statoSalvato.isLoading) {
-    return <Blocco icona={<Radio className="h-6 w-6" />} titolo="Scout live" testo="Caricamento…" />;
+    return (
+      <Blocco icona={<Radio className="h-6 w-6" />} titolo="Scout live" testo="Caricamento…" />
+    );
   }
 
   if (!partita) {
@@ -187,7 +199,10 @@ function ScoutBoard({
   const base =
     iniziale ??
     statoIniziale(
-      partita.titolo.replace(/CRAP Volley/gi, "").replace(/\s*vs\s*/i, "").trim() || "Avversario",
+      partita.titolo
+        .replace(/CRAP Volley/gi, "")
+        .replace(/\s*vs\s*/i, "")
+        .trim() || "Avversario",
       partita.titolo.trim().toLowerCase().startsWith("crap"),
     );
   const [avversario, setAvversario] = useState(base.avversario);
@@ -439,9 +454,7 @@ function ScoutBoard({
                       i === 0 && "anim-riga",
                     )}
                   >
-                    <span className="truncate">
-                      {g ? `#${g.numero} ${g.nome}` : "Avversario"}
-                    </span>
+                    <span className="truncate">{g ? `#${g.numero} ${g.nome}` : "Avversario"}</span>
                     <span
                       className={cn(
                         "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",

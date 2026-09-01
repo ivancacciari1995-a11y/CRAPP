@@ -122,7 +122,9 @@ function Calendario() {
     setDrawerAperto(true);
   }
 
-  const eventiGiornoSelezionato = giornoSelezionato ? eventiPerGiorno.get(giornoSelezionato) ?? [] : [];
+  const eventiGiornoSelezionato = giornoSelezionato
+    ? (eventiPerGiorno.get(giornoSelezionato) ?? [])
+    : [];
 
   return (
     <>
@@ -202,7 +204,8 @@ function Calendario() {
                         .join(", ")})`
                     : undefined;
                 const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
-                const isOggi = !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+                const isOggi =
+                  !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
                 const Cella = haEventi ? "button" : "div";
                 return (
                   <Cella
@@ -224,7 +227,9 @@ function Calendario() {
                     aria-label={haEventi ? `Eventi del ${giorno}` : undefined}
                     aria-current={isOggi ? "date" : undefined}
                   >
-                    <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">{giorno}</span>
+                    <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                      {giorno}
+                    </span>
                   </Cella>
                 );
               })}

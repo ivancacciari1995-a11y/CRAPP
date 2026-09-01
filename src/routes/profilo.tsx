@@ -32,7 +32,10 @@ export const Route = createFileRoute("/profilo")({
         content: "Foto, ruolo, statistiche personali, badge e obiettivi del giocatore CRAP Volley.",
       },
       { property: "og:title", content: "Profilo giocatore — CrAPP" },
-      { property: "og:description", content: "Statistiche personali, badge e presenze della stagione." },
+      {
+        property: "og:description",
+        content: "Statistiche personali, badge e presenze della stagione.",
+      },
     ],
   }),
   component: Profilo,
@@ -51,7 +54,9 @@ function Profilo() {
 
   useEffect(() => {
     setSupportate(pushSupportato());
-    statoNotifiche().then(setNotifiche).catch(() => setNotifiche(false));
+    statoNotifiche()
+      .then(setNotifiche)
+      .catch(() => setNotifiche(false));
   }, []);
 
   if (!g) return null;
@@ -204,20 +209,25 @@ function Profilo() {
             <span
               className={cn(
                 "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
-                notifiche ? "bg-accent-grad text-accent-foreground" : "bg-secondary text-muted-foreground",
+                notifiche
+                  ? "bg-accent-grad text-accent-foreground"
+                  : "bg-secondary text-muted-foreground",
               )}
             >
               <Bell className="h-4 w-4" />
             </span>
           </button>
-          {["Notifiche convocazioni", "Promemoria allenamenti", "Cambi orario", "Bacheca squadra"].map(
-            (v) => (
-              <label key={v} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                <span className="min-w-0 truncate">{v}</span>
-                <input type="checkbox" defaultChecked className="h-5 w-9 accent-[var(--accent)]" />
-              </label>
-            ),
-          )}
+          {[
+            "Notifiche convocazioni",
+            "Promemoria allenamenti",
+            "Cambi orario",
+            "Bacheca squadra",
+          ].map((v) => (
+            <label key={v} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+              <span className="min-w-0 truncate">{v}</span>
+              <input type="checkbox" defaultChecked className="h-5 w-9 accent-[var(--accent)]" />
+            </label>
+          ))}
           {admin ? (
             <Link
               to="/admin"

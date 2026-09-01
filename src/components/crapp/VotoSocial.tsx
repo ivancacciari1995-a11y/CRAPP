@@ -122,8 +122,7 @@ export function VotoSocial({ matchId }: { matchId: string }) {
                   <p className="inline-flex items-center gap-1.5 text-xs font-bold">
                     <Crown className="h-3.5 w-3.5 text-oro" />
                     <Icon className="h-3.5 w-3.5 text-accent" />
-                    {vincitore.nome} · {vincitore.voti}{" "}
-                    {vincitore.voti === 1 ? "voto" : "voti"}
+                    {vincitore.nome} · {vincitore.voti} {vincitore.voti === 1 ? "voto" : "voti"}
                   </p>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">

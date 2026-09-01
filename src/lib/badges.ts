@@ -19,10 +19,7 @@ export type Grado = "bronzo" | "argento" | "oro";
 
 export const gradiOrdine: Grado[] = ["bronzo", "argento", "oro"];
 
-export const gradoMeta: Record<
-  Grado,
-  { label: string; text: string; bg: string; ring: string }
-> = {
+export const gradoMeta: Record<Grado, { label: string; text: string; bg: string; ring: string }> = {
   bronzo: { label: "Bronzo", text: "text-bronzo", bg: "bg-bronzo/15", ring: "ring-bronzo/40" },
   argento: { label: "Argento", text: "text-argento", bg: "bg-argento/20", ring: "ring-argento/50" },
   oro: { label: "Oro", text: "text-oro", bg: "bg-oro/20", ring: "ring-oro/50" },
@@ -50,7 +47,8 @@ export const badgeDefs: BadgeDef[] = [
   {
     id: "mvp",
     nome: "MVP",
-    descrizione: "Riconoscimento per il miglior giocatore della partita, scelto dai compagni a fine match.",
+    descrizione:
+      "Riconoscimento per il miglior giocatore della partita, scelto dai compagni a fine match.",
     unita: "MVP",
     icon: Trophy,
     soglie: { bronzo: 1, argento: 3, oro: 5 },
@@ -59,7 +57,8 @@ export const badgeDefs: BadgeDef[] = [
   {
     id: "pagella",
     nome: "Pagellone",
-    descrizione: "Media dei voti che i compagni ti danno a fine partita: conta come giochi, non quanti punti fai.",
+    descrizione:
+      "Media dei voti che i compagni ti danno a fine partita: conta come giochi, non quanti punti fai.",
     unita: "di media voto",
     icon: ClipboardCheck,
     soglie: { bronzo: 6.5, argento: 7.5, oro: 8.5 },
@@ -68,7 +67,8 @@ export const badgeDefs: BadgeDef[] = [
   {
     id: "palloni",
     nome: "Sherpa dei palloni",
-    descrizione: "Quante volte ti sei caricato la sacca dei palloni: lavoro oscuro, badge luminoso.",
+    descrizione:
+      "Quante volte ti sei caricato la sacca dei palloni: lavoro oscuro, badge luminoso.",
     unita: "turni palloni",
     icon: CircleDot,
     soglie: { bronzo: 3, argento: 6, oro: 10 },
@@ -86,7 +86,8 @@ export const badgeDefs: BadgeDef[] = [
   {
     id: "serie-allenamenti",
     nome: "Sempre in palestra",
-    descrizione: "Allenamenti consecutivi a cui sei stato presente: la costanza paga più del talento.",
+    descrizione:
+      "Allenamenti consecutivi a cui sei stato presente: la costanza paga più del talento.",
     unita: "allenamenti di fila",
     icon: Rocket,
     soglie: { bronzo: 3, argento: 6, oro: 10 },
@@ -108,7 +109,8 @@ export const badgeSegreti: BadgeDef[] = [
   {
     id: "s-tiebreak",
     nome: "Uomo tie-break",
-    descrizione: "Sbloccato da chi ha almeno 2 MVP e una media voto alta: nei momenti caldi ci sei sempre.",
+    descrizione:
+      "Sbloccato da chi ha almeno 2 MVP e una media voto alta: nei momenti caldi ci sei sempre.",
     unita: "MVP con media alta",
     icon: Ghost,
     segreto: true,
@@ -119,7 +121,8 @@ export const badgeSegreti: BadgeDef[] = [
   {
     id: "s-mai-forfait",
     nome: "Mai un forfait",
-    descrizione: "Sbloccato con 10 conferme rapide consecutive e 15 presenze: su di te la squadra può contare a occhi chiusi.",
+    descrizione:
+      "Sbloccato con 10 conferme rapide consecutive e 15 presenze: su di te la squadra può contare a occhi chiusi.",
     unita: "requisito nascosto",
     icon: Anchor,
     segreto: true,

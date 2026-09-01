@@ -104,7 +104,9 @@ export function Pagelle({
                         onClick={() => invia(g.id, v)}
                         className={cn(
                           "rounded-lg py-1.5 text-[11px] font-bold tabular-nums transition-transform active:scale-90",
-                          mio === v ? "bg-accent text-accent-foreground" : "bg-card text-foreground",
+                          mio === v
+                            ? "bg-accent text-accent-foreground"
+                            : "bg-card text-foreground",
                         )}
                       >
                         {v}

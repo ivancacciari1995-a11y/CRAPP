@@ -2,10 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { storicoMatch } from "@/lib/crapp-data";
-import { classificaConScout, useScoutMatches } from "@/lib/scout-store";
+import { useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
-import { isNostraSquadra, partiteGiocate } from "@/lib/csi-core";
+import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 
 export const Route = createFileRoute("/classifica")({
@@ -34,25 +33,18 @@ function Classifica() {
   const scoutMatches = useScoutMatches();
   const { data: csi } = useCsi();
 
-  const classifica = csi?.classifica.length ? csi.classifica : classificaConScout(scoutMatches);
+  const classifica = csi?.classifica ?? [];
   const risultati = csi?.partite.length
-    ? partiteGiocate(csi.partite).map((p) => ({
-        id: p.id,
-        avversario: p.avversario,
-        casa: p.casa,
-        setNostri: p.setNostri ?? 0,
-        setLoro: p.setLoro ?? 0,
-      }))
-    : [
-        ...scoutMatches.map((m) => ({
-          id: m.id,
-          avversario: m.avversario,
-          casa: m.casa,
-          setNostri: m.setNostri,
-          setLoro: m.setLoro,
-        })),
-        ...storicoMatch,
-      ];
+    ? partiteGiocate(csi.partite).map(matchDaPartitaCsi)
+    : scoutMatches.map((m) => ({
+        id: m.id,
+        data: m.data,
+        avversario: m.avversario,
+        casa: m.casa,
+        setNostri: m.setNostri,
+        setLoro: m.setLoro,
+        parziali: m.parziali,
+      }));
 
   return (
     <>
@@ -82,47 +74,61 @@ function Classifica() {
             <span className="text-center">Set</span>
             <span className="text-center">Pt</span>
           </div>
-          {classifica.map((r) => {
-            const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
-            return (
-              <div
-                key={r.pos}
-                className={cn(
-                  "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-sm last:border-0",
-                  noi && "bg-accent/10",
-                )}
-              >
-                <span className={cn("font-display text-base", noi && "text-accent")}>{r.pos}</span>
-                <span className={cn("truncate", noi ? "font-bold" : "font-medium")}>
-                  {r.squadra}
-                </span>
-                <span className="text-center text-xs text-muted-foreground">{r.giocate}</span>
-                <span className="text-center text-xs tabular-nums text-muted-foreground">
-                  {r.setFatti}:{r.setSubiti}
-                </span>
-                <span className="text-center font-bold tabular-nums">{r.punti}</span>
-              </div>
-            );
-          })}
+          {classifica.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+              Classifica non ancora disponibile.
+            </p>
+          ) : (
+            classifica.map((r) => {
+              const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
+              return (
+                <div
+                  key={r.pos}
+                  className={cn(
+                    "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-sm last:border-0",
+                    noi && "bg-accent/10",
+                  )}
+                >
+                  <span className={cn("font-display text-base", noi && "text-accent")}>
+                    {r.pos}
+                  </span>
+                  <span className={cn("truncate", noi ? "font-bold" : "font-medium")}>
+                    {r.squadra}
+                  </span>
+                  <span className="text-center text-xs text-muted-foreground">{r.giocate}</span>
+                  <span className="text-center text-xs tabular-nums text-muted-foreground">
+                    {r.setFatti}:{r.setSubiti}
+                  </span>
+                  <span className="text-center font-bold tabular-nums">{r.punti}</span>
+                </div>
+              );
+            })
+          )}
         </div>
       </Section>
 
       <Section titolo="Ultimi risultati ufficiali">
-        <div className="space-y-2">
-          {risultati.map((m) => (
-            <div
-              key={m.id}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-card p-3 shadow-card"
-            >
-              <p className="truncate text-sm">
-                {m.casa ? "CRAP Volley" : m.avversario} — {m.casa ? m.avversario : "CRAP Volley"}
-              </p>
-              <span className="font-display text-lg tabular-nums">
-                {m.casa ? `${m.setNostri}-${m.setLoro}` : `${m.setLoro}-${m.setNostri}`}
-              </span>
-            </div>
-          ))}
-        </div>
+        {risultati.length === 0 ? (
+          <p className="rounded-3xl bg-card p-4 text-center text-xs text-muted-foreground shadow-card">
+            Nessun risultato disponibile.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {risultati.map((m) => (
+              <div
+                key={m.id}
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-card p-3 shadow-card"
+              >
+                <p className="truncate text-sm">
+                  {m.casa ? "CRAP Volley" : m.avversario} — {m.casa ? m.avversario : "CRAP Volley"}
+                </p>
+                <span className="font-display text-lg tabular-nums">
+                  {m.casa ? `${m.setNostri}-${m.setLoro}` : `${m.setLoro}-${m.setNostri}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </Section>
     </>
   );

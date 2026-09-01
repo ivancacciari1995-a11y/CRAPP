@@ -14,7 +14,14 @@ export function rigaCsv(campi: Array<string | number>) {
 /** Esporta la scoutizzazione di una partita in CSV (separatore ";" per Excel IT). */
 export function csvScoutMatch(match: ScoutMatch): string {
   const righe: string[] = [];
-  righe.push(rigaCsv(["Partita", match.casa ? "CRAP Volley" : match.avversario, "vs", match.casa ? match.avversario : "CRAP Volley"]));
+  righe.push(
+    rigaCsv([
+      "Partita",
+      match.casa ? "CRAP Volley" : match.avversario,
+      "vs",
+      match.casa ? match.avversario : "CRAP Volley",
+    ]),
+  );
   righe.push(rigaCsv(["Data", match.data, "Set", `${match.setNostri}-${match.setLoro}`]));
   righe.push("");
   righe.push(rigaCsv(["Set", "Parziale nostro", "Parziale loro"]));

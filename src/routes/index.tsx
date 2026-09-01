@@ -8,10 +8,13 @@ import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
-import { classifica, storicoMatch } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useEventi, type Evento } from "@/lib/eventi";
 import { useIo, useObiettivi } from "@/lib/rosa";
+import { useCsi } from "@/lib/csi";
+import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
+import { useScoutMatches } from "@/lib/scout-store";
+import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,8 +43,17 @@ function Index() {
   const prossimi: Evento[] = eventi.filter((e) => e.data >= oggi).slice(0, 3);
   const prossimo = prossimi[0] ?? null;
   const linkProssimo = prossimo ? linkPerEvento(prossimo) : null;
-  const noi = classifica.find((r) => r.squadra === "CRAP Volley")!;
-  const ultima = storicoMatch[0]!;
+  const { data: csi } = useCsi();
+  const noi = csi?.classifica.find((r) => isNostraSquadra(r.squadra));
+  const scoutMatches = useScoutMatches();
+  const votiMvp = useVotiMvp();
+  const mvpPerMatch = vincitoriMvp(votiMvp.data ?? []);
+  const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
+  const ultima = csiGiocate[0]
+    ? { ...matchDaPartitaCsi(csiGiocate[0]), mvp: mvpPerMatch[csiGiocate[0].id] ?? "" }
+    : scoutMatches[0]
+      ? { ...scoutMatches[0], mvp: mvpPerMatch[scoutMatches[0].id] ?? scoutMatches[0].mvp }
+      : null;
   const obiettivi = useObiettivi();
   const obiettivo = obiettivi.find((o) => progressoObiettivo(o) < 100) ?? obiettivi[0] ?? null;
 
@@ -62,12 +74,12 @@ function Index() {
 
         <div className="mt-6 grid grid-cols-3 gap-2 text-center">
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
-            <p className="font-display text-2xl leading-none">{noi.pos}º</p>
+            <p className="font-display text-2xl leading-none">{noi ? `${noi.pos}º` : "—"}</p>
             <p className="text-[10px] uppercase text-primary-foreground/60">In classifica</p>
           </div>
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">
-              {noi.vinte}-{noi.perse}
+              {noi ? `${noi.vinte}-${noi.perse}` : "—"}
             </p>
             <p className="text-[10px] uppercase text-primary-foreground/60">Bilancio</p>
           </div>
@@ -130,29 +142,36 @@ function Index() {
           </Link>
         }
       >
-        <div className="premi rounded-3xl bg-card p-4 shadow-card">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold">CRAP Volley vs {ultima.avversario}</p>
-              <p className="text-xs text-muted-foreground">
-                {ultima.casa ? "In casa" : "Trasferta"} · MVP {ultima.mvp}
+        {ultima ? (
+          <div className="premi rounded-3xl bg-card p-4 shadow-card">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">CRAP Volley vs {ultima.avversario}</p>
+                <p className="text-xs text-muted-foreground">
+                  {ultima.casa ? "In casa" : "Trasferta"}
+                  {ultima.mvp ? ` · MVP ${ultima.mvp}` : ""}
+                </p>
+              </div>
+              <p className="font-display text-3xl leading-none text-accent">
+                {ultima.setNostri}-{ultima.setLoro}
               </p>
             </div>
-            <p className="font-display text-3xl leading-none text-accent">
-              {ultima.setNostri}-{ultima.setLoro}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ultima.parziali.map((p, i) => (
+                <span
+                  key={i}
+                  className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-semibold tabular-nums"
+                >
+                  {p[0]}-{p[1]}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {ultima.parziali.map((p, i) => (
-              <span
-                key={i}
-                className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-semibold tabular-nums"
-              >
-                {p[0]}-{p[1]}
-              </span>
-            ))}
-          </div>
-        </div>
+        ) : (
+          <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+            Nessun risultato disponibile.
+          </p>
+        )}
       </Section>
 
       <Section

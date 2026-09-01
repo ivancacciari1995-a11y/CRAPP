@@ -11,6 +11,8 @@ import { useGiocatoreBase } from "./user-store";
 import { useEventi } from "./eventi";
 import { useRispostePresenze } from "./presenze";
 import { obiettiviOrdinati } from "./obiettivi";
+import { useCsi } from "./csi";
+import { partiteGiocate } from "./csi-core";
 
 /**
  * Rosa completa con tutte le statistiche personali (presenze, MVP, media voto,
@@ -57,7 +59,11 @@ export function useObiettivi() {
   const { eventi } = useEventi();
   const { presenze } = useRispostePresenze();
   const { voti: pagelle } = usePagelle();
-  return obiettiviOrdinati(rosa, { eventi, presenze, pagelle });
+  const { data: csi } = useCsi();
+  const vittorie = csi
+    ? partiteGiocate(csi.partite).filter((p) => (p.setNostri ?? 0) > (p.setLoro ?? 0)).length
+    : 0;
+  return obiettiviOrdinati(rosa, { eventi, presenze, pagelle, vittorie });
 }
 
 export { giocatori };

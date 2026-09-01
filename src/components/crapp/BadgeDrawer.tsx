@@ -14,13 +14,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-function DettaglioBadge({
-  def,
-  stato,
-}: {
-  def: BadgeDef;
-  stato?: BadgeStato;
-}) {
+function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
   const Icon = def.icon;
   const grado = stato?.grado ?? null;
   const meta = grado ? gradoMeta[grado] : null;
@@ -94,10 +88,20 @@ function DettaglioBadge({
                   raggiunto ? `${gm.bg} ${gm.ring}` : "bg-secondary ring-border",
                 )}
               >
-                <p className={cn("text-[10px] font-bold uppercase", raggiunto ? gm.text : "text-muted-foreground")}>
+                <p
+                  className={cn(
+                    "text-[10px] font-bold uppercase",
+                    raggiunto ? gm.text : "text-muted-foreground",
+                  )}
+                >
                   {gm.label}
                 </p>
-                <p className={cn("font-display text-xl leading-none", raggiunto ? "text-foreground" : "text-muted-foreground")}>
+                <p
+                  className={cn(
+                    "font-display text-xl leading-none",
+                    raggiunto ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
                   {def.soglie[g]}
                 </p>
                 <p className="text-[10px] text-muted-foreground">{def.unita}</p>
@@ -130,7 +134,7 @@ export function BadgeDrawer({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-        <DrawerContent>
+      <DrawerContent>
         <DrawerHeader className="sr-only">
           <DrawerTitle>{def.nome}</DrawerTitle>
           <DrawerDescription>{def.descrizione}</DrawerDescription>

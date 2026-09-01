@@ -13,9 +13,15 @@ export const Route = createFileRoute("/allenamento/$id")({
     return {
       meta: [
         { title: `${titolo} — CrAPP` },
-        { name: "description", content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley." },
+        {
+          name: "description",
+          content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley.",
+        },
         { property: "og:title", content: `${titolo} — CrAPP` },
-        { property: "og:description", content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley." },
+        {
+          property: "og:description",
+          content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley.",
+        },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
       ],

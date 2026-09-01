@@ -2,10 +2,18 @@ export type Stato = "presente" | "assente" | "forse" | "ritardo" | "infortunato"
 
 export const statoMeta: Record<Stato, { label: string; emoji: string; className: string }> = {
   presente: { label: "Presente", emoji: "✅", className: "bg-success text-success-foreground" },
-  assente: { label: "Assente", emoji: "❌", className: "bg-destructive text-destructive-foreground" },
+  assente: {
+    label: "Assente",
+    emoji: "❌",
+    className: "bg-destructive text-destructive-foreground",
+  },
   forse: { label: "Forse", emoji: "🤔", className: "bg-warning text-warning-foreground" },
   ritardo: { label: "In ritardo", emoji: "⏱️", className: "bg-info text-info-foreground" },
-  infortunato: { label: "Infortunato", emoji: "🩹", className: "bg-primary text-primary-foreground" },
+  infortunato: {
+    label: "Infortunato",
+    emoji: "🩹",
+    className: "bg-primary text-primary-foreground",
+  },
 };
 
 /**
@@ -125,24 +133,6 @@ export const giocatori: Giocatore[] = rosaCSI.map((r, i) => ({
   ...serieDa(statsDemo[r.nome]),
 }));
 
-export type Match = {
-  id: string;
-  data: string;
-  avversario: string;
-  casa: boolean;
-  setNostri: number;
-  setLoro: number;
-  parziali: Array<[number, number]>;
-  mvp: string;
-};
-
-export const storicoMatch: Match[] = [
-  { id: "m1", data: "2026-07-25", avversario: "Pallavolo Sesto", casa: true, setNostri: 3, setLoro: 1, parziali: [[25, 19], [23, 25], [25, 21], [25, 18]], mvp: "Davide Grilli" },
-  { id: "m2", data: "2026-07-18", avversario: "ASD Rondinella", casa: false, setNostri: 2, setLoro: 3, parziali: [[25, 22], [19, 25], [25, 23], [20, 25], [12, 15]], mvp: "Ivan Cacciari" },
-  { id: "m3", data: "2026-07-11", avversario: "Virtus Cinisello", casa: true, setNostri: 3, setLoro: 0, parziali: [[25, 15], [25, 20], [25, 17]], mvp: "Laura Passabì" },
-  { id: "m4", data: "2026-07-04", avversario: "Nuova Bovisa", casa: false, setNostri: 3, setLoro: 2, parziali: [[21, 25], [25, 23], [18, 25], [25, 20], [15, 11]], mvp: "Nicola Pezzoli" },
-];
-
 export type RigaClassifica = {
   pos: number;
   squadra: string;
@@ -153,16 +143,6 @@ export type RigaClassifica = {
   setSubiti: number;
   punti: number;
 };
-
-export const classifica: RigaClassifica[] = [
-  { pos: 1, squadra: "ASD Rondinella", giocate: 12, vinte: 10, perse: 2, setFatti: 33, setSubiti: 12, punti: 29 },
-  { pos: 2, squadra: "CRAP Volley", giocate: 12, vinte: 9, perse: 3, setFatti: 31, setSubiti: 16, punti: 26 },
-  { pos: 3, squadra: "Pallavolo Sesto", giocate: 12, vinte: 8, perse: 4, setFatti: 29, setSubiti: 19, punti: 24 },
-  { pos: 4, squadra: "Volley Bruzzano", giocate: 12, vinte: 7, perse: 5, setFatti: 26, setSubiti: 21, punti: 21 },
-  { pos: 5, squadra: "Aurora Nera", giocate: 12, vinte: 5, perse: 7, setFatti: 22, setSubiti: 25, punti: 16 },
-  { pos: 6, squadra: "Virtus Cinisello", giocate: 12, vinte: 3, perse: 9, setFatti: 15, setSubiti: 30, punti: 10 },
-  { pos: 7, squadra: "Nuova Bovisa", giocate: 12, vinte: 2, perse: 10, setFatti: 13, setSubiti: 32, punti: 7 },
-];
 
 export function formatData(iso: string) {
   const d = new Date(iso + "T00:00:00");

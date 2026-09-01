@@ -68,7 +68,10 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
           Media squadra {media}
         </span>
         {classifica.map((r, i) => (
-          <span key={r.giocatore_id} className="rounded-full bg-secondary px-2.5 py-1 font-semibold">
+          <span
+            key={r.giocatore_id}
+            className="rounded-full bg-secondary px-2.5 py-1 font-semibold"
+          >
             {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {r.nome} · {r.quantita}
           </span>
         ))}

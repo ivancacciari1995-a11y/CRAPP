@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { storicoMatch, formatData, giocatori } from "@/lib/crapp-data";
+import { formatData, giocatori } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
+import { useCsi } from "@/lib/csi";
+import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
@@ -22,9 +24,15 @@ export const Route = createFileRoute("/partita/$id")({
     return {
       meta: [
         { title: `${titolo} — CrAPP` },
-        { name: "description", content: "Dettaglio partita, formazione e risultati del CRAP Volley." },
+        {
+          name: "description",
+          content: "Dettaglio partita, formazione e risultati del CRAP Volley.",
+        },
         { property: "og:title", content: `${titolo} — CrAPP` },
-        { property: "og:description", content: "Dettaglio partita, formazione e risultati del CRAP Volley." },
+        {
+          property: "og:description",
+          content: "Dettaglio partita, formazione e risultati del CRAP Volley.",
+        },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
       ],
@@ -39,6 +47,7 @@ function PartitaDetail() {
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const scoutMatches = useScoutMatches();
+  const { data: csi } = useCsi();
   const { risposte } = usePresenzeEvento(id);
   const presentiVeri = giocatori.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
@@ -60,6 +69,9 @@ function PartitaDetail() {
 
   const convocati = convocatiEvento(evento);
   const scout = scoutMatches.find((m) => m.id === evento.id || m.data === evento.data) ?? null;
+  const csiMatch = csi
+    ? partiteGiocate(csi.partite).find((p) => p.data === evento.data)
+    : undefined;
   const match = scout
     ? {
         id: scout.id,
@@ -70,10 +82,12 @@ function PartitaDetail() {
         setLoro: scout.setLoro,
         parziali: scout.parziali,
       }
-    : storicoMatch.find((m) => m.data === evento.data);
+    : csiMatch
+      ? matchDaPartitaCsi(csiMatch)
+      : undefined;
   const totaliTeam = scout ? totaliSquadra([scout]) : null;
   const avversario = evento.titolo.includes(" vs ")
-    ? evento.titolo.split(" vs ").find((p) => !p.includes("CRAP")) ?? evento.titolo
+    ? (evento.titolo.split(" vs ").find((p) => !p.includes("CRAP")) ?? evento.titolo)
     : evento.titolo;
   const casa = evento.casa;
   const vinta = match && match.setNostri > match.setLoro;
@@ -140,7 +154,9 @@ function PartitaDetail() {
               <span
                 className={cn(
                   "rounded-full px-3 py-1 text-lg font-display font-bold",
-                  vinta ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground",
+                  vinta
+                    ? "bg-success text-success-foreground"
+                    : "bg-destructive text-destructive-foreground",
                 )}
               >
                 {match.setNostri} - {match.setLoro}
@@ -149,7 +165,10 @@ function PartitaDetail() {
             </div>
             <div className="mt-4 space-y-2">
               {match.parziali.map(([noi, loro], i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-secondary px-3 py-2">
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl bg-secondary px-3 py-2"
+                >
                   <span className="font-display text-lg">{noi}</span>
                   <span className="text-xs font-semibold text-muted-foreground">Set {i + 1}</span>
                   <span className="font-display text-lg">{loro}</span>
@@ -171,7 +190,8 @@ function PartitaDetail() {
       ) : (
         <Section titolo="In programma">
           <p className="rounded-3xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
-            La partita non è ancora stata disputata. Torna qui dopo il fischio finale per vedere il risultato.
+            La partita non è ancora stata disputata. Torna qui dopo il fischio finale per vedere il
+            risultato.
           </p>
         </Section>
       )}
@@ -229,7 +249,9 @@ function PartitaDetail() {
             {admin ? (
               <button
                 type="button"
-                onClick={() => scaricaCsv(`scout-${scout.data}-${scout.avversario}.csv`, csvScoutMatch(scout))}
+                onClick={() =>
+                  scaricaCsv(`scout-${scout.data}-${scout.avversario}.csv`, csvScoutMatch(scout))
+                }
                 className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
               >
                 <Download className="h-4 w-4" /> Esporta CSV

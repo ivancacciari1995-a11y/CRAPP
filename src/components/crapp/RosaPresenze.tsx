@@ -21,7 +21,8 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
   const mancanti = giocatori.filter((g) => !risposte[g.id]);
   const risposteN = giocatori.length - mancanti.length;
   const perc = Math.round((risposteN / giocatori.length) * 100);
-  const daSollecitare = mancanti.length + giocatori.filter((g) => risposte[g.id] === "forse").length;
+  const daSollecitare =
+    mancanti.length + giocatori.filter((g) => risposte[g.id] === "forse").length;
 
   async function sollecita() {
     setSollecito(true);

@@ -10,7 +10,12 @@ import {
   prossimoTraguardo,
   type BadgeStato,
 } from "@/lib/badges";
-import { badgeSocialVinti, categorieSocial, type VotoSocial, type CategoriaSocial } from "@/lib/badge-social";
+import {
+  badgeSocialVinti,
+  categorieSocial,
+  type VotoSocial,
+  type CategoriaSocial,
+} from "@/lib/badge-social";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
@@ -91,7 +96,9 @@ function SocialDrawer({
             </div>
           </div>
           <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Vinto</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+              Vinto
+            </p>
             <p className="mt-1 font-display text-3xl leading-none">
               {conteggio}{" "}
               <span className="text-lg text-muted-foreground">

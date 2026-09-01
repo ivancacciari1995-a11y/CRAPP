@@ -139,8 +139,7 @@ export function mioVotoSocial(
 ) {
   return (
     voti.find(
-      (v) =>
-        v.match_id === matchId && v.categoria === categoria && v.votante_id === votanteId,
+      (v) => v.match_id === matchId && v.categoria === categoria && v.votante_id === votanteId,
     ) ?? null
   );
 }

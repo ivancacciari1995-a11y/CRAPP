@@ -4,11 +4,13 @@ import { Cake, ChevronDown, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
-import { formatData, storicoMatch } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useRosa, useObiettivi } from "@/lib/rosa";
 import { usePresenzeUltimoMeseTutti } from "@/lib/presenze-mese";
 import { totaliSquadra } from "@/lib/scout-store";
+import { useCsi } from "@/lib/csi";
+import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { mediaSquadra, usePagelle } from "@/lib/pagelle";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { StatTile } from "@/components/crapp/ui-bits";
@@ -43,7 +45,8 @@ export const Route = createFileRoute("/squadra")({
       { title: "Squadra CRAP Volley — CrAPP" },
       {
         name: "description",
-        content: "Rosa completa del CRAP Volley: giocatori, dati anagrafici, statistiche stagionali e badge sbloccati.",
+        content:
+          "Rosa completa del CRAP Volley: giocatori, dati anagrafici, statistiche stagionali e badge sbloccati.",
       },
       { property: "og:title", content: "Squadra CRAP Volley — CrAPP" },
       {
@@ -54,7 +57,6 @@ export const Route = createFileRoute("/squadra")({
   }),
   component: Squadra,
 });
-
 
 const criteri = [
   { id: "presenze", label: "Presenze" },
@@ -85,24 +87,31 @@ function Squadra() {
   const obiettivi = useObiettivi();
   const team = totaliSquadra(scoutMatches);
   const mediaPresenze = rosa.length
-    ? Math.round((rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100)
+    ? Math.round(
+        (rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100,
+      )
     : 0;
   const ordinati = [...rosa].sort((a, b) => valore(b, criterio) - valore(a, criterio));
   const max = ordinati[0] ? valore(ordinati[0], criterio) || 1 : 1;
-  const tuttiMatch = [
-    ...scoutMatches.map((m) => ({
-      id: m.id,
-      data: m.data,
-      avversario: m.avversario,
-      casa: m.casa,
-      setNostri: m.setNostri,
-      setLoro: m.setLoro,
-      parziali: m.parziali,
-      mvp: mvpPerMatch[m.id] ?? "",
-      scout: true,
-    })),
-    ...storicoMatch.map((m) => ({ ...m, scout: false })),
-  ];
+  const { data: csi } = useCsi();
+  const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
+  const tuttiMatch = csiGiocate.length
+    ? csiGiocate.map((p) => ({
+        ...matchDaPartitaCsi(p),
+        mvp: mvpPerMatch[p.id] ?? "",
+        scout: false,
+      }))
+    : scoutMatches.map((m) => ({
+        id: m.id,
+        data: m.data,
+        avversario: m.avversario,
+        casa: m.casa,
+        setNostri: m.setNostri,
+        setLoro: m.setLoro,
+        parziali: m.parziali,
+        mvp: mvpPerMatch[m.id] ?? "",
+        scout: true,
+      }));
   const completati = obiettivi.filter((o) => progressoObiettivo(o) >= 100).length;
   const mediaObiettivi = obiettivi.length
     ? Math.round(obiettivi.reduce((s, o) => s + progressoObiettivo(o), 0) / obiettivi.length)
@@ -116,7 +125,10 @@ function Squadra() {
         <div className="space-y-2">
           {rosa.map((g) => {
             const stati = badgeGiocatore(g);
-            const sbloccati = [...stati.filter((b) => b.grado !== null), ...badgeSegretiSbloccati(g)];
+            const sbloccati = [
+              ...stati.filter((b) => b.grado !== null),
+              ...badgeSegretiSbloccati(g),
+            ];
             const isOpen = aperto === g.id;
             return (
               <article key={g.id} className="overflow-hidden rounded-3xl bg-card shadow-card">
@@ -126,7 +138,11 @@ function Squadra() {
                   className="flex w-full items-center gap-3 p-3 text-left active:scale-[0.99]"
                   aria-expanded={isOpen}
                 >
-                  <Avatar id={g.id} fallback={g.numero ? String(g.numero) : g.iniziali} className="h-11 w-11 text-lg" />
+                  <Avatar
+                    id={g.id}
+                    fallback={g.numero ? String(g.numero) : g.iniziali}
+                    className="h-11 w-11 text-lg"
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold leading-tight">{g.nome}</span>
                     <span className="mt-1 flex items-center gap-2">
@@ -160,19 +176,20 @@ function Squadra() {
                   <div className="border-t border-border px-4 pb-4 pt-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Cake className="h-3.5 w-3.5" /> {formatData(g.nascita)} {g.nascita.slice(0, 4)}
+                        <Cake className="h-3.5 w-3.5" /> {formatData(g.nascita)}{" "}
+                        {g.nascita.slice(0, 4)}
                       </p>
                     </div>
 
                     <div className="mt-3 grid grid-cols-3 gap-2">
-                    {[
-                      { l: "Presenze", v: `${g.presenze}/${g.totaliEventi}` },
-                      { l: "Presenze 30gg", v: `${mese[g.id]?.percentuale ?? 0}%` },
-                      { l: "Presenze di fila", v: g.streak },
-                      { l: "Media voto", v: g.mediaVoto || "—" },
-                      { l: "MVP", v: g.mvp },
-                      { l: "Cacche/partita 💩", v: g.cacchePartita || "—" },
-                    ].map((s) => (
+                      {[
+                        { l: "Presenze", v: `${g.presenze}/${g.totaliEventi}` },
+                        { l: "Presenze 30gg", v: `${mese[g.id]?.percentuale ?? 0}%` },
+                        { l: "Presenze di fila", v: g.streak },
+                        { l: "Media voto", v: g.mediaVoto || "—" },
+                        { l: "MVP", v: g.mvp },
+                        { l: "Cacche/partita 💩", v: g.cacchePartita || "—" },
+                      ].map((s) => (
                         <div key={s.l} className="rounded-2xl bg-secondary p-2.5 text-center">
                           <p className="font-display text-xl leading-none">{s.v}</p>
                           <p className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
@@ -201,9 +218,16 @@ function Squadra() {
                                 <p className="mt-1 text-xs font-bold leading-tight">{b.def.nome}</p>
                                 <p className="text-[10px] text-muted-foreground">
                                   {b.valore} {b.def.unita}
-                                  {b.prossimaSoglia ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}` : ""}
+                                  {b.prossimaSoglia
+                                    ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}`
+                                    : ""}
                                 </p>
-                                <p className={cn("mt-1.5 text-[10px] font-bold uppercase", meta.text)}>
+                                <p
+                                  className={cn(
+                                    "mt-1.5 text-[10px] font-bold uppercase",
+                                    meta.text,
+                                  )}
+                                >
                                   {meta.label}
                                 </p>
                               </div>
@@ -223,7 +247,7 @@ function Squadra() {
       <Section titolo="Statistiche di squadra">
         <div className="grid grid-cols-3 gap-2">
           <StatTile valore={`${mediaPresenze}%`} label="Media presenze" />
-          <StatTile valore={storicoMatch.length + scoutMatches.length} label="Match giocati" />
+          <StatTile valore={tuttiMatch.length} label="Match giocati" />
           <StatTile valore={mediaSquadra(pagelle) || "—"} label="Media pagelle" />
           <StatTile valore={team.punti} label="Punti squadra" />
           <StatTile valore={team.ace} label="Ace squadra" />
@@ -411,7 +435,9 @@ function Squadra() {
                       const meta = gradoMeta[grado];
                       const quanti = rosa.filter((g) => {
                         const raggiunto = gradoRaggiunto(b, b.valore(g));
-                        return raggiunto ? gradiOrdine.indexOf(raggiunto) >= gradiOrdine.indexOf(grado) : false;
+                        return raggiunto
+                          ? gradiOrdine.indexOf(raggiunto) >= gradiOrdine.indexOf(grado)
+                          : false;
                       }).length;
                       return (
                         <div

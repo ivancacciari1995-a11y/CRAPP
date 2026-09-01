@@ -118,32 +118,34 @@ export function EventoCard({
       <Barra percentuale={perc} altezza="h-1.5" trackClassName="mt-3" />
 
       {io ? (
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {stati.map((s) => {
-          const meta = statoMeta[s];
-          const attivo = stato === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              disabled={salva.isPending}
-              onClick={() =>
-                salva.mutate({
-                  eventoId: evento.id,
-                  giocatoreId: io.id,
-                  stato: attivo ? null : s,
-                })
-              }
-              className={cn(
-                "rounded-full border border-border px-2.5 py-1.5 text-[11px] font-semibold transition-all active:scale-95",
-                attivo ? cn(meta.className, "border-transparent shadow-card") : "bg-background text-muted-foreground",
-              )}
-            >
-{meta.label}
-            </button>
-          );
-        })}
-      </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {stati.map((s) => {
+            const meta = statoMeta[s];
+            const attivo = stato === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                disabled={salva.isPending}
+                onClick={() =>
+                  salva.mutate({
+                    eventoId: evento.id,
+                    giocatoreId: io.id,
+                    stato: attivo ? null : s,
+                  })
+                }
+                className={cn(
+                  "rounded-full border border-border px-2.5 py-1.5 text-[11px] font-semibold transition-all active:scale-95",
+                  attivo
+                    ? cn(meta.className, "border-transparent shadow-card")
+                    : "bg-background text-muted-foreground",
+                )}
+              >
+                {meta.label}
+              </button>
+            );
+          })}
+        </div>
       ) : null}
     </article>
   );

@@ -88,22 +88,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "CrAPP — L'app del CRAP Volley" },
       {
         name: "description",
-        content: "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
+        content:
+          "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
       { name: "author", content: "CRAP Volley" },
       { name: "theme-color", content: "#111111" },
       { property: "og:title", content: "CrAPP — L'app del CRAP Volley" },
       {
         property: "og:description",
-        content: "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
+        content:
+          "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "CrAPP — L'app del CRAP Volley" },
-      { name: "twitter:description", content: "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png",
+      },
     ],
     links: [
       {

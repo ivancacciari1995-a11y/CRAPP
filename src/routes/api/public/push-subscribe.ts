@@ -38,7 +38,10 @@ export const Route = createFileRoute("/api/public/push-subscribe")({
         if (!parsed.success) return new Response("Dati non validi", { status: 400 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", parsed.data.endpoint);
+        await supabaseAdmin
+          .from("push_subscriptions")
+          .delete()
+          .eq("endpoint", parsed.data.endpoint);
         return Response.json({ ok: true });
       },
     },

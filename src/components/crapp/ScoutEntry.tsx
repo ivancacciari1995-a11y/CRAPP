@@ -19,12 +19,20 @@ export function ScoutEntry({ variante = "grande" }: { variante?: "grande" | "com
   const occupato = !!attiva && attiva.giocatore_id !== io?.id;
   const disponibile = abilitato && pronto && !!partita && !occupato;
 
-  const titolo = !abilitato ? "Scout live" : !partita ? "Scout live non attivo" : occupato ? "Scout occupato" : "Scout live";
-  const sottotitolo = !abilitato ? "Riservato ad allenatori e referenti" : !partita
-    ? "Si attiva il giorno della partita"
-    : occupato
-      ? `In uso da ${attiva!.giocatore_nome}`
-      : "Segna punti, ace e muri in tempo reale";
+  const titolo = !abilitato
+    ? "Scout live"
+    : !partita
+      ? "Scout live non attivo"
+      : occupato
+        ? "Scout occupato"
+        : "Scout live";
+  const sottotitolo = !abilitato
+    ? "Riservato ad allenatori e referenti"
+    : !partita
+      ? "Si attiva il giorno della partita"
+      : occupato
+        ? `In uso da ${attiva!.giocatore_nome}`
+        : "Segna punti, ace e muri in tempo reale";
 
   const contenuto = (
     <>

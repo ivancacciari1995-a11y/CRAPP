@@ -1,24 +1,54 @@
 import { useSyncExternalStore } from "react";
-import { giocatori, classifica, type Giocatore, type RigaClassifica } from "./crapp-data";
+import { giocatori, type Giocatore } from "./crapp-data";
 
-export type AzioneTipo =
-  | "attacco"
-  | "ace"
-  | "muro"
-  | "errore"
-  | "punto_avv"
-  | "errore_avv";
+export type AzioneTipo = "attacco" | "ace" | "muro" | "errore" | "punto_avv" | "errore_avv";
 
 export const azioniMeta: Record<
   AzioneTipo,
   { label: string; short: string; nostro: boolean; richiedeGiocatore: boolean; className: string }
 > = {
-  attacco: { label: "Punto attacco", short: "Punto", nostro: true, richiedeGiocatore: true, className: "bg-accent text-accent-foreground" },
-  ace: { label: "Ace", short: "Ace", nostro: true, richiedeGiocatore: true, className: "bg-success text-success-foreground" },
-  muro: { label: "Muro", short: "Muro", nostro: true, richiedeGiocatore: true, className: "bg-info text-info-foreground" },
-  errore: { label: "Errore nostro", short: "Errore", nostro: false, richiedeGiocatore: true, className: "bg-destructive text-destructive-foreground" },
-  punto_avv: { label: "Punto avversario", short: "Punto avv.", nostro: false, richiedeGiocatore: false, className: "bg-muted text-muted-foreground" },
-  errore_avv: { label: "Errore avversario", short: "Err. avv.", nostro: true, richiedeGiocatore: false, className: "bg-secondary text-foreground" },
+  attacco: {
+    label: "Punto attacco",
+    short: "Punto",
+    nostro: true,
+    richiedeGiocatore: true,
+    className: "bg-accent text-accent-foreground",
+  },
+  ace: {
+    label: "Ace",
+    short: "Ace",
+    nostro: true,
+    richiedeGiocatore: true,
+    className: "bg-success text-success-foreground",
+  },
+  muro: {
+    label: "Muro",
+    short: "Muro",
+    nostro: true,
+    richiedeGiocatore: true,
+    className: "bg-info text-info-foreground",
+  },
+  errore: {
+    label: "Errore nostro",
+    short: "Errore",
+    nostro: false,
+    richiedeGiocatore: true,
+    className: "bg-destructive text-destructive-foreground",
+  },
+  punto_avv: {
+    label: "Punto avversario",
+    short: "Punto avv.",
+    nostro: false,
+    richiedeGiocatore: false,
+    className: "bg-muted text-muted-foreground",
+  },
+  errore_avv: {
+    label: "Errore avversario",
+    short: "Err. avv.",
+    nostro: true,
+    richiedeGiocatore: false,
+    className: "bg-secondary text-foreground",
+  },
 };
 
 export type Azione = {
@@ -142,38 +172,4 @@ export function giocatoriConScout(
       totaliEventi: g.totaliEventi + matches.length,
     };
   });
-}
-
-/** Classifica demo aggiornata con i match scoutati (solo la nostra riga). */
-export function classificaConScout(matches: ScoutMatch[]): RigaClassifica[] {
-  if (matches.length === 0) return classifica;
-  const agg = matches.reduce(
-    (s, m) => {
-      const vinta = m.setNostri > m.setLoro;
-      s.giocate += 1;
-      s.vinte += vinta ? 1 : 0;
-      s.perse += vinta ? 0 : 1;
-      s.setFatti += m.setNostri;
-      s.setSubiti += m.setLoro;
-      s.punti += vinta ? (m.setLoro <= 1 ? 3 : 2) : m.setLoro === 3 && m.setNostri === 2 ? 1 : 0;
-      return s;
-    },
-    { giocate: 0, vinte: 0, perse: 0, setFatti: 0, setSubiti: 0, punti: 0 },
-  );
-  return classifica
-    .map((r) =>
-      r.squadra === "CRAP Volley"
-        ? {
-            ...r,
-            giocate: r.giocate + agg.giocate,
-            vinte: r.vinte + agg.vinte,
-            perse: r.perse + agg.perse,
-            setFatti: r.setFatti + agg.setFatti,
-            setSubiti: r.setSubiti + agg.setSubiti,
-            punti: r.punti + agg.punti,
-          }
-        : r,
-    )
-    .sort((a, b) => b.punti - a.punti || b.setFatti - b.setSubiti - (a.setFatti - a.setSubiti))
-    .map((r, i) => ({ ...r, pos: i + 1 }));
 }

@@ -1,4 +1,4 @@
-import { giocatori, storicoMatch, type Giocatore } from "./crapp-data";
+import { giocatori, type Giocatore } from "./crapp-data";
 import type { Evento } from "./eventi";
 import type { MappaPresenze } from "./presenze";
 import { mediaSquadra, type VotoPagella } from "./pagelle";
@@ -20,6 +20,8 @@ export type ContestoObiettivi = {
   eventi: Evento[];
   presenze: MappaPresenze;
   pagelle: VotoPagella[];
+  /** Vittorie ufficiali in campionato (dato CSI). */
+  vittorie?: number;
 };
 
 export const contestoVuoto: ContestoObiettivi = { eventi: [], presenze: {}, pagelle: [] };
@@ -50,8 +52,6 @@ function percentualeRisposte(ctx: ContestoObiettivi) {
   return Math.round((risposte / posti) * 100);
 }
 
-const vittorie = storicoMatch.filter((m) => m.setNostri > m.setLoro).length;
-
 /** Obiettivi collaborativi: si muovono con il contributo di tutta la rosa. */
 export function obiettiviSquadra(
   rosa: Giocatore[] = giocatori,
@@ -59,6 +59,7 @@ export function obiettiviSquadra(
 ): ObiettivoSquadra[] {
   const somma = (f: (g: Giocatore) => number) => rosa.reduce((s, g) => s + f(g), 0);
   const continui = rosa.filter((g) => g.serieAllenamenti >= 3).length;
+  const vittorie = ctx.vittorie ?? 0;
   return [
     {
       id: "o1",
