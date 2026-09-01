@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useEventi, type Evento } from "./eventi";
 
 /** Minuti dopo i quali una sessione scout inattiva viene considerata libera. */
@@ -30,79 +31,28 @@ export function sessioneScaduta(s: SessioneScout | null): boolean {
   return Date.now() - aggiornato > SCADENZA_MINUTI * 60_000;
 }
 
-const storageKey = (eventoId: string) => `crap-scout-session-${eventoId}`;
-
-function readSession(eventoId: string): SessioneScout | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(storageKey(eventoId));
-    if (!raw) return null;
-    return JSON.parse(raw) as SessioneScout;
-  } catch {
-    return null;
-  }
-}
-
-function writeSession(eventoId: string, sessione: SessioneScout | null) {
-  if (typeof window === "undefined") return;
-  if (sessione) {
-    window.localStorage.setItem(storageKey(eventoId), JSON.stringify(sessione));
-  } else {
-    window.localStorage.removeItem(storageKey(eventoId));
-  }
-  try {
-    const bc = new BroadcastChannel(`crap-scout-${eventoId}`);
-    bc.postMessage(sessione);
-    bc.close();
-  } catch {
-    // fallback: storage event is already fired by localStorage
-  }
-}
-
 export const SESSIONE_KEY = (eventoId: string) => ["scout-sessione", eventoId] as const;
 
+/** Sessione condivisa: chi la tiene aperta lo vede chiunque, su qualsiasi dispositivo. */
+async function leggiSessione(eventoId: string): Promise<SessioneScout | null> {
+  const { data, error } = await supabase
+    .from("scout_sessioni")
+    .select("evento_id, giocatore_id, giocatore_nome, aggiornato_il")
+    .eq("evento_id", eventoId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export function useSessioneScout(eventoId: string | null) {
-  const queryClient = useQueryClient();
-  const query = useQuery({
+  return useQuery({
     queryKey: SESSIONE_KEY(eventoId ?? "-"),
     enabled: !!eventoId,
-    // Sincronizzazione via BroadcastChannel/storage: nessun polling.
-    staleTime: Infinity,
-    queryFn: async (): Promise<SessioneScout | null> => {
-      if (!eventoId || typeof window === "undefined") return null;
-      return readSession(eventoId);
-    },
+    // Nessun push in tempo reale: si ricontrolla all'apertura/focus della pagina
+    // o con il pulsante "Aggiorna" quando risulta occupato.
+    staleTime: 30_000,
+    queryFn: () => leggiSessione(eventoId!),
   });
-
-  useEffect(() => {
-    if (!eventoId) return;
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel(`crap-scout-${eventoId}`);
-      bc.onmessage = (e) => {
-        queryClient.setQueryData(SESSIONE_KEY(eventoId), e.data as SessioneScout | null);
-      };
-    } catch {
-      const onStorage = (e: StorageEvent) => {
-        if (e.key === storageKey(eventoId)) {
-          queryClient.setQueryData(
-            SESSIONE_KEY(eventoId),
-            e.newValue ? (JSON.parse(e.newValue) as SessioneScout) : null,
-          );
-        }
-      };
-      window.addEventListener("storage", onStorage);
-      return () => window.removeEventListener("storage", onStorage);
-    }
-    return () => {
-      if (bc) {
-        bc.onmessage = null;
-        bc.close();
-      }
-    };
-  }, [eventoId, queryClient]);
-
-  return query;
 }
 
 /** Prende il controllo dello scout se libero o scaduto. Ritorna true se ottenuto. */
@@ -110,17 +60,20 @@ export function useApriSessioneScout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { eventoId: string; giocatoreId: string; nome: string }) => {
-      if (typeof window === "undefined") return false;
-      const current = readSession(input.eventoId);
-      if (current && !sessioneScaduta(current) && current.giocatore_id !== input.giocatoreId) {
+      const attuale = await leggiSessione(input.eventoId);
+      if (attuale && !sessioneScaduta(attuale) && attuale.giocatore_id !== input.giocatoreId) {
         return false;
       }
-      writeSession(input.eventoId, {
-        evento_id: input.eventoId,
-        giocatore_id: input.giocatoreId,
-        giocatore_nome: input.nome,
-        aggiornato_il: new Date().toISOString(),
-      });
+      const { error } = await supabase.from("scout_sessioni").upsert(
+        {
+          evento_id: input.eventoId,
+          giocatore_id: input.giocatoreId,
+          giocatore_nome: input.nome,
+          aggiornato_il: new Date().toISOString(),
+        },
+        { onConflict: "evento_id" },
+      );
+      if (error) throw error;
       return true;
     },
     onSuccess: (_ok, input) => {
@@ -133,10 +86,13 @@ export function useChiudiSessioneScout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { eventoId: string; giocatoreId: string }) => {
-      if (typeof window === "undefined") return;
-      const current = readSession(input.eventoId);
-      if (current && current.giocatore_id === input.giocatoreId) {
-        writeSession(input.eventoId, null);
+      const attuale = await leggiSessione(input.eventoId);
+      if (attuale && attuale.giocatore_id === input.giocatoreId) {
+        const { error } = await supabase
+          .from("scout_sessioni")
+          .delete()
+          .eq("evento_id", input.eventoId);
+        if (error) throw error;
       }
     },
     onSuccess: (_d, input) => {
@@ -152,13 +108,13 @@ export function useHeartbeatScout(
   attivo: boolean,
 ) {
   useEffect(() => {
-    if (!attivo || !eventoId || !giocatoreId || typeof window === "undefined") return;
+    if (!attivo || !eventoId || !giocatoreId) return;
     const id = window.setInterval(() => {
-      const current = readSession(eventoId);
-      if (current && current.giocatore_id === giocatoreId) {
-        current.aggiornato_il = new Date().toISOString();
-        writeSession(eventoId, current);
-      }
+      void supabase
+        .from("scout_sessioni")
+        .update({ aggiornato_il: new Date().toISOString() })
+        .eq("evento_id", eventoId)
+        .eq("giocatore_id", giocatoreId);
     }, 60_000);
     return () => window.clearInterval(id);
   }, [attivo, eventoId, giocatoreId]);

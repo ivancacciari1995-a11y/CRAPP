@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { giocatori, type Giocatore } from "./crapp-data";
 
 export type AzioneTipo = "attacco" | "ace" | "muro" | "errore" | "punto_avv" | "errore_avv";
@@ -67,54 +68,87 @@ export type ScoutMatch = {
   setNostri: number;
   setLoro: number;
   parziali: Array<[number, number]>;
-  mvp: string;
   azioni: Azione[];
 };
 
-const KEY = "crapp-scout-v1";
+type RigaScoutPartita = {
+  id: string;
+  data: string;
+  avversario: string;
+  casa: boolean;
+  set_nostri: number;
+  set_loro: number;
+  parziali: unknown;
+  azioni: unknown;
+};
 
-let cache: ScoutMatch[] | null = null;
-const listeners = new Set<() => void>();
-
-function read(): ScoutMatch[] {
-  if (cache) return cache;
-  if (typeof window === "undefined") return (cache = []);
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    cache = raw ? (JSON.parse(raw) as ScoutMatch[]) : [];
-  } catch {
-    cache = [];
-  }
-  return cache;
+function daRiga(r: RigaScoutPartita): ScoutMatch {
+  return {
+    id: r.id,
+    data: r.data,
+    avversario: r.avversario,
+    casa: r.casa,
+    setNostri: r.set_nostri,
+    setLoro: r.set_loro,
+    parziali: (r.parziali as Array<[number, number]> | null) ?? [],
+    azioni: (r.azioni as Azione[] | null) ?? [],
+  };
 }
 
-function write(next: ScoutMatch[]) {
-  cache = next;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    /* storage non disponibile */
-  }
-  listeners.forEach((l) => l());
+export const SCOUT_MATCHES_KEY = ["scout-partite"] as const;
+
+async function fetchScoutMatches(): Promise<ScoutMatch[]> {
+  const { data, error } = await supabase
+    .from("scout_partite")
+    .select("id, data, avversario, casa, set_nostri, set_loro, parziali, azioni")
+    .order("creato_il", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(daRiga);
 }
 
-export function salvaScoutMatch(m: ScoutMatch) {
-  write([m, ...read()]);
-}
-
-export function eliminaScoutMatch(id: string) {
-  write(read().filter((m) => m.id !== id));
-}
-
+/** Partite scoutate condivise con tutta la squadra: chi scoutizza le vede da qualsiasi
+ *  dispositivo, non solo da quello di chi ha chiuso la partita. */
 export function useScoutMatches(): ScoutMatch[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
+  const { data } = useQuery({
+    queryKey: SCOUT_MATCHES_KEY,
+    staleTime: 60_000,
+    queryFn: fetchScoutMatches,
+  });
+  return data ?? [];
+}
+
+export function useSalvaScoutMatch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { eventoId: string | null; match: ScoutMatch }) => {
+      const { error } = await supabase.from("scout_partite").insert({
+        id: input.match.id,
+        evento_id: input.eventoId,
+        data: input.match.data,
+        avversario: input.match.avversario,
+        casa: input.match.casa,
+        set_nostri: input.match.setNostri,
+        set_loro: input.match.setLoro,
+        parziali: JSON.parse(JSON.stringify(input.match.parziali)),
+        azioni: JSON.parse(JSON.stringify(input.match.azioni)),
+      });
+      if (error) throw error;
+      return input.match;
     },
-    () => read(),
-    () => [],
-  );
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SCOUT_MATCHES_KEY }),
+  });
+}
+
+export function useEliminaScoutMatch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("scout_partite").delete().eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SCOUT_MATCHES_KEY }),
+  });
 }
 
 /** Somma delle azioni di un match per giocatore. */

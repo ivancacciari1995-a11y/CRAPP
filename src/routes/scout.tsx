@@ -26,7 +26,7 @@ import {
 } from "@/lib/scout-live";
 import {
   azioniMeta,
-  salvaScoutMatch,
+  useSalvaScoutMatch,
   totaliPerGiocatore,
   type Azione,
   type AzioneTipo,
@@ -212,6 +212,7 @@ function ScoutBoard({
   const [selezionato, setSelezionato] = useState<string | null>(null);
   const salva = useSalvaStatoScout();
   const cancella = useCancellaStatoScout();
+  const salvaMatch = useSalvaScoutMatch();
   const { risposte } = usePresenzeEvento(partita.id);
   const finito = useRef(false);
 
@@ -280,7 +281,7 @@ function ScoutBoard({
     toast.success(`Set ${setCorrente} chiuso ${puntiNoi}-${puntiLoro}`);
   }
 
-  function finePartita() {
+  async function finePartita() {
     const parziali: Array<[number, number]> =
       puntiNoi + puntiLoro > 0 ? [...setChiusi, [puntiNoi, puntiLoro]] : setChiusi;
     if (parziali.length === 0) {
@@ -288,17 +289,24 @@ function ScoutBoard({
       return;
     }
     const vinti = parziali.filter(([n, l]) => n > l).length;
-    salvaScoutMatch({
-      id: `s${Date.now()}`,
-      data: new Date().toISOString().slice(0, 10),
-      avversario: avversario.trim() || "Avversario",
-      casa,
-      setNostri: vinti,
-      setLoro: parziali.length - vinti,
-      parziali,
-      mvp: "",
-      azioni,
-    });
+    try {
+      await salvaMatch.mutateAsync({
+        eventoId: partita.id,
+        match: {
+          id: `s${Date.now()}`,
+          data: new Date().toISOString().slice(0, 10),
+          avversario: avversario.trim() || "Avversario",
+          casa,
+          setNostri: vinti,
+          setLoro: parziali.length - vinti,
+          parziali,
+          azioni,
+        },
+      });
+    } catch {
+      toast.error("Salvataggio non riuscito, riprova");
+      return;
+    }
     toast.success("Partita salvata: ora la squadra può votare l'MVP");
     finito.current = true;
     void cancella.mutateAsync(partita.id);
@@ -511,7 +519,8 @@ function ScoutBoard({
         <button
           type="button"
           onClick={finePartita}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+          disabled={salvaMatch.isPending}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
         >
           <Save className="h-4 w-4" /> Fine partita
         </button>

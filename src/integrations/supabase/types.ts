@@ -4,7 +4,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15";
+    PostgrestVersion: "14.5";
+  };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -194,6 +219,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      giocatori_squadra: {
+        Row: {
+          aggiornato_il: string;
+          attivo: boolean;
+          auth_user_id: string | null;
+          cognome: string;
+          creato_il: string;
+          email: string | null;
+          id: string;
+          nome: string;
+          numero: number;
+          ruolo: string;
+        };
+        Insert: {
+          aggiornato_il?: string;
+          attivo?: boolean;
+          auth_user_id?: string | null;
+          cognome: string;
+          creato_il?: string;
+          email?: string | null;
+          id: string;
+          nome: string;
+          numero: number;
+          ruolo: string;
+        };
+        Update: {
+          aggiornato_il?: string;
+          attivo?: boolean;
+          auth_user_id?: string | null;
+          cognome?: string;
+          creato_il?: string;
+          email?: string | null;
+          id?: string;
+          nome?: string;
+          numero?: number;
+          ruolo?: string;
+        };
+        Relationships: [];
+      };
       mvp_voti: {
         Row: {
           created_at: string;
@@ -296,6 +360,77 @@ export type Database = {
           },
         ];
       };
+      profili_giocatore: {
+        Row: {
+          aggiornato_il: string;
+          certificato_path: string | null;
+          certificato_scadenza: string | null;
+          creato_il: string;
+          data_nascita: string | null;
+          documento_emissione: string | null;
+          documento_fronte_path: string | null;
+          documento_numero: string | null;
+          documento_retro_path: string | null;
+          documento_rilasciato_da: string | null;
+          documento_scadenza: string | null;
+          documento_tipo: string | null;
+          email: string | null;
+          foto_path: string | null;
+          giocatore_id: string;
+          indirizzo: string | null;
+          luogo_nascita: string | null;
+          telefono: string | null;
+        };
+        Insert: {
+          aggiornato_il?: string;
+          certificato_path?: string | null;
+          certificato_scadenza?: string | null;
+          creato_il?: string;
+          data_nascita?: string | null;
+          documento_emissione?: string | null;
+          documento_fronte_path?: string | null;
+          documento_numero?: string | null;
+          documento_retro_path?: string | null;
+          documento_rilasciato_da?: string | null;
+          documento_scadenza?: string | null;
+          documento_tipo?: string | null;
+          email?: string | null;
+          foto_path?: string | null;
+          giocatore_id: string;
+          indirizzo?: string | null;
+          luogo_nascita?: string | null;
+          telefono?: string | null;
+        };
+        Update: {
+          aggiornato_il?: string;
+          certificato_path?: string | null;
+          certificato_scadenza?: string | null;
+          creato_il?: string;
+          data_nascita?: string | null;
+          documento_emissione?: string | null;
+          documento_fronte_path?: string | null;
+          documento_numero?: string | null;
+          documento_retro_path?: string | null;
+          documento_rilasciato_da?: string | null;
+          documento_scadenza?: string | null;
+          documento_tipo?: string | null;
+          email?: string | null;
+          foto_path?: string | null;
+          giocatore_id?: string;
+          indirizzo?: string | null;
+          luogo_nascita?: string | null;
+          telefono?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profili_giocatore_giocatore_id_fkey";
+            columns: ["giocatore_id"];
+            isOneToOne: true;
+            referencedRelation: "giocatori_squadra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       promemoria_push: {
         Row: {
           creato_il: string;
@@ -383,6 +518,45 @@ export type Database = {
           aggiornato_il?: string;
           evento_id?: string;
           stato?: Json;
+        };
+        Relationships: [];
+      };
+      scout_partite: {
+        Row: {
+          avversario: string;
+          azioni: Json;
+          casa: boolean;
+          creato_il: string;
+          data: string;
+          evento_id: string | null;
+          id: string;
+          parziali: Json;
+          set_loro: number;
+          set_nostri: number;
+        };
+        Insert: {
+          avversario: string;
+          azioni?: Json;
+          casa?: boolean;
+          creato_il?: string;
+          data: string;
+          evento_id?: string | null;
+          id: string;
+          parziali?: Json;
+          set_loro: number;
+          set_nostri: number;
+        };
+        Update: {
+          avversario?: string;
+          azioni?: Json;
+          casa?: boolean;
+          creato_il?: string;
+          data?: string;
+          evento_id?: string | null;
+          id?: string;
+          parziali?: Json;
+          set_loro?: number;
+          set_nostri?: number;
         };
         Relationships: [];
       };
@@ -580,6 +754,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "user"],

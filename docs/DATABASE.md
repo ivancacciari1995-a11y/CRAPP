@@ -36,8 +36,9 @@ non in questo file.
 
 | Tabella          | Scopo                                                           | Note                                                                                                                                                                                      |
 | ---------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scout_sessioni` | Sessioni di Scout Live: una sessione corrisponde a una partita. | **Non ancora usata dal codice**: oggi lo stato della sessione vive in `localStorage` (`src/lib/scout-live.ts`, `scout-store.ts`) e sul database finiscono solo le azioni in `scout_live`. |
-| `scout_live`     | Eventi registrati durante lo Scout Live.                        | Serve esclusivamente per statistiche di squadra, mai per classifiche individuali (DD-008).                                                                                                |
+| `scout_sessioni` | Chi ha il controllo dello Scout Live per una partita (blocco condiviso), una riga per evento. | Letta/scritta da `src/lib/scout-live.ts`. Prima viveva solo in `localStorage`: "Scout occupato da X" non funzionava mai tra dispositivi diversi (fix M7). |
+| `scout_live`     | Stato in corso (azioni non ancora concluse) di una sessione di Scout Live.                    | Serve esclusivamente per statistiche di squadra, mai per classifiche individuali (DD-008). Letta/scritta da `src/lib/scout-stato.ts`.                     |
+| `scout_partite`  | Archivio delle partite scoutate concluse (risultato, parziali, azioni).                       | Letta/scritta da `src/lib/scout-store.ts`. Prima il risultato finale finiva solo in `localStorage`: invisibile a chiunque non fosse il dispositivo di chi aveva chiuso la partita (fix M7). |
 
 ## Votazioni
 

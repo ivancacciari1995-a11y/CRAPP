@@ -31,7 +31,6 @@ const match = (
   setNostri,
   setLoro,
   parziali: [],
-  mvp: "",
   azioni,
 });
 

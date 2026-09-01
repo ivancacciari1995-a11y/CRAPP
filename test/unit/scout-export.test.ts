@@ -28,7 +28,6 @@ const match: ScoutMatch = {
     [25, 21],
     [25, 18],
   ],
-  mvp: g1.nome,
   azioni: [a("attacco", g1.id), a("ace", g1.id, 2), a("errore", g2.id, 2), a("punto_avv")],
 };
 

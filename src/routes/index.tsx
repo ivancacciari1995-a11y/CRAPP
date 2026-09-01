@@ -52,7 +52,7 @@ function Index() {
   const ultima = csiGiocate[0]
     ? { ...matchDaPartitaCsi(csiGiocate[0]), mvp: mvpPerMatch[csiGiocate[0].id] ?? "" }
     : scoutMatches[0]
-      ? { ...scoutMatches[0], mvp: mvpPerMatch[scoutMatches[0].id] ?? scoutMatches[0].mvp }
+      ? { ...scoutMatches[0], mvp: mvpPerMatch[scoutMatches[0].id] ?? "" }
       : null;
   const obiettivi = useObiettivi();
   const obiettivo = obiettivi.find((o) => progressoObiettivo(o) < 100) ?? obiettivi[0] ?? null;
