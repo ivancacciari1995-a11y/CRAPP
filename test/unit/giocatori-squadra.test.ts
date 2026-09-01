@@ -4,6 +4,7 @@ import {
   dividiNome,
   nomeCompleto,
   numeroGiaUsato,
+  prossimoIdGiocatore,
   rosaFallback,
   slotDi,
   slotPerEmail,
@@ -84,7 +85,7 @@ assert.equal(
 assert.equal(slotPerEmail(rosaEmail, ""), null, "stringa vuota trattata come nessuna email");
 
 // --- validaDatiSquadra ----------------------------------------------------------------
-const datiOk = { nome: "Mario", cognome: "Rossi", numero: 7, ruolo: "schiacciatore" };
+const datiOk = { nome: "Mario", cognome: "Rossi", numero: 7, ruolo: "schiacciatore", email: null };
 assert.equal(validaDatiSquadra(datiOk), null, "dati validi: nessun errore");
 assert.match(validaDatiSquadra({ ...datiOk, nome: "" })!, /nome/i);
 assert.match(
@@ -105,6 +106,29 @@ assert.match(
   /numero/i,
   "il numero deve essere intero",
 );
+assert.equal(
+  validaDatiSquadra({ ...datiOk, email: "foo@bar.com" }),
+  null,
+  "email valida: nessun errore",
+);
+assert.equal(
+  validaDatiSquadra({ ...datiOk, email: "" }),
+  null,
+  "email vuota è ammessa: non ancora nota",
+);
+assert.match(
+  validaDatiSquadra({ ...datiOk, email: "non-e-una-email" })!,
+  /email/i,
+  "senza @ l'email non è valida",
+);
+
+// --- prossimoIdGiocatore ----------------------------------------------------------------
+assert.equal(
+  prossimoIdGiocatore([riga({ id: "g1" }), riga({ id: "g3" }), riga({ id: "g2" })]),
+  "g4",
+  "il prossimo id segue il numero più alto già in uso",
+);
+assert.equal(prossimoIdGiocatore([]), "g1", "rosa vuota: si parte da g1");
 
 // --- numeroGiaUsato ----------------------------------------------------------------
 const rosaNumeri: GiocatoreSquadra[] = [

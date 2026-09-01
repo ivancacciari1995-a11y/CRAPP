@@ -100,8 +100,9 @@ export function useGiocatoriSquadra() {
   return { ...query, righe, daDatabase: !!query.data?.length };
 }
 
-/** Dati squadra: li gestisce solo un amministratore (DD-017). */
-export type DatiSquadra = Pick<GiocatoreSquadra, "nome" | "cognome" | "numero" | "ruolo">;
+/** Dati squadra: li gestisce solo un amministratore (DD-017). L'email è quella usata per
+ * il collegamento automatico al primo accesso (DD-018), non il dato personale del profilo. */
+export type DatiSquadra = Pick<GiocatoreSquadra, "nome" | "cognome" | "numero" | "ruolo" | "email">;
 
 /**
  * Controlli che rispecchiano i vincoli della tabella (`numero > 0`, campi obbligatori):
@@ -114,7 +115,17 @@ export function validaDatiSquadra(dati: DatiSquadra): string | null {
   if (!Number.isInteger(dati.numero) || dati.numero <= 0)
     return "Il numero di maglia deve essere maggiore di zero.";
   if (!dati.ruolo.trim()) return "Il ruolo non può essere vuoto.";
+  if (dati.email?.trim() && !dati.email.includes("@")) return "L'email non è valida.";
   return null;
+}
+
+/** Il prossimo id libero nel formato `g<N>` richiesto dal vincolo della tabella. */
+export function prossimoIdGiocatore(righe: GiocatoreSquadra[]): string {
+  const max = righe.reduce((acc, g) => {
+    const n = Number(g.id.slice(1));
+    return Number.isFinite(n) && n > acc ? n : acc;
+  }, 0);
+  return `g${max + 1}`;
 }
 
 /** Numeri di maglia doppi: il database li accetta, la squadra no. */
@@ -131,21 +142,71 @@ export function useSalvaDatiSquadra() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { giocatoreId: string; dati: DatiSquadra }) => {
+      const dati = {
+        nome: input.dati.nome.trim(),
+        cognome: input.dati.cognome.trim(),
+        numero: input.dati.numero,
+        ruolo: input.dati.ruolo.trim(),
+        email: input.dati.email?.trim() || null,
+      };
       const { error } = await supabaseNuoveTabelle
         .from("giocatori_squadra")
-        .update({
-          nome: input.dati.nome.trim(),
-          cognome: input.dati.cognome.trim(),
-          numero: input.dati.numero,
-          ruolo: input.dati.ruolo.trim(),
-        })
+        .update(dati)
+        .eq("id", input.giocatoreId);
+      if (error) throw error;
+      return { giocatoreId: input.giocatoreId, dati };
+    },
+    onSuccess: (input) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
+      );
+    },
+  });
+}
+
+/**
+ * Aggiunge un giocatore alla rosa (DD-017). Solo un admin passa le policy di M1.
+ * L'id (`g<N>`) non è generato dal database: va calcolato con `prossimoIdGiocatore`
+ * prima di chiamare questa mutazione.
+ */
+export function useAggiungiGiocatore() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; dati: DatiSquadra }) => {
+      const { error } = await supabaseNuoveTabelle.from("giocatori_squadra").insert({
+        id: input.id,
+        nome: input.dati.nome.trim(),
+        cognome: input.dati.cognome.trim(),
+        numero: input.dati.numero,
+        ruolo: input.dati.ruolo.trim(),
+        email: input.dati.email?.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SQUADRA_KEY });
+    },
+  });
+}
+
+/**
+ * Attiva o disattiva un giocatore (es. ha lasciato la squadra): non elimina la riga, così
+ * presenze, voti, pagelle e badge della stagione restano agganciati al suo id.
+ */
+export function useImpostaAttivo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { giocatoreId: string; attivo: boolean }) => {
+      const { error } = await supabaseNuoveTabelle
+        .from("giocatori_squadra")
+        .update({ attivo: input.attivo })
         .eq("id", input.giocatoreId);
       if (error) throw error;
       return input;
     },
     onSuccess: (input) => {
       queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
-        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
+        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, attivo: input.attivo } : g)),
       );
     },
   });

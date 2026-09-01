@@ -9,6 +9,9 @@ import {
   Loader2,
   Lock,
   Unlink,
+  UserCheck,
+  UserPlus,
+  UserX,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -17,7 +20,10 @@ import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import {
   nomeCompleto,
   numeroGiaUsato,
+  prossimoIdGiocatore,
+  useAggiungiGiocatore,
   useGiocatoriSquadra,
+  useImpostaAttivo,
   useSalvaDatiSquadra,
   useScollegaAccount,
   validaDatiSquadra,
@@ -68,6 +74,15 @@ const statoClasse: Record<StatoScadenza | "presente" | "assente", string> = {
 
 const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
 
+/** L'unico vincolo unique lato database sulla tabella è l'email: messaggio leggibile invece
+ * del codice Postgres (23505). */
+function messaggioErrore(e: unknown, fallback: string): string {
+  if (e && typeof e === "object" && "code" in e && (e as { code?: unknown }).code === "23505") {
+    return "Email già usata da un altro giocatore.";
+  }
+  return e instanceof Error ? e.message : fallback;
+}
+
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
@@ -88,6 +103,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
   const salvaSquadra = useSalvaDatiSquadra();
   const salvaProfilo = useSalvaProfilo();
   const scollega = useScollegaAccount();
+  const impostaAttivo = useImpostaAttivo();
 
   const [datiSquadra, setDatiSquadra] = useState<DatiSquadra | null>(null);
   const [bozza, setBozza] = useState<Profilo | null>(null);
@@ -97,6 +113,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
     cognome: g.cognome,
     numero: g.numero,
     ruolo: g.ruolo,
+    email: g.email,
   };
   const profiloCorrente = bozza ?? profilo ?? profiloVuoto(g.id);
 
@@ -114,7 +131,20 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
       setDatiSquadra(null);
       toast.success("Dati squadra aggiornati");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Salvataggio non riuscito");
+      toast.error(messaggioErrore(e, "Salvataggio non riuscito"));
+    }
+  }
+
+  async function confermaAttivo(nuovo: boolean) {
+    const messaggio = nuovo
+      ? `Riattivare ${nomeCompleto(g)}?`
+      : `Disattivare ${nomeCompleto(g)}? Sparisce dalla rosa attiva ma i suoi dati (presenze, voti, badge) restano.`;
+    if (!confirm(messaggio)) return;
+    try {
+      await impostaAttivo.mutateAsync({ giocatoreId: g.id, attivo: nuovo });
+      toast.success(nuovo ? "Giocatore riattivato" : "Giocatore disattivato");
+    } catch (e) {
+      toast.error(messaggioErrore(e, "Operazione non riuscita"));
     }
   }
 
@@ -181,6 +211,15 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
           />
         </Campo>
       </div>
+      <Campo label="Email (collegamento automatico al login, DD-018)">
+        <input
+          type="email"
+          value={squadraCorrente.email ?? ""}
+          placeholder="nome@esempio.com"
+          onChange={(e) => setDatiSquadra({ ...squadraCorrente, email: e.target.value || null })}
+          className={classiInput}
+        />
+      </Campo>
       <button
         type="button"
         onClick={confermaSquadra}
@@ -208,16 +247,37 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
         <span className="min-w-0 text-muted-foreground">
           {g.authUserId ? "Account collegato" : "Nessun account collegato"}
         </span>
-        {g.authUserId ? (
+        <div className="flex shrink-0 items-center gap-2">
+          {g.authUserId ? (
+            <button
+              type="button"
+              onClick={confermaScollega}
+              disabled={scollega.isPending}
+              className="premi flex items-center gap-1.5 rounded-xl bg-destructive px-3 py-2 font-bold text-destructive-foreground disabled:opacity-50"
+            >
+              <Unlink className="h-3.5 w-3.5" /> Scollega
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={confermaScollega}
-            disabled={scollega.isPending}
-            className="premi flex shrink-0 items-center gap-1.5 rounded-xl bg-destructive px-3 py-2 font-bold text-destructive-foreground disabled:opacity-50"
+            onClick={() => void confermaAttivo(!g.attivo)}
+            disabled={impostaAttivo.isPending}
+            className={cn(
+              "premi flex items-center gap-1.5 rounded-xl px-3 py-2 font-bold disabled:opacity-50",
+              g.attivo ? "bg-secondary text-foreground" : "bg-success text-success-foreground",
+            )}
           >
-            <Unlink className="h-3.5 w-3.5" /> Scollega
+            {g.attivo ? (
+              <>
+                <UserX className="h-3.5 w-3.5" /> Disattiva
+              </>
+            ) : (
+              <>
+                <UserCheck className="h-3.5 w-3.5" /> Riattiva
+              </>
+            )}
           </button>
-        ) : null}
+        </div>
       </div>
     </div>
   );
@@ -348,6 +408,151 @@ function SchedaGiocatore({
   );
 }
 
+const datiVuoti: DatiSquadra = { nome: "", cognome: "", numero: 1, ruolo: "", email: null };
+
+/** Form per aggiungere un giocatore alla rosa (DD-017): l'id `g<N>` è calcolato in app,
+ * il database non lo genera da solo. */
+function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
+  const [aperto, setAperto] = useState(false);
+  const [dati, setDati] = useState<DatiSquadra>(datiVuoti);
+  const aggiungi = useAggiungiGiocatore();
+
+  async function conferma() {
+    const errore = validaDatiSquadra(dati);
+    if (errore) {
+      toast.error(errore);
+      return;
+    }
+    if (numeroGiaUsato(righe, "", dati.numero)) {
+      toast.warning(`Il numero ${dati.numero} è già assegnato a un altro giocatore.`);
+    }
+    try {
+      await aggiungi.mutateAsync({ id: prossimoIdGiocatore(righe), dati });
+      toast.success(`${dati.nome} ${dati.cognome} aggiunto alla rosa`);
+      setDati(datiVuoti);
+      setAperto(false);
+    } catch (e) {
+      toast.error(messaggioErrore(e, "Aggiunta non riuscita"));
+    }
+  }
+
+  if (!aperto) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAperto(true)}
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-bold uppercase"
+      >
+        <UserPlus className="h-4 w-4" /> Aggiungi giocatore
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 space-y-3 rounded-2xl bg-card p-4 shadow-card">
+      <h3 className="font-display text-sm uppercase tracking-wide">Nuovo giocatore</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Nome">
+          <input
+            value={dati.nome}
+            maxLength={40}
+            onChange={(e) => setDati({ ...dati, nome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Cognome">
+          <input
+            value={dati.cognome}
+            maxLength={40}
+            onChange={(e) => setDati({ ...dati, cognome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Numero">
+          <input
+            type="number"
+            min={1}
+            value={dati.numero}
+            onChange={(e) => setDati({ ...dati, numero: Number(e.target.value) })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Ruolo">
+          <input
+            value={dati.ruolo}
+            maxLength={30}
+            onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <Campo label="Email (collegamento automatico al login, opzionale)">
+        <input
+          type="email"
+          value={dati.email ?? ""}
+          placeholder="nome@esempio.com"
+          onChange={(e) => setDati({ ...dati, email: e.target.value || null })}
+          className={classiInput}
+        />
+      </Campo>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setAperto(false);
+            setDati(datiVuoti);
+          }}
+          className="premi flex-1 rounded-2xl bg-secondary py-2.5 text-xs font-bold uppercase"
+        >
+          Annulla
+        </button>
+        <button
+          type="button"
+          onClick={() => void conferma()}
+          disabled={aggiungi.isPending}
+          className="premi flex-1 rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+        >
+          Aggiungi
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Riga compatta per riattivare un giocatore che aveva lasciato la squadra. */
+function GiocatoreDisattivato({ g }: { g: GiocatoreSquadra }) {
+  const impostaAttivo = useImpostaAttivo();
+
+  async function riattiva() {
+    if (!confirm(`Riattivare ${nomeCompleto(g)}?`)) return;
+    try {
+      await impostaAttivo.mutateAsync({ giocatoreId: g.id, attivo: true });
+      toast.success("Giocatore riattivato");
+    } catch (e) {
+      toast.error(messaggioErrore(e, "Operazione non riuscita"));
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-card p-3 shadow-card">
+      <div className="min-w-0">
+        <p className="truncate font-semibold leading-tight">{nomeCompleto(g)}</p>
+        <p className="text-xs text-muted-foreground">
+          #{g.numero} · {g.ruolo}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => void riattiva()}
+        disabled={impostaAttivo.isPending}
+        className="premi flex shrink-0 items-center gap-1.5 rounded-xl bg-success px-3 py-2 text-xs font-bold text-success-foreground disabled:opacity-50"
+      >
+        <UserCheck className="h-3.5 w-3.5" /> Riattiva
+      </button>
+    </div>
+  );
+}
+
 function Dashboard() {
   const admin = useIsAdmin();
   const { righe: squadra } = useGiocatoriSquadra();
@@ -369,6 +574,7 @@ function Dashboard() {
   }
 
   const attivi = squadra.filter((g) => g.attivo);
+  const disattivi = squadra.filter((g) => !g.attivo);
   const completi = attivi.filter((g) => completamento(profili[g.id]) === 100).length;
   const certificatiOk = attivi.filter(
     (g) =>
@@ -399,6 +605,7 @@ function Dashboard() {
         >
           <Download className="h-4 w-4" /> Esporta CSV tesseramento
         </button>
+        <AggiungiGiocatore righe={squadra} />
       </Section>
 
       <Section titolo="Profili" indice={1}>
@@ -414,6 +621,16 @@ function Dashboard() {
           </div>
         )}
       </Section>
+
+      {disattivi.length > 0 ? (
+        <Section titolo="Giocatori disattivati" indice={2}>
+          <div className="space-y-2">
+            {disattivi.map((g) => (
+              <GiocatoreDisattivato key={g.id} g={g} />
+            ))}
+          </div>
+        </Section>
+      ) : null}
     </>
   );
 }

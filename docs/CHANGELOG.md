@@ -23,6 +23,11 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   confronta l'email dell'account Google con `giocatori_squadra.email` e collega da solo.
   Senza corrispondenza compare solo un messaggio d'errore, con un pulsante per uscire e
   riprovare con un altro account.
+- Dashboard admin: nuove azioni "Aggiungi giocatore" (con email opzionale per il
+  collegamento automatico) e "Disattiva/Riattiva giocatore" per chi lascia la squadra — la
+  riga non viene mai eliminata, così presenze, voti, pagelle e badge della stagione restano
+  agganciati al suo id. L'email è anche modificabile dal pannello "Dati squadra" di ogni
+  giocatore già in rosa.
   **Da applicare solo a squadra collegata**, altrimenti chi non ha ancora fatto login vede
   l'app vuota.
 - Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica

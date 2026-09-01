@@ -26,9 +26,13 @@ Può:
 - scaricare documenti e certificati
 - esportare i dati necessari al tesseramento CSI
 - verificare lo stato di completamento dei profili
-- modificare i dati squadra di qualsiasi giocatore (nome, cognome, numero, ruolo)
+- modificare i dati squadra di qualsiasi giocatore (nome, cognome, numero, ruolo, email)
 - compilare e correggere i dati personali e del documento al posto di un giocatore (DD-017)
 - scollegare un account da un profilo, liberando lo slot
+- aggiungere un nuovo giocatore alla rosa (id, nome, cognome, numero, ruolo, email opzionale)
+- disattivare un giocatore che ha lasciato la squadra, e riattivarlo in caso di errore: la
+  riga non viene eliminata, così presenze, voti, pagelle e badge della stagione restano
+  agganciati al suo id
 
 Non può caricare o sostituire i file altrui: documento, certificato e foto restano
 responsabilità del giocatore che li fornisce.
@@ -163,6 +167,8 @@ Azioni disponibili.
 - Scarica foto tessera
 - Modifica dati squadra e dati personali del giocatore (DD-017)
 - Scollega account, per liberare uno slot assegnato per errore
+- Aggiungi giocatore, per inserire un nuovo membro della squadra
+- Disattiva/Riattiva giocatore, per chi lascia la squadra (o rientra)
 
 ## Esportazione CSI
 

@@ -149,7 +149,7 @@ assert.equal(slotDi(squadra, "u2")?.id, "g2");
 assert.equal(slotDi(squadra, "sconosciuto"), null);
 
 // --- dati squadra modificabili dall'admin (DD-017) ---------------------------
-const datiOk = { nome: "Ivan", cognome: "Cacciari", numero: 23, ruolo: "Banda" };
+const datiOk = { nome: "Ivan", cognome: "Cacciari", numero: 23, ruolo: "Banda", email: null };
 assert.equal(validaDatiSquadra(datiOk), null);
 assert.match(validaDatiSquadra({ ...datiOk, nome: "  " }) ?? "", /nome/i);
 assert.match(validaDatiSquadra({ ...datiOk, cognome: "" }) ?? "", /cognome/i);
