@@ -82,40 +82,6 @@ function inizialiDa(nome: string) {
     .toUpperCase();
 }
 
-type StatsDemo = Pick<Giocatore, "presenze" | "streak" | "mvp" | "mediaVoto">;
-
-/** Statistiche demo: mix di badge bronzo / argento / oro già sbloccati. */
-const statsDemo: Record<string, StatsDemo> = {
-  "Ivan Cacciari": { presenze: 31, streak: 8, mvp: 5, mediaVoto: 8.7 },
-  "Davide Grilli": { presenze: 27, streak: 5, mvp: 3, mediaVoto: 8.4 },
-  "Nicola Pezzoli": { presenze: 24, streak: 4, mvp: 2, mediaVoto: 8.2 },
-  "Laura Passabì": { presenze: 22, streak: 6, mvp: 3, mediaVoto: 8.1 },
-  "Francesca Tucci": { presenze: 19, streak: 3, mvp: 1, mediaVoto: 7.9 },
-  "Iacopo Ricci": { presenze: 21, streak: 2, mvp: 3, mediaVoto: 7.8 },
-  "Alessandra Brunacci": { presenze: 14, streak: 3, mvp: 1, mediaVoto: 7.5 },
-  "Mattias Bologna": { presenze: 12, streak: 2, mvp: 1, mediaVoto: 7.4 },
-  "Giada Valbonesi": { presenze: 13, streak: 4, mvp: 1, mediaVoto: 7.6 },
-  "Alessio Cocco": { presenze: 11, streak: 1, mvp: 0, mediaVoto: 7.2 },
-  "Mattia Catalano": { presenze: 9, streak: 2, mvp: 0, mediaVoto: 7.0 },
-  "Antonella Loverre": { presenze: 8, streak: 1, mvp: 0, mediaVoto: 6.9 },
-  "Carlo Di Castelnuovo": { presenze: 7, streak: 1, mvp: 0, mediaVoto: 6.8 },
-  "Camilla Esposito": { presenze: 6, streak: 2, mvp: 0, mediaVoto: 6.7 },
-  "Salvador Battistella": { presenze: 20, streak: 5, mvp: 1, mediaVoto: 7.7 },
-  "Silvia Chilese": { presenze: 16, streak: 3, mvp: 0, mediaVoto: 7.3 },
-  "Cristina Titone": { presenze: 15, streak: 2, mvp: 0, mediaVoto: 7.1 },
-};
-
-/** Serie demo derivate dalle statistiche: ogni tipo ha il suo contatore. */
-function serieDa(s?: StatsDemo) {
-  const streak = s?.streak ?? 0;
-  const presenze = s?.presenze ?? 0;
-  return {
-    serieAllenamenti: streak,
-    seriePartite: Math.ceil(streak / 2),
-    serieConferme: presenze >= 20 ? 12 : presenze >= 14 ? 8 : presenze >= 8 ? 4 : 1,
-  };
-}
-
 export const giocatori: Giocatore[] = rosaCSI.map((r, i) => ({
   id: `g${i + 1}`,
   nome: r.nome,
@@ -123,14 +89,19 @@ export const giocatori: Giocatore[] = rosaCSI.map((r, i) => ({
   ruolo: r.ruolo,
   nascita: r.nascita,
   iniziali: inizialiDa(r.nome),
-  totaliEventi: 32,
+  presenze: 0,
+  totaliEventi: 0,
+  streak: 0,
+  serieAllenamenti: 0,
+  seriePartite: 0,
+  serieConferme: 0,
+  mvp: 0,
+  mediaVoto: 0,
   infortuni: 0,
   ritardi: 0,
   palloni: 0,
   cacche: 0,
   cacchePartita: 0,
-  ...(statsDemo[r.nome] ?? { presenze: 0, streak: 0, mvp: 0, mediaVoto: 0 }),
-  ...serieDa(statsDemo[r.nome]),
 }));
 
 export type RigaClassifica = {

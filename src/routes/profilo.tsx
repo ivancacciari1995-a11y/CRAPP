@@ -97,7 +97,9 @@ function Profilo() {
     }
   }
 
-  const percPresenze = Math.round((g.presenze / g.totaliEventi) * 100);
+  const percPresenze = g.totaliEventi
+    ? Math.round((g.presenze / g.totaliEventi) * 100)
+    : 0;
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

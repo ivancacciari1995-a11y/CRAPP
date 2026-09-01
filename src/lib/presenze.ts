@@ -1,11 +1,40 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Stato } from "./crapp-data";
+import type { Evento } from "./eventi";
 
 export const PRESENZE_KEY = ["risposte-presenze"] as const;
 
 /** eventoId -> giocatoreId -> stato */
 export type MappaPresenze = Record<string, Record<string, Stato>>;
+
+/** Allenamenti e partite CrAPP che contano per le statistiche di presenza. */
+function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string) {
+  return eventi.filter(
+    (e) =>
+      (e.tipo === "partita" || e.tipo === "allenamento") &&
+      (giocatoreId === undefined ||
+        e.convocati.length === 0 ||
+        e.convocati.includes(giocatoreId)),
+  );
+}
+
+/** Presenze effettive (presente o in ritardo) su eventi CrAPP. */
+export function contaPresenzeGiocatore(
+  giocatoreId: string,
+  eventi: Evento[],
+  presenze: MappaPresenze,
+): number {
+  return eventiContanoPresenze(eventi, giocatoreId).filter((e) => {
+    const stato = presenze[e.id]?.[giocatoreId];
+    return stato === "presente" || stato === "ritardo";
+  }).length;
+}
+
+/** Eventi CrAPP rilevanti per il denominatore presenze di un giocatore. */
+export function totaliEventiGiocatore(giocatoreId: string, eventi: Evento[]): number {
+  return eventiContanoPresenze(eventi, giocatoreId).length;
+}
 
 async function fetchPresenze(): Promise<MappaPresenze> {
   const { data, error } = await supabase

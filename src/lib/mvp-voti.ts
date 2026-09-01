@@ -84,3 +84,17 @@ export function vincitoriMvp(voti: VotoMvp[]): Record<string, string> {
 export function mioVoto(voti: VotoMvp[], matchId: string, votanteId: string) {
   return voti.find((v) => v.match_id === matchId && v.votante_id === votanteId) ?? null;
 }
+
+/** MVP vinti per giocatore, contando una vittoria per partita votata. */
+export function mvpVintiPerGiocatore(voti: VotoMvp[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  const matchIds = new Set(voti.map((v) => v.match_id));
+  for (const matchId of matchIds) {
+    const top = conteggioPartita(voti, matchId);
+    if (top.length > 0 && (top.length === 1 || top[0]!.voti > top[1]!.voti)) {
+      const id = top[0]!.id;
+      out[id] = (out[id] ?? 0) + 1;
+    }
+  }
+  return out;
+}

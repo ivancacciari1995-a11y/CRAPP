@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { giocatori, type Giocatore } from "./crapp-data";
-import { conInfortuni, useInfortuniERitardi } from "./infortuni";
+import { useIo } from "./rosa";
 
 const KEY = "crapp-user-v1";
 const listeners = new Set<() => void>();
@@ -36,9 +36,9 @@ export function resetGiocatore() {
   write(null);
 }
 
-/** Solo lettura locale: nessuna dipendenza da React Query (usabile fuori dal provider). */
-export function useGiocatoreBase(): Giocatore | null {
-  const id = useSyncExternalStore(
+/** Id del giocatore collegato al dispositivo (localStorage). */
+export function useGiocatoreId(): string | null {
+  return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
       return () => listeners.delete(cb);
@@ -46,11 +46,15 @@ export function useGiocatoreBase(): Giocatore | null {
     () => read(),
     () => null,
   );
+}
+
+/** Anagrafica base dal localStorage: le statistiche restano a zero finché non passa da `useIo`. */
+export function useGiocatoreBase(): Giocatore | null {
+  const id = useGiocatoreId();
   return id ? (giocatori.find((x) => x.id === id) ?? null) : null;
 }
 
+/** Giocatore corrente con statistiche calcolate da dati reali (presenze, MVP, badge, …). */
 export function useGiocatoreCorrente(): Giocatore | null {
-  const g = useGiocatoreBase();
-  const { infortuni, ritardi } = useInfortuniERitardi();
-  return g ? conInfortuni(g, infortuni, ritardi) : null;
+  return useIo();
 }

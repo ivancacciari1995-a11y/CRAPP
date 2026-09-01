@@ -20,8 +20,11 @@ for (const g of giocatori) {
   assert.ok(g.numero > 0, `${g.id}: numero di maglia positivo`);
   assert.equal(g.iniziali.length, 2, `${g.id}: due iniziali`);
   assert.equal(g.iniziali, g.iniziali.toUpperCase(), `${g.id}: iniziali maiuscole`);
-  assert.ok(g.mediaVoto >= 0 && g.mediaVoto <= 10, `${g.id}: media voto nel range 1-10`);
-  assert.ok(g.presenze <= g.totaliEventi, `${g.id}: presenze mai oltre gli eventi totali`);
+  assert.equal(g.mediaVoto, 0, `${g.id}: media voto iniziale a zero`);
+  assert.equal(g.presenze, 0, `${g.id}: presenze iniziali a zero`);
+  assert.equal(g.totaliEventi, 0, `${g.id}: totaliEventi iniziale a zero`);
+  assert.equal(g.mvp, 0, `${g.id}: mvp iniziale a zero`);
+  assert.equal(g.streak, 0, `${g.id}: streak iniziale a zero`);
 }
 
 // --- formatData --------------------------------------------------------------
