@@ -59,20 +59,24 @@ assert.deepEqual(totaliSquadra([match("m1", 3, 0, azioni), match("m2", 3, 1, azi
 });
 assert.deepEqual(totaliSquadra([]), { punti: 0, ace: 0, muri: 0, errori: 0 });
 
-// --- giocatoriConScout: presenze e MVP, nessuna statistica offensiva ---------
+// --- giocatoriConScout: solo MVP da scout, presenze separate -----------------
 const base = giocatori.find((g) => g.id === "g1")!;
 const conScout = giocatoriConScout([match("m1", 3, 0, azioni)], { m1: base.nome });
 const dopo = conScout.find((g) => g.id === "g1")!;
-assert.equal(dopo.presenze, base.presenze + 1, "chi ha azioni risulta presente");
-assert.equal(dopo.mvp, base.mvp + 1, "l'MVP eletto viene sommato");
-assert.equal(dopo.totaliEventi, base.totaliEventi + 1);
+assert.equal(dopo.presenze, 0, "le azioni scout non alimentano le presenze personali");
+assert.equal(dopo.mvp, 1, "l'MVP eletto viene contato");
+assert.equal(dopo.totaliEventi, 0, "totaliEventi arriva dagli eventi CrAPP, non dallo scout");
 
 const assente = conScout.find((g) => g.id === "g3")!;
-const baseAssente = giocatori.find((g) => g.id === "g3")!;
-assert.equal(assente.presenze, baseAssente.presenze, "chi non ha azioni non guadagna presenze");
-assert.equal(assente.totaliEventi, baseAssente.totaliEventi + 1, "l'evento conta per tutti");
+assert.equal(assente.presenze, 0, "senza risposte presenze resta a zero");
+assert.equal(assente.mvp, 0);
+assert.equal(assente.totaliEventi, 0);
 
-assert.deepEqual(giocatoriConScout([]), giocatori, "senza partite la rosa resta invariata");
+const senzaPartite = giocatoriConScout([]);
+assert.ok(
+  senzaPartite.every((g) => g.presenze === 0 && g.mvp === 0 && g.totaliEventi === 0),
+  "senza partite scout le statistiche restano a zero",
+);
 
 // --- metadati azioni ---------------------------------------------------------
 for (const [tipo, meta] of Object.entries(azioniMeta)) {

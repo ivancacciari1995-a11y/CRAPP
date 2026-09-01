@@ -186,24 +186,22 @@ export function totaliSquadra(matches: ScoutMatch[]) {
   return out;
 }
 
-/** Presenze e MVP ricavati dalle partite scoutate: nessuna statistica individuale offensiva.
- *  `mvpPerMatch` mappa idPartita -> nome dell'MVP eletto dalla squadra. */
+/**
+ * MVP ricavati dalle partite scoutate (mappa matchId → nome vincitore).
+ * Le presenze personali restano su `risposte_presenze`, non sullo scout.
+ */
 export function giocatoriConScout(
   matches: ScoutMatch[],
   mvpPerMatch: Record<string, string> = {},
 ): Giocatore[] {
   return giocatori.map((g) => {
-    let presenze = 0;
     let mvp = 0;
     for (const m of matches) {
-      if (totaliPerGiocatore(m.azioni).has(g.id)) presenze += 1;
       if (mvpPerMatch[m.id] === g.nome) mvp += 1;
     }
     return {
       ...g,
-      mvp: g.mvp + mvp,
-      presenze: g.presenze + presenze,
-      totaliEventi: g.totaliEventi + matches.length,
+      mvp,
     };
   });
 }
