@@ -1,4 +1,4 @@
-import { giocatori } from "./crapp-data";
+import { formatData, giocatori } from "./crapp-data";
 import type { Evento } from "./eventi";
 
 export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: string | null };
@@ -32,17 +32,15 @@ export function completaTurni(
     }
     if (assegnato) return;
 
-    const scelto = giocatori
-      .slice()
-      .sort((a, b) => {
-        const ca = conteggio.get(a.id) ?? 0;
-        const cb = conteggio.get(b.id) ?? 0;
-        if (ca !== cb) return ca - cb;
-        const ua = ultimo.get(a.id) ?? -1;
-        const ub = ultimo.get(b.id) ?? -1;
-        if (ua !== ub) return ua - ub;
-        return a.nome.localeCompare(b.nome);
-      })[0];
+    const scelto = giocatori.slice().sort((a, b) => {
+      const ca = conteggio.get(a.id) ?? 0;
+      const cb = conteggio.get(b.id) ?? 0;
+      if (ca !== cb) return ca - cb;
+      const ua = ultimo.get(a.id) ?? -1;
+      const ub = ultimo.get(b.id) ?? -1;
+      if (ua !== ub) return ua - ub;
+      return a.nome.localeCompare(b.nome);
+    })[0];
 
     if (!scelto) return;
     risultato[evento.id] = scelto.id;
@@ -82,4 +80,54 @@ export function oggiISO(): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+/** Chi deve ricevere l'avviso push, oggi: chi porta i palloni e chi li riprende. */
+export function destinatariPromemoriaPalloni(
+  turni: Record<string, string>,
+  eventi: Evento[],
+  oggi: string,
+): string[] {
+  const destinatari = new Set<string>();
+  for (const evento of eventiDelGiorno(eventi, oggi)) {
+    const incaricato = turni[evento.id];
+    if (incaricato) destinatari.add(incaricato);
+    const prima = eventoPrecedente(eventi, evento.id);
+    const precedente = prima ? turni[prima.id] : undefined;
+    if (precedente) destinatari.add(precedente);
+  }
+  return [...destinatari];
+}
+
+/** Testo del push per un giocatore: priorità a "riporta oggi", poi "tocca a te", poi generico. */
+export function messaggioPalloniOggi(
+  turni: Record<string, string>,
+  eventi: Evento[],
+  oggi: string,
+  mioId: string,
+  nome: string,
+): { title: string; body: string } {
+  for (const evento of eventiDelGiorno(eventi, oggi)) {
+    const prima = eventoPrecedente(eventi, evento.id);
+    if (prima && turni[prima.id] === mioId) {
+      return {
+        title: "Porta i palloni oggi",
+        body: `${evento.titolo} · ${evento.ora}. I palloni li hai tu dalla volta scorsa.`,
+      };
+    }
+    if (turni[evento.id] === mioId) {
+      const dopo = eventoSuccessivo(eventi, evento.id);
+      return {
+        title: "Tocca a te prendere i palloni",
+        body: dopo
+          ? `A fine ${evento.titolo} porta a casa i palloni e riportali il ${formatData(dopo.data)}.`
+          : `A fine ${evento.titolo} porta a casa i palloni.`,
+      };
+    }
+  }
+
+  return {
+    title: "CrAPP · Turno palloni",
+    body: nome ? `${nome}, controlla il turno palloni nel calendario.` : "Controlla il calendario.",
+  };
 }

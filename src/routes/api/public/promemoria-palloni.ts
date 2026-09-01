@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { completaTurni, eventiPalloni, eventoPrecedente, oggiISO } from "@/lib/palloni-core";
+import { completaTurni, destinatariPromemoriaPalloni, oggiISO } from "@/lib/palloni-core";
 import { inviaPush } from "@/lib/webpush.server";
 import { leggiEventi } from "@/lib/eventi.server";
 
@@ -18,22 +18,14 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
         const turni = completaTurni(salvati, eventi);
 
         const oggi = oggiISO();
-        const destinatari = new Set<string>();
-        for (const evento of eventiPalloni(eventi)) {
-          if (evento.data !== oggi) continue;
-          const incaricato = turni[evento.id];
-          if (incaricato) destinatari.add(incaricato);
-          const prima = eventoPrecedente(eventi, evento.id);
-          const precedente = prima ? turni[prima.id] : undefined;
-          if (precedente) destinatari.add(precedente);
-        }
+        const destinatari = destinatariPromemoriaPalloni(turni, eventi, oggi);
 
-        if (destinatari.size === 0) return Response.json({ inviate: 0 });
+        if (destinatari.length === 0) return Response.json({ inviate: 0 });
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")
           .select("endpoint, giocatore_id")
-          .in("giocatore_id", [...destinatari]);
+          .in("giocatore_id", destinatari);
 
         let inviate = 0;
         for (const iscrizione of iscrizioni ?? []) {

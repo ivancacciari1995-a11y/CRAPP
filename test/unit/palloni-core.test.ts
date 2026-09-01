@@ -1,14 +1,16 @@
 /** Check dei turni palloni: `bun src/lib/palloni-core.test.ts`. */
 import assert from "node:assert/strict";
-import { giocatori } from "@/lib/crapp-data";
+import { formatData, giocatori } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import {
   completaTurni,
   conteggioTurni,
+  destinatariPromemoriaPalloni,
   eventiDelGiorno,
   eventiPalloni,
   eventoPrecedente,
   eventoSuccessivo,
+  messaggioPalloniOggi,
   oggiISO,
 } from "@/lib/palloni-core";
 
@@ -94,5 +96,67 @@ assert.deepEqual(conteggioTurni({}), {});
 // --- oggiISO -----------------------------------------------------------------
 assert.match(oggiISO(), /^\d{4}-\d{2}-\d{2}$/);
 assert.equal(oggiISO(), new Date().toLocaleDateString("sv-SE"), "data locale, non UTC");
+
+// --- destinatariPromemoriaPalloni --------------------------------------------
+const eventiPush: Evento[] = [
+  evento("p1", "2026-02-01"),
+  evento("p2", "2026-02-02"),
+  evento("p3", "2026-02-03"),
+];
+const turniPush = { p1: "g1", p2: "g2", p3: "g3" };
+
+assert.deepEqual(
+  destinatariPromemoriaPalloni(turniPush, eventiPush, "2026-02-02"),
+  ["g2", "g1"],
+  "chi porta oggi e chi li aveva portati alla volta prima",
+);
+assert.deepEqual(
+  destinatariPromemoriaPalloni(turniPush, eventiPush, "2026-02-01"),
+  ["g1"],
+  "il primo evento non ha un precedente da avvisare",
+);
+assert.deepEqual(
+  destinatariPromemoriaPalloni(turniPush, eventiPush, "2026-03-01"),
+  [],
+  "nessun evento in quella data: nessun destinatario",
+);
+assert.deepEqual(
+  destinatariPromemoriaPalloni({ p1: "g1", p2: "g1" }, eventiPush, "2026-02-02"),
+  ["g1"],
+  "stessa persona oggi e alla volta prima: un solo avviso",
+);
+
+// --- messaggioPalloniOggi -----------------------------------------------------
+assert.deepEqual(
+  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g1", "Mario"),
+  {
+    title: "Porta i palloni oggi",
+    body: "Evento p2 · 21:00. I palloni li hai tu dalla volta scorsa.",
+  },
+  "chi li aveva alla volta prima deve riportarli oggi",
+);
+assert.deepEqual(
+  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g2", "Luca"),
+  {
+    title: "Tocca a te prendere i palloni",
+    body: `A fine Evento p2 porta a casa i palloni e riportali il ${formatData("2026-02-03")}.`,
+  },
+  "l'incaricato di oggi sa quando riportarli, se c'è un evento successivo",
+);
+assert.deepEqual(
+  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-03", "g3", "Anna"),
+  { title: "Tocca a te prendere i palloni", body: "A fine Evento p3 porta a casa i palloni." },
+  "senza evento successivo il messaggio non promette una data",
+);
+assert.deepEqual(
+  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g9", "Sara"),
+  { title: "CrAPP · Turno palloni", body: "Sara, controlla il turno palloni nel calendario." },
+  "chi non è coinvolto oggi riceve il messaggio generico col proprio nome",
+);
+assert.deepEqual(
+  messaggioPalloniOggi(turniPush, eventiPush, "2026-05-01", "g9", ""),
+  { title: "CrAPP · Turno palloni", body: "Controlla il calendario." },
+  "senza eventi in quella data e senza nome noto, il messaggio resta generico",
+);
 
 console.log("palloni-core: ok");

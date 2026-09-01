@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { formatData, giocatori } from "@/lib/crapp-data";
-import {
-  completaTurni,
-  eventiPalloni,
-  eventoPrecedente,
-  eventoSuccessivo,
-  oggiISO,
-} from "@/lib/palloni-core";
+import { giocatori } from "@/lib/crapp-data";
+import { completaTurni, messaggioPalloniOggi, oggiISO } from "@/lib/palloni-core";
 import { leggiEventi } from "@/lib/eventi.server";
 
 const schema = z.object({ endpoint: z.string().url().max(1000) });
@@ -40,7 +34,8 @@ export const Route = createFileRoute("/api/public/push-messaggio")({
           .eq("endpoint", parsed.data.endpoint)
           .maybeSingle();
 
-        if (!iscrizione) return Response.json({ title: "CrAPP", body: "Controlla il turno palloni." });
+        if (!iscrizione)
+          return Response.json({ title: "CrAPP", body: "Controlla il turno palloni." });
 
         const { data: righe } = await supabaseAdmin
           .from("turni_palloni")
@@ -54,30 +49,7 @@ export const Route = createFileRoute("/api/public/push-messaggio")({
         const mioId = iscrizione.giocatore_id;
         const nome = giocatori.find((g) => g.id === mioId)?.nome ?? "";
 
-        for (const evento of eventiPalloni(eventi)) {
-          if (evento.data !== oggi) continue;
-          const prima = eventoPrecedente(eventi, evento.id);
-          if (prima && turni[prima.id] === mioId) {
-            return Response.json({
-              title: "Porta i palloni oggi",
-              body: `${evento.titolo} · ${evento.ora}. I palloni li hai tu dalla volta scorsa.`,
-            });
-          }
-          if (turni[evento.id] === mioId) {
-            const dopo = eventoSuccessivo(eventi, evento.id);
-            return Response.json({
-              title: "Tocca a te prendere i palloni",
-              body: dopo
-                ? `A fine ${evento.titolo} porta a casa i palloni e riportali il ${formatData(dopo.data)}.`
-                : `A fine ${evento.titolo} porta a casa i palloni.`,
-            });
-          }
-        }
-
-        return Response.json({
-          title: "CrAPP · Turno palloni",
-          body: nome ? `${nome}, controlla il turno palloni nel calendario.` : "Controlla il calendario.",
-        });
+        return Response.json(messaggioPalloniOggi(turni, eventi, oggi, mioId, nome));
       },
     },
   },
