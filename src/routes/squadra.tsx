@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Cake, ChevronDown, Crown } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Cake, ChevronDown, ChevronRight, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
@@ -19,6 +19,7 @@ import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
 import { useScoutMatches } from "@/lib/scout-store";
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
+import { useEventi } from "@/lib/eventi";
 import { BadgeDrawer } from "@/components/crapp/BadgeDrawer";
 import {
   badgeDefs,
@@ -95,6 +96,10 @@ function Squadra() {
   const max = ordinati[0] ? valore(ordinati[0], criterio) || 1 : 1;
   const { data: csi } = useCsi();
   const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
+  const { eventi } = useEventi();
+  const eventoIdPerData = new Map(
+    eventi.filter((e) => e.tipo === "partita").map((e) => [e.data, e.id]),
+  );
   const tuttiMatch = csiGiocate.length
     ? csiGiocate.map((p) => ({
         ...matchDaPartitaCsi(p),
@@ -313,8 +318,9 @@ function Squadra() {
         <div className="space-y-3">
           {tuttiMatch.map((m) => {
             const vinta = m.setNostri > m.setLoro;
-            return (
-              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
+            const eventoId = eventoIdPerData.get(m.data);
+            const contenuto = (
+              <>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">
@@ -337,7 +343,7 @@ function Squadra() {
                     {m.setNostri}-{m.setLoro}
                   </span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   {m.parziali.map((p, i) => (
                     <span
                       key={i}
@@ -349,7 +355,26 @@ function Squadra() {
                       {p[0]}-{p[1]}
                     </span>
                   ))}
+                  {eventoId && !m.mvp ? (
+                    <span className="ml-auto inline-flex items-center gap-0.5 text-[11px] font-bold uppercase text-accent">
+                      Vota MVP <ChevronRight className="h-3.5 w-3.5" />
+                    </span>
+                  ) : null}
                 </div>
+              </>
+            );
+            return eventoId ? (
+              <Link
+                key={m.id}
+                to="/partita/$id"
+                params={{ id: eventoId }}
+                className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
+              >
+                {contenuto}
+              </Link>
+            ) : (
+              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
+                {contenuto}
               </article>
             );
           })}

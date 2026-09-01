@@ -56,6 +56,9 @@ function Index() {
       : null;
   const obiettivi = useObiettivi();
   const obiettivo = obiettivi.find((o) => progressoObiettivo(o) < 100) ?? obiettivi[0] ?? null;
+  const eventoUltima = ultima
+    ? (eventi.find((e) => e.tipo === "partita" && e.data === ultima.data) ?? null)
+    : null;
 
   if (!giocatore) return null;
 
@@ -143,30 +146,45 @@ function Index() {
         }
       >
         {ultima ? (
-          <div className="premi rounded-3xl bg-card p-4 shadow-card">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold">CRAP Volley vs {ultima.avversario}</p>
-                <p className="text-xs text-muted-foreground">
-                  {ultima.casa ? "In casa" : "Trasferta"}
-                  {ultima.mvp ? ` · MVP ${ultima.mvp}` : ""}
-                </p>
-              </div>
-              <p className="font-display text-3xl leading-none text-accent">
-                {ultima.setNostri}-{ultima.setLoro}
-              </p>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {ultima.parziali.map((p, i) => (
-                <span
-                  key={i}
-                  className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-semibold tabular-nums"
-                >
-                  {p[0]}-{p[1]}
-                </span>
-              ))}
-            </div>
-          </div>
+          (() => {
+            const corpo = (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">CRAP Volley vs {ultima.avversario}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {ultima.casa ? "In casa" : "Trasferta"}
+                      {ultima.mvp ? ` · MVP ${ultima.mvp}` : " · MVP da votare"}
+                    </p>
+                  </div>
+                  <p className="font-display text-3xl leading-none text-accent">
+                    {ultima.setNostri}-{ultima.setLoro}
+                  </p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {ultima.parziali.map((p, i) => (
+                    <span
+                      key={i}
+                      className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-semibold tabular-nums"
+                    >
+                      {p[0]}-{p[1]}
+                    </span>
+                  ))}
+                </div>
+              </>
+            );
+            return eventoUltima ? (
+              <Link
+                to="/partita/$id"
+                params={{ id: eventoUltima.id }}
+                className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
+              >
+                {corpo}
+              </Link>
+            ) : (
+              <div className="premi rounded-3xl bg-card p-4 shadow-card">{corpo}</div>
+            );
+          })()
         ) : (
           <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
             Nessun risultato disponibile.
