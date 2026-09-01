@@ -50,9 +50,10 @@ const mesiIT = [
   "Dicembre",
 ] as const;
 
-function useMeseNav(initial = { anno: 2026, mese: 7 }) {
-  const [anno, setAnno] = useState(initial.anno);
-  const [mese, setMese] = useState(initial.mese);
+function useMeseNav(initial?: { anno: number; mese: number }) {
+  const oggi = new Date();
+  const [anno, setAnno] = useState(initial?.anno ?? oggi.getFullYear());
+  const [mese, setMese] = useState(initial?.mese ?? oggi.getMonth());
 
   const precedente = () => {
     if (mese === 0) {
