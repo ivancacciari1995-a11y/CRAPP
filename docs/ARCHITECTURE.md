@@ -5,12 +5,12 @@ riferimento tecnico — `CLAUDE.md` non ripete questi contenuti, li richiama.
 
 ## Stack
 
-| Livello | Tecnologie |
-|---|---|
-| Frontend | React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, Radix UI / shadcn |
-| Backend | Supabase (PostgreSQL, Auth, Storage) |
-| Hosting | Vercel |
-| Versionamento | Git, GitHub |
+| Livello       | Tecnologie                                                                            |
+| ------------- | ------------------------------------------------------------------------------------- |
+| Frontend      | React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, Radix UI / shadcn |
+| Backend       | Supabase (PostgreSQL, Auth, Storage)                                                  |
+| Hosting       | Vercel                                                                                |
+| Versionamento | Git, GitHub                                                                           |
 
 Le dipendenze sono installate con **bun** (`bun.lock`, `bunfig.toml`). `bunfig.toml` impone
 `minimumReleaseAge = 24h` come guardia supply-chain: aggiungere un pacchetto a

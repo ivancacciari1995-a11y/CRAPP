@@ -447,4 +447,3 @@ Migliora l'esperienza dei giocatori?
 Riduce oppure aumenta la complessità futura?
 
 Se almeno una risposta è negativa, rivalutare la soluzione proposta.
-

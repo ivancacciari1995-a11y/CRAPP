@@ -21,10 +21,10 @@ Il portale **non espone un'API pubblica documentata**. Vengono usati gli stessi 
 che il sito chiama internamente via ajax: sono raggiungibili senza autenticazione e senza
 API key, ma **non offrono alcuna garanzia di stabilità**.
 
-| Endpoint | Formato | Uso |
-|---|---|---|
-| `components/project-sheets.php?project_id=767` | HTML | Classifica completa dei due gironi |
-| `assets/json/getEventsByTeamId.php?team_id=3359` | JSON | Tutte le gare della squadra: data, ora, avversario, campo, risultato, parziali |
+| Endpoint                                         | Formato | Uso                                                                            |
+| ------------------------------------------------ | ------- | ------------------------------------------------------------------------------ |
+| `components/project-sheets.php?project_id=767`   | HTML    | Classifica completa dei due gironi                                             |
+| `assets/json/getEventsByTeamId.php?team_id=3359` | JSON    | Tutte le gare della squadra: data, ora, avversario, campo, risultato, parziali |
 
 Altri endpoint disponibili ma non usati: `getEventsByProjectIdHierarchical.php` (tutte le
 gare del campionato), `project-chart-rankings.php` (solo punti), `project-next_matches.php`,
@@ -32,13 +32,13 @@ gare del campionato), `project-chart-rankings.php` (solo punti), `project-next_m
 
 ### Identificativi (stagione 2025/26)
 
-| Cosa | Valore |
-|---|---|
-| Campionato | PVM - Campionato Open Misto Eccellenza |
-| `project_id` | `767` |
-| Squadra sul portale | `C.R.A.P. Volley` (con i punti) |
-| `team_id` | `3359` |
-| Girone | B |
+| Cosa                | Valore                                 |
+| ------------------- | -------------------------------------- |
+| Campionato          | PVM - Campionato Open Misto Eccellenza |
+| `project_id`        | `767`                                  |
+| Squadra sul portale | `C.R.A.P. Volley` (con i punti)        |
+| `team_id`           | `3359`                                 |
+| Girone              | B                                      |
 
 Gli identificativi sono costanti in `src/lib/csi-core.ts`.
 

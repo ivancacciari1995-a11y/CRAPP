@@ -16,6 +16,7 @@ Aggiungere a ogni allenamento/partita un incaricato dei palloni, condiviso tra t
 ## Impostazione tecnica
 
 **Backend (Lovable Cloud)**
+
 - Attivazione di Lovable Cloud.
 - Tabella `eventi` (spostando i dati demo attuali su database) o, in alternativa minima, tabella `turni_palloni` con `evento_id`, `giocatore_id`, `aggiornato_da`, `aggiornato_il`. Scelgo la seconda per limitare il refactor: gli eventi restano in `crapp-data.ts` finché non si passa a calendario dinamico.
 - Tabella `push_subscriptions` (giocatore_id, endpoint, chiavi) per le notifiche.
@@ -23,11 +24,13 @@ Aggiungere a ogni allenamento/partita un incaricato dei palloni, condiviso tra t
 - Server functions in `src/lib/palloni.functions.ts`: `getTurni`, `setTurno`, `suggerisciTurno`.
 
 **Frontend**
+
 - Nuovo componente `TurnoPalloni` usato in `EventoCard` e in Home.
 - Lettura via TanStack Query (`ensureQueryData` nel loader, `useSuspenseQuery` nel componente), invalidazione dopo la modifica.
 - Banner promemoria in Home basato su data odierna + evento successivo, mostrato solo al giocatore selezionato in `user-store`.
 
 **Notifiche push**
+
 - Service worker dedicato al messaging (separato dalla PWA esistente), chiavi VAPID salvate come secret.
 - Schermata in Profilo: "Attiva notifiche palloni" con richiesta di permesso.
 - Invio schedulato tramite un endpoint `src/routes/api/public/promemoria-palloni.ts` protetto da secret, richiamato una volta al giorno da un job pianificato (pg_cron).

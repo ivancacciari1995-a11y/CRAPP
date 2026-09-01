@@ -1,7 +1,7 @@
 # Roadmap
 
 Elenco unico delle funzionalità di CrAPP, fatte e previste. È la fonte di riferimento per
-il *cosa*: `CHANGELOG.md` registra *quando* una voce è stata rilasciata, `TODO.md` cosa si
+il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata, `TODO.md` cosa si
 sta facendo adesso.
 
 ## Versione 1.0 — rilasciata

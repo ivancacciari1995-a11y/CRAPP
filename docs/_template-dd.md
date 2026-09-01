@@ -9,8 +9,9 @@
 **Decisione**  
 [Cosa abbiamo scelto?]
 
-**Alternative scartate**  
-- [Alternativa 1] → [perché no]  
+**Alternative scartate**
+
+- [Alternativa 1] → [perché no]
 - [Alternativa 2] → [perché no]
 
 **Conseguenze**  

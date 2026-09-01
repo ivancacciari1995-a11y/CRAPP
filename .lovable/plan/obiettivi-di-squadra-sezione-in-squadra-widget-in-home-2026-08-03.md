@@ -7,22 +7,29 @@ Al momento c'è un solo "obiettivo di squadra" ed è hardcoded nella home (`src/
 ## Cosa faccio
 
 1. **Modello dati locale** in `src/lib/crapp-data.ts`
-  - Nuovo tipo `ObiettivoSquadra`: id, titolo, descrizione, target, valore attuale, unità, scadenza (opzionale), icona.
-  - Array `obiettiviSquadra` con gli obiettivi demo della stagione.
+
+- Nuovo tipo `ObiettivoSquadra`: id, titolo, descrizione, target, valore attuale, unità, scadenza (opzionale), icona.
+- Array `obiettiviSquadra` con gli obiettivi demo della stagione.
+
 2. **Sezione "Obiettivi di squadra" dentro la scheda Squadra** (`src/routes/squadra.tsx`)
-  - Nuova sezione con la lista completa degli obiettivi: barra di progresso, percentuale, stato (in corso / completato).
-  - Ordinati con gli obiettivi in corso in cima e i completati in fondo.
-  - Nessuna nuova rotta e nessuna modifica al bottom nav.
+
+- Nuova sezione con la lista completa degli obiettivi: barra di progresso, percentuale, stato (in corso / completato).
+- Ordinati con gli obiettivi in corso in cima e i completati in fondo.
+- Nessuna nuova rotta e nessuna modifica al bottom nav.
+
 3. **Widget home dinamico** (`src/routes/index.tsx`)
-  - Sostituisce l'obiettivo hardcoded: mostra sempre il primo obiettivo in corso preso dalla lista.
-  - Progresso calcolato dai dati reali dove possibile (es. presenze derivate dagli eventi).
+
+- Sostituisce l'obiettivo hardcoded: mostra sempre il primo obiettivo in corso preso dalla lista.
+- Progresso calcolato dai dati reali dove possibile (es. presenze derivate dagli eventi).
+
 4. **Obiettivi demo iniziali**
-  - 90% di presenze ad agosto (collegato agli eventi di agosto).
-  - 70% di risposte entro 24h nel prossimo mese.
-  - Prima vittoria del campionato (collegato allo storico match).
-  - 5 vittorie in campionato (collegato allo storico match).
-  - 10 vittorie in campionato (collegato allo storico match).
-  - 1 evento di squadra al mese (pizzata, ecc.).
+
+- 90% di presenze ad agosto (collegato agli eventi di agosto).
+- 70% di risposte entro 24h nel prossimo mese.
+- Prima vittoria del campionato (collegato allo storico match).
+- 5 vittorie in campionato (collegato allo storico match).
+- 10 vittorie in campionato (collegato allo storico match).
+- 1 evento di squadra al mese (pizzata, ecc.).
 
 ## Cosa non cambia
 

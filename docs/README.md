@@ -6,18 +6,18 @@ ancora e va **prima documentata** (vedi [DD-002](DESIGN_DECISIONS.md#dd-002--svi
 
 ## Dove sta cosa
 
-| Documento | Risponde a |
-|---|---|
-| [VISION.md](VISION.md) | Perché esiste CrAPP, quali principi deve rispettare una funzionalità |
-| [ROADMAP.md](ROADMAP.md) | Cosa è fatto e cosa è previsto, versione per versione |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Com'è fatta l'app: stack, struttura del codice, flusso di sviluppo |
-| [DATABASE.md](DATABASE.md) | Quali tabelle esistono, a cosa servono, chi le usa |
+| Documento                                  | Risponde a                                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------------------- |
+| [VISION.md](VISION.md)                     | Perché esiste CrAPP, quali principi deve rispettare una funzionalità         |
+| [ROADMAP.md](ROADMAP.md)                   | Cosa è fatto e cosa è previsto, versione per versione                        |
+| [ARCHITECTURE.md](ARCHITECTURE.md)         | Com'è fatta l'app: stack, struttura del codice, flusso di sviluppo           |
+| [DATABASE.md](DATABASE.md)                 | Quali tabelle esistono, a cosa servono, chi le usa                           |
 | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Perché abbiamo scelto così, cosa abbiamo escluso e quando riaprire la scelta |
-| [PORTABILITA.md](PORTABILITA.md) | Cosa lega l'app a un fornitore e cosa no, come spostarla su server proprio |
-| [EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md) | Come tenere basso il consumo cloud: cache, query, push |
-| [TODO.md](TODO.md) | A cosa si sta lavorando adesso |
-| [CHANGELOG.md](CHANGELOG.md) | Cosa è cambiato e quando |
-| [modules/](modules/) | Specifica funzionale di ogni modulo, una per file |
+| [PORTABILITA.md](PORTABILITA.md)           | Cosa lega l'app a un fornitore e cosa no, come spostarla su server proprio   |
+| [EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md) | Come tenere basso il consumo cloud: cache, query, push                       |
+| [TODO.md](TODO.md)                         | A cosa si sta lavorando adesso                                               |
+| [CHANGELOG.md](CHANGELOG.md)               | Cosa è cambiato e quando                                                     |
+| [modules/](modules/)                       | Specifica funzionale di ogni modulo, una per file                            |
 
 Le regole vincolanti per gli assistenti AI stanno in [AGENTS.md](../AGENTS.md);
 lo stato corrente del lavoro in [PROJECT_STATE.md](../PROJECT_STATE.md).
@@ -33,7 +33,7 @@ modulo interessato in `modules/`.
 Ogni informazione ha **una sola casa**, per evitare che le copie divergano:
 
 - l'elenco delle funzionalità (fatte e previste) sta solo in `ROADMAP.md`;
-- `CHANGELOG.md` registra *quando* qualcosa è stato rilasciato, non ripete l'elenco;
+- `CHANGELOG.md` registra _quando_ qualcosa è stato rilasciato, non ripete l'elenco;
 - `TODO.md` contiene solo il lavoro in corso o imminente, e rimanda alla roadmap;
 - lo schema del database sta solo in `DATABASE.md`, allineato alle migration in
   `supabase/migrations/`: una tabella nuova si documenta nella stessa modifica che la crea;

@@ -5,16 +5,16 @@ senza dipendere da servizi esclusivi di Lovable Cloud.
 
 ## Stato attuale
 
-| Componente | Portabile? | Note |
-|---|---|---|
-| Frontend (React + TanStack Start/Router) | Sì | Build Vite standard, deploy su qualsiasi host Node. |
-| Server functions / route API (`src/routes/api/*`) | Sì | API HTTP standard, nessuna edge function proprietaria. |
-| Database | Sì | PostgreSQL puro; lo schema sta nelle migrazioni SQL. |
-| Client dati (`@supabase/supabase-js`) | Sì | Supabase è open source e self-hostable; in alternativa si sostituisce il solo livello dati (`src/lib/*.ts`). |
-| Web Push (`src/lib/webpush.server.ts`) | Sì | VAPID implementato con Web Crypto, disponibile in Node 18+. |
-| Auth | Sì | GoTrue self-hosted oppure qualsiasi provider OIDC. |
-| `src/integrations/lovable/*` | Opzionale | Login social gestito da Lovable: **non importato da nessuna schermata**, rimovibile senza impatti. |
-| `@lovable.dev/vite-tanstack-config` | Solo build | Preset Vite; sostituibile con una config Vite/TanStack esplicita. |
+| Componente                                        | Portabile? | Note                                                                                                         |
+| ------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
+| Frontend (React + TanStack Start/Router)          | Sì         | Build Vite standard, deploy su qualsiasi host Node.                                                          |
+| Server functions / route API (`src/routes/api/*`) | Sì         | API HTTP standard, nessuna edge function proprietaria.                                                       |
+| Database                                          | Sì         | PostgreSQL puro; lo schema sta nelle migrazioni SQL.                                                         |
+| Client dati (`@supabase/supabase-js`)             | Sì         | Supabase è open source e self-hostable; in alternativa si sostituisce il solo livello dati (`src/lib/*.ts`). |
+| Web Push (`src/lib/webpush.server.ts`)            | Sì         | VAPID implementato con Web Crypto, disponibile in Node 18+.                                                  |
+| Auth                                              | Sì         | GoTrue self-hosted oppure qualsiasi provider OIDC.                                                           |
+| `src/integrations/lovable/*`                      | Opzionale  | Login social gestito da Lovable: **non importato da nessuna schermata**, rimovibile senza impatti.           |
+| `@lovable.dev/vite-tanstack-config`               | Solo build | Preset Vite; sostituibile con una config Vite/TanStack esplicita.                                            |
 
 ## Regole da rispettare nelle prossime modifiche
 

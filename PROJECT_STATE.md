@@ -73,12 +73,12 @@ va fatto prima di mandare questa versione in produzione.
 
 Passaggi in ordine, nessuno dei quali è reversibile a metà:
 
-1. **Provider Google in Supabase** — Google Cloud Console: consent screen *External* (scope
-   `email` e `profile`, non sensibili: nessuna verifica richiesta, e la modalità *Testing*
+1. **Provider Google in Supabase** — Google Cloud Console: consent screen _External_ (scope
+   `email` e `profile`, non sensibili: nessuna verifica richiesta, e la modalità _Testing_
    regge fino a 100 utenti, più che sufficiente per la squadra), credenziale
-   *Web application* con redirect URI
+   _Web application_ con redirect URI
    `https://kfkcldwncxqaixetsjes.supabase.co/auth/v1/callback`. Client ID e
-   secret in *Authentication → Providers → Google*. In *URL Configuration*: Site URL di
+   secret in _Authentication → Providers → Google_. In _URL Configuration_: Site URL di
    produzione, più `localhost:8080` e il wildcard delle preview Vercel tra i Redirect URLs.
    Per provare sullo stack locale invece che sul cloud servono anche `enabled = true` in
    `[auth.external.google]` di `supabase/config.toml`, le due variabili

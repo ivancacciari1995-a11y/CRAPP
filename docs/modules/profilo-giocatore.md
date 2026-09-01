@@ -41,9 +41,9 @@ responsabilità del giocatore che li fornisce.
 
 ### Primo accesso
 
-1. Login tramite Google oppure Email. *Implementato con il solo Google: la squadra ha tutti
+1. Login tramite Google oppure Email. _Implementato con il solo Google: la squadra ha tutti
    un account Google, e un secondo metodo è additivo (un bottone in più sulla stessa
-   schermata) il giorno che serve.*
+   schermata) il giorno che serve._
 2. Collegamento automatico al proprio giocatore, confrontando l'email dell'account Google
    con l'email registrata in `giocatori_squadra` (DD-018). Nessuna scelta manuale: se
    l'email non corrisponde a nessun profilo, l'accesso si ferma con un messaggio che invita
@@ -58,7 +58,7 @@ Il giocatore visualizza un widget dedicato.
 
 ### Completa il tuo profilo
 
-Viene mostrata una barra di avanzamento (esempio: *Profilo completato — 85%*), composta dalle seguenti sezioni.
+Viene mostrata una barra di avanzamento (esempio: _Profilo completato — 85%_), composta dalle seguenti sezioni.
 
 - Dati personali
 - Documento di identità
@@ -193,12 +193,12 @@ Campi esportati.
 
 Ogni sezione contribuisce alla percentuale di completamento.
 
-| Sezione | Peso |
-|---|---|
-| Dati personali | 30% |
-| Documento di identità | 30% |
-| Certificato medico | 30% |
-| Foto tessera | 10% |
+| Sezione               | Peso |
+| --------------------- | ---- |
+| Dati personali        | 30%  |
+| Documento di identità | 30%  |
+| Certificato medico    | 30%  |
+| Foto tessera          | 10%  |
 
 Quando tutte le sezioni risultano complete il profilo raggiunge il 100%.
 

@@ -1,6 +1,7 @@
 # Ridimensionamento badge nella lista squadra
 
 ## Obiettivo
+
 Rendere i badge accanto al nome del giocatore nella lista squadra più compatti e meno invasivi, mantenendo lo stile stilizzato (icone Lucide colorate per grado) e lasciando la scheda espansa con una dimensione leggibile.
 
 ## Modifiche previste
@@ -19,5 +20,6 @@ Rendere i badge accanto al nome del giocatore nella lista squadra più compatti 
    - Eseguire build per assicurarsi che non ci siano errori di tipo o stile.
 
 ## Cosa non cambia
+
 - Colori dei gradi, soglie badge, logica di sblocco e votazione MVP.
 - Layout generale della pagina e bottom navigation.
