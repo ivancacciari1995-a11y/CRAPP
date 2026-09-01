@@ -14,7 +14,6 @@ import {
   numeroGiaUsato,
   rosaFallback,
   slotDi,
-  slotLiberi,
   validaDatiSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
@@ -112,6 +111,7 @@ const squadra: GiocatoreSquadra[] = [
     ruolo: "Banda",
     authUserId: null,
     attivo: true,
+    email: null,
   },
   {
     id: "g2",
@@ -121,6 +121,7 @@ const squadra: GiocatoreSquadra[] = [
     ruolo: "Libero",
     authUserId: "u2",
     attivo: true,
+    email: null,
   },
 ];
 const csv = csvTesseramento(squadra, { g1: completo });
@@ -146,16 +147,6 @@ assert.deepEqual(dividiNome("Ivan"), { nome: "Ivan", cognome: "" });
 assert.equal(slotDi(squadra, null), null, "senza sessione nessuno slot");
 assert.equal(slotDi(squadra, "u2")?.id, "g2");
 assert.equal(slotDi(squadra, "sconosciuto"), null);
-assert.deepEqual(
-  slotLiberi(squadra).map((g) => g.id),
-  ["g1"],
-  "uno slot già collegato non è più libero",
-);
-assert.deepEqual(
-  slotLiberi([...squadra, { ...squadra[0]!, id: "g3", attivo: false }]).map((g) => g.id),
-  ["g1"],
-  "i giocatori non attivi restano fuori",
-);
 
 // --- dati squadra modificabili dall'admin (DD-017) ---------------------------
 const datiOk = { nome: "Ivan", cognome: "Cacciari", numero: 23, ruolo: "Banda" };

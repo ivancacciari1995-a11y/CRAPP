@@ -6,7 +6,7 @@ import {
   numeroGiaUsato,
   rosaFallback,
   slotDi,
-  slotLiberi,
+  slotPerEmail,
   validaDatiSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
@@ -20,6 +20,7 @@ const riga = (parziale: Partial<GiocatoreSquadra> = {}): GiocatoreSquadra => ({
   ruolo: "schiacciatore",
   authUserId: null,
   attivo: true,
+  email: null,
   ...parziale,
 });
 
@@ -62,17 +63,25 @@ assert.equal(slotDi(righe, "u1")?.id, "g1");
 assert.equal(slotDi(righe, "u9"), null, "nessuno slot per un account non collegato");
 assert.equal(slotDi(righe, null), null, "senza sessione non c'è slot");
 
-// --- slotLiberi ----------------------------------------------------------------
-const rosaMista: GiocatoreSquadra[] = [
-  riga({ id: "g1", attivo: true, authUserId: null }),
-  riga({ id: "g2", attivo: true, authUserId: "u1" }),
-  riga({ id: "g3", attivo: false, authUserId: null }),
+// --- slotPerEmail ----------------------------------------------------------------
+const rosaEmail: GiocatoreSquadra[] = [
+  riga({ id: "g1", email: "foo@bar.com", authUserId: null }),
+  riga({ id: "g2", email: "baz@qux.com", authUserId: "u1" }),
+  riga({ id: "g3", email: null, authUserId: null }),
 ];
-assert.deepEqual(
-  slotLiberi(rosaMista).map((g) => g.id),
-  ["g1"],
-  "libero solo chi è attivo e senza account collegato",
+assert.equal(slotPerEmail(rosaEmail, "foo@bar.com")?.id, "g1", "match esatto");
+assert.equal(
+  slotPerEmail(rosaEmail, "Foo@Bar.com")?.id,
+  "g1",
+  "il confronto ignora maiuscole/minuscole",
 );
+assert.equal(slotPerEmail(rosaEmail, null), null, "senza email non c'è match");
+assert.equal(
+  slotPerEmail(rosaEmail, "baz@qux.com"),
+  null,
+  "uno slot già collegato non risulta in match anche con email coincidente",
+);
+assert.equal(slotPerEmail(rosaEmail, ""), null, "stringa vuota trattata come nessuna email");
 
 // --- validaDatiSquadra ----------------------------------------------------------------
 const datiOk = { nome: "Mario", cognome: "Rossi", numero: 7, ruolo: "schiacciatore" };

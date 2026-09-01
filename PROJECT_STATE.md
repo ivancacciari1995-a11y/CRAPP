@@ -36,7 +36,9 @@ admin) implementati su `develop`, da attivare in produzione seguendo i passaggi 
 ## Database
 
 - Schema v1.0 + M1 applicati al nuovo Supabase
-- `public.giocatori_squadra`: 17 giocatori iniziali presenti
+- `public.giocatori_squadra`: 17 giocatori iniziali presenti; solo 2 hanno l'email
+  registrata (`email`, migration `m5_email_giocatori_squadra`, DD-018) — le altre 15
+  arriveranno con una migration futura
 
 ---
 
@@ -86,8 +88,12 @@ Passaggi in ordine, nessuno dei quali è reversibile a metà:
    produzione senza toccare il comportamento attuale.
 3. **Primo admin**, dopo il primo login (l'ID esiste solo da quel momento):
    `INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = '<mail>';`
-4. **Collegamento dei 17 account**: ciascuno accede con Google e sceglie il proprio nome una
-   volta sola. Uno slot già collegato può essere liberato solo da un admin.
+4. **Collegamento dei 17 account**: ciascuno accede con Google e viene collegato in
+   automatico al proprio giocatore per email (DD-018, migration
+   `m5_email_giocatori_squadra`) — nessuna scelta manuale. Finché l'email di un giocatore
+   non è impostata (oggi solo 2 dei 17 la hanno), il suo accesso mostra un errore e va
+   sbloccato aggiungendo l'email con una nuova migration. Uno slot già collegato può essere
+   liberato solo da un admin.
 5. **Solo a squadra collegata**: migration `m4_solo_autenticati`, che toglie al ruolo `anon`
    l'accesso alle tabelle v1.0. Da lì in poi i dati sono raggiungibili solo con una sessione;
    le route in `src/routes/api/public/` usano la service role e continuano a funzionare.

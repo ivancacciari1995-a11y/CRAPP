@@ -40,7 +40,10 @@ responsabilità del giocatore che li fornisce.
 1. Login tramite Google oppure Email. *Implementato con il solo Google: la squadra ha tutti
    un account Google, e un secondo metodo è additivo (un bottone in più sulla stessa
    schermata) il giorno che serve.*
-2. Selezione del proprio giocatore.
+2. Collegamento automatico al proprio giocatore, confrontando l'email dell'account Google
+   con l'email registrata in `giocatori_squadra` (DD-018). Nessuna scelta manuale: se
+   l'email non corrisponde a nessun profilo, l'accesso si ferma con un messaggio che invita
+   a contattare un amministratore.
 3. Accesso alla Home.
 
 Se il profilo non è completo compare automaticamente un widget di completamento.

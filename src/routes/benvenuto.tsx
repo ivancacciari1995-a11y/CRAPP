@@ -1,16 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogIn } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { TeamLogo } from "@/components/crapp/ui-bits";
-import { accediConGoogle, useSessione } from "@/lib/auth";
+import { accediConGoogle, esci, useSessione } from "@/lib/auth";
 import {
-  nomeCompleto,
   slotDi,
-  slotLiberi,
+  slotPerEmail,
   useCollegaGiocatore,
   useGiocatoriSquadra,
-  type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
 import { impostaGiocatore, resetGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
 
@@ -32,43 +30,17 @@ export const Route = createFileRoute("/benvenuto")({
   component: Benvenuto,
 });
 
-function Scheda({
-  titolo,
-  sottotitolo,
-  onClick,
-  iniziali,
-}: {
-  titolo: string;
-  sottotitolo: string;
-  onClick: () => void;
-  iniziali: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-4 rounded-2xl bg-card p-4 shadow-card transition-transform active:scale-[0.98]"
-    >
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-secondary font-display text-lg">
-        {iniziali}
-      </div>
-      <div className="min-w-0 flex-1 text-left">
-        <p className="font-semibold leading-tight">{titolo}</p>
-        <p className="text-xs text-muted-foreground">{sottotitolo}</p>
-      </div>
-    </button>
-  );
-}
-
 function Benvenuto() {
   const navigate = useNavigate();
   const giocatore = useGiocatoreCorrente();
-  const { pronta, utenteId } = useSessione();
+  const { pronta, utenteId, emailUtente } = useSessione();
   const { righe, daDatabase } = useGiocatoriSquadra();
   const collega = useCollegaGiocatore();
   const [inCorso, setInCorso] = useState(false);
+  const [tentato, setTentato] = useState(false);
 
   const mioSlot = slotDi(righe, utenteId);
+  const slotEmail = slotPerEmail(righe, emailUtente);
   // Si entra solo da loggati e con uno slot collegato (DD-011).
   const puoEntrare = !!giocatore && !!utenteId;
 
@@ -83,6 +55,18 @@ function Benvenuto() {
     else if (utenteId && daDatabase) resetGiocatore();
   }, [mioSlot, utenteId, daDatabase]);
 
+  // Collegamento automatico per email (DD-018): un solo tentativo, mai su dati di
+  // fallback. Se fallisce o non trova corrispondenza resta lo stato d'errore, senza
+  // scelta manuale di ripiego.
+  useEffect(() => {
+    if (!utenteId || !daDatabase || mioSlot || !slotEmail || tentato) return;
+    setTentato(true);
+    collega
+      .mutateAsync({ giocatoreId: slotEmail.id, utenteId })
+      .then(() => impostaGiocatore(slotEmail.id))
+      .catch(() => toast.error("Collegamento non riuscito. Riprova o contatta un amministratore."));
+  }, [utenteId, daDatabase, mioSlot, slotEmail, tentato, collega]);
+
   async function accedi() {
     setInCorso(true);
     try {
@@ -93,17 +77,19 @@ function Benvenuto() {
     }
   }
 
-  async function reclama(g: GiocatoreSquadra) {
-    if (!utenteId) return;
+  async function esciERiprova() {
     try {
-      await collega.mutateAsync({ giocatoreId: g.id, utenteId });
-      impostaGiocatore(g.id);
-    } catch {
-      toast.error("Profilo già collegato a un altro account. Chiedi a un amministratore.");
+      await esci();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Uscita non riuscita");
     }
   }
 
-  const liberi = slotLiberi(righe);
+  // Errore: email senza corrispondenza, oppure trovata ma il tentativo di collegamento
+  // è fallito (slot nel frattempo reclamato da altri, o errore di rete).
+  const erroreCollegamento =
+    !!utenteId && daDatabase && !mioSlot && (!slotEmail || collega.isError);
+  const inAttesaCollegamento = !!utenteId && !mioSlot && !erroreCollegamento;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
@@ -126,29 +112,25 @@ function Benvenuto() {
             <LogIn className="h-4 w-4" /> Accedi con Google
           </button>
         </>
-      ) : (
+      ) : erroreCollegamento ? (
         <>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Sei entrato. Scegli il tuo nome: resterà collegato a questo account.
+            Nessun profilo trovato per la tua email. Contatta un amministratore per collegare il tuo
+            account.
           </p>
-          <div className="mt-8 w-full max-w-sm space-y-2">
-            {liberi.map((g) => (
-              <Scheda
-                key={g.id}
-                titolo={nomeCompleto(g)}
-                sottotitolo={`#${g.numero} · ${g.ruolo}`}
-                iniziali={`${g.nome[0] ?? ""}${g.cognome[0] ?? ""}`.toUpperCase()}
-                onClick={() => void reclama(g)}
-              />
-            ))}
-            {liberi.length === 0 ? (
-              <p className="rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
-                Nessun profilo libero: chiedi a un amministratore di collegarti.
-              </p>
-            ) : null}
-          </div>
+          <button
+            type="button"
+            onClick={() => void esciERiprova()}
+            className="premi mt-8 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl bg-secondary py-3.5 text-sm font-bold uppercase shadow-card"
+          >
+            <LogOut className="h-4 w-4" /> Esci
+          </button>
         </>
-      )}
+      ) : inAttesaCollegamento ? (
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          Ti stiamo collegando al tuo profilo...
+        </p>
+      ) : null}
     </div>
   );
 }

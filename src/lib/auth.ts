@@ -39,7 +39,12 @@ export function useSessione() {
     }
   }, []);
 
-  return { sessione, pronta, utenteId: sessione?.user.id ?? null };
+  return {
+    sessione,
+    pronta,
+    utenteId: sessione?.user.id ?? null,
+    emailUtente: sessione?.user.email ?? null,
+  };
 }
 
 export async function accediConGoogle(): Promise<void> {

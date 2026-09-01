@@ -15,6 +15,7 @@ export type GiocatoreSquadra = {
   ruolo: string;
   authUserId: string | null;
   attivo: boolean;
+  email: string | null;
 };
 
 type RigaGiocatoreSquadra = {
@@ -25,6 +26,7 @@ type RigaGiocatoreSquadra = {
   ruolo: string;
   auth_user_id: string | null;
   attivo: boolean;
+  email: string | null;
 };
 
 export const SQUADRA_KEY = ["giocatori-squadra"] as const;
@@ -45,6 +47,7 @@ export function rosaFallback(): GiocatoreSquadra[] {
     ruolo: g.ruolo,
     authUserId: null,
     attivo: true,
+    email: null,
   }));
 }
 
@@ -61,14 +64,20 @@ export function slotDi(
   return righe.find((g) => g.authUserId === utenteId) ?? null;
 }
 
-export function slotLiberi(righe: GiocatoreSquadra[]): GiocatoreSquadra[] {
-  return righe.filter((g) => g.attivo && !g.authUserId);
+/** Lo slot libero la cui email coincide con quella dell'account Google (case-insensitive). */
+export function slotPerEmail(
+  righe: GiocatoreSquadra[],
+  email: string | null,
+): GiocatoreSquadra | null {
+  if (!email) return null;
+  const cercata = email.trim().toLowerCase();
+  return righe.find((g) => !g.authUserId && g.email?.trim().toLowerCase() === cercata) ?? null;
 }
 
 async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
   const { data, error } = await supabaseNuoveTabelle
     .from("giocatori_squadra")
-    .select("id, nome, cognome, numero, ruolo, auth_user_id, attivo")
+    .select("id, nome, cognome, numero, ruolo, auth_user_id, attivo, email")
     .order("id");
   if (error) throw error;
   const righe = (data ?? []) as RigaGiocatoreSquadra[];
@@ -80,6 +89,7 @@ async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
     ruolo: r.ruolo,
     authUserId: r.auth_user_id,
     attivo: r.attivo,
+    email: r.email,
   }));
 }
 

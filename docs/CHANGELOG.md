@@ -18,6 +18,11 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   di nomi in `crapp-data.ts` è stata eliminata, altrimenti bastava scegliere il nome giusto
   per amministrare.
 - Migration `m4_solo_autenticati`: toglie al ruolo `anon` l'accesso alle tabelle v1.0.
+- Collegamento automatico al proprio giocatore per email (DD-018, migration
+  `m5_email_giocatori_squadra`): niente più scelta manuale da un elenco, `/benvenuto`
+  confronta l'email dell'account Google con `giocatori_squadra.email` e collega da solo.
+  Senza corrispondenza compare solo un messaggio d'errore, con un pulsante per uscire e
+  riprovare con un altro account.
   **Da applicare solo a squadra collegata**, altrimenti chi non ha ancora fatto login vede
   l'app vuota.
 - Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica

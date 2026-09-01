@@ -33,6 +33,7 @@ Serve a rispondere a domande del tipo:
 | [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi) | Portabilità dello stack |
 | [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0) | Schema dati Profilo Giocatore v1.1 |
 | [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore) | L'admin scrive al posto del giocatore |
+| [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email) | Collegamento automatico per email |
 
 **In valutazione**
 
@@ -471,6 +472,32 @@ Restano fuori, e non cambiano:
 **Riesame**  
 - Se la squadra cresce al punto da rendere sensato un ruolo di sola segreteria.  
 - Se serve tracciare *chi* ha modificato un dato: oggi non c'è audit, e con la scrittura condivisa la domanda prima o poi arriva.
+
+---
+
+### DD-018 — Collegamento automatico giocatore↔account per email
+
+**Data:** settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+DD-016 regola 2 prevedeva che, al primo accesso, il giocatore scegliesse manualmente il proprio slot libero da un elenco (`/benvenuto`). In pratica ogni giocatore ha un'email nota (o presto nota), quindi far scegliere un nome da una lista è un passaggio superfluo e un rischio: un giocatore può selezionare per errore lo slot di un compagno, e nulla nel flusso lo impedisce a livello di prodotto.
+
+**Decisione**  
+Al primo accesso, `giocatori_squadra` viene interrogata per email (case-insensitive, tramite la nuova colonna `email`) invece di mostrare un elenco di slot liberi. Se l'email dell'account Google corrisponde a una riga libera, il collegamento avviene automaticamente. Se non corrisponde a nessuna riga (email non ancora nota, o nessun profilo per quella persona), l'utente vede solo un messaggio d'errore che invita a contattare un amministratore, con un pulsante per uscire e riprovare con un altro account — nessuna selezione manuale di ripiego. Le email sono popolate via migration (`m5_email_giocatori_squadra`), non tramite un'interfaccia amministrativa in questa iterazione. Il trigger `enforce_giocatori_squadra_update` (DD-016) viene esteso per richiedere anche la corrispondenza email, non solo lo slot libero: il vincolo resta nel database, non solo nella UI.
+
+**Alternative scartate**  
+- Mantenere la selezione manuale come ripiego quando l'email non trova corrispondenza → scartata: vanificherebbe la garanzia "ognuno collega solo il proprio profilo" e reintrodurrebbe il rischio di scelta errata che questa decisione vuole eliminare.  
+- Un'interfaccia admin per scrivere l'email dei giocatori → rimandata: non necessaria finché le email arrivano da migration; si può aggiungere in futuro senza toccare questa decisione.
+
+**Conseguenze**  
+- Le righe senza email nota restano bloccate — nessuno può collegarle, nemmeno per errore — finché una migration futura non la imposta. Oggi solo 2 dei 17 giocatori hanno l'email registrata.  
+- `slotLiberi` (funzione ed elenco "slot liberi" in `/benvenuto`) è stato rimosso: non aveva più chiamanti in produzione dopo il cambio.  
+- Un utente che accede con l'account Google sbagliato resta bloccato su `/benvenuto` finché non esce e riprova con l'account giusto.
+
+**Riesame**  
+- Quando tutte le 17 email saranno note e verificate.  
+- Se in futuro serve un'assistenza admin diretta dal flusso di login invece che da `/admin`.
 
 ---
 
