@@ -5,7 +5,12 @@ import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
-import { fileToAvatar, salvaAvatar, rimuoviAvatar, useAvatar } from "@/lib/avatar-store";
+import {
+  caricaAvatar,
+  rimuoviAvatar,
+  useAvatarEsiste,
+  useInvalidaAvatarEsiste,
+} from "@/lib/avatar-store";
 import { SerieGriglia } from "@/components/crapp/SerieCard";
 import { CollezioneBadge } from "@/components/crapp/CollezioneBadge";
 import { ProfiloAmministrativo } from "@/components/crapp/ProfiloAmministrativo";
@@ -47,7 +52,9 @@ function Profilo() {
   const admin = useIsAdmin();
   const ultimoMese = usePresenzeUltimoMese(g?.id);
   const inputRef = useRef<HTMLInputElement>(null);
-  const foto = useAvatar(g?.id);
+  const fotoEsiste = useAvatarEsiste(g?.id);
+  const invalidaAvatarEsiste = useInvalidaAvatarEsiste();
+  const [bust, setBust] = useState(0);
   const [notifiche, setNotifiche] = useState(false);
   const [inCorso, setInCorso] = useState(false);
   const [supportate, setSupportate] = useState(true);
@@ -97,7 +104,9 @@ function Profilo() {
     e.target.value = "";
     if (!file || !g) return;
     try {
-      salvaAvatar(g.id, await fileToAvatar(file));
+      await caricaAvatar(g.id, file);
+      setBust(Date.now());
+      invalidaAvatarEsiste(g.id);
       toast.success("Immagine profilo aggiornata");
     } catch {
       toast.error("Non sono riuscito a caricare l'immagine");
@@ -112,7 +121,7 @@ function Profilo() {
         <div className="premi rounded-3xl bg-card p-4 shadow-card">
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" />
+              <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" bust={bust} />
               <input
                 ref={inputRef}
                 type="file"
@@ -138,12 +147,18 @@ function Profilo() {
             >
               Cambia immagine profilo
             </button>
-            {foto ? (
+            {fotoEsiste.data ? (
               <button
                 type="button"
-                onClick={() => {
-                  rimuoviAvatar(g.id);
-                  toast.success("Immagine rimossa");
+                onClick={async () => {
+                  try {
+                    await rimuoviAvatar(g.id);
+                    setBust(Date.now());
+                    invalidaAvatarEsiste(g.id);
+                    toast.success("Immagine rimossa");
+                  } catch {
+                    toast.error("Non sono riuscito a rimuovere l'immagine");
+                  }
                 }}
                 className="grid h-9 w-9 place-items-center rounded-xl bg-secondary text-muted-foreground"
                 aria-label="Rimuovi immagine"

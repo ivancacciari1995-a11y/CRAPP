@@ -1,60 +1,41 @@
-import { useSyncExternalStore } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const KEY = "crapp-avatars-v1";
-const listeners = new Set<() => void>();
-let cache: Record<string, string> | undefined;
+const BUCKET = "avatar-giocatori";
+const NOME_FILE = "avatar.jpg";
 
-function read(): Record<string, string> {
-  if (cache) return cache;
-  if (typeof window === "undefined") return {};
-  try {
-    cache = JSON.parse(window.localStorage.getItem(KEY) ?? "{}") as Record<string, string>;
-  } catch {
-    cache = {};
-  }
-  return cache;
+function percorso(id: string) {
+  return `${id}/${NOME_FILE}`;
 }
 
-function write(next: Record<string, string>) {
-  cache = next;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    /* quota o storage non disponibile */
-  }
-  listeners.forEach((l) => l());
+/** URL pubblico e stabile: il bucket è pubblico, nessuna richiesta di rete. */
+export function urlAvatar(id: string): string {
+  return supabase.storage.from(BUCKET).getPublicUrl(percorso(id)).data.publicUrl;
 }
 
-const EMPTY: Record<string, string> = {};
+const chiaveEsiste = (id: string) => ["avatar-esiste", id] as const;
 
-export function useAvatars(): Record<string, string> {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
+/** Solo per il proprio profilo: sapere se mostrare "rimuovi immagine". */
+export function useAvatarEsiste(id: string | undefined) {
+  return useQuery({
+    queryKey: chiaveEsiste(id ?? ""),
+    enabled: !!id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from(BUCKET).list(id!, { search: NOME_FILE });
+      if (error) throw error;
+      return (data ?? []).some((f) => f.name === NOME_FILE);
     },
-    () => read(),
-    () => EMPTY,
-  );
+  });
 }
 
-export function useAvatar(id: string | undefined): string | null {
-  const all = useAvatars();
-  return id ? (all[id] ?? null) : null;
+export function useInvalidaAvatarEsiste() {
+  const qc = useQueryClient();
+  return (id: string) => qc.invalidateQueries({ queryKey: chiaveEsiste(id) });
 }
 
-export function rimuoviAvatar(id: string) {
-  const next = { ...read() };
-  delete next[id];
-  write(next);
-}
-
-export function salvaAvatar(id: string, dataUrl: string) {
-  write({ ...read(), [id]: dataUrl });
-}
-
-/** Ridimensiona e comprime l'immagine scelta per stare in localStorage. */
-export function fileToAvatar(file: File, size = 256): Promise<string> {
+/** Ridimensiona e comprime l'immagine scelta in un quadrato JPEG. */
+function fileToBlob(file: File, size = 256): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("Lettura file fallita"));
@@ -79,10 +60,30 @@ export function fileToAvatar(file: File, size = 256): Promise<string> {
           size,
           size,
         );
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error("Conversione fallita"))),
+          "image/jpeg",
+          0.82,
+        );
       };
       img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   });
+}
+
+/** Ridimensiona, comprime e carica la foto profilo: sovrascrive quella precedente. */
+export async function caricaAvatar(id: string, file: File) {
+  const blob = await fileToBlob(file);
+  const { error } = await supabase.storage.from(BUCKET).upload(percorso(id), blob, {
+    contentType: "image/jpeg",
+    upsert: true,
+    cacheControl: "60",
+  });
+  if (error) throw error;
+}
+
+export async function rimuoviAvatar(id: string) {
+  const { error } = await supabase.storage.from(BUCKET).remove([percorso(id)]);
+  if (error) throw error;
 }
