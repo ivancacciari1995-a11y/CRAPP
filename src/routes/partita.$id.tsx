@@ -2,13 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { storicoMatch, formatData, giocatori, isAdmin } from "@/lib/crapp-data";
+import { storicoMatch, formatData, giocatori } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useIsAdmin } from "@/lib/ruoli";
 import { VotazioneMvp } from "@/components/crapp/VotazioneMvp";
 import { VotoSocial } from "@/components/crapp/VotoSocial";
 import { TurnoPalloni } from "@/components/crapp/TurnoPalloni";
@@ -36,6 +37,7 @@ function PartitaDetail() {
   const { id } = Route.useParams();
   const { evento } = useEvento(id);
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const scoutMatches = useScoutMatches();
   const { risposte } = usePresenzeEvento(id);
   const presentiVeri = giocatori.filter(
@@ -224,7 +226,7 @@ function PartitaDetail() {
                 );
               })}
             </div>
-            {io && isAdmin(io.id) ? (
+            {admin ? (
               <button
                 type="button"
                 onClick={() => scaricaCsv(`scout-${scout.data}-${scout.avversario}.csv`, csvScoutMatch(scout))}

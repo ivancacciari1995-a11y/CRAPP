@@ -169,10 +169,5 @@ export function formatData(iso: string) {
   return d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "long" });
 }
 
-/** Referenti che possono gestire eventi e sollecitare le risposte. */
-export const adminNomi = ["Ivan Cacciari", "Iacopo Ricci", "Cristina Titone"];
-
-export function isAdmin(giocatoreId: string) {
-  const g = giocatori.find((x) => x.id === giocatoreId);
-  return Boolean(g && adminNomi.includes(g.nome));
-}
+/* I permessi di amministrazione stanno in `user_roles` (DD-011), non in una lista di nomi:
+   vedi `src/lib/ruoli.ts`. */

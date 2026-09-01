@@ -18,6 +18,7 @@ import { CelebrazioneBadge } from "../components/crapp/CelebrazioneBadge";
 import { Toaster } from "../components/ui/sonner";
 import { TeamLogo } from "../components/crapp/ui-bits";
 import { useGiocatoreBase } from "../lib/user-store";
+import { useSessione } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -145,17 +146,21 @@ function RootComponent() {
   const navigate = useNavigate();
   const location = useLocation();
   const giocatore = useGiocatoreBase();
+  const { pronta, utenteId } = useSessione();
   const [mounted, setMounted] = useState(false);
   const isBenvenuto = location.pathname === "/benvenuto";
 
+  // Senza sessione Google non si entra: l'identità la dà il login, non la scelta del nome
+  // (DD-011). Si aspetta `pronta`, altrimenti il primo render sloggato rimbalzerebbe fuori
+  // chi ha già la sessione in localStorage.
   useEffect(() => {
     setMounted(true);
-    if (!giocatore && !isBenvenuto) {
+    if (pronta && (!giocatore || !utenteId) && !isBenvenuto) {
       navigate({ to: "/benvenuto" });
     }
-  }, [giocatore, isBenvenuto, navigate]);
+  }, [giocatore, utenteId, pronta, isBenvenuto, navigate]);
 
-  if (!mounted) {
+  if (!mounted || !pronta) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <TeamLogo className="h-16 w-16 animate-pulse" />

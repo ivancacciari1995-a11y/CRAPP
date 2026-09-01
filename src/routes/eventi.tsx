@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { formatData, giocatori, isAdmin } from "@/lib/crapp-data";
+import { formatData, giocatori } from "@/lib/crapp-data";
 import {
   categoriaEvento,
   daCategoria,
@@ -16,6 +16,7 @@ import {
   type Evento,
 } from "@/lib/eventi";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useIsAdmin } from "@/lib/ruoli";
 
 export const Route = createFileRoute("/eventi")({
   head: () => ({
@@ -47,12 +48,13 @@ const tipi: Array<{ id: CategoriaEvento; label: string }> = [
 
 function GestioneEventi() {
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const { eventi, isPending } = useEventi();
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();
   const [bozza, setBozza] = useState<Evento | null>(null);
 
-  if (!io || !isAdmin(io.id)) {
+  if (!io || !admin) {
     return (
       <>
         <PageHeader titolo="Gestione eventi" sottotitolo="Area riservata" />

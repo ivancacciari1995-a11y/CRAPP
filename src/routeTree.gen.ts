@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BenvenutoRouteImport } from './routes/benvenuto'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as ClassificaRouteImport } from './routes/classifica'
@@ -19,6 +20,7 @@ import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SquadraRouteImport } from './routes/squadra'
 import { Route as AllenamentoIdRouteImport } from './routes/allenamento.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
+import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
 import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/public/promemoria-palloni'
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
 import { Route as ApiPublicPushMessaggioRouteImport } from './routes/api/public/push-messaggio'
@@ -28,6 +30,11 @@ import { Route as ApiPublicSollecitaPresenzeRouteImport } from './routes/api/pub
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BenvenutoRoute = BenvenutoRouteImport.update({
@@ -75,6 +82,11 @@ const PartitaIdRoute = PartitaIdRouteImport.update({
   path: '/partita/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCsiRoute = ApiPublicCsiRouteImport.update({
+  id: '/api/public/csi',
+  path: '/api/public/csi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPromemoriaPalloniRoute =
   ApiPublicPromemoriaPalloniRouteImport.update({
     id: '/api/public/promemoria-palloni',
@@ -105,6 +117,7 @@ const ApiPublicSollecitaPresenzeRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -114,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -122,6 +136,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -131,6 +146,7 @@ export interface FileRoutesByTo {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -140,6 +156,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/benvenuto': typeof BenvenutoRoute
   '/calendario': typeof CalendarioRoute
   '/classifica': typeof ClassificaRoute
@@ -149,6 +166,7 @@ export interface FileRoutesById {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
@@ -159,6 +177,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -168,6 +187,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -176,6 +196,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -185,6 +206,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -193,6 +215,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/benvenuto'
     | '/calendario'
     | '/classifica'
@@ -202,6 +225,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
     | '/api/public/push-messaggio'
@@ -211,6 +235,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   BenvenutoRoute: typeof BenvenutoRoute
   CalendarioRoute: typeof CalendarioRoute
   ClassificaRoute: typeof ClassificaRoute
@@ -220,6 +245,7 @@ export interface RootRouteChildren {
   SquadraRoute: typeof SquadraRoute
   AllenamentoIdRoute: typeof AllenamentoIdRoute
   PartitaIdRoute: typeof PartitaIdRoute
+  ApiPublicCsiRoute: typeof ApiPublicCsiRoute
   ApiPublicPromemoriaPalloniRoute: typeof ApiPublicPromemoriaPalloniRoute
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
   ApiPublicPushMessaggioRoute: typeof ApiPublicPushMessaggioRoute
@@ -234,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/benvenuto': {
@@ -299,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartitaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/csi': {
+      id: '/api/public/csi'
+      path: '/api/public/csi'
+      fullPath: '/api/public/csi'
+      preLoaderRoute: typeof ApiPublicCsiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/promemoria-palloni': {
       id: '/api/public/promemoria-palloni'
       path: '/api/public/promemoria-palloni'
@@ -339,6 +379,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   BenvenutoRoute: BenvenutoRoute,
   CalendarioRoute: CalendarioRoute,
   ClassificaRoute: ClassificaRoute,
@@ -348,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   SquadraRoute: SquadraRoute,
   AllenamentoIdRoute: AllenamentoIdRoute,
   PartitaIdRoute: PartitaIdRoute,
+  ApiPublicCsiRoute: ApiPublicCsiRoute,
   ApiPublicPromemoriaPalloniRoute: ApiPublicPromemoriaPalloniRoute,
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,
   ApiPublicPushMessaggioRoute: ApiPublicPushMessaggioRoute,

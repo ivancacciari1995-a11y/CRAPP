@@ -1,1 +1,22 @@
-project_id = "hetycilxgkdmccelwerq"
+project_id = "kfkcldwncxqaixetsjes"
+
+# Configurazione dell'istanza locale (`supabase start`). Non tocca il progetto cloud:
+# lì le stesse impostazioni si mettono dalla dashboard Supabase.
+
+[auth]
+site_url = "http://localhost:8080"
+additional_redirect_urls = ["http://localhost:8080"]
+
+# Accesso via email con Mailpit (http://127.0.0.1:54324) per le prove locali:
+# nessuna mail esce dalla macchina e non serve confermare l'indirizzo.
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Google in locale: metti client id e secret in `.env` e porta `enabled` a true.
+# Il redirect da registrare in Google Cloud è http://127.0.0.1:54321/auth/v1/callback,
+# che convive con quello di produzione sulla stessa credenziale.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"

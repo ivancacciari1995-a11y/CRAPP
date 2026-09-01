@@ -4,6 +4,7 @@ import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
+import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
@@ -24,7 +25,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "CrAPP — L'app del CRAP Volley" },
       {
         property: "og:description",
-        content: "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
+        content:
+          "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
     ],
   }),
@@ -105,6 +107,8 @@ function Index() {
         </div>
       </Section>
 
+      <CompletaProfilo giocatoreId={giocatore.id} indice={2} />
+
       <Section titolo="Da confermare" indice={2}>
         <div className="space-y-3">
           {prossimi.slice(1).map((e) => {
@@ -155,25 +159,29 @@ function Index() {
         titolo="Obiettivo di squadra"
         indice={4}
         azione={
-          <Link to="/squadra" className="inline-flex items-center text-xs font-semibold text-accent">
+          <Link
+            to="/squadra"
+            className="inline-flex items-center text-xs font-semibold text-accent"
+          >
             Tutti <ChevronRight className="h-3 w-3" />
           </Link>
         }
       >
         {obiettivo ? (
-        <div className="premi rounded-3xl bg-card p-4 shadow-card">
-          <div className="flex items-center gap-2 text-sm font-bold">
-            <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
+          <div className="premi rounded-3xl bg-card p-4 shadow-card">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
+            </div>
+            <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
+              {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
+            </p>
+            <p className="mt-1 text-xs font-semibold text-accent">
+              {microcopyObiettivo(obiettivo)}
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{obiettivo.impatto}</p>
           </div>
-          <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
-            {obiettivo.valore}/{obiettivo.target}{" "}
-            {obiettivo.unita}.
-          </p>
-          <p className="mt-1 text-xs font-semibold text-accent">{microcopyObiettivo(obiettivo)}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">{obiettivo.impatto}</p>
-        </div>
         ) : null}
       </Section>
 

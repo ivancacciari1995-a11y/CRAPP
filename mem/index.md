@@ -1,2 +1,4 @@
-- [Efficienza Cloud](mem://features/cloud-efficienza) — Regole anti-consumo: niente polling, cache lunga, aggregati precalcolati, sync CSI server-side
-- [Portabilità](mem://features/portabilita) — L'app deve girare su Node.js + PostgreSQL standard, nessun servizio esclusivo Lovable Cloud
+Le regole di progetto non vivono più qui: sono in `docs/`.
+
+- Efficienza cloud → `docs/EFFICIENZA_CLOUD.md`
+- Portabilità → `docs/PORTABILITA.md`

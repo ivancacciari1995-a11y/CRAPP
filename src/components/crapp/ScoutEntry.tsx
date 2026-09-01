@@ -3,16 +3,17 @@ import { ChevronRight, Lock, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sessioneScaduta, usePartitaDiOggi, useSessioneScout } from "@/lib/scout-live";
 import { useGiocatoreCorrente } from "@/lib/user-store";
-import { isAdmin } from "@/lib/crapp-data";
+import { useIsAdmin } from "@/lib/ruoli";
 
 /** Accesso allo scout live: attivo solo il giorno della partita e se nessun altro lo sta usando. */
 export function ScoutEntry({ variante = "grande" }: { variante?: "grande" | "compatto" }) {
   const { pronto, partita } = usePartitaDiOggi();
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const { data: sessione } = useSessioneScout(partita?.id ?? null);
 
   // Strumento tecnico: solo i referenti/allenatori scoutizzano la partita.
-  const abilitato = !!io && isAdmin(io.id);
+  const abilitato = admin;
 
   const attiva = sessione && !sessioneScaduta(sessione) ? sessione : null;
   const occupato = !!attiva && attiva.giocatore_id !== io?.id;
