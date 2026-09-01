@@ -1,6 +1,6 @@
 /** Check dei dati di base della rosa: `bun test/unit/crapp-data.test.ts`. */
 import assert from "node:assert/strict";
-import { classifica, formatData, giocatori, statoMeta, storicoMatch } from "@/lib/crapp-data";
+import { formatData, giocatori, statoMeta } from "@/lib/crapp-data";
 
 // --- rosa --------------------------------------------------------------------
 assert.ok(giocatori.length > 0, "la rosa non è vuota");
@@ -42,25 +42,6 @@ assert.deepEqual(Object.keys(statoMeta), [
 ]);
 for (const [stato, meta] of Object.entries(statoMeta)) {
   assert.ok(meta.label && meta.emoji && meta.className, `${stato}: metadati completi`);
-}
-
-// --- dati demo residui -------------------------------------------------------
-assert.equal(new Set(storicoMatch.map((m) => m.id)).size, storicoMatch.length, "id partite unici");
-for (const m of storicoMatch) {
-  assert.equal(
-    m.parziali.length,
-    m.setNostri + m.setLoro,
-    `${m.id}: un parziale per ogni set giocato`,
-  );
-  assert.ok(m.setNostri === 3 || m.setLoro === 3, `${m.id}: una partita finisce a 3 set vinti`);
-}
-assert.deepEqual(
-  classifica.map((r) => r.pos),
-  classifica.map((_, i) => i + 1),
-  "la classifica di partenza è numerata in ordine",
-);
-for (const r of classifica) {
-  assert.equal(r.vinte + r.perse, r.giocate, `${r.squadra}: vinte + perse = giocate`);
 }
 
 console.log("crapp-data: ok");
