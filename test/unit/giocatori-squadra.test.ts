@@ -1,7 +1,6 @@
 /** Check dell'anagrafica squadra: `bun test/unit/giocatori-squadra.test.ts`. */
 import assert from "node:assert/strict";
 import {
-  dividiNome,
   nomeCompleto,
   numeroGiaUsato,
   prossimoIdGiocatore,
@@ -11,7 +10,7 @@ import {
   validaDatiSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
-import { giocatori } from "@/lib/crapp-data";
+import { dividiNome, giocatori } from "@/lib/crapp-data";
 
 const riga = (parziale: Partial<GiocatoreSquadra> = {}): GiocatoreSquadra => ({
   id: "g1",

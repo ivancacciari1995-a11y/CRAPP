@@ -10,13 +10,13 @@ import {
   type Profilo,
 } from "@/lib/profili-core";
 import {
-  dividiNome,
   numeroGiaUsato,
   rosaFallback,
   slotDi,
   validaDatiSquadra,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
+import { dividiNome } from "@/lib/crapp-data";
 
 const vuoto: Profilo = {
   giocatoreId: "g1",

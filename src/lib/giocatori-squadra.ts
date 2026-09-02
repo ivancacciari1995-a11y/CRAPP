@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseNuoveTabelle } from "@/integrations/supabase/client-nuove-tabelle";
-import { giocatori } from "./crapp-data";
+import { dividiNome, giocatori } from "./crapp-data";
 
 /**
  * Anagrafica operativa della squadra (`giocatori_squadra`, migration M1). È la source of
@@ -30,13 +30,6 @@ type RigaGiocatoreSquadra = {
 };
 
 export const SQUADRA_KEY = ["giocatori-squadra"] as const;
-
-/** "Carlo Di Castelnuovo" -> nome "Carlo", cognome "Di Castelnuovo". */
-export function dividiNome(completo: string): { nome: string; cognome: string } {
-  const spazio = completo.indexOf(" ");
-  if (spazio < 0) return { nome: completo, cognome: "" };
-  return { nome: completo.slice(0, spazio), cognome: completo.slice(spazio + 1) };
-}
 
 /** Rosa di riserva quando il database non risponde o non è ancora popolato. */
 export function rosaFallback(): GiocatoreSquadra[] {
@@ -78,7 +71,8 @@ async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
   const { data, error } = await supabaseNuoveTabelle
     .from("giocatori_squadra")
     .select("id, nome, cognome, numero, ruolo, auth_user_id, attivo, email")
-    .order("id");
+    .order("cognome")
+    .order("nome");
   if (error) throw error;
   const righe = (data ?? []) as RigaGiocatoreSquadra[];
   return righe.map((r) => ({

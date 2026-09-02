@@ -82,27 +82,35 @@ function inizialiDa(nome: string) {
     .toUpperCase();
 }
 
-export const giocatori: Giocatore[] = rosaCSI.map((r, i) => ({
-  id: `g${i + 1}`,
-  nome: r.nome,
-  numero: r.numero ?? 0,
-  ruolo: r.ruolo,
-  nascita: r.nascita,
-  iniziali: inizialiDa(r.nome),
-  presenze: 0,
-  totaliEventi: 0,
-  streak: 0,
-  serieAllenamenti: 0,
-  seriePartite: 0,
-  serieConferme: 0,
-  mvp: 0,
-  mediaVoto: 0,
-  infortuni: 0,
-  ritardi: 0,
-  palloni: 0,
-  cacche: 0,
-  cacchePartita: 0,
-}));
+export function dividiNome(completo: string): { nome: string; cognome: string } {
+  const spazio = completo.indexOf(" ");
+  if (spazio < 0) return { nome: completo, cognome: "" };
+  return { nome: completo.slice(0, spazio), cognome: completo.slice(spazio + 1) };
+}
+
+export const giocatori: Giocatore[] = rosaCSI
+  .map((r, i) => ({
+    id: `g${i + 1}`,
+    nome: r.nome,
+    numero: r.numero ?? 0,
+    ruolo: r.ruolo,
+    nascita: r.nascita,
+    iniziali: inizialiDa(r.nome),
+    presenze: 0,
+    totaliEventi: 0,
+    streak: 0,
+    serieAllenamenti: 0,
+    seriePartite: 0,
+    serieConferme: 0,
+    mvp: 0,
+    mediaVoto: 0,
+    infortuni: 0,
+    ritardi: 0,
+    palloni: 0,
+    cacche: 0,
+    cacchePartita: 0,
+  }))
+  .sort((a, b) => dividiNome(a.nome).cognome.localeCompare(dividiNome(b.nome).cognome, "it"));
 
 export type RigaClassifica = {
   pos: number;
