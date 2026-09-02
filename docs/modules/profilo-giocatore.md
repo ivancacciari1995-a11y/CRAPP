@@ -158,6 +158,7 @@ Per ogni giocatore vengono mostrati.
 - Certificato medico
 - Documento di identità
 - Foto tessera
+- Stato tesseramento CSI (tesserato / da tesserare)
 
 Azioni disponibili.
 
@@ -166,6 +167,7 @@ Azioni disponibili.
 - Scarica documento
 - Scarica foto tessera
 - Modifica dati squadra e dati personali del giocatore (DD-017)
+- Registra numero e data della tessera CSI, una volta arrivata dal comitato
 - Scollega account, per liberare uno slot assegnato per errore
 - Aggiungi giocatore, per inserire un nuovo membro della squadra
 - Disattiva/Riattiva giocatore, per chi lascia la squadra (o rientra)
@@ -188,6 +190,15 @@ Campi esportati.
 - Rilasciato da
 - Data emissione
 - Data scadenza
+
+## Tracciamento tesseramento
+
+Numero e data della tessera CSI non sono dati che il giocatore conosce in anticipo: arrivano
+dal comitato dopo l'iscrizione effettiva. Per questo, a differenza dei dati personali del
+profilo, li scrive solo un amministratore — come nome, cognome, numero di maglia e ruolo
+(DD-017), il trigger sulla tabella li rende non modificabili dal giocatore stesso. La
+dashboard mostra un badge "Tesserato"/"Da tesserare" su ogni scheda e il conteggio
+complessivo della squadra.
 
 ## Completamento profilo
 

@@ -16,6 +16,8 @@ export type GiocatoreSquadra = {
   authUserId: string | null;
   attivo: boolean;
   email: string | null;
+  numeroTessera: string | null;
+  dataTessera: string | null;
 };
 
 type RigaGiocatoreSquadra = {
@@ -27,6 +29,8 @@ type RigaGiocatoreSquadra = {
   auth_user_id: string | null;
   attivo: boolean;
   email: string | null;
+  numero_tessera: string | null;
+  data_tessera: string | null;
 };
 
 export const SQUADRA_KEY = ["giocatori-squadra"] as const;
@@ -41,6 +45,8 @@ export function rosaFallback(): GiocatoreSquadra[] {
     authUserId: null,
     attivo: true,
     email: null,
+    numeroTessera: null,
+    dataTessera: null,
   }));
 }
 
@@ -70,7 +76,9 @@ export function slotPerEmail(
 async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
   const { data, error } = await supabaseNuoveTabelle
     .from("giocatori_squadra")
-    .select("id, nome, cognome, numero, ruolo, auth_user_id, attivo, email")
+    .select(
+      "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera",
+    )
     .order("cognome")
     .order("nome");
   if (error) throw error;
@@ -84,6 +92,8 @@ async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
     authUserId: r.auth_user_id,
     attivo: r.attivo,
     email: r.email,
+    numeroTessera: r.numero_tessera,
+    dataTessera: r.data_tessera,
   }));
 }
 
@@ -149,6 +159,40 @@ export function useSalvaDatiSquadra() {
         .eq("id", input.giocatoreId);
       if (error) throw error;
       return { giocatoreId: input.giocatoreId, dati };
+    },
+    onSuccess: (input) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
+      );
+    },
+  });
+}
+
+/** Numero e data della tessera CSI, note solo dopo il tesseramento effettivo. */
+export type DatiTesseramento = Pick<GiocatoreSquadra, "numeroTessera" | "dataTessera">;
+
+/**
+ * Registra numero e data della tessera CSI (roadmap v1.1). Campo puramente amministrativo:
+ * il trigger di M8 lo rende scrivibile solo da un admin, il giocatore non può autodichiararsi
+ * tesserato.
+ */
+export function useSalvaTesseramento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { giocatoreId: string; dati: DatiTesseramento }) => {
+      const dati = {
+        numero_tessera: input.dati.numeroTessera?.trim() || null,
+        data_tessera: input.dati.dataTessera || null,
+      };
+      const { error } = await supabaseNuoveTabelle
+        .from("giocatori_squadra")
+        .update(dati)
+        .eq("id", input.giocatoreId);
+      if (error) throw error;
+      return {
+        giocatoreId: input.giocatoreId,
+        dati: { numeroTessera: dati.numero_tessera, dataTessera: dati.data_tessera },
+      };
     },
     onSuccess: (input) => {
       queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>

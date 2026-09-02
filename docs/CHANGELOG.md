@@ -28,6 +28,10 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   riga non viene mai eliminata, così presenze, voti, pagelle e badge della stagione restano
   agganciati al suo id. L'email è anche modificabile dal pannello "Dati squadra" di ogni
   giocatore già in rosa.
+- Tracciamento tesseramento CSI (migration `m8_tesseramento_csi`): numero e data di tessera
+  in `giocatori_squadra`, come gli altri campi che gestisce solo l'admin (DD-016/DD-018). La
+  dashboard mostra chi è già tesserato (badge sulla scheda, contatore in "Squadra") e un
+  pannello per registrare numero e data una volta arrivata la tessera dal CSI.
   **Da applicare solo a squadra collegata**, altrimenti chi non ha ancora fatto login vede
   l'app vuota.
 - Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica

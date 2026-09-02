@@ -73,6 +73,22 @@ if (!URL_BASE || !CHIAVE_SERVIZIO || !CHIAVE_PUBBLICA) {
       assert.equal(righe[0]?.auth_user_id ?? null, null, "lo slot g1 è rimasto libero");
     });
 
+    // --- M8: tracciamento tesseramento CSI --------------------------------------
+    const m8 = await rest(
+      "giocatori_squadra?select=numero_tessera,data_tessera&limit=1",
+      CHIAVE_SERVIZIO,
+    );
+    if (!m8.ok) {
+      salta(
+        "colonne di tesseramento in giocatori_squadra",
+        "M8 non applicata (npx supabase db push)",
+      );
+    } else {
+      await prova("giocatori_squadra espone numero e data della tessera CSI", async () => {
+        assert.equal(m8.status, 200);
+      });
+    }
+
     // --- M2: tabella dei profili -----------------------------------------------
     const m2 = await rest("profili_giocatore?select=giocatore_id&limit=1", CHIAVE_SERVIZIO);
     if (!m2.ok) {

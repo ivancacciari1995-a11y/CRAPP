@@ -24,8 +24,8 @@ di attivazione sta in [PROJECT_STATE.md](../PROJECT_STATE.md).
 
 - [x] Certificati medici — caricamento, scadenza, stato e download; lo storico dei
       certificati resta un'estensione futura
-- [ ] Gestione tesseramenti CSI — raccolta dati ed export CSV pronti, manca il tracciamento
-      di chi è già tesserato (numero e data di tessera)
+- [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
+      tesserato (numero e data di tessera)
 - [x] Dashboard amministratore
 - [x] Download CSV dati
 

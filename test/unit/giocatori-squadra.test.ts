@@ -21,6 +21,8 @@ const riga = (parziale: Partial<GiocatoreSquadra> = {}): GiocatoreSquadra => ({
   authUserId: null,
   attivo: true,
   email: null,
+  numeroTessera: null,
+  dataTessera: null,
   ...parziale,
 });
 

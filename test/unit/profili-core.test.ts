@@ -112,6 +112,8 @@ const squadra: GiocatoreSquadra[] = [
     authUserId: null,
     attivo: true,
     email: null,
+    numeroTessera: null,
+    dataTessera: null,
   },
   {
     id: "g2",
@@ -122,6 +124,8 @@ const squadra: GiocatoreSquadra[] = [
     authUserId: "u2",
     attivo: true,
     email: null,
+    numeroTessera: null,
+    dataTessera: null,
   },
 ];
 const csv = csvTesseramento(squadra, { g1: completo });
