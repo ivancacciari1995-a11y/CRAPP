@@ -17,12 +17,12 @@ non può inquinare gli altri.
 
 ## Struttura
 
-| Cartella       | Cosa verifica                                                                                                                                                                            | Serve rete? |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa                                                           | No          |
-| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato | Sì          |
-| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                  | Sì          |
-| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                        | —           |
+| Cartella       | Cosa verifica                                                                                                                                                                                                                                                 | Serve rete? |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa. Più le funzioni pure isolabili nei moduli con hook/rete (validazione upload, guardie push, JWT VAPID, cattura errori, avatar) | No          |
+| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato                                                                      | Sì          |
+| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                                                                                       | Sì          |
+| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                                                                                             | —           |
 
 ## Convenzioni
 
