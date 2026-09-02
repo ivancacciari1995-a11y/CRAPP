@@ -41,6 +41,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   compila i dati personali al posto di un giocatore e scollega un account da un profilo
   (DD-017). I file restano esclusi: li carica solo il giocatore. Nessuna migration: le
   policy di M1 e M2 lo consentivano già.
+- Foto profilo sincronizzate tra dispositivi: da `/profilo` la foto caricata finisce nel
+  bucket pubblico `avatar-giocatori` (migration `m6_avatar_giocatori`) invece che in
+  `localStorage`, così compare per tutta la squadra e non solo su chi l'ha caricata.
+  L'Avatar mostra numero/iniziali finché la foto non è presente.
+- Scout Live sincronizzato tra dispositivi: il blocco "chi sta scoutando" ora passa dalla
+  tabella `scout_sessioni` invece che da `localStorage`, quindi due telefoni non possono più
+  prendere il controllo insieme sovrascrivendosi a vicenda. Le partite scoutate concluse
+  vengono archiviate nella nuova tabella `scout_partite` (migration `m7_scout_partite`):
+  prima restavano visibili solo sul telefono di chi aveva chiuso la partita.
 
 ### Test
 

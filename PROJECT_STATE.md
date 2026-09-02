@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 30/08/2026
+Ultimo aggiornamento: 02/09/2026
 
 ## Stato generale
 
@@ -9,6 +9,8 @@ Fase corrente:
 Backend migrato al nuovo Supabase proprietario. M1 completata. M2 e M3 scritte e da applicare.
 Autenticazione Google, dashboard amministratore e Profilo Giocatore (lato giocatore e lato
 admin) implementati su `develop`, da attivare in produzione seguendo i passaggi più sotto.
+Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
+sincronizzano tra dispositivi tramite Supabase.
 
 ---
 
@@ -39,6 +41,12 @@ admin) implementati su `develop`, da attivare in produzione seguendo i passaggi 
 - `public.giocatori_squadra`: 17 giocatori iniziali presenti; solo 2 hanno l'email
   registrata (`email`, migration `m5_email_giocatori_squadra`, DD-018) — le altre 15
   arriveranno con una migration futura
+- Migration `m6_avatar_giocatori`: bucket pubblico `avatar-giocatori` per le foto profilo,
+  al posto di `localStorage` (una per giocatore, letto da `src/lib/avatar-store.ts`)
+- Migration `m7_scout_partite`: nuova tabella `scout_partite` per l'archivio delle partite
+  scoutate concluse, e collegamento della tabella `scout_sessioni` (già presente nello
+  schema ma mai usata) al blocco condiviso dello Scout Live — prima entrambi vivevano solo
+  in `localStorage`, quindi visibili a un solo dispositivo
 
 ---
 
@@ -47,7 +55,7 @@ admin) implementati su `develop`, da attivare in produzione seguendo i passaggi 
 - Squadra
 - Presenze
 - Badge
-- Scout Live
+- Scout Live (blocco e archivio partite sincronizzati tra dispositivi, migration `m7_scout_partite`)
 - Pagelle
 - MVP
 - Notifiche
