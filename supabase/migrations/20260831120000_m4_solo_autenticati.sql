@@ -12,7 +12,6 @@ REVOKE ALL ON public.push_subscriptions   FROM anon;
 REVOKE ALL ON public.badge_social_voti    FROM anon;
 REVOKE ALL ON public.scout_sessioni       FROM anon;
 REVOKE ALL ON public.scout_live           FROM anon;
-REVOKE ALL ON public.scout_partite        FROM anon;
 REVOKE ALL ON public.mvp_voti             FROM anon;
 REVOKE ALL ON public.risposte_presenze    FROM anon;
 REVOKE ALL ON public.eventi_app           FROM anon;
