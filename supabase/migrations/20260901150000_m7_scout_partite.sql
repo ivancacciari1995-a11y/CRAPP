@@ -40,3 +40,8 @@ CREATE POLICY "Chiunque puo modificare una partita scoutata" ON public.scout_par
   FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Chiunque puo eliminare una partita scoutata" ON public.scout_partite
   FOR DELETE TO anon, authenticated USING (true);
+
+-- La squadra è già autenticata da M4: chiude subito l'accesso anonimo, come per le
+-- altre tabelle post-M4 (la policy resta dichiarata TO anon, authenticated: senza
+-- GRANT il ruolo anon non arriva comunque alla tabella).
+REVOKE ALL ON public.scout_partite FROM anon;
