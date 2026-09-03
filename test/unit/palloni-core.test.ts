@@ -14,6 +14,8 @@ import {
   oggiISO,
 } from "@/lib/palloni-core";
 
+const rosa = giocatori.map((g) => ({ id: g.id, nome: g.nome }));
+
 const evento = (id: string, data: string, tipo: Evento["tipo"] = "allenamento"): Evento => ({
   id,
   tipo,
@@ -59,7 +61,7 @@ assert.deepEqual(
 );
 
 // --- completaTurni: assegna i mancanti, rispetta quelli già decisi -----------
-const turni = completaTurni({ e2: "g5" }, eventi);
+const turni = completaTurni({ e2: "g5" }, eventi, rosa);
 assert.equal(turni["e2"], "g5", "il turno già assegnato non viene toccato");
 assert.equal(Object.keys(turni).length, 3, "tutti gli eventi hanno un incaricato");
 assert.ok(
@@ -71,7 +73,7 @@ assert.notEqual(turni["e1"], turni["e3"], "non tocca due volte di fila alla stes
 const molti = Array.from({ length: giocatori.length + 2 }, (_, i) =>
   evento(`x${i}`, `2026-10-${String(i + 1).padStart(2, "0")}`),
 );
-const rotazione = conteggioTurni(completaTurni({}, molti));
+const rotazione = conteggioTurni(completaTurni({}, molti, rosa));
 const carichi = Object.values(rotazione);
 assert.equal(
   Math.max(...carichi) - Math.min(...carichi),
@@ -85,7 +87,7 @@ assert.equal(
 );
 
 // Un turno salvato per un giocatore non più in rosa non deve rompere il conteggio.
-const conFantasma = completaTurni({ e1: "gXX" }, eventi);
+const conFantasma = completaTurni({ e1: "gXX" }, eventi, rosa);
 assert.equal(conFantasma["e1"], "gXX", "il turno storico resta com'è");
 assert.equal(Object.keys(conFantasma).length, 3);
 

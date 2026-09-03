@@ -31,7 +31,7 @@ const match: ScoutMatch = {
   azioni: [a("attacco", g1.id), a("ace", g1.id, 2), a("errore", g2.id, 2), a("punto_avv")],
 };
 
-const csv = csvScoutMatch(match);
+const csv = csvScoutMatch(match, giocatori);
 const righe = csv.split("\n");
 
 // --- intestazione ------------------------------------------------------------
@@ -66,15 +66,15 @@ assert.ok(
 );
 
 // --- trasferta e match vuoto -------------------------------------------------
-const fuori = csvScoutMatch({ ...match, casa: false, avversario: "Ospiti" });
+const fuori = csvScoutMatch({ ...match, casa: false, avversario: "Ospiti" }, giocatori);
 assert.equal(fuori.split("\n")[0], "Partita;Ospiti;vs;CRAP Volley", "in trasferta si invertono");
 
-const vuoto = csvScoutMatch({ ...match, azioni: [], parziali: [] });
+const vuoto = csvScoutMatch({ ...match, azioni: [], parziali: [] }, giocatori);
 assert.ok(vuoto.includes("Data;2026-09-01"), "un match senza azioni resta esportabile");
 assert.ok(!vuoto.includes(`;${g1.nome};`), "nessun totale senza azioni");
 
 // Le virgolette nel testo vanno raddoppiate (regola CSV).
-const conVirgolette = csvScoutMatch({ ...match, avversario: 'Team "X"' });
+const conVirgolette = csvScoutMatch({ ...match, avversario: 'Team "X"' }, giocatori);
 assert.ok(conVirgolette.includes('"Team ""X"""'));
 
 console.log("scout-export: ok");
