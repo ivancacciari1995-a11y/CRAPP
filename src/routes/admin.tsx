@@ -135,7 +135,8 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
       return;
     }
     if (numeroGiaUsato(righe, g.id, squadraCorrente.numero)) {
-      toast.warning(`Il numero ${squadraCorrente.numero} è già assegnato a un altro giocatore.`);
+      toast.error(`Il numero ${squadraCorrente.numero} è già assegnato a un altro giocatore.`);
+      return;
     }
     try {
       await salvaSquadra.mutateAsync({ giocatoreId: g.id, dati: squadraCorrente });
@@ -493,7 +494,8 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
       return;
     }
     if (numeroGiaUsato(righe, "", dati.numero)) {
-      toast.warning(`Il numero ${dati.numero} è già assegnato a un altro giocatore.`);
+      toast.error(`Il numero ${dati.numero} è già assegnato a un altro giocatore.`);
+      return;
     }
     try {
       await aggiungi.mutateAsync({ id: prossimoIdGiocatore(righe), dati });
