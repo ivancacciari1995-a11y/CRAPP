@@ -78,8 +78,9 @@ Vincoli di efficienza cloud — niente polling, cache lunga, `setQueryData` inve
 Badge e statistiche sono calcolati a runtime dai dati, non persistiti (DD-007). La
 gamification deve restare equa tra ruoli (DD-008).
 
-La rosa è tuttora **hardcoded** in `src/lib/crapp-data.ts` (`rosaCSI`); la migrazione verso
-la tabella `giocatori_squadra` è in corso — vedi DD-015 e DD-016.
+La rosa vive nella tabella `giocatori_squadra`, letta tramite `useRosa()`/`useGiocatoriSquadra()`
+(DD-015, DD-016). `src/lib/crapp-data.ts` (`rosaCSI`) resta solo come seed storico e fallback
+quando il database non risponde.
 
 ## UI
 

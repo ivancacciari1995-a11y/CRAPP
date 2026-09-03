@@ -31,6 +31,7 @@ Serve a rispondere a domande del tipo:
 | [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo) | Auth reale prima del profilo          |
 | [DD-012](#dd-012--non-migrare-gli-id-giocatore-in-v11)                            | Non migrare ID in v1.1                |
 | [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)       | Portabilità dello stack               |
+| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                 | Rosa da hardcoded a DB                |
 | [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0)                           | Schema dati Profilo Giocatore v1.1    |
 | [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)    | L'admin scrive al posto del giocatore |
 | [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
@@ -40,7 +41,6 @@ Serve a rispondere a domande del tipo:
 | ID                                                                | Titolo                 |
 | ----------------------------------------------------------------- | ---------------------- |
 | [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)  | Convergenza schema DB  |
-| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database) | Rosa da hardcoded a DB |
 
 ---
 
@@ -455,7 +455,7 @@ Regole vincolanti:
 **Conseguenze**
 
 - Coesistono temporaneamente tre rappresentazioni dell’anagrafica: `crapp-data.ts` (fallback), `giocatori_squadra` (target), `giocatori` UUID (dormiente).
-- `src/lib/rosa.ts` dovrà leggere prima dal database e ricadere su `crapp-data.ts` in caso di errore o assenza dati.
+- `src/lib/rosa.ts` legge dal database e ricade su `crapp-data.ts` in caso di errore o assenza dati (DD-015).
 - Il completamento profilo (30/30/30/10) si calcola in app, non si persiste nel database.
 - Lo storico certificati non viene conservato in v1 (coerente con DD-010).
 - Le migration M1–M3 (tabelle, RLS, bucket) restano **additive**: solo `CREATE`, nessun `ALTER`/`DROP` su schema esistente.
@@ -563,19 +563,33 @@ Post v1.1, con migration e test dedicati.
 
 ### DD-015 — Rosa anagrafica: da codice hardcoded a database
 
-**Data:** —  
-**Stato:** In valutazione
+**Data:** 3 settembre 2026  
+**Stato:** Accettata
 
 **Contesto**  
-La lista giocatori vive ancora nel codice sorgente. Il database ha già una tabella popolata ma non usata.
+La lista giocatori viveva nel codice sorgente (`src/lib/crapp-data.ts`). Il database aveva già
+`giocatori_squadra` (migration M1) popolata ma non letta da nessuna schermata tranne
+`/benvenuto` e `/admin`: «Aggiungi giocatore» e «Disattiva giocatore» della dashboard non
+avevano effetto su Squadra, Presenze, Pagelle, Badge e Scout, mantenendo gli stessi ID finché
+non si farà DD-012.
 
-**Decisione proposta**  
-Spostare l’anagrafica su database, mantenendo gli stessi ID finché non si fa DD-012.
+**Decisione**  
+`useRosa()` (e con lei `useIo`, `useObiettivi`) legge ora `giocatori_squadra` tramite
+`useGiocatoriSquadra()`, filtrando solo i giocatori `attivo`. Tutti i punti che prima
+importavano la lista statica (`convocatiEvento`, `compleanniEventi`, `completaTurni`,
+`csvScoutMatch`, i widget di voto/scout/palloni, le due route API che mandano push) sono stati
+agganciati allo stesso hook o, lato server, a `leggiGiocatoriSquadra()`
+(`src/lib/giocatori-squadra.server.ts`, stesso pattern di `eventi.server.ts`).
 
-**Perché non ora**  
-Il profilo v1.1 può agganciarsi agli ID attuali; la migrazione rosa può essere fase 2.
+**Conseguenze**
 
-**Riesame previsto**  
-In parallelo o subito dopo il rollout auth.
+- Un giocatore aggiunto o disattivato dalla dashboard admin ora si riflette ovunque, non solo
+  in `/benvenuto` e `/admin`.
+- `giocatori_squadra` non ha ancora una colonna per la data di nascita: per i 17 giocatori
+  storici resta quella di `crapp-data.ts` (`nascitaPerId`, lookup per id); un giocatore
+  aggiunto dopo la migrazione non ha nascita nota finché la colonna non esiste. Follow-up da
+  aprire quando serve davvero.
+- `src/lib/crapp-data.ts` resta come seed storico e fallback (`rosaFallback()`), non più come
+  fonte viva.
 
 ---

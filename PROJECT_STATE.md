@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 02/09/2026
+Ultimo aggiornamento: 03/09/2026
 
 ## Stato generale
 
@@ -41,6 +41,11 @@ sincronizzano tra dispositivi tramite Supabase.
 - `public.giocatori_squadra`: 17 giocatori iniziali presenti; solo 2 hanno l'email
   registrata (`email`, migration `m5_email_giocatori_squadra`, DD-018) — le altre 15
   arriveranno con una migration futura
+- `public.giocatori_squadra` è ora la source of truth della rosa letta dall'app (DD-015,
+  03/09/2026): «Aggiungi giocatore» e «Disattiva giocatore» della dashboard admin si
+  riflettono su Squadra, Presenze, Pagelle, Badge e Scout. `src/lib/crapp-data.ts` resta
+  solo come seed storico, fallback offline e sorgente della data di nascita (colonna non
+  ancora presente su `giocatori_squadra`)
 - Migration `m6_avatar_giocatori`: bucket pubblico `avatar-giocatori` per le foto profilo,
   al posto di `localStorage` (una per giocatore, letto da `src/lib/avatar-store.ts`)
 - Migration `m7_scout_partite`: nuova tabella `scout_partite` per l'archivio delle partite
