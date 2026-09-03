@@ -105,6 +105,7 @@ function Profilo() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !g) return;
+    if (!confirm("Aggiornare l'immagine profilo?")) return;
     try {
       await caricaAvatar(g.id, file);
       setBust(Date.now());
@@ -153,6 +154,7 @@ function Profilo() {
               <button
                 type="button"
                 onClick={async () => {
+                  if (!confirm("Rimuovere l'immagine profilo?")) return;
                   try {
                     await rimuoviAvatar(g.id);
                     setBust(Date.now());
