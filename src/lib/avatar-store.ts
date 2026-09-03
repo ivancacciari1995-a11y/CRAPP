@@ -78,7 +78,7 @@ export async function caricaAvatar(id: string, file: File) {
   const { error } = await supabase.storage.from(BUCKET).upload(percorso(id), blob, {
     contentType: "image/jpeg",
     upsert: true,
-    cacheControl: "60",
+    cacheControl: "0",
   });
   if (error) throw error;
 }
