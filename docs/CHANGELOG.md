@@ -6,7 +6,7 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
-### Autenticazione e dashboard amministratore (su `develop`, non ancora in produzione)
+### Autenticazione e dashboard amministratore (in produzione)
 
 - Login con Google tramite Supabase Auth (DD-011). Al primo accesso l'account si collega a
   un giocatore di `giocatori_squadra`, e il collegamento non è più modificabile dal
@@ -18,6 +18,10 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   di nomi in `crapp-data.ts` è stata eliminata, altrimenti bastava scegliere il nome giusto
   per amministrare.
 - Migration `m4_solo_autenticati`: toglie al ruolo `anon` l'accesso alle tabelle v1.0.
+  Applicata in produzione il 03/09/2026, dopo aver impostato l'email di tutta la rosa
+  attiva — il login era già l'unica via d'accesso lato app, quindi il collegamento dei
+  singoli account (che resta un processo continuo a ogni login) non era comunque
+  condizionato da questa migration.
 - Collegamento automatico al proprio giocatore per email (DD-018, migration
   `m5_email_giocatori_squadra`): niente più scelta manuale da un elenco, `/benvenuto`
   confronta l'email dell'account Google con `giocatori_squadra.email` e collega da solo.
@@ -32,8 +36,6 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   in `giocatori_squadra`, come gli altri campi che gestisce solo l'admin (DD-016/DD-018). La
   dashboard mostra chi è già tesserato (badge sulla scheda, contatore in "Squadra") e un
   pannello per registrare numero e data una volta arrivata la tessera dal CSI.
-  **Da applicare solo a squadra collegata**, altrimenti chi non ha ancora fatto login vede
-  l'app vuota.
 - Profilo giocatore: da `/profilo` ognuno compila i propri dati anagrafici e carica
   documento, certificato medico e foto tessera con le relative scadenze
   ([modules/profilo-giocatore.md](modules/profilo-giocatore.md)).

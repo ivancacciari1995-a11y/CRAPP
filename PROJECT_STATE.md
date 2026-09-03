@@ -38,9 +38,10 @@ sincronizzano tra dispositivi tramite Supabase.
 ## Database
 
 - Schema v1.0 + M1 applicati al nuovo Supabase
-- `public.giocatori_squadra`: 17 giocatori iniziali presenti; solo 2 hanno l'email
-  registrata (`email`, migration `m5_email_giocatori_squadra`, DD-018) — le altre 15
-  arriveranno con una migration futura
+- `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
+  più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
+  attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza
+  bisogno di una migration
 - `public.giocatori_squadra` è ora la source of truth della rosa letta dall'app (DD-015,
   03/09/2026): «Aggiungi giocatore» e «Disattiva giocatore» della dashboard admin si
   riflettono su Squadra, Presenze, Pagelle, Badge e Scout. `src/lib/crapp-data.ts` resta
@@ -84,7 +85,9 @@ Google» risponde
 e **nessuno entra nell'app**, né in dev né sulla preview di `develop`. Il passo 1 qui sotto
 va fatto prima di mandare questa versione in produzione.
 
-Passaggi in ordine, nessuno dei quali è reversibile a metà:
+Passaggi in ordine, nessuno dei quali è reversibile a metà. **Stato al 03/09/2026: fatti i
+passaggi 1-3; il passaggio 4 è un processo continuo (7 dei 16 giocatori attivi hanno già
+fatto il primo accesso); il passaggio 5 (M4) è stato applicato.**
 
 1. **Provider Google in Supabase** — Google Cloud Console: consent screen _External_ (scope
    `email` e `profile`, non sensibili: nessuna verifica richiesta, e la modalità _Testing_
@@ -101,15 +104,21 @@ Passaggi in ordine, nessuno dei quali è reversibile a metà:
    produzione senza toccare il comportamento attuale.
 3. **Primo admin**, dopo il primo login (l'ID esiste solo da quel momento):
    `INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = '<mail>';`
-4. **Collegamento dei 17 account**: ciascuno accede con Google e viene collegato in
-   automatico al proprio giocatore per email (DD-018, migration
-   `m5_email_giocatori_squadra`) — nessuna scelta manuale. Finché l'email di un giocatore
-   non è impostata (oggi solo 2 dei 17 la hanno), il suo accesso mostra un errore e va
-   sbloccato aggiungendo l'email con una nuova migration. Uno slot già collegato può essere
-   liberato solo da un admin.
+4. **Collegamento degli account**: ciascuno accede con Google e viene collegato in
+   automatico al proprio giocatore per email (DD-018) — nessuna scelta manuale. Finché
+   l'email di un giocatore non è impostata, il suo accesso mostra un errore; da `/admin` si
+   imposta l'email di un giocatore (nuovo o esistente) senza bisogno di una migration. Da
+   settembre 2026 tutti i giocatori attivi hanno l'email registrata, ma il collegamento vero
+   e proprio (`auth_user_id`) avviene solo al primo login di ciascuno, quindi resta un
+   processo continuo che si ripete a ogni nuovo giocatore aggiunto a stagione in corso. Uno
+   slot già collegato può essere liberato solo da un admin.
 5. **Solo a squadra collegata**: migration `m4_solo_autenticati`, che toglie al ruolo `anon`
    l'accesso alle tabelle v1.0. Da lì in poi i dati sono raggiungibili solo con una sessione;
    le route in `src/routes/api/public/` usano la service role e continuano a funzionare.
+   **Applicata in produzione il 03/09/2026** — non è più necessario aspettare che l'intera
+   rosa abbia già fatto login: il login era già l'unica via d'accesso lato app, quindi i
+   giocatori non ancora collegati non erano comunque impattati; M4 chiudeva solo un residuo
+   di accesso diretto al database bypassando l'app.
 
 Attenzione: dev e produzione condividono lo stesso progetto Supabase. Un account di prova che
 collega uno slot lo occupa anche in produzione, e va liberato da un admin.

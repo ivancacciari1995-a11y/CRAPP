@@ -7,10 +7,11 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 
 - Documentazione tecnica del progetto.
 - Autenticazione Google e dashboard amministratore: il codice è completo su `develop` e il
-  login è ora l'unica via d'accesso. Restano i passaggi di configurazione, in quest'ordine:
-  provider Google in Supabase (senza, nessuno entra), migration M2, primo admin in
-  `user_roles`, collegamento dei 17 account, e infine la migration M4 che chiude gli accessi
-  `anon`. Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
+  login è ora l'unica via d'accesso. La migration M4, che chiude gli accessi `anon` alle
+  tabelle v1.0, è stata applicata in produzione (03/09/2026). Resta il collegamento dei
+  singoli account: ogni giocatore si aggancia al proprio profilo al primo login (DD-018), un
+  processo continuo — vale anche per chi viene aggiunto a stagione in corso da `/admin`.
+  Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
 
 ## Prossimo
 
