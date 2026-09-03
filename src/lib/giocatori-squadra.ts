@@ -20,7 +20,7 @@ export type GiocatoreSquadra = {
   dataTessera: string | null;
 };
 
-type RigaGiocatoreSquadra = {
+export type RigaGiocatoreSquadra = {
   id: string;
   nome: string;
   cognome: string;
@@ -73,17 +73,12 @@ export function slotPerEmail(
   return righe.find((g) => !g.authUserId && g.email?.trim().toLowerCase() === cercata) ?? null;
 }
 
-async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
-  const { data, error } = await supabaseNuoveTabelle
-    .from("giocatori_squadra")
-    .select(
-      "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera",
-    )
-    .order("cognome")
-    .order("nome");
-  if (error) throw error;
-  const righe = (data ?? []) as RigaGiocatoreSquadra[];
-  return righe.map((r) => ({
+export const COLONNE_SQUADRA =
+  "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera";
+
+/** Conversione riga database -> modello applicativo (riusabile anche lato server). */
+export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
+  return {
     id: r.id,
     nome: r.nome,
     cognome: r.cognome,
@@ -94,7 +89,18 @@ async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
     email: r.email,
     numeroTessera: r.numero_tessera,
     dataTessera: r.data_tessera,
-  }));
+  };
+}
+
+async function fetchSquadra(): Promise<GiocatoreSquadra[]> {
+  const { data, error } = await supabaseNuoveTabelle
+    .from("giocatori_squadra")
+    .select(COLONNE_SQUADRA)
+    .order("cognome")
+    .order("nome");
+  if (error) throw error;
+  const righe = (data ?? []) as RigaGiocatoreSquadra[];
+  return righe.map(daRigaSquadra);
 }
 
 /** Anagrafica squadra: una lettura per sessione, cambia raramente. */

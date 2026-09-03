@@ -112,6 +112,14 @@ export const giocatori: Giocatore[] = rosaCSI
   }))
   .sort((a, b) => dividiNome(a.nome).cognome.localeCompare(dividiNome(b.nome).cognome, "it"));
 
+/**
+ * Fallback per la data di nascita: `giocatori_squadra` non ha ancora questa colonna
+ * (DD-015 follow-up). Un giocatore aggiunto dopo la migrazione non ha nascita nota.
+ */
+export const nascitaPerId: Record<string, string> = Object.fromEntries(
+  giocatori.map((g) => [g.id, g.nascita]),
+);
+
 export type RigaClassifica = {
   pos: number;
   squadra: string;
