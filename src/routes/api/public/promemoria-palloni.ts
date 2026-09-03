@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { nomeCompleto } from "@/lib/giocatori-squadra";
+import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 import { completaTurni, destinatariPromemoriaPalloni, oggiISO } from "@/lib/palloni-core";
 import { inviaPush } from "@/lib/webpush.server";
 import { leggiEventi } from "@/lib/eventi.server";
@@ -15,7 +17,11 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
         const salvati: Record<string, string> = {};
         for (const riga of righe ?? []) salvati[riga.evento_id] = riga.giocatore_id;
         const eventi = await leggiEventi();
-        const turni = completaTurni(salvati, eventi);
+        const squadra = await leggiGiocatoriSquadra();
+        const rosa = squadra
+          .filter((g) => g.attivo)
+          .map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
+        const turni = completaTurni(salvati, eventi, rosa);
 
         const oggi = oggiISO();
         const destinatari = destinatariPromemoriaPalloni(turni, eventi, oggi);

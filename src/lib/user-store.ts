@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { giocatori, type Giocatore } from "./crapp-data";
+import type { Giocatore } from "./crapp-data";
+import { useGiocatoriSquadra, type GiocatoreSquadra } from "./giocatori-squadra";
 import { useIo } from "./rosa";
 
 const KEY = "crapp-user-v1";
@@ -49,9 +50,10 @@ export function useGiocatoreId(): string | null {
 }
 
 /** Anagrafica base dal localStorage: le statistiche restano a zero finché non passa da `useIo`. */
-export function useGiocatoreBase(): Giocatore | null {
+export function useGiocatoreBase(): GiocatoreSquadra | null {
   const id = useGiocatoreId();
-  return id ? (giocatori.find((x) => x.id === id) ?? null) : null;
+  const { righe } = useGiocatoriSquadra();
+  return id ? (righe.find((x) => x.id === id) ?? null) : null;
 }
 
 /** Giocatore corrente con statistiche calcolate da dati reali (presenze, MVP, badge, …). */

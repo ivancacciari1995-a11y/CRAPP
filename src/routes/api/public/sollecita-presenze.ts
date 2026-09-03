@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { formatData, giocatori } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
 import { leggiEventi } from "@/lib/eventi.server";
+import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 import { inviaPush } from "@/lib/webpush.server";
 
 const schema = z.object({
@@ -27,8 +28,10 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
           .select("giocatore_id, stato")
           .eq("evento_id", evento.id);
 
+        const squadra = await leggiGiocatoriSquadra();
         const stati = new Map((righe ?? []).map((r) => [r.giocatore_id, r.stato]));
-        const destinatari = giocatori
+        const destinatari = squadra
+          .filter((g) => g.attivo)
           .filter((g) => {
             const stato = stati.get(g.id);
             return stato === undefined || stato === "forse";

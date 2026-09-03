@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useEventi } from "./eventi";
 import { useRispostePresenze } from "./presenze";
-import { giocatori } from "./crapp-data";
+import { useGiocatoriSquadra } from "./giocatori-squadra";
 
 /**
  * Percentuale di presenze dell'ultimo mese (30 giorni), utile per le convocazioni.
@@ -46,6 +46,7 @@ export function usePresenzeUltimoMeseTutti(): Record<
 > {
   const { eventi } = useEventi();
   const { presenze } = useRispostePresenze();
+  const { righe: squadra } = useGiocatoriSquadra();
 
   return useMemo(() => {
     const oggi = new Date();
@@ -53,6 +54,7 @@ export function usePresenzeUltimoMeseTutti(): Record<
     inizio.setDate(inizio.getDate() - 30);
     const da = inizio.toISOString().slice(0, 10);
     const a = oggi.toISOString().slice(0, 10);
+    const idRosa = squadra.filter((g) => g.attivo).map((g) => g.id);
 
     const rilevanti = eventi.filter(
       (e) => (e.tipo === "partita" || e.tipo === "allenamento") && e.data >= da && e.data <= a,
@@ -60,7 +62,7 @@ export function usePresenzeUltimoMeseTutti(): Record<
 
     const out: Record<string, { presenti: number; totali: number; percentuale: number }> = {};
     for (const e of rilevanti) {
-      const ids = e.convocati.length > 0 ? e.convocati : giocatori.map((g) => g.id);
+      const ids = e.convocati.length > 0 ? e.convocati : idRosa;
       for (const id of ids) {
         const rec = (out[id] ??= { presenti: 0, totali: 0, percentuale: 0 });
         rec.totali += 1;
@@ -72,5 +74,5 @@ export function usePresenzeUltimoMeseTutti(): Record<
       rec.percentuale = rec.totali ? Math.round((rec.presenti / rec.totali) * 100) : 0;
     }
     return out;
-  }, [eventi, presenze]);
+  }, [eventi, presenze, squadra]);
 }

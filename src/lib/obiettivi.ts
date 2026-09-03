@@ -28,12 +28,12 @@ export const contestoVuoto: ContestoObiettivi = { eventi: [], presenze: {}, page
 
 const MESE = "2026-08";
 
-function percentualePresenzeMese(ctx: ContestoObiettivi) {
+function percentualePresenzeMese(ctx: ContestoObiettivi, rosaSize: number) {
   const delMese = ctx.eventi.filter(
     (e) => e.data.startsWith(MESE) && (e.tipo === "partita" || e.tipo === "allenamento"),
   );
-  if (delMese.length === 0) return 0;
-  const posti = delMese.length * giocatori.length;
+  if (delMese.length === 0 || rosaSize === 0) return 0;
+  const posti = delMese.length * rosaSize;
   const presenti = delMese.reduce((s, e) => {
     const risposte = ctx.presenze[e.id] ?? {};
     return s + Object.values(risposte).filter((x) => x === "presente" || x === "ritardo").length;
@@ -41,10 +41,10 @@ function percentualePresenzeMese(ctx: ContestoObiettivi) {
   return Math.round((presenti / posti) * 100);
 }
 
-function percentualeRisposte(ctx: ContestoObiettivi) {
+function percentualeRisposte(ctx: ContestoObiettivi, rosaSize: number) {
   const daRispondere = ctx.eventi.filter((e) => e.tipo !== "compleanno");
-  if (daRispondere.length === 0) return 0;
-  const posti = daRispondere.length * giocatori.length;
+  if (daRispondere.length === 0 || rosaSize === 0) return 0;
+  const posti = daRispondere.length * rosaSize;
   const risposte = daRispondere.reduce(
     (s, e) => s + Object.keys(ctx.presenze[e.id] ?? {}).length,
     0,
@@ -65,7 +65,7 @@ export function obiettiviSquadra(
       id: "o1",
       titolo: "90% di presenze ad agosto",
       descrizione: "Media presenze su partite e allenamenti del mese",
-      valore: percentualePresenzeMese(ctx),
+      valore: percentualePresenzeMese(ctx, rosa.length),
       target: 90,
       unita: "%",
       scadenza: "2026-08-31",
@@ -76,7 +76,7 @@ export function obiettiviSquadra(
       id: "o2",
       titolo: "Tutti rispondono alle convocazioni",
       descrizione: "Percentuale di risposte date sugli eventi in programma",
-      valore: percentualeRisposte(ctx),
+      valore: percentualeRisposte(ctx, rosa.length),
       target: 90,
       unita: "%",
       scadenza: "2026-09-30",

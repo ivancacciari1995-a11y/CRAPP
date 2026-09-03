@@ -1,7 +1,10 @@
-import { formatData, giocatori } from "./crapp-data";
+import { formatData } from "./crapp-data";
 import type { Evento } from "./eventi";
 
 export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: string | null };
+
+/** Candidato al turno palloni: solo id e nome bastano per assegnare e ordinare. */
+export type CandidatoTurno = { id: string; nome: string };
 
 /** Eventi che richiedono i palloni (allenamenti, partite, extra), in ordine di data. */
 export function eventiPalloni(eventi: Evento[]): Evento[] {
@@ -18,10 +21,11 @@ export function eventiPalloni(eventi: Evento[]): Evento[] {
 export function completaTurni(
   turni: Record<string, string>,
   eventi: Evento[],
+  rosa: CandidatoTurno[],
 ): Record<string, string> {
   const risultato: Record<string, string> = { ...turni };
-  const conteggio = new Map<string, number>(giocatori.map((g) => [g.id, 0]));
-  const ultimo = new Map<string, number>(giocatori.map((g) => [g.id, -1]));
+  const conteggio = new Map<string, number>(rosa.map((g) => [g.id, 0]));
+  const ultimo = new Map<string, number>(rosa.map((g) => [g.id, -1]));
 
   eventiPalloni(eventi).forEach((evento, indice) => {
     const assegnato = risultato[evento.id];
@@ -32,7 +36,7 @@ export function completaTurni(
     }
     if (assegnato) return;
 
-    const scelto = giocatori.slice().sort((a, b) => {
+    const scelto = rosa.slice().sort((a, b) => {
       const ca = conteggio.get(a.id) ?? 0;
       const cb = conteggio.get(b.id) ?? 0;
       if (ca !== cb) return ca - cb;

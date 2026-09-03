@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { completaTurni } from "./palloni-core";
 import { useEventi } from "./eventi";
+import { nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
 
 export const TURNI_KEY = ["turni-palloni"] as const;
 
@@ -26,8 +27,10 @@ export function useTurniPalloni() {
   // Cambia raramente: una lettura per sessione è sufficiente.
   const query = useQuery({ queryKey: TURNI_KEY, queryFn: fetchTurni, staleTime: 30 * 60_000 });
   const { eventi } = useEventi();
+  const { righe: squadra } = useGiocatoriSquadra();
   const salvati = query.data ?? {};
-  return { ...query, salvati, turni: completaTurni(salvati, eventi) };
+  const rosa = squadra.filter((g) => g.attivo).map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
+  return { ...query, salvati, turni: completaTurni(salvati, eventi, rosa) };
 }
 
 export function useAssegnaTurno() {
