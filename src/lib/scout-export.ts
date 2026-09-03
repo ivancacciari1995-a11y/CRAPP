@@ -1,4 +1,4 @@
-import { giocatori } from "./crapp-data";
+import type { Giocatore } from "./crapp-data";
 import { azioniMeta, totaliPerGiocatore, type ScoutMatch } from "./scout-store";
 
 /** Riga CSV con separatore ";" (Excel IT), riusata anche dall'export tesseramento. */
@@ -12,7 +12,7 @@ export function rigaCsv(campi: Array<string | number>) {
 }
 
 /** Esporta la scoutizzazione di una partita in CSV (separatore ";" per Excel IT). */
-export function csvScoutMatch(match: ScoutMatch): string {
+export function csvScoutMatch(match: ScoutMatch, rosa: Giocatore[]): string {
   const righe: string[] = [];
   righe.push(
     rigaCsv([
@@ -29,7 +29,7 @@ export function csvScoutMatch(match: ScoutMatch): string {
   righe.push("");
   righe.push(rigaCsv(["Numero", "Giocatore", "Ruolo", "Punti", "Ace", "Muri", "Errori"]));
   const totali = totaliPerGiocatore(match.azioni);
-  for (const g of giocatori) {
+  for (const g of rosa) {
     const t = totali.get(g.id);
     if (!t) continue;
     righe.push(rigaCsv([g.numero, g.nome, g.ruolo, t.punti, t.ace, t.muri, t.errori]));
@@ -37,7 +37,7 @@ export function csvScoutMatch(match: ScoutMatch): string {
   righe.push("");
   righe.push(rigaCsv(["Set", "Giocatore", "Azione"]));
   for (const a of match.azioni) {
-    const g = giocatori.find((x) => x.id === a.giocatoreId);
+    const g = rosa.find((x) => x.id === a.giocatoreId);
     righe.push(rigaCsv([a.set, g?.nome ?? "—", azioniMeta[a.tipo].label]));
   }
   return righe.join("\n");

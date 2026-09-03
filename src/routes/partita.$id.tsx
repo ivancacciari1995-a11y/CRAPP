@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { formatData, giocatori } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
+import { useRosa } from "@/lib/rosa";
 import { useCsi } from "@/lib/csi";
 import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { Pagelle } from "@/components/crapp/Pagelle";
@@ -49,7 +50,8 @@ function PartitaDetail() {
   const scoutMatches = useScoutMatches();
   const { data: csi } = useCsi();
   const { risposte } = usePresenzeEvento(id);
-  const presentiVeri = giocatori.filter(
+  const rosa = useRosa();
+  const presentiVeri = rosa.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
   ).length;
 
@@ -67,7 +69,7 @@ function PartitaDetail() {
     );
   }
 
-  const convocati = convocatiEvento(evento);
+  const convocati = convocatiEvento(evento, rosa);
   const scout = scoutMatches.find((m) => m.id === evento.id || m.data === evento.data) ?? null;
   const csiMatch = csi
     ? partiteGiocate(csi.partite).find((p) => p.data === evento.data)
@@ -229,7 +231,7 @@ function PartitaDetail() {
             </p>
             <div className="mt-2 space-y-1">
               {[...totaliPerGiocatore(scout.azioni).entries()].map(([gid, t]) => {
-                const g = giocatori.find((x) => x.id === gid);
+                const g = rosa.find((x) => x.id === gid);
                 if (!g) return null;
                 return (
                   <div
@@ -250,7 +252,10 @@ function PartitaDetail() {
               <button
                 type="button"
                 onClick={() =>
-                  scaricaCsv(`scout-${scout.data}-${scout.avversario}.csv`, csvScoutMatch(scout))
+                  scaricaCsv(
+                    `scout-${scout.data}-${scout.avversario}.csv`,
+                    csvScoutMatch(scout, rosa),
+                  )
                 }
                 className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
               >

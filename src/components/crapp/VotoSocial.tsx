@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { giocatori } from "@/lib/crapp-data";
+import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import {
   categorieSocial,
@@ -18,6 +18,8 @@ export function VotoSocial({ matchId }: { matchId: string }) {
   const io = useGiocatoreCorrente();
   const voti = useVotiSocial();
   const vota = useVotaSocial();
+  const { righe: squadra } = useGiocatoriSquadra();
+  const rosa = squadra.filter((g) => g.attivo);
   const [aperta, setAperta] = useState<string | null>(null);
 
   const tutti = voti.data ?? [];
@@ -93,14 +95,14 @@ export function VotoSocial({ matchId }: { matchId: string }) {
 
             {isOpen ? (
               <div className="grid max-h-56 grid-cols-2 gap-1.5 overflow-y-auto border-t border-border p-3">
-                {giocatori
+                {rosa
                   .filter((g) => g.id !== io?.id)
                   .map((g) => (
                     <button
                       key={g.id}
                       type="button"
                       disabled={vota.isPending}
-                      onClick={() => invia(cat.id, g.id, g.nome)}
+                      onClick={() => invia(cat.id, g.id, nomeCompleto(g))}
                       className={cn(
                         "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
                         mio?.votato_id === g.id
@@ -108,7 +110,7 @@ export function VotoSocial({ matchId }: { matchId: string }) {
                           : "bg-secondary text-foreground",
                       )}
                     >
-                      {g.nome}
+                      {nomeCompleto(g)}
                     </button>
                   ))}
               </div>

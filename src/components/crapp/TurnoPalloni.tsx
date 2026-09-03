@@ -3,7 +3,7 @@ import { Check, CircleDot, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
-import { giocatori } from "@/lib/crapp-data";
+import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useAssegnaTurno, useTurniPalloni } from "@/lib/palloni";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 
@@ -12,10 +12,12 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
   const { salvati, turni, isPending } = useTurniPalloni();
   const assegna = useAssegnaTurno();
   const io = useGiocatoreCorrente();
+  const { righe: squadra } = useGiocatoriSquadra();
+  const rosa = squadra.filter((g) => g.attivo);
 
   const id = turni[eventoId];
   const proposto = !salvati[eventoId];
-  const giocatore = giocatori.find((g) => g.id === id);
+  const giocatore = rosa.find((g) => g.id === id);
 
   function scegli(giocatoreId: string) {
     setAperto(false);
@@ -46,7 +48,7 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
             {isPending || assegna.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
             ) : null}
-            <span className="truncate">{giocatore ? giocatore.nome : "Da assegnare"}</span>
+            <span className="truncate">{giocatore ? nomeCompleto(giocatore) : "Da assegnare"}</span>
             {proposto && giocatore ? (
               <span className="shrink-0 rounded-full bg-card px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
                 proposto
@@ -59,7 +61,7 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
 
       {aperto ? (
         <div className="mt-2.5 max-h-56 space-y-1 overflow-y-auto rounded-xl bg-card p-1.5">
-          {giocatori.map((g) => (
+          {rosa.map((g) => (
             <button
               key={g.id}
               type="button"
@@ -70,7 +72,7 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
               )}
             >
               <Avatar id={g.id} fallback={String(g.numero)} className="h-7 w-7 text-xs" />
-              <span className="min-w-0 flex-1 truncate">{g.nome}</span>
+              <span className="min-w-0 flex-1 truncate">{nomeCompleto(g)}</span>
               {g.id === id ? <Check className="h-4 w-4 shrink-0 text-accent" /> : null}
             </button>
           ))}

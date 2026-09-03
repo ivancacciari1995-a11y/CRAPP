@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
+import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 import {
@@ -100,11 +101,12 @@ function Calendario() {
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const { eventi } = useEventi();
+  const rosa = useRosa();
   const { anno, mese, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
   const mesePrefix = `${anno}-${pad2(mese + 1)}`;
 
-  const compleanni = compleanniEventi(anno);
+  const compleanni = compleanniEventi(rosa, anno);
   const compleanniMese = compleanni.filter((c) => c.data.startsWith(mesePrefix));
   const eventiMese = eventi.filter((e) => e.data.startsWith(mesePrefix));
 

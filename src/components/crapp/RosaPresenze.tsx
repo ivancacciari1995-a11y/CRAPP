@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
-import { giocatori, statoMeta, type Stato } from "@/lib/crapp-data";
+import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
+import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 
@@ -16,13 +17,13 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
   const salva = useSalvaPresenza();
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
+  const rosa = useRosa();
   const [sollecito, setSollecito] = useState(false);
 
-  const mancanti = giocatori.filter((g) => !risposte[g.id]);
-  const risposteN = giocatori.length - mancanti.length;
-  const perc = Math.round((risposteN / giocatori.length) * 100);
-  const daSollecitare =
-    mancanti.length + giocatori.filter((g) => risposte[g.id] === "forse").length;
+  const mancanti = rosa.filter((g) => !risposte[g.id]);
+  const risposteN = rosa.length - mancanti.length;
+  const perc = rosa.length ? Math.round((risposteN / rosa.length) * 100) : 0;
+  const daSollecitare = mancanti.length + rosa.filter((g) => risposte[g.id] === "forse").length;
 
   async function sollecita() {
     setSollecito(true);
@@ -51,7 +52,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
       <div className="rounded-3xl bg-card p-4 shadow-card">
         <div className="flex items-baseline justify-between">
           <p className="text-sm font-bold">
-            Hanno risposto {risposteN}/{giocatori.length}
+            Hanno risposto {risposteN}/{rosa.length}
           </p>
           <span className="font-display text-xl leading-none">{perc}%</span>
         </div>
@@ -59,7 +60,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {ordine.map((s) => {
-            const n = giocatori.filter((g) => risposte[g.id] === s).length;
+            const n = rosa.filter((g) => risposte[g.id] === s).length;
             return (
               <span
                 key={s}
@@ -130,7 +131,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
       ) : null}
 
       {ordine.map((s) => {
-        const lista = giocatori.filter((g) => risposte[g.id] === s);
+        const lista = rosa.filter((g) => risposte[g.id] === s);
         if (lista.length === 0) return null;
         return (
           <Gruppo
@@ -162,7 +163,7 @@ function Gruppo({
 }: {
   titolo: string;
   n: number;
-  lista: typeof giocatori;
+  lista: Giocatore[];
   attenzione?: boolean;
 }) {
   return (

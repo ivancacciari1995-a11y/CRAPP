@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Crown, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { giocatori } from "@/lib/crapp-data";
+import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { conteggioPartita, mioVoto, useVotaMvp, useVotiMvp, type VotoMvp } from "@/lib/mvp-voti";
 
@@ -11,6 +11,8 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
   const io = useGiocatoreCorrente();
   const voti = useVotiMvp();
   const vota = useVotaMvp();
+  const { righe: squadra } = useGiocatoriSquadra();
+  const rosa = squadra.filter((g) => g.attivo);
   const [aperto, setAperto] = useState(false);
 
   const tutti: VotoMvp[] = voti.data ?? [];
@@ -69,12 +71,12 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
 
       {aperto ? (
         <div className="mt-3 grid max-h-60 grid-cols-2 gap-1.5 overflow-y-auto">
-          {giocatori.map((g) => (
+          {rosa.map((g) => (
             <button
               key={g.id}
               type="button"
               disabled={vota.isPending}
-              onClick={() => invia(g.id, g.nome)}
+              onClick={() => invia(g.id, nomeCompleto(g))}
               className={cn(
                 "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
                 mio?.votato_id === g.id
@@ -82,7 +84,7 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
                   : "bg-card text-foreground",
               )}
             >
-              {g.nome}
+              {nomeCompleto(g)}
             </button>
           ))}
         </div>

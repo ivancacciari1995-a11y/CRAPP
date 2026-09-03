@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { giocatori } from "@/lib/crapp-data";
+import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { mediaPartita, useCacche, useSalvaCacche } from "@/lib/cacche";
 
@@ -11,6 +11,7 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
   const io = useGiocatoreCorrente();
   const { righe } = useCacche();
   const salva = useSalvaCacche();
+  const { righe: squadra } = useGiocatoriSquadra();
 
   const dellaPartita = righe.filter((r) => r.evento_id === eventoId);
   const mia = dellaPartita.find((r) => r.giocatore_id === io?.id);
@@ -18,7 +19,10 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
   const classifica = [...dellaPartita]
     .sort((a, b) => b.quantita - a.quantita)
     .slice(0, 3)
-    .map((r) => ({ ...r, nome: giocatori.find((g) => g.id === r.giocatore_id)?.nome ?? "—" }));
+    .map((r) => {
+      const g = squadra.find((g) => g.id === r.giocatore_id);
+      return { ...r, nome: g ? nomeCompleto(g) : "—" };
+    });
 
   async function rispondi(quantita: number) {
     if (!io) return;

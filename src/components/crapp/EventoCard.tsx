@@ -1,9 +1,10 @@
 import { MapPin, Clock, Users, Cake, ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { formatData, giocatori, statoMeta, type Stato } from "@/lib/crapp-data";
+import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { Barra } from "@/components/motion/Barra";
+import { useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 
@@ -36,16 +37,18 @@ export function EventoCard({
   const { risposte } = usePresenzeEvento(evento.id);
   const salva = useSalvaPresenza();
   const io = useGiocatoreCorrente();
+  const { righe: squadra } = useGiocatoriSquadra();
+  const rosa = squadra.filter((g) => g.attivo);
   const stato = io ? risposte[io.id] : undefined;
-  const presentiVeri = giocatori.filter(
+  const presentiVeri = rosa.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
   ).length;
   const tipo =
     evento.tipo === "partita" && !evento.campionato
       ? { label: "Amichevole", className: "bg-accent/70 text-accent-foreground" }
       : tipoMeta[evento.tipo];
-  const totale = giocatori.length;
-  const perc = Math.round((presentiVeri / totale) * 100);
+  const totale = rosa.length;
+  const perc = totale ? Math.round((presentiVeri / totale) * 100) : 0;
   const isCompleanno = evento.tipo === "compleanno";
 
   if (isCompleanno) {

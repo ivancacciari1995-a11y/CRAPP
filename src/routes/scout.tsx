@@ -3,8 +3,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Undo2, Save, CheckCircle2, Radio, Lock, CalendarX2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { giocatori, formatData } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
+import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 import { usePresenzeEvento } from "@/lib/presenze";
@@ -214,15 +215,16 @@ function ScoutBoard({
   const cancella = useCancellaStatoScout();
   const salvaMatch = useSalvaScoutMatch();
   const { risposte } = usePresenzeEvento(partita.id);
+  const rosa = useRosa();
   const finito = useRef(false);
 
   /** In campo solo chi ha confermato la presenza (anche in ritardo). */
   const convocati = useMemo(() => {
-    const presenti = giocatori.filter(
+    const presenti = rosa.filter(
       (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
     );
-    return presenti.length > 0 ? presenti : giocatori;
-  }, [risposte]);
+    return presenti.length > 0 ? presenti : rosa;
+  }, [risposte, rosa]);
 
   // Salvataggio condiviso: se chi scouta si disconnette, il prossimo riprende da qui.
   useEffect(() => {
@@ -453,7 +455,7 @@ function ScoutBoard({
           ) : (
             <ul className="mt-2 space-y-1.5">
               {ultime.map((a, i) => {
-                const g = giocatori.find((x) => x.id === a.giocatoreId);
+                const g = rosa.find((x) => x.id === a.giocatoreId);
                 return (
                   <li
                     key={a.id}

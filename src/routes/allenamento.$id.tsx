@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Dumbbell, CalendarDays } from "lucide-react";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { formatData, giocatori } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
+import { useRosa } from "@/lib/rosa";
 import { TurnoPalloni } from "@/components/crapp/TurnoPalloni";
 import { RosaPresenze } from "@/components/crapp/RosaPresenze";
 import { usePresenzeEvento } from "@/lib/presenze";
@@ -34,7 +35,8 @@ function AllenamentoDetail() {
   const { id } = Route.useParams();
   const { evento } = useEvento(id);
   const { risposte } = usePresenzeEvento(id);
-  const presentiVeri = giocatori.filter(
+  const rosa = useRosa();
+  const presentiVeri = rosa.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
   ).length;
 
@@ -90,7 +92,7 @@ function AllenamentoDetail() {
 
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">
             <Users className="h-4 w-4" />
-            Conferme: {presentiVeri}/{convocatiEvento(evento).length}
+            Conferme: {presentiVeri}/{convocatiEvento(evento, rosa).length}
           </div>
 
           <TurnoPalloni eventoId={evento.id} />

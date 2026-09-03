@@ -3,7 +3,7 @@ import { ClipboardCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
-import { giocatori } from "@/lib/crapp-data";
+import type { Giocatore } from "@/lib/crapp-data";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { mieiVoti, pagellePartita, usePagelle, useVotaPagella } from "@/lib/pagelle";
 
@@ -12,11 +12,11 @@ const voti = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /** Pagelle di fine partita: voto anonimo 1-10 a ciascun compagno. */
 export function Pagelle({
   matchId,
-  convocati = giocatori,
+  convocati,
   chiuse = false,
 }: {
   matchId: string;
-  convocati?: typeof giocatori;
+  convocati: Giocatore[];
   chiuse?: boolean;
 }) {
   const io = useGiocatoreCorrente();

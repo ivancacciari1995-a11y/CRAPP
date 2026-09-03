@@ -4,7 +4,8 @@ import { ArrowLeft, CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
-import { formatData, giocatori } from "@/lib/crapp-data";
+import { formatData } from "@/lib/crapp-data";
+import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
   categoriaEvento,
   daCategoria,
@@ -50,9 +51,11 @@ function GestioneEventi() {
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const { eventi, isPending } = useEventi();
+  const { righe: squadra } = useGiocatoriSquadra();
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();
   const [bozza, setBozza] = useState<Evento | null>(null);
+  const rosa = squadra.filter((g) => g.attivo);
 
   if (!io || !admin) {
     return (
@@ -228,7 +231,7 @@ function GestioneEventi() {
               label={`Convocati (${bozza.convocati.length === 0 ? "tutta la rosa" : bozza.convocati.length})`}
             >
               <div className="grid grid-cols-2 gap-1.5">
-                {giocatori.map((g) => {
+                {rosa.map((g) => {
                   const scelto = bozza.convocati.includes(g.id);
                   return (
                     <button
@@ -248,7 +251,7 @@ function GestioneEventi() {
                           : "bg-secondary text-muted-foreground",
                       )}
                     >
-                      {g.nome}
+                      {nomeCompleto(g)}
                     </button>
                   );
                 })}

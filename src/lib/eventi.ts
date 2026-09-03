@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { giocatori } from "./crapp-data";
+import type { Giocatore } from "./crapp-data";
 
 export type EventoTipo = "partita" | "allenamento" | "evento" | "compleanno";
 
@@ -158,8 +158,9 @@ export function useEliminaEvento() {
 }
 
 /** Compleanni della rosa, come eventi di calendario dell'anno indicato. */
-export function compleanniEventi(anno = new Date().getFullYear()): Evento[] {
-  return giocatori
+export function compleanniEventi(rosa: Giocatore[], anno = new Date().getFullYear()): Evento[] {
+  return rosa
+    .filter((g) => g.nascita)
     .map((g) => {
       const md = g.nascita.slice(5);
       const eta = anno - Number(g.nascita.slice(0, 4));
@@ -181,7 +182,7 @@ export function compleanniEventi(anno = new Date().getFullYear()): Evento[] {
 }
 
 /** Rosa convocata per un evento: se non specificata vale tutta la rosa. */
-export function convocatiEvento(evento: Evento | null) {
-  if (!evento || evento.convocati.length === 0) return giocatori;
-  return giocatori.filter((g) => evento.convocati.includes(g.id));
+export function convocatiEvento(evento: Evento | null, rosa: Giocatore[]) {
+  if (!evento || evento.convocati.length === 0) return rosa;
+  return rosa.filter((g) => evento.convocati.includes(g.id));
 }
