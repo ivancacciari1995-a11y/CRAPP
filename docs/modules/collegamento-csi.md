@@ -69,7 +69,9 @@ useCsi()                 → src/lib/csi.ts (React Query, staleTime 6h)
 - **Nessuna chiamata dal browser**: il portale viene contattato solo lato server, al massimo
   4 volte al giorno, indipendentemente da quanti giocatori aprono l'app (regola anti-consumo).
 - **Nessuna dipendenza nuova**: parsing con espressioni regolari sulla struttura della tabella.
-- **Fallback**: se il CSI non risponde, `/classifica` mostra i dati esistenti come prima.
+- **Fallback**: se il CSI non risponde, l'endpoint `/api/public/csi` restituisce l'ultimo
+  dato buono in cache; se non ne ha ancora uno, la classifica resta vuota e i risultati
+  ricadono sulle partite dello Scout Live locale (`useScoutMatches()`).
 - **Portabilità (DD-013)**: endpoint HTTP standard, nessun servizio esclusivo.
 
 ---
@@ -77,8 +79,10 @@ useCsi()                 → src/lib/csi.ts (React Query, staleTime 6h)
 ## Limiti noti
 
 1. **La classifica si legge da HTML.** Se il portale cambia la struttura della tabella il
-   parsing restituisce un array vuoto e l'app ricade sui dati demo — non si rompe, ma i dati
-   sono vecchi. Il check con `CSI_LIVE=1` serve a scoprirlo.
+   parsing restituisce un array vuoto: `/classifica` non si rompe, ma mostra "Classifica non
+   ancora disponibile" (o l'ultimo dato buono in cache, se ce n'è uno) e i risultati ricadono
+   sulle partite dello Scout Live locale, non su dati demo — non esistono più in `crapp-data.ts`.
+   Il check con `CSI_LIVE=1` serve a scoprire il problema di parsing.
 2. **`project_id` è legato alla stagione.** Per il 2026/27 servirà un nuovo id, ricavabile da
    `team_details.php?team_id=3359`, che elenca i campionati della squadra. Oggi va aggiornato
    a mano in `csi-core.ts`.
