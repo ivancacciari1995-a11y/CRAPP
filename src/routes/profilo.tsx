@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck } from "lucide-react";
+import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
@@ -256,6 +256,24 @@ function Profilo() {
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             </Link>
           ) : null}
+          <a
+            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+          >
+            <span className="min-w-0 truncate">Segnala un bug</span>
+            <Bug className="h-4 w-4 text-muted-foreground" />
+          </a>
+          <a
+            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+          >
+            <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
+            <Lightbulb className="h-4 w-4 text-muted-foreground" />
+          </a>
           <button
             type="button"
             onClick={logout}

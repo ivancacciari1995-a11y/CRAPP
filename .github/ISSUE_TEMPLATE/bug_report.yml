@@ -1,0 +1,70 @@
+name: 🐛 Segnala un bug
+description: Segnala un comportamento non corretto di CrAPP
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: input
+    id: titolo-bug
+    attributes:
+      label: Titolo del bug
+      description: Riassumi il problema in una frase
+      placeholder: "Es. Il numero di maglia duplicato non blocca il salvataggio"
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento-attuale
+    attributes:
+      label: Cosa succede
+      description: Descrivi il comportamento che hai osservato
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento-atteso
+    attributes:
+      label: Cosa ti aspettavi succedesse
+    validations:
+      required: true
+
+  - type: textarea
+    id: passaggi
+    attributes:
+      label: Passaggi per riprodurre
+      placeholder: |
+        1. Vai su ...
+        2. Clicca su ...
+        3. Compare l'errore ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Dispositivo/browser
+      description: Da dove hai riscontrato il problema
+      options:
+        - Smartphone (Chrome/Safari)
+        - Computer (Chrome)
+        - Computer (Safari)
+        - Computer (Firefox)
+        - Altro
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Trascina qui una o più immagini che mostrano il problema (opzionale)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: duplicati
+    attributes:
+      label: Verifica
+      options:
+        - label: Ho controllato che non esista già una issue aperta su questo stesso problema
+          required: true

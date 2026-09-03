@@ -1,0 +1,55 @@
+name: ✨ Richiesta di funzionalità
+description: Suggerisci una nuova funzionalità per CrAPP
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: input
+    id: titolo-feature
+    attributes:
+      label: Titolo della funzionalità
+      description: Riassumi la proposta in una frase
+      placeholder: "Es. Notifica push quando viene aggiunto un nuovo evento"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema che risolve
+      description: Cosa non riesci a fare oggi, o cosa ti costa troppa fatica
+      placeholder: "Es. Non mi accorgo quando viene aggiunta una partita finché non apro l'app"
+    validations:
+      required: true
+
+  - type: textarea
+    id: soluzione
+    attributes:
+      label: Soluzione proposta
+      description: Come immagini che dovrebbe funzionare
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Alternative considerate
+      description: Altri modi in cui potresti risolvere lo stesso problema (opzionale)
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot o mockup
+      description: Trascina qui immagini di riferimento (opzionale)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: duplicati
+    attributes:
+      label: Verifica
+      options:
+        - label: Ho controllato che non esista già una richiesta simile
+          required: true
