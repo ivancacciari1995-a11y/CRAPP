@@ -64,7 +64,7 @@ const criteri = [
   { id: "mediaVoto", label: "Media voto" },
   { id: "mvp", label: "MVP" },
   { id: "palloni", label: "Palloni" },
-  { id: "cacchePartita", label: "Cacche/partita" },
+  { id: "cacchePartita", label: "Cacche" },
 ] as const;
 
 type Criterio = (typeof criteri)[number]["id"];
@@ -264,14 +264,14 @@ function Squadra() {
       </Section>
 
       <Section titolo="Classifica giocatori">
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-nowrap gap-1.5">
           {criteri.map((c) => (
             <button
               key={c.id}
               type="button"
               onClick={() => setCriterio(c.id)}
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-bold uppercase transition-colors",
+                "min-w-0 flex-1 truncate rounded-full px-1.5 py-1.5 text-center text-[10px] font-bold uppercase transition-colors",
                 criterio === c.id
                   ? "bg-accent text-accent-foreground shadow-pop"
                   : "bg-secondary text-muted-foreground",
