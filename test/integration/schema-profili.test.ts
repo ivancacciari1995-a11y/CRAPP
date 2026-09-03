@@ -5,8 +5,8 @@
  * configurato in `.env`) le tre cose che il codice dà per scontate: le colonne della
  * tabella, la chiusura verso l'utente anonimo e il bucket privato.
  *
- * Salta con un motivo esplicito quando mancano le credenziali o quando le migration
- * M2/M3 non sono ancora applicate a quel database: sono stati dell'ambiente, non difetti.
+ * Salta con un motivo esplicito quando mancano le credenziali o quando la migration
+ * M2 non è ancora applicata a quel database: sono stati dell'ambiente, non difetti.
  */
 import assert from "node:assert/strict";
 import { COLONNE_PROFILO } from "@/lib/profili-core";
@@ -132,13 +132,13 @@ if (!URL_BASE || !CHIAVE_SERVIZIO || !CHIAVE_PUBBLICA) {
       });
     }
 
-    // --- M3: bucket privato ------------------------------------------------------
-    const m3 = await bucketProfili(CHIAVE_SERVIZIO);
-    if (!m3.ok) {
-      salta("bucket dei documenti", "M3 non applicata (npx supabase db push)");
+    // --- M2: bucket privato -------------------------------------------------------
+    const bucketRes = await bucketProfili(CHIAVE_SERVIZIO);
+    if (!bucketRes.ok) {
+      salta("bucket dei documenti", "M2 non applicata (npx supabase db push)");
     } else {
       await prova("il bucket dei documenti è privato", async () => {
-        const bucket = (await m3.json()) as { public?: boolean };
+        const bucket = (await bucketRes.json()) as { public?: boolean };
         assert.equal(bucket.public, false, "documenti e certificati non sono mai pubblici");
       });
 

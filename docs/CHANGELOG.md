@@ -39,8 +39,7 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   ([modules/profilo-giocatore.md](modules/profilo-giocatore.md)).
 - Nuova schermata `/admin`: stato dei profili della squadra, download di documento,
   certificato e foto tessera, export CSV per il tesseramento CSI.
-- Migration `m2_profili_giocatore` (tabella dei profili) e `m3_bucket_profili` (bucket
-  privato), entrambe additive.
+- Migration `m2_profili_giocatore` (tabella dei profili e bucket privato), additiva.
 - Dalla dashboard l'amministratore modifica i dati squadra (nome, cognome, numero, ruolo),
   compila i dati personali al posto di un giocatore e scollega un account da un profilo
   (DD-017). I file restano esclusi: li carica solo il giocatore. Nessuna migration: le

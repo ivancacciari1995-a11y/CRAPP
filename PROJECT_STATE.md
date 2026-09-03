@@ -6,7 +6,7 @@ Ultimo aggiornamento: 03/09/2026
 
 Fase corrente:
 
-Backend migrato al nuovo Supabase proprietario. M1 completata. M2 e M3 scritte e da applicare.
+Backend migrato al nuovo Supabase proprietario. M1 completata. M2 scritta e da applicare.
 Autenticazione Google, dashboard amministratore e Profilo Giocatore (lato giocatore e lato
 admin) implementati su `develop`, da attivare in produzione seguendo i passaggi più sotto.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
@@ -20,7 +20,7 @@ sincronizzano tra dispositivi tramite Supabase.
 - Cursor come ambiente di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 12 migration locali applicate con successo al nuovo database
+- 18 migration locali applicate con successo al nuovo database
 - Sviluppo locale verificato con il nuovo Supabase
 - Preview Vercel di `develop` verificata con successo (presenza scritta su `risposte_presenze` confermata nel nuovo database)
 - Produzione (`main`): non ancora verificata in questa fase
@@ -97,7 +97,7 @@ Passaggi in ordine, nessuno dei quali è reversibile a metà:
    `[auth.external.google]` di `supabase/config.toml`, le due variabili
    `SUPABASE_AUTH_GOOGLE_*` in `.env` e una credenziale con redirect URI
    `http://127.0.0.1:54321/auth/v1/callback`.
-2. **Migration M2 e M3** (`supabase db push`). Sono `CREATE` puri: si possono applicare in
+2. **Migration M2** (`supabase db push`). È un `CREATE` puro: si può applicare in
    produzione senza toccare il comportamento attuale.
 3. **Primo admin**, dopo il primo login (l'ID esiste solo da quel momento):
    `INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = '<mail>';`

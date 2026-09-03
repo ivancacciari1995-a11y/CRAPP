@@ -8,7 +8,7 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 - Documentazione tecnica del progetto.
 - Autenticazione Google e dashboard amministratore: il codice è completo su `develop` e il
   login è ora l'unica via d'accesso. Restano i passaggi di configurazione, in quest'ordine:
-  provider Google in Supabase (senza, nessuno entra), migration M2/M3, primo admin in
+  provider Google in Supabase (senza, nessuno entra), migration M2, primo admin in
   `user_roles`, collegamento dei 17 account, e infine la migration M4 che chiude gli accessi
   `anon`. Stato di dettaglio in [PROJECT_STATE.md](../PROJECT_STATE.md).
 

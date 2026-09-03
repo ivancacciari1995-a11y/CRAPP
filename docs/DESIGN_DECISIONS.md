@@ -458,7 +458,7 @@ Regole vincolanti:
 - `src/lib/rosa.ts` legge dal database e ricade su `crapp-data.ts` in caso di errore o assenza dati (DD-015).
 - Il completamento profilo (30/30/30/10) si calcola in app, non si persiste nel database.
 - Lo storico certificati non viene conservato in v1 (coerente con DD-010).
-- Le migration M1–M3 (tabelle, RLS, bucket) restano **additive**: solo `CREATE`, nessun `ALTER`/`DROP` su schema esistente.
+- Le migration M1–M2 (tabelle, RLS, bucket) restano **additive**: solo `CREATE`, nessun `ALTER`/`DROP` su schema esistente.
 - Raffina e attua quanto proposto in DD-015 per la rosa anagrafica, senza sostituire formalmente quella voce.
 
 **Riesame**

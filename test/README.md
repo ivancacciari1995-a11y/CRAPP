@@ -32,9 +32,9 @@ non può inquinare gli altri.
   anonimo proprio per dimostrare che la RLS le respinge, e poi rilegge la riga per
   verificare che non sia cambiata: su un UPDATE a zero righe PostgREST risponde 2xx,
   quindi lo stato conta più del codice di risposta.
-- I test legati alle migration M2/M3 si **saltano da soli** dove quelle migration non
-  sono ancora applicate, indicandolo nel motivo. Per vederli tutti verdi serve un
-  database che le contenga: `npx supabase start` ne crea uno in locale.
+- I test legati alla migration M2 si **saltano da soli** dove quella migration non è
+  ancora applicata, indicandolo nel motivo. Per vederli tutti verdi serve un
+  database che la contenga: `npx supabase start` ne crea uno in locale.
 - `integration` ed `e2e` avviano da soli il server di sviluppo. Per usarne uno già
   attivo: `BASE_URL=http://localhost:8080 npm run test:e2e`.
 - Le variabili d'ambiente vengono lette da `.env`; i nomi senza prefisso
