@@ -157,6 +157,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // `AppShell` legge la rosa da `giocatori_squadra` (useGiocatoreBase → DD-015): serve stare
+  // dentro il QueryClientProvider, quindi il provider avvolge tutto fin da qui.
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppShell />
+    </QueryClientProvider>
+  );
+}
+
+function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const giocatore = useGiocatoreBase();
@@ -183,7 +193,7 @@ function RootComponent() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
@@ -191,6 +201,6 @@ function RootComponent() {
       {!isBenvenuto && <BottomNav />}
       {!isBenvenuto && <CelebrazioneBadge />}
       <Toaster position="top-center" duration={3500} closeButton />
-    </QueryClientProvider>
+    </>
   );
 }
