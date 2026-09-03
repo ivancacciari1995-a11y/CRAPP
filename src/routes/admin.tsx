@@ -22,6 +22,7 @@ import {
   nomeCompleto,
   numeroGiaUsato,
   prossimoIdGiocatore,
+  RUOLI,
   useAggiungiGiocatore,
   useGiocatoriSquadra,
   useImpostaAttivo,
@@ -223,12 +224,18 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
           />
         </Campo>
         <Campo label="Ruolo">
-          <input
+          <select
             value={squadraCorrente.ruolo}
-            maxLength={30}
             onChange={(e) => setDatiSquadra({ ...squadraCorrente, ruolo: e.target.value })}
             className={classiInput}
-          />
+          >
+            <option value="">—</option>
+            {RUOLI.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </Campo>
       </div>
       <Campo label="Email (collegamento automatico al login, DD-018)">
@@ -540,12 +547,18 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
           />
         </Campo>
         <Campo label="Ruolo">
-          <input
+          <select
             value={dati.ruolo}
-            maxLength={30}
             onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}
             className={classiInput}
-          />
+          >
+            <option value="">—</option>
+            {RUOLI.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </Campo>
       </div>
       <Campo label="Email (collegamento automatico al login, opzionale)">

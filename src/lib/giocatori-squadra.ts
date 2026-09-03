@@ -33,6 +33,9 @@ export type RigaGiocatoreSquadra = {
   data_tessera: string | null;
 };
 
+/** Ruoli ammessi in campo (pallavolo): usati per il menu a tendina del profilo squadra. */
+export const RUOLI = ["Palleggiatore", "Banda", "Opposto", "Centrale", "Libero", "Jolly"] as const;
+
 export const SQUADRA_KEY = ["giocatori-squadra"] as const;
 
 /** Rosa di riserva quando il database non risponde o non è ancora popolato. */
