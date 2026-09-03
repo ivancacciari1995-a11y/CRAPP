@@ -264,14 +264,14 @@ function Squadra() {
       </Section>
 
       <Section titolo="Classifica giocatori">
-        <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1">
+        <div className="mb-3 flex flex-wrap gap-2">
           {criteri.map((c) => (
             <button
               key={c.id}
               type="button"
               onClick={() => setCriterio(c.id)}
               className={cn(
-                "shrink-0 rounded-full px-3 py-1.5 text-xs font-bold uppercase transition-colors",
+                "rounded-full px-3 py-1.5 text-xs font-bold uppercase transition-colors",
                 criterio === c.id
                   ? "bg-accent text-accent-foreground shadow-pop"
                   : "bg-secondary text-muted-foreground",
