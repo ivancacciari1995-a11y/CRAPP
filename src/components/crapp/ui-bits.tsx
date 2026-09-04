@@ -58,12 +58,14 @@ export function SezioneTendina({
   titolo,
   children,
   anteprima,
+  azione,
   defaultAperta = false,
   indice = 0,
 }: {
   titolo: string;
   children: ReactNode;
   anteprima?: ReactNode;
+  azione?: ReactNode;
   defaultAperta?: boolean;
   indice?: number;
 }) {
@@ -77,12 +79,15 @@ export function SezioneTendina({
         aria-expanded={aperta}
       >
         <h2 className="font-display text-lg uppercase tracking-wide">{titolo}</h2>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-            aperta && "rotate-180",
-          )}
-        />
+        <span className="flex shrink-0 items-center gap-2">
+          {azione}
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 text-muted-foreground transition-transform",
+              aperta && "rotate-180",
+            )}
+          />
+        </span>
       </button>
       {anteprima}
       {aperta ? children : null}

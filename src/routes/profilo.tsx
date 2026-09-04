@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
+import { PageHeader, Section, SezioneTendina, StatTile } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import {
   caricaAvatar,
@@ -201,9 +201,9 @@ function Profilo() {
         <SerieGriglia g={g} />
       </Section>
 
-      <Section titolo="Collezione badge" indice={3}>
+      <SezioneTendina titolo="Collezione badge" indice={3}>
         <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />
-      </Section>
+      </SezioneTendina>
 
       <ProfiloAmministrativo giocatoreId={g.id} indice={4} />
 

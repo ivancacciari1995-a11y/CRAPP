@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
-import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
@@ -117,9 +116,6 @@ function Index() {
             Nessun impegno in programma.
           </p>
         )}
-        <div className="mt-3">
-          <ScoutEntry />
-        </div>
       </Section>
 
       <CompletaProfilo giocatoreId={giocatore.id} indice={2} />

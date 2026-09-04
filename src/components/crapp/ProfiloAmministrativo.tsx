@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Eye, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Section } from "@/components/crapp/ui-bits";
+import { SezioneTendina } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import {
   caricaFile,
@@ -302,7 +302,7 @@ export function ProfiloAmministrativo({
     scrivi({ ...corrente, [campo]: path });
 
   return (
-    <Section
+    <SezioneTendina
       titolo="Dati per il tesseramento"
       indice={indice}
       azione={<span className="text-xs font-bold tabular-nums text-muted-foreground">{perc}%</span>}
@@ -374,7 +374,7 @@ export function ProfiloAmministrativo({
           {sporco ? "Salva" : "Salvato"}
         </button>
       </div>
-    </Section>
+    </SezioneTendina>
   );
 }
 
