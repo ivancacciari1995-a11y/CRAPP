@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Cake, ChevronDown, ChevronRight, Crown } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Cake, ChevronDown, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
@@ -8,18 +8,15 @@ import { formatData } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useRosa, useObiettivi } from "@/lib/rosa";
 import { usePresenzeUltimoMeseTutti } from "@/lib/presenze-mese";
-import { totaliSquadra } from "@/lib/scout-store";
+import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
-import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
+import { partiteGiocate } from "@/lib/csi-core";
 import { mediaSquadra, usePagelle } from "@/lib/pagelle";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { StatTile } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
-import { useScoutMatches } from "@/lib/scout-store";
-import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
-import { useEventi } from "@/lib/eventi";
 import { BadgeDrawer } from "@/components/crapp/BadgeDrawer";
 import {
   badgeDefs,
@@ -80,9 +77,7 @@ function Squadra() {
   const rosa = useRosa();
   const mese = usePresenzeUltimoMeseTutti();
   const scoutMatches = useScoutMatches();
-  const votiMvp = useVotiMvp();
   const { voti: pagelle } = usePagelle();
-  const mvpPerMatch = vincitoriMvp(votiMvp.data ?? []);
   const [aperto, setAperto] = useState<string | null>(null);
   const [criterio, setCriterio] = useState<Criterio>("presenze");
   const obiettivi = useObiettivi();
@@ -95,28 +90,7 @@ function Squadra() {
   const ordinati = [...rosa].sort((a, b) => valore(b, criterio) - valore(a, criterio));
   const max = ordinati[0] ? valore(ordinati[0], criterio) || 1 : 1;
   const { data: csi } = useCsi();
-  const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
-  const { eventi } = useEventi();
-  const eventoIdPerData = new Map(
-    eventi.filter((e) => e.tipo === "partita").map((e) => [e.data, e.id]),
-  );
-  const tuttiMatch = csiGiocate.length
-    ? csiGiocate.map((p) => ({
-        ...matchDaPartitaCsi(p),
-        mvp: mvpPerMatch[p.id] ?? "",
-        scout: false,
-      }))
-    : scoutMatches.map((m) => ({
-        id: m.id,
-        data: m.data,
-        avversario: m.avversario,
-        casa: m.casa,
-        setNostri: m.setNostri,
-        setLoro: m.setLoro,
-        parziali: m.parziali,
-        mvp: mvpPerMatch[m.id] ?? "",
-        scout: true,
-      }));
+  const matchGiocati = csi ? partiteGiocate(csi.partite).length : scoutMatches.length;
   const completati = obiettivi.filter((o) => progressoObiettivo(o) >= 100).length;
   const mediaObiettivi = obiettivi.length
     ? Math.round(obiettivi.reduce((s, o) => s + progressoObiettivo(o), 0) / obiettivi.length)
@@ -252,7 +226,7 @@ function Squadra() {
       <Section titolo="Statistiche di squadra">
         <div className="grid grid-cols-3 gap-2">
           <StatTile valore={`${mediaPresenze}%`} label="Media presenze" />
-          <StatTile valore={tuttiMatch.length} label="Match giocati" />
+          <StatTile valore={matchGiocati} label="Match giocati" />
           <StatTile valore={mediaSquadra(pagelle) || "—"} label="Media pagelle" />
           <StatTile valore={team.punti} label="Punti squadra" />
           <StatTile valore={team.ace} label="Ace squadra" />
@@ -311,73 +285,6 @@ function Squadra() {
               </div>
             </div>
           ))}
-        </div>
-      </Section>
-
-      <Section titolo="Storico match">
-        <div className="space-y-3">
-          {tuttiMatch.map((m) => {
-            const vinta = m.setNostri > m.setLoro;
-            const eventoId = eventoIdPerData.get(m.data);
-            const contenuto = (
-              <>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">
-                      {m.casa ? "CRAP Volley" : m.avversario} vs{" "}
-                      {m.casa ? m.avversario : "CRAP Volley"}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {formatData(m.data)} · MVP {m.mvp || "da votare"}
-                      {m.scout ? " · scoutata" : ""}
-                    </p>
-                  </div>
-                  <span
-                    className={cn(
-                      "rounded-xl px-2.5 py-1 font-display text-lg",
-                      vinta
-                        ? "bg-success text-success-foreground"
-                        : "bg-destructive text-destructive-foreground",
-                    )}
-                  >
-                    {m.setNostri}-{m.setLoro}
-                  </span>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {m.parziali.map((p, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "rounded-lg px-2 py-1 text-[11px] font-semibold tabular-nums",
-                        p[0] > p[1] ? "bg-secondary" : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {p[0]}-{p[1]}
-                    </span>
-                  ))}
-                  {eventoId && !m.mvp ? (
-                    <span className="ml-auto inline-flex items-center gap-0.5 text-[11px] font-bold uppercase text-accent">
-                      Vota MVP <ChevronRight className="h-3.5 w-3.5" />
-                    </span>
-                  ) : null}
-                </div>
-              </>
-            );
-            return eventoId ? (
-              <Link
-                key={m.id}
-                to="/partita/$id"
-                params={{ id: eventoId }}
-                className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
-              >
-                {contenuto}
-              </Link>
-            ) : (
-              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
-                {contenuto}
-              </article>
-            );
-          })}
         </div>
       </Section>
 
