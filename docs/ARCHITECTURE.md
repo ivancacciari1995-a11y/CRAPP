@@ -116,9 +116,10 @@ dove provare le migration distruttive senza toccare i dati veri.
 
 ## Branch e flusso di sviluppo
 
-- `main` → produzione, deploy automatico su Vercel.
-- `develop` → sviluppo; si lavora qui, mai direttamente su `main` (DD-003).
+- `main` → produzione, deploy automatico su Vercel. È anche il branch di lavoro corrente.
+- `develop` → preview Vercel; oggi indietro rispetto a `main`, non rappresenta lo stato attuale.
+- `feature/…`, `fix/…`, `refactor/…` → lavori rischiosi o paralleli.
 
-```
-develop → test → merge su main → deploy automatico su Vercel
-```
+Su quale branch va un commit lo decide l'utente (DD-019): un assistente AI può consigliare un
+branch dedicato, non sceglierlo. Poiché si lavora su `main`, la rete di sicurezza sono i test,
+che vanno scritti insieme al codice e devono essere verdi (DD-020, [test/README.md](../test/README.md)).

@@ -1,29 +1,28 @@
 # Project State
 
-Ultimo aggiornamento: 03/09/2026
+Ultimo aggiornamento: 04/09/2026
 
 ## Stato generale
 
 Fase corrente:
 
-Backend migrato al nuovo Supabase proprietario. M1 completata. M2 scritta e da applicare.
-Autenticazione Google, dashboard amministratore e Profilo Giocatore (lato giocatore e lato
-admin) implementati su `develop`, da attivare in produzione seguendo i passaggi più sotto.
+Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
+amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
-sincronizzano tra dispositivi tramite Supabase.
+sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
+reali (M9).
 
 ---
 
 ## Infrastruttura
 
-- GitHub configurato con branch `main` e `develop`
-- Cursor come ambiente di sviluppo
+- Si lavora direttamente su `main` (DD-019): `develop` esiste ma è fermo indietro, quindi la
+  sua preview Vercel non rappresenta lo stato attuale
+- Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 18 migration locali applicate con successo al nuovo database
+- 20 migration in `supabase/migrations/`, fino a `m9_risposte_presenze_risposto_il`
 - Sviluppo locale verificato con il nuovo Supabase
-- Preview Vercel di `develop` verificata con successo (presenza scritta su `risposte_presenze` confermata nel nuovo database)
-- Produzione (`main`): non ancora verificata in questa fase
 
 ---
 
@@ -37,7 +36,7 @@ sincronizzano tra dispositivi tramite Supabase.
 
 ## Database
 
-- Schema v1.0 + M1 applicati al nuovo Supabase
+- Schema v1.0 e migration da M1 a M9 applicate al nuovo Supabase
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza
@@ -65,13 +64,14 @@ sincronizzano tra dispositivi tramite Supabase.
 - Pagelle
 - MVP
 - Notifiche
-- Profilo Giocatore (su `develop`, specifica in `docs/modules/profilo-giocatore.md`)
+- Profilo Giocatore (specifica in `docs/modules/profilo-giocatore.md`)
+- Serie di presenze (specifica in `docs/modules/serie-presenze.md`)
 
 ---
 
 ## Autenticazione e dashboard amministratore
 
-Implementate su `develop`. **Il login è l'unica via d'accesso** (31/08/2026): la selezione
+In produzione su `main`. **Il login è l'unica via d'accesso** (31/08/2026): la selezione
 libera del giocatore non esiste più, senza sessione Google si resta su `/benvenuto`, e i
 permessi di amministrazione arrivano solo da `user_roles`.
 
@@ -82,12 +82,12 @@ Google» risponde
 {"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}
 ```
 
-e **nessuno entra nell'app**, né in dev né sulla preview di `develop`. Il passo 1 qui sotto
-va fatto prima di mandare questa versione in produzione.
+e **nessuno entra nell'app**. Vale ancora per chi allestisce un ambiente nuovo (per esempio
+lo stack Supabase locale): il passo 1 qui sotto va fatto per primo.
 
-Passaggi in ordine, nessuno dei quali è reversibile a metà. **Stato al 03/09/2026: fatti i
-passaggi 1-3; il passaggio 4 è un processo continuo (7 dei 16 giocatori attivi hanno già
-fatto il primo accesso); il passaggio 5 (M4) è stato applicato.**
+Passaggi in ordine, nessuno dei quali è reversibile a metà. **Stato al 04/09/2026: fatti i
+passaggi 1, 2, 3 e 5 (M4 applicata); il passaggio 4 è un processo continuo (7 dei 16 giocatori
+attivi hanno già fatto il primo accesso).**
 
 1. **Provider Google in Supabase** — Google Cloud Console: consent screen _External_ (scope
    `email` e `profile`, non sensibili: nessuna verifica richiesta, e la modalità _Testing_
@@ -125,8 +125,9 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Gestione tesseramenti CSI: la raccolta dati e l'export CSV sono pronti, manca il
-tracciamento di chi è già tesserato (numero e data di tessera).
+Niente di assegnato: la v1.1 è completa, tesseramento CSI incluso (numero e data di tessera
+registrabili da `/admin`, migration `m8_tesseramento_csi`). Le voci ancora aperte stanno in
+[docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 

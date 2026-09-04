@@ -20,7 +20,6 @@ Serve a rispondere a domande del tipo:
 | --------------------------------------------------------------------------------- | ------------------------------------- |
 | [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable)                     | Indipendenza da Lovable               |
 | [DD-002](#dd-002--sviluppo-document-first)                                        | Sviluppo document-first               |
-| [DD-003](#dd-003--due-branch-main-stabile-develop-per-il-lavoro)                  | Branch main / develop                 |
 | [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive)                            | Ogni versione aggiunge, non riscrive  |
 | [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi)                         | Mobile-first                          |
 | [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)         | AI solo se utile                      |
@@ -35,12 +34,20 @@ Serve a rispondere a domande del tipo:
 | [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0)                           | Schema dati Profilo Giocatore v1.1    |
 | [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)    | L'admin scrive al posto del giocatore |
 | [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
+| [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                         | Il branch lo decide l'utente          |
+| [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                | Test obbligatori e verdi              |
 
 **In valutazione**
 
 | ID                                                                | Titolo                 |
 | ----------------------------------------------------------------- | ---------------------- |
 | [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)  | Convergenza schema DB  |
+
+**Sostituite**
+
+| ID                                                               | Titolo                |
+| ---------------------------------------------------------------- | --------------------- |
+| [DD-003](#dd-003--due-branch-main-stabile-develop-per-il-lavoro) | Branch main / develop |
 
 ---
 
@@ -139,7 +146,7 @@ Se il team diventa molto piccolo e la documentazione smette di essere consultata
 ### DD-003 — Due branch: main stabile, develop per il lavoro
 
 **Data:** agosto 2026  
-**Stato:** Accettata
+**Stato:** Sostituita da [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente) (settembre 2026)
 
 **Contesto**  
 Serve separare ciò che i giocatori usano ogni giorno da ciò che è ancora in prova.
@@ -160,7 +167,8 @@ Serve separare ciò che i giocatori usano ogni giorno da ciò che è ancora in p
 - Ogni release su `main` deve includere verifica delle funzionalità esistenti.
 
 **Riesame**  
-Se il team cresce e servono review più granulari (pull request per feature).
+Sostituita: nella pratica il lavoro è finito direttamente su `main` e `develop` è rimasto
+indietro. Vedi DD-019.
 
 ---
 
@@ -592,3 +600,71 @@ agganciati allo stesso hook o, lato server, a `leggiGiocatoriSquadra()`
   fonte viva.
 
 ---
+
+### DD-019 — Il branch dei commit lo decide l'utente
+
+**Data:** 4 settembre 2026  
+**Stato:** Accettata — sostituisce [DD-003](#dd-003--due-branch-main-stabile-develop-per-il-lavoro)
+
+**Contesto**  
+DD-003 prevedeva di lavorare su `develop` e portare su `main` solo dopo i test. Nella pratica
+è successo il contrario: `main` è arrivato a 43 commit di vantaggio su `develop`, che è rimasto
+fermo. Una regola che nessuno segue è peggio di nessuna regola, perché rende inaffidabile tutto
+il resto del documento — e con più assistenti AI in gioco il rischio vero non era il branch
+sbagliato, ma un agente che committa o pusha per conto suo.
+
+**Decisione**  
+È l'utente a dire su quale branch va un commit. L'assistente può **consigliare** un branch
+dedicato quando la modifica è rischiosa o parallela ad altro lavoro, ma non cambia branch, non
+committa, non fa push e non apre PR di propria iniziativa. In assenza di indicazioni si lavora
+dove si trova il repository, di fatto `main`.
+
+**Alternative scartate**
+
+- Tenere DD-003 e riallineare `develop` → si sarebbe rotta di nuovo alla prima fretta.
+- Dismettere `develop` → si perderebbero le preview Vercel, utili quando servono davvero.
+
+**Conseguenze**
+
+- `main` è insieme produzione e branch di lavoro: ogni commit deve lasciare l'app funzionante,
+  quindi la rete di sicurezza sono i test (vedi DD-020), non il branch.
+- `develop` esiste ancora ma è indietro: la sua preview Vercel non rappresenta lo stato attuale
+  finché non viene riallineata.
+
+**Riesame**  
+Se il team cresce oltre una persona che scrive codice, o se un lavoro lungo ha bisogno di stare
+fuori produzione per più di qualche giorno.
+
+---
+
+### DD-020 — Una funzione modificata senza test non è finita
+
+**Data:** 4 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Con `main` come branch di lavoro (DD-019) non c'è più un ambiente di prova tra il codice e i
+giocatori. La suite in `test/` esisteva già ma scriverla era di fatto facoltativo, e i difetti
+trovati dai test sono arrivati a posteriori (la sessione Scout Live che non scadeva mai, le
+serie di presenze ferme a zero per settimane).
+
+**Decisione**  
+Chi aggiunge o modifica una funzione scrive o aggiorna il test nello stesso lavoro, e i test
+devono essere verdi prima di consegnare. Non si commenta un test che fallisce né si indebolisce
+un'asserzione per farla passare: se il comportamento voluto è cambiato, si aggiorna il test
+dicendo perché.
+
+**Alternative scartate**
+
+- Test solo sui moduli critici → il confine «critico» si sposta a ogni fretta.
+- Introdurre un framework di test → la suite bun con `node:assert` funziona e non aggiunge
+  dipendenze (vedi [test/README.md](../test/README.md)).
+
+**Conseguenze**
+
+- La logica di dominio va tenuta separabile dagli hook (`*-core.ts`), altrimenti non è
+  testabile in `test/unit/` senza rete.
+- Le modifiche costano un po' di più; le regressioni in produzione costano di più.
+
+**Riesame**  
+Se comparisse un ambiente di staging stabile che rende superflua parte della copertura.

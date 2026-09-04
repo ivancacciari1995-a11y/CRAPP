@@ -69,7 +69,7 @@ Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
 ## Profilo
 
-Il profilo viene suddiviso in cinque aree.
+Il profilo viene suddiviso in sette aree.
 
 ### Dati Giocatore
 
@@ -146,6 +146,10 @@ Contiene.
 - Logout
 - Preferenze notifiche
 - Impostazioni applicazione
+- Segnala un bug e Suggerisci una nuova funzionalità: due link che aprono una issue GitHub
+  già impostata sul template giusto (`.github/ISSUE_TEMPLATE/bug_report.yml` e
+  `feature_request.yml`). Nessun dato passa dall'app — la segnalazione vive interamente su
+  GitHub, così non servono né una tabella né una schermata di gestione.
 
 ## Dashboard amministratore
 

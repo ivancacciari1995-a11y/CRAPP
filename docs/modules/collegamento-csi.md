@@ -61,7 +61,7 @@ useCsi()                 → src/lib/csi.ts (React Query, staleTime 6h)
 - **`src/routes/api/public/csi.ts`** — unica route che contatta il CSI. Cache in memoria di
   6 ore; in caso di errore restituisce l'ultimo dato buono (`503` solo se non ne esiste uno).
 - **`src/lib/csi.ts`** — hook client, una lettura per sessione.
-- **`src/lib/csi-core.test.ts`** — check del parsing: `bun src/lib/csi-core.test.ts`.
+- **`test/unit/csi-core.test.ts`** — check del parsing: `bun test/unit/csi-core.test.ts`.
   Con `CSI_LIVE=1` verifica anche gli endpoint reali.
 
 ### Regole rispettate

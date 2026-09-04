@@ -22,6 +22,14 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
   successivo: prima usava `valore/prossimo` e tornava indietro a ogni traguardo (2/3 = 67%,
   poi 3/6 = 50%).
 
+### Segnalazioni dal profilo
+
+- «Segnala un bug» e «Suggerisci una nuova funzionalità» in `/profilo` → Impostazioni: due
+  link che aprono una issue GitHub sul template giusto
+  (`.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`). Nessuna tabella e nessuna
+  schermata di gestione: la segnalazione vive su GitHub
+  (vedi [modules/profilo-giocatore.md](modules/profilo-giocatore.md)).
+
 ### Autenticazione e dashboard amministratore (in produzione)
 
 - Login con Google tramite Supabase Auth (DD-011). Al primo accesso l'account si collega a

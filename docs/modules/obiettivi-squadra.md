@@ -42,8 +42,10 @@ smart (`notifiche-smart.ts`).
 
 ## Limiti noti
 
-- **"Continuità di squadra" dipende da `serieAllenamenti`, che oggi è sempre 0** (vedi
-  [Serie di presenze](serie-presenze.md)): resta strutturalmente a 0/12 con i dati reali.
+- "Continuità di squadra" dipende da `serieAllenamenti` (vedi
+  [Serie di presenze](serie-presenze.md)), calcolato sui dati reali: un evento passato senza
+  risposta vale come assenza e azzera la serie, quindi l'obiettivo misura anche quanto la
+  squadra risponde alle convocazioni, non solo la presenza.
 - **Il mese di riferimento è una costante fissa nel codice** (agosto 2026): gli obiettivi
   legati al mese corrente vanno aggiornati manualmente a ogni cambio di mese o stagione, oggi
   sono "congelati" su un mese già passato.
@@ -57,4 +59,3 @@ smart (`notifiche-smart.ts`).
 ## Evoluzioni possibili
 
 - Calcolare il mese di riferimento dinamicamente invece di una costante hardcoded.
-- Risolvere la dipendenza dal modulo Serie.

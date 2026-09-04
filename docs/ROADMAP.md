@@ -19,8 +19,8 @@ sta facendo adesso.
 
 ## Versione 1.1
 
-Le voci spuntate sono implementate su `develop` e non ancora attive in produzione: lo stato
-di attivazione sta in [PROJECT_STATE.md](../PROJECT_STATE.md).
+Le voci spuntate sono in produzione su `main`. I passaggi di attivazione ancora aperti (per
+esempio il collegamento dei singoli account) stanno in [PROJECT_STATE.md](../PROJECT_STATE.md).
 
 - [x] Certificati medici — caricamento, scadenza, stato e download; lo storico dei
       certificati resta un'estensione futura

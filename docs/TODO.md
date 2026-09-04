@@ -6,8 +6,8 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 ## In corso
 
 - Documentazione tecnica del progetto.
-- Autenticazione Google e dashboard amministratore: il codice è completo su `develop` e il
-  login è ora l'unica via d'accesso. La migration M4, che chiude gli accessi `anon` alle
+- Autenticazione Google e dashboard amministratore: il codice è in produzione su `main` e il
+  login è l'unica via d'accesso. La migration M4, che chiude gli accessi `anon` alle
   tabelle v1.0, è stata applicata in produzione (03/09/2026). Resta il collegamento dei
   singoli account: ogni giocatore si aggancia al proprio profilo al primo login (DD-018), un
   processo continuo — vale anche per chi viene aggiunto a stagione in corso da `/admin`.
@@ -15,8 +15,12 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 
 ## Prossimo
 
-- Gestione tesseramenti CSI (roadmap v1.1): la raccolta dati e l'export CSV ci sono, manca
-  il tracciamento di chi è già tesserato (numero e data di tessera).
+- Niente di assegnato. Le voci ancora aperte in [ROADMAP.md](ROADMAP.md) sono «Calendario
+  ufficiale» (v2.0, i dati delle gare future arrivano già dal feed CSI) e la v1.2.
+
+La gestione tesseramenti CSI della v1.1 è completa: raccolta dati, export CSV e tracciamento
+di chi è già tesserato (numero e data di tessera, migration `m8_tesseramento_csi`, registrabili
+da `/admin`).
 
 Il profilo giocatore lato giocatore e i certificati medici sono fatti: `ProfiloAmministrativo`
 in `src/routes/profilo.tsx` carica documento, certificato e foto con le date di scadenza, e
