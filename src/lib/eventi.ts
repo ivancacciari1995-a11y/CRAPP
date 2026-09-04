@@ -20,6 +20,9 @@ export type Evento = {
   casa: boolean;
   /** Le pagelle di questa partita non accettano più voti. */
   pagelleChiuse: boolean;
+  /** Quando l'evento è stato creato: è l'istante della convocazione.
+   *  Assente sugli eventi generati dal client (compleanni, bozze non salvate). */
+  creatoIl?: string | undefined;
 };
 
 export type RigaEvento = {
@@ -34,6 +37,7 @@ export type RigaEvento = {
   campionato: boolean;
   casa: boolean | null;
   pagelle_chiuse: boolean;
+  creato_il?: string;
 };
 
 /** Conversione riga database -> modello applicativo (riusabile anche lato server). */
@@ -50,11 +54,12 @@ export function daRiga(r: RigaEvento): Evento {
     campionato: !!r.campionato,
     casa: r.casa ?? true,
     pagelleChiuse: !!r.pagelle_chiuse,
+    creatoIl: r.creato_il,
   };
 }
 
 const COLONNE =
-  "id, tipo, titolo, luogo, data, ora, note, convocati, campionato, casa, pagelle_chiuse";
+  "id, tipo, titolo, luogo, data, ora, note, convocati, campionato, casa, pagelle_chiuse, creato_il";
 
 /** Categoria mostrata in interfaccia: le amichevoli sono partite fuori campionato. */
 export type CategoriaEvento = "allenamento" | "partita" | "amichevole" | "evento";

@@ -28,7 +28,14 @@ assert.equal(aDue.messaggio, "Manca solo una volta al prossimo traguardo!");
 
 const sulTraguardo = statoSerie(allenamenti, g({ serieAllenamenti: 3 }));
 assert.equal(sulTraguardo.prossimo, 6, "raggiunto un traguardo si punta al successivo");
-assert.equal(sulTraguardo.progresso, 50);
+assert.equal(sulTraguardo.progresso, 0, "nuovo livello: la barra riparte dal traguardo preso");
+
+// La barra non torna mai indietro dentro lo stesso livello.
+const dentroIlLivello = [3, 4, 5].map((v) => statoSerie(allenamenti, g({ serieAllenamenti: v })));
+assert.deepEqual(
+  dentroIlLivello.map((s) => s.progresso),
+  [0, 33, 67],
+);
 
 const veterano = statoSerie(allenamenti, g({ serieAllenamenti: 7 }));
 assert.equal(veterano.messaggio, "Che continuità: ancora 3 e sali di livello.");

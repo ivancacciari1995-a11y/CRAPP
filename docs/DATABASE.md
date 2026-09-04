@@ -28,7 +28,7 @@ non in questo file.
 | Tabella             | Scopo                                                            | Note                                                                        |
 | ------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | `eventi_app`        | Eventi gestionali utilizzati dall'app.                           | Modello in uso dal codice attuale.                                          |
-| `risposte_presenze` | Risposte dei giocatori agli eventi.                              | Modello in uso dal codice attuale.                                          |
+| `risposte_presenze` | Risposte dei giocatori agli eventi.                              | Modello in uso dal codice attuale. `risposto_il` è l'istante della **prima** risposta (migration `m9_risposte_presenze_risposto_il`): confrontato con `eventi_app.creato_il` dà la serie "Conferme 24h". Un trigger lo rende immutabile, così un ripensamento non fa risultare rapida una risposta lenta — `aggiornato_il` resta l'ultima modifica. |
 | `eventi`            | Calendario generale: allenamenti, partite, eventi della squadra. | Modello "nuovo" con autenticazione e vincoli, non ancora adottato (DD-014). |
 | `presenze`          | Presenze agli eventi.                                            | Come sopra (DD-014).                                                        |
 

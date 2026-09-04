@@ -6,6 +6,22 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Serie di presenze calcolate sui dati reali
+
+- `serieConsecutiva()` (`src/lib/presenze.ts`) deriva le serie da eventi passati e
+  `risposte_presenze`: prima erano `0` fisso in `useRosa()` e la sezione «Serie di presenze»
+  del profilo era di fatto inerte, insieme ai badge e all'obiettivo «Continuità di squadra»
+  che ne dipendono.
+- Migration `m9_risposte_presenze_risposto_il`: nuova colonna `risposto_il` con l'istante
+  della **prima** risposta, resa immutabile da un trigger (`aggiornato_il` registrava solo
+  l'ultima modifica, quindi chi rispondeva subito e cambiava idea dopo risultava lento).
+  Confrontata con `eventi_app.creato_il` sblocca finalmente la serie "Conferme 24h" e i badge
+  "Risposta lampo" e "Mai un forfait". Il dato non è ricostruibile all'indietro: vale da qui
+  in avanti (vedi [modules/serie-presenze.md](modules/serie-presenze.md)).
+- La barra di progresso di una serie ora misura l'avanzamento fra il traguardo raggiunto e il
+  successivo: prima usava `valore/prossimo` e tornava indietro a ogni traguardo (2/3 = 67%,
+  poi 3/6 = 50%).
+
 ### Autenticazione e dashboard amministratore (in produzione)
 
 - Login con Google tramite Supabase Auth (DD-011). Al primo accesso l'account si collega a

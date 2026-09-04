@@ -487,18 +487,21 @@ export type Database = {
           aggiornato_il: string;
           evento_id: string;
           giocatore_id: string;
+          risposto_il: string;
           stato: string;
         };
         Insert: {
           aggiornato_il?: string;
           evento_id: string;
           giocatore_id: string;
+          risposto_il?: string;
           stato: string;
         };
         Update: {
           aggiornato_il?: string;
           evento_id?: string;
           giocatore_id?: string;
+          risposto_il?: string;
           stato?: string;
         };
         Relationships: [];

@@ -9,7 +9,13 @@ import { useTurniPalloni } from "./palloni";
 import { useInfortuniERitardi } from "./infortuni";
 import { useGiocatoreId } from "./user-store";
 import { useEventi } from "./eventi";
-import { contaPresenzeGiocatore, totaliEventiGiocatore, useRispostePresenze } from "./presenze";
+import {
+  contaPresenzeGiocatore,
+  serieConferme,
+  serieConsecutiva,
+  totaliEventiGiocatore,
+  useRispostePresenze,
+} from "./presenze";
 import { obiettiviOrdinati } from "./obiettivi";
 import { useCsi } from "./csi";
 import { partiteGiocate } from "./csi-core";
@@ -33,7 +39,7 @@ export function useRosa(): Giocatore[] {
   const { turni } = useTurniPalloni();
   const { infortuni, ritardi } = useInfortuniERitardi();
   const { eventi } = useEventi();
-  const { presenze: mappaPresenze } = useRispostePresenze();
+  const { presenze: mappaPresenze, tempi } = useRispostePresenze();
 
   const votiMvp = voti.data ?? [];
 
@@ -54,10 +60,10 @@ export function useRosa(): Giocatore[] {
         iniziali: iniziali(g.nome, g.cognome),
         presenze: contaPresenzeGiocatore(g.id, eventi, mappaPresenze),
         totaliEventi: totaliEventiGiocatore(g.id, eventi),
-        streak: 0,
-        serieAllenamenti: 0,
-        seriePartite: 0,
-        serieConferme: 0,
+        streak: serieConsecutiva(g.id, eventi, mappaPresenze),
+        serieAllenamenti: serieConsecutiva(g.id, eventi, mappaPresenze, "allenamento"),
+        seriePartite: serieConsecutiva(g.id, eventi, mappaPresenze, "partita"),
+        serieConferme: serieConferme(g.id, eventi, tempi),
         mvp: mvpVinti[g.id] ?? 0,
         mediaVoto: medie[g.id]?.media ?? 0,
         palloni: palloni[g.id] ?? 0,
@@ -66,7 +72,7 @@ export function useRosa(): Giocatore[] {
         infortuni: infortuni[g.id] ?? 0,
         ritardi: ritardi[g.id] ?? 0,
       }));
-  }, [squadra, votiMvp, pagelle, cacche, turni, infortuni, ritardi, eventi, mappaPresenze]);
+  }, [squadra, votiMvp, pagelle, cacche, turni, infortuni, ritardi, eventi, mappaPresenze, tempi]);
 }
 
 /** Il giocatore selezionato sul dispositivo, con le statistiche complete. */

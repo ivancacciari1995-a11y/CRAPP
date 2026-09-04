@@ -67,9 +67,13 @@ function messaggioSerie(valore: number, prossimo: number | null, label: string) 
 
 export function statoSerie(def: SerieDef, g: Giocatore): SerieStato {
   const valore = def.valore(g);
-  const prossimo = def.traguardi.find((t) => valore < t) ?? null;
+  const i = def.traguardi.findIndex((t) => valore < t);
+  const prossimo = i < 0 ? null : def.traguardi[i]!;
   const manca = prossimo ? prossimo - valore : 0;
-  const progresso = prossimo ? Math.min(100, Math.round((valore / prossimo) * 100)) : 100;
+  // Progresso dentro il livello corrente: fra il traguardo già preso e il prossimo,
+  // altrimenti la barra tornerebbe indietro ogni volta che se ne raggiunge uno.
+  const base = i <= 0 ? 0 : def.traguardi[i - 1]!;
+  const progresso = prossimo ? Math.round(((valore - base) / (prossimo - base)) * 100) : 100;
   return {
     def,
     valore,

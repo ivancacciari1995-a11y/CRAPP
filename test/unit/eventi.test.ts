@@ -14,6 +14,7 @@ const riga: RigaEvento = {
   campionato: true,
   casa: true,
   pagelle_chiuse: false,
+  creato_il: "2026-08-20T09:00:00Z",
 };
 
 // --- daRiga: i NULL del database diventano valori sicuri ---------------------
@@ -29,6 +30,7 @@ assert.deepEqual(daRiga(riga), {
   campionato: true,
   casa: true,
   pagelleChiuse: false,
+  creatoIl: "2026-08-20T09:00:00Z",
 });
 
 const vuota = daRiga({
