@@ -97,9 +97,11 @@ function Index() {
 
       <PromemoriaPalloni />
 
+      <CompletaProfilo giocatoreId={giocatore.id} indice={1} />
+
       <Section
         titolo="Prossimo impegno"
-        indice={1}
+        indice={2}
         azione={
           <Link
             to="/calendario"
@@ -118,9 +120,7 @@ function Index() {
         )}
       </Section>
 
-      <CompletaProfilo giocatoreId={giocatore.id} indice={2} />
-
-      <Section titolo="Da confermare" indice={2}>
+      <Section titolo="Da confermare" indice={3}>
         <div className="space-y-3">
           {prossimi.slice(1).map((e) => {
             const link = linkPerEvento(e);
@@ -131,7 +131,7 @@ function Index() {
 
       <Section
         titolo="Ultima partita"
-        indice={3}
+        indice={4}
         azione={
           <Link
             to="/squadra"
@@ -190,7 +190,7 @@ function Index() {
 
       <Section
         titolo="Obiettivo di squadra"
-        indice={4}
+        indice={5}
         azione={
           <Link
             to="/squadra"
@@ -218,7 +218,7 @@ function Index() {
         ) : null}
       </Section>
 
-      <Section titolo="Colpo d'occhio" indice={5}>
+      <Section titolo="Colpo d'occhio" indice={6}>
         <div className="grid grid-cols-3 gap-2">
           <StatTile valore={giocatore.presenze} label="Presenze" hint="+2 questo mese" />
           <StatTile valore={giocatore.mediaVoto || "—"} label="Media voto" />
