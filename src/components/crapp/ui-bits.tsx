@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { statoMeta, type Stato } from "@/lib/crapp-data";
 import { Reveal } from "@/components/motion/Reveal";
@@ -48,6 +49,43 @@ export function Section({
         {azione}
       </div>
       {children}
+    </Reveal>
+  );
+}
+
+/** Sezione con titolo cliccabile: il contenuto si apre e chiude. `anteprima` resta sempre visibile. */
+export function SezioneTendina({
+  titolo,
+  children,
+  anteprima,
+  defaultAperta = false,
+  indice = 0,
+}: {
+  titolo: string;
+  children: ReactNode;
+  anteprima?: ReactNode;
+  defaultAperta?: boolean;
+  indice?: number;
+}) {
+  const [aperta, setAperta] = useState(defaultAperta);
+  return (
+    <Reveal as="section" indice={indice} className="px-5 py-4">
+      <button
+        type="button"
+        onClick={() => setAperta((v) => !v)}
+        className="mb-3 flex w-full items-center justify-between gap-3 text-left active:scale-[0.99]"
+        aria-expanded={aperta}
+      >
+        <h2 className="font-display text-lg uppercase tracking-wide">{titolo}</h2>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+            aperta && "rotate-180",
+          )}
+        />
+      </button>
+      {anteprima}
+      {aperta ? children : null}
     </Reveal>
   );
 }

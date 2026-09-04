@@ -128,6 +128,14 @@ function Calendario() {
     ? (eventiPerGiorno.get(giornoSelezionato) ?? [])
     : [];
 
+  // Prossimi 4 eventi da oggi in avanti (indipendenti dal mese selezionato nella griglia).
+  const oggiIso = oggi
+    ? `${oggi.anno}-${pad2(oggi.mese + 1)}-${pad2(oggi.giorno)}`
+    : null;
+  const prossimiEventi = oggiIso
+    ? eventi.filter((e) => e.data >= oggiIso).slice(0, 4)
+    : [];
+
   return (
     <>
       <PageHeader titolo="Calendario" sottotitolo={`${mesiIT[mese]} ${anno} · Stagione 2026/27`} />
@@ -267,14 +275,14 @@ function Calendario() {
 
       <Section titolo="Prossimi eventi">
         <div className="space-y-3">
-          {eventiMese.length > 0 ? (
-            eventiMese.map((e) => {
+          {prossimiEventi.length > 0 ? (
+            prossimiEventi.map((e) => {
               const link = linkPerEvento(e);
               return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
             })
           ) : (
             <p className="rounded-3xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
-              Nessun evento in {mesiIT[mese]!.toLowerCase()}
+              Nessun evento in programma
             </p>
           )}
         </div>

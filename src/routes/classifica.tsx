@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatData } from "@/lib/crapp-data";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { PageHeader, Section, SezioneTendina } from "@/components/crapp/ui-bits";
 import { useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
@@ -123,7 +123,7 @@ function Classifica() {
         </div>
       </Section>
 
-      <Section titolo="Storico match">
+      <SezioneTendina titolo="Storico match">
         {tuttiMatch.length === 0 ? (
           <p className="rounded-3xl bg-card p-4 text-center text-xs text-muted-foreground shadow-card">
             Nessun match disponibile.
@@ -194,7 +194,7 @@ function Classifica() {
             })}
           </div>
         )}
-      </Section>
+      </SezioneTendina>
     </>
   );
 }

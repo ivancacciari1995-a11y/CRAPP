@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Cake, ChevronDown, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { PageHeader, Section, SezioneTendina } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
@@ -12,7 +12,6 @@ import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import { partiteGiocate } from "@/lib/csi-core";
 import { mediaSquadra, usePagelle } from "@/lib/pagelle";
-import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { StatTile } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
@@ -232,12 +231,9 @@ function Squadra() {
           <StatTile valore={team.ace} label="Ace squadra" />
           <StatTile valore={team.muri} label="Muri squadra" />
         </div>
-        <div className="mt-3">
-          <ScoutEntry />
-        </div>
       </Section>
 
-      <Section titolo="Classifica giocatori">
+      <SezioneTendina titolo="Classifica giocatori">
         <div className="mb-3 flex flex-nowrap gap-1.5">
           {criteri.map((c) => (
             <button
@@ -286,25 +282,29 @@ function Squadra() {
             </div>
           ))}
         </div>
-      </Section>
+      </SezioneTendina>
 
-      <Section titolo="Obiettivi di squadra">
-        <div className="mb-3 rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-foreground/60">
-                Progresso collettivo
-              </p>
-              <p className="font-display text-4xl leading-none">
-                <Numero valore={mediaObiettivi} suffisso="%" />
+      <SezioneTendina
+        titolo="Obiettivi di squadra"
+        anteprima={
+          <div className="mb-3 rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-foreground/60">
+                  Progresso collettivo
+                </p>
+                <p className="font-display text-4xl leading-none">
+                  <Numero valore={mediaObiettivi} suffisso="%" />
+                </p>
+              </div>
+              <p className="text-xs text-primary-foreground/70">
+                {completati}/{obiettivi.length} completati
               </p>
             </div>
-            <p className="text-xs text-primary-foreground/70">
-              {completati}/{obiettivi.length} completati
-            </p>
+            <Barra percentuale={mediaObiettivi} trackClassName="mt-3 bg-primary-foreground/15" />
           </div>
-          <Barra percentuale={mediaObiettivi} trackClassName="mt-3 bg-primary-foreground/15" />
-        </div>
+        }
+      >
         <div className="space-y-2">
           {obiettivi.map((o, i) => {
             const pct = progressoObiettivo(o);
@@ -346,9 +346,9 @@ function Squadra() {
             );
           })}
         </div>
-      </Section>
+      </SezioneTendina>
 
-      <Section titolo="Badge sbloccabili">
+      <SezioneTendina titolo="Badge sbloccabili">
         <div className="space-y-2">
           {badgeDefs.map((b) => {
             const Icon = b.icon;
@@ -392,7 +392,7 @@ function Squadra() {
             );
           })}
         </div>
-      </Section>
+      </SezioneTendina>
     </>
   );
 }
