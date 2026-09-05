@@ -6,6 +6,12 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Le note dell'evento si leggono aprendolo
+
+- Il campo Note del form eventi si poteva scrivere ma non lo vedeva nessuno: ora compare
+  nella scheda di `/allenamento/$id` e `/partita/$id`, sotto orario e luogo, con gli a capo
+  mantenuti. Se è vuoto non compare niente.
+
 ### Form eventi: data e ora non sfondano più la card su iOS
 
 - Lo stesso difetto già corretto sul tesseramento: `Campo` e le classi degli input erano
