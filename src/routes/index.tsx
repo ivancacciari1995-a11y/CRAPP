@@ -70,7 +70,7 @@ function Index() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
               Ciao {giocatore.nome.split(" ")[0]}
             </p>
-            <h1 className="font-display-lg text-4xl uppercase leading-none">CrAPP</h1>
+            <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
           </div>
           <TeamLogo className="h-12 w-12" />
         </div>
