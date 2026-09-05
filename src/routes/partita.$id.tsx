@@ -9,6 +9,7 @@ import { useCsi } from "@/lib/csi";
 import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
+import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
 import { useGiocatoreCorrente } from "@/lib/user-store";
@@ -203,6 +204,10 @@ function PartitaDetail() {
           </p>
         </Section>
       )}
+
+      <Section titolo="Scout live">
+        <ScoutEntry eventoId={evento.id} />
+      </Section>
 
       <Section titolo="Sondaggio pre-partita">
         <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} />

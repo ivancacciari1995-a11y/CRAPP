@@ -30,10 +30,21 @@ aggiornato da qualunque dispositivo.
 
 ## Chi può usarlo
 
-Solo gli admin lato UI: `ScoutEntry.tsx` e `scout.tsx` bloccano i non-admin con il messaggio
-"Scout riservato". **Il controllo non è imposto a livello database**: le policy RLS di
-`scout_sessioni`/`scout_live`/`scout_partite` sono aperte a qualunque utente autenticato, non
-solo agli admin — la migration M4 toglie l'accesso solo al ruolo `anon`.
+Chiunque sia autenticato: non è più riservato agli admin. A tenere l'ordine basta il lock di
+sessione — scoutizza uno per volta, gli altri vedono "In uso da …". Questo allinea l'interfaccia
+alle policy RLS di `scout_sessioni`/`scout_live`/`scout_partite`, che sono sempre state aperte a
+qualunque utente autenticato (la migration M4 toglie l'accesso solo al ruolo `anon`).
+
+---
+
+## Da dove ci si arriva
+
+`ScoutEntry.tsx` è l'unico accesso a `/scout`: sta nella pagina della partita
+(`partita.$id.tsx`, sezione «Scout live»), visibile a tutta la squadra. Si accende solo se
+**quella** partita è quella di oggi — la prop `eventoId` confronta l'evento aperto con
+`partitaDiOggi()` — e se nessun altro ha il lock; negli altri casi resta una card grigia non
+cliccabile («Si attiva il giorno della partita» / «In uso da …»). Dalla home è stato tolto
+perché occupava spazio 6 giorni su 7.
 
 ---
 
@@ -104,7 +115,8 @@ calcolati a runtime).
 
 ## Limiti noti
 
-- Controllo "solo admin" non imposto dal database (vedi sopra).
+- Scout aperto a tutta la squadra: nessun filtro su chi può registrare le azioni, l'unica
+  garanzia è il lock di sessione (vedi sopra).
 - Possibile, per quanto improbabile, doppio "successo" applicativo nel prendere il lock:
   lettura e upsert non sono atomici.
 - `scout_partite` si inserisce ma non si corregge dall'interfaccia: solo eliminazione totale.
@@ -116,4 +128,3 @@ calcolati a runtime).
 ## Evoluzioni possibili
 
 - Realtime (Supabase Realtime) per aggiornare la sessione condivisa senza refresh manuale.
-- Restringere le policy RLS al solo ruolo admin.

@@ -6,6 +6,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Lo Scout Live si apre dalla pagina della partita
+
+- Tolto dalla home, era rimasto senza nessun link: `/scout` si raggiungeva solo scrivendo
+  l'URL. Ora la card `ScoutEntry` sta in `/partita/$id`, sezione «Scout live».
+- Si accende solo se la partita aperta è quella di oggi (nuova prop `eventoId`), altrimenti
+  resta grigia con «Si attiva il giorno della partita». Lock di sessione invariato.
+- Non è più riservato agli admin: può scoutare chiunque sia autenticato, uno per volta grazie
+  al lock. Sparisce il messaggio «Scout riservato».
+
 ### Il sondaggio pre-partita apre alle 8:00 del giorno della partita
 
 - Prima era sempre votabile, anche settimane prima: ora la card resta chiusa con l'avviso di

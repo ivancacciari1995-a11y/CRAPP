@@ -8,7 +8,6 @@ import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
-import { useIsAdmin } from "@/lib/ruoli";
 import { usePresenzeEvento } from "@/lib/presenze";
 import {
   statoIniziale,
@@ -83,7 +82,6 @@ function Blocco({
 function Scout() {
   const { pronto, partita } = usePartitaDiOggi();
   const io = useGiocatoreCorrente();
-  const admin = useIsAdmin();
   const sessione = useSessioneScout(partita?.id ?? null);
   const statoSalvato = useStatoScout(partita?.id ?? null);
   const apri = useApriSessioneScout();
@@ -101,16 +99,6 @@ function Scout() {
     return () => window.removeEventListener("pagehide", rilascia);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controllo, partita?.id, io?.id]);
-
-  if (io && !admin) {
-    return (
-      <Blocco
-        icona={<Lock className="h-6 w-6" />}
-        titolo="Scout riservato"
-        testo="Lo scout live è uno strumento tecnico per allenatori e referenti della squadra."
-      />
-    );
-  }
 
   if (!pronto || sessione.isLoading || statoSalvato.isLoading) {
     return (
