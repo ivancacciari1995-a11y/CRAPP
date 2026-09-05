@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { molla, proietta } from "@/lib/molla";
+import { proietta } from "@/lib/molla";
 
 export type VoceSottosezione = {
   id: string;
@@ -9,10 +9,16 @@ export type VoceSottosezione = {
   contenuto: ReactNode;
 };
 
+/** Tween breve: evita molle + exit che tengono due pannelli in DOM insieme. */
+const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.1, 0.25, 1] };
+
 /**
  * Barra di sottosezioni in un'unica fila scorrevole (swipe orizzontale) e
  * pannello che mostra una sola sezione alla volta, cambiabile anche con
  * swipe sul contenuto.
+ *
+ * Il pannello precedente si smonta subito (niente AnimatePresence/exit):
+ * al cambio tab resta un solo albero da animare in ingresso.
  */
 export function BarraSottosezioni({
   voci,
@@ -32,12 +38,13 @@ export function BarraSottosezioni({
   const voce = voci[indice] ?? voci[0];
 
   useEffect(() => {
+    // `auto`: lo smooth competerebbe col tween del pannello sul main thread.
     tabRefs.current[attiva]?.scrollIntoView({
-      behavior: ridotto ? "auto" : "smooth",
+      behavior: "auto",
       inline: "center",
       block: "nearest",
     });
-  }, [attiva, ridotto]);
+  }, [attiva]);
 
   function vaiA(nuovo: number) {
     if (nuovo < 0 || nuovo >= voci.length) return;
@@ -88,31 +95,27 @@ export function BarraSottosezioni({
       </div>
 
       <div className="relative overflow-hidden">
-        <AnimatePresence initial={false} mode="popLayout" custom={direzione.current}>
-          <motion.div
-            key={voce.id}
-            role="tabpanel"
-            aria-label={voce.label}
-            custom={direzione.current}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.18}
-            dragMomentum={false}
-            onDragEnd={(_, info) => {
-              const arrivo = info.offset.x + proietta(info.velocity.x);
-              if (arrivo < -60) vaiA(indice + 1);
-              else if (arrivo > 60) vaiA(indice - 1);
-            }}
-            initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * -40 }}
-            transition={ridotto ? { duration: 0.15 } : molla.foglio}
-            className="touch-pan-y px-5 py-4"
-          >
-            <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
-            {voce.contenuto}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={voce.id}
+          role="tabpanel"
+          aria-label={voce.label}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.12}
+          dragMomentum={false}
+          onDragEnd={(_, info) => {
+            const arrivo = info.offset.x + proietta(info.velocity.x);
+            if (arrivo < -60) vaiA(indice + 1);
+            else if (arrivo > 60) vaiA(indice - 1);
+          }}
+          initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={ridotto ? { duration: 0.1 } : transizioneTab}
+          className="touch-pan-y px-5 py-4"
+        >
+          <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
+          {voce.contenuto}
+        </motion.div>
       </div>
     </div>
   );
