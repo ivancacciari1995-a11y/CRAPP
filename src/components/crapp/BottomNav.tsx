@@ -4,7 +4,7 @@ import { CalendarDays, Home, Trophy, Users } from "lucide-react";
 // Quattro voci e non cinque: il profilo sta in alto a destra
 // nell'intestazione di ogni pagina, dove lo cerca chi arriva da iOS.
 const items = [
-  { to: "/", label: "Oggi", icon: Home },
+  { to: "/", label: "Home", icon: Home },
   { to: "/calendario", label: "Calendario", icon: CalendarDays },
   { to: "/squadra", label: "Squadra", icon: Users },
   { to: "/classifica", label: "Classifica", icon: Trophy },
