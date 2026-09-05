@@ -38,6 +38,15 @@ export const Route = createFileRoute("/calendario")({
 });
 
 const giorniIT = ["L", "M", "M", "G", "V", "S", "D"];
+
+/** Colore per tipo di evento, usato per dividere le celle con più tipi. */
+const coloreTipo: Record<Evento["tipo"], string> = {
+  partita: "var(--accent)",
+  allenamento: "var(--training)",
+  evento: "var(--warning)",
+  compleanno: "var(--success)",
+};
+
 const mesiIT = [
   "Gennaio",
   "Febbraio",
@@ -227,11 +236,23 @@ function Calendario() {
                     const giorno = i + 1;
                     const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
                     const haEventi = eventiGiorno.length > 0;
+                    // Attenzione: si conta per **tipo**, non per numero di
+                    // eventi. Due partite nello stesso giorno restano una cella
+                    // rossa piena; si divide solo se i tipi sono diversi.
                     const tipiGiorno = Array.from(new Set(eventiGiorno.map((e) => e.tipo)));
-                    // Un solo tipo: cella piena, il colore è l'informazione.
-                    // Più tipi: fondo neutro e un puntino per tipo. Prima si
-                    // generava un gradiente a fette, che rendeva il numero
-                    // illeggibile e costringeva a un'ombra bianca di ripiego.
+                    // Più tipi: la cella si divide in bande a taglio netto (gli
+                    // stop sono duplicati apposta, non è una sfumatura), una per
+                    // tipo, in diagonale.
+                    const sfondo =
+                      tipiGiorno.length > 1
+                        ? `linear-gradient(135deg, ${tipiGiorno
+                            .map((t, idx) => {
+                              const da = (idx / tipiGiorno.length) * 100;
+                              const a = ((idx + 1) / tipiGiorno.length) * 100;
+                              return `${coloreTipo[t]} ${da}%, ${coloreTipo[t]} ${a}%`;
+                            })
+                            .join(", ")})`
+                        : undefined;
                     const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
                     const isOggi =
                       !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
@@ -241,6 +262,7 @@ function Calendario() {
                         key={giorno}
                         type={haEventi ? "button" : undefined}
                         onClick={haEventi ? () => apriGiorno(giorno) : undefined}
+                        style={sfondo ? { backgroundImage: sfondo } : undefined}
                         className={cn(
                           "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
                           tipo === "partita" && "bg-accent text-accent-foreground",
@@ -248,7 +270,7 @@ function Calendario() {
                           tipo === "evento" && "bg-warning text-warning-foreground",
                           tipo === "compleanno" && "bg-success text-success-foreground",
                           !tipo && !haEventi && "text-muted-foreground",
-                          !tipo && haEventi && "bg-secondary text-foreground",
+                          !tipo && haEventi && "text-foreground",
                           haEventi && "cursor-pointer transition-transform active:scale-90",
                           isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
                         )}
@@ -259,23 +281,15 @@ function Calendario() {
                         }
                         aria-current={isOggi ? "date" : undefined}
                       >
-                        <span>{giorno}</span>
-                        {tipiGiorno.length > 1 ? (
-                          <span aria-hidden="true" className="absolute bottom-1 flex gap-0.5">
-                            {tipiGiorno.slice(0, 3).map((t) => (
-                              <i
-                                key={t}
-                                className={cn(
-                                  "h-1 w-1 rounded-full",
-                                  t === "partita" && "bg-accent",
-                                  t === "allenamento" && "bg-training",
-                                  t === "evento" && "bg-warning",
-                                  t === "compleanno" && "bg-success",
-                                )}
-                              />
-                            ))}
-                          </span>
-                        ) : null}
+                        {/*
+                          Sulle celle divise il numero sta direttamente sulle
+                          bande, staccato dal fondo da un alone bianco: è la
+                          resa scelta, il colore deve restare pieno e visibile
+                          fino al bordo.
+                        */}
+                        <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                          {giorno}
+                        </span>
                       </Cella>
                     );
                   })}
