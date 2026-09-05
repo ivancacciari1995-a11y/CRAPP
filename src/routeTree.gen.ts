@@ -20,6 +20,7 @@ import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SquadraRouteImport } from './routes/squadra'
 import { Route as AllenamentoIdRouteImport } from './routes/allenamento.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
+import { Route as ApiPublicApriSondaggioRouteImport } from './routes/api/public/apri-sondaggio'
 import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
 import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/public/promemoria-palloni'
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
@@ -82,6 +83,11 @@ const PartitaIdRoute = PartitaIdRouteImport.update({
   path: '/partita/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicApriSondaggioRoute = ApiPublicApriSondaggioRouteImport.update({
+  id: '/api/public/apri-sondaggio',
+  path: '/api/public/apri-sondaggio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCsiRoute = ApiPublicCsiRouteImport.update({
   id: '/api/public/csi',
   path: '/api/public/csi',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
   '/partita/$id': typeof PartitaIdRoute
+  '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/apri-sondaggio'
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/apri-sondaggio'
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/squadra'
     | '/allenamento/$id'
     | '/partita/$id'
+    | '/api/public/apri-sondaggio'
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   SquadraRoute: typeof SquadraRoute
   AllenamentoIdRoute: typeof AllenamentoIdRoute
   PartitaIdRoute: typeof PartitaIdRoute
+  ApiPublicApriSondaggioRoute: typeof ApiPublicApriSondaggioRoute
   ApiPublicCsiRoute: typeof ApiPublicCsiRoute
   ApiPublicPromemoriaPalloniRoute: typeof ApiPublicPromemoriaPalloniRoute
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartitaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/apri-sondaggio': {
+      id: '/api/public/apri-sondaggio'
+      path: '/api/public/apri-sondaggio'
+      fullPath: '/api/public/apri-sondaggio'
+      preLoaderRoute: typeof ApiPublicApriSondaggioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/csi': {
       id: '/api/public/csi'
       path: '/api/public/csi'
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   SquadraRoute: SquadraRoute,
   AllenamentoIdRoute: AllenamentoIdRoute,
   PartitaIdRoute: PartitaIdRoute,
+  ApiPublicApriSondaggioRoute: ApiPublicApriSondaggioRoute,
   ApiPublicCsiRoute: ApiPublicCsiRoute,
   ApiPublicPromemoriaPalloniRoute: ApiPublicPromemoriaPalloniRoute,
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,

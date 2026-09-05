@@ -84,8 +84,7 @@ export function eventoSuccessivo(eventi: Evento[], eventoId: string): Evento | u
   return i >= 0 ? lista[i + 1] : undefined;
 }
 
-export function oggiISO(): string {
-  const d = new Date();
+export function oggiISO(d = new Date()): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mm}-${dd}`;

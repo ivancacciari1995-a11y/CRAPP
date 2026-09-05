@@ -82,8 +82,13 @@ sezione "Report tecnico".
 ## Sondaggio cacche
 
 `SondaggioCacche.tsx` chiede "quante cacche hai fatto prima di questa partita" (0-5+), sempre
-modificabile, senza gating temporale reale (visibile sia prima sia dopo la partita nonostante
-il nome). `statisticheCacche()` (`cacche.ts`) calcola media, record e `giornateTop`
+modificabile. `sondaggioAperto()` (`cacche.ts`) lo apre alle **8:00 del giorno della partita**
+(ora locale del dispositivo) e da lì lo lascia aperto per sempre; prima la card mostra solo
+l'avviso di apertura. Quando è aperto, gli **amministratori** vedono nella card il pulsante
+«Avvisa tutti del sondaggio»: chiama `POST /api/public/apri-sondaggio` e manda la push a tutti
+i dispositivi iscritti, come il sollecito presenze (vedi [Notifiche](notifiche.md)). Nessun
+invio automatico: parte solo quando un admin lo preme.
+`statisticheCacche()` (`cacche.ts`) calcola media, record e `giornateTop`
 (giornate con ≥3), soglia usata per un [badge](badge.md) segreto — coerente con DD-007 (badge
 calcolati a runtime).
 

@@ -6,6 +6,14 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Il sondaggio pre-partita apre alle 8:00 del giorno della partita
+
+- Prima era sempre votabile, anche settimane prima: ora la card resta chiusa con l'avviso di
+  apertura e si sblocca alle 8:00 del giorno stesso.
+- Quando è aperto, gli amministratori hanno nella card il pulsante «Avvisa tutti del
+  sondaggio» (`POST /api/public/apri-sondaggio`), che manda la push a tutti i dispositivi
+  iscritti — stesso meccanismo del sollecito presenze. Nessun cron: l'invio è manuale.
+
 ### Le note dell'evento si leggono aprendolo
 
 - Il campo Note del form eventi si poteva scrivere ma non lo vedeva nessuno: ora compare

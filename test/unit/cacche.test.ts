@@ -4,6 +4,7 @@ import {
   mediaPartita,
   mediaStagione,
   recordStagione,
+  sondaggioAperto,
   statisticheCacche,
   type RigaCacche,
 } from "@/lib/cacche";
@@ -51,5 +52,13 @@ assert.deepEqual(
   r("e1", "g1", 4),
   "a parità vince chi l'ha fatto per primo",
 );
+
+// --- sondaggioAperto ---------------------------------------------------------
+const alle = (h: number, m = 0) => new Date(2026, 8, 5, h, m); // 5 settembre 2026
+assert.equal(sondaggioAperto("2026-09-05", alle(7, 59)), false, "prima delle 8 è chiuso");
+assert.equal(sondaggioAperto("2026-09-05", alle(8)), true, "alle 8 in punto apre");
+assert.equal(sondaggioAperto("2026-09-05", alle(23)), true);
+assert.equal(sondaggioAperto("2026-09-06", alle(23)), false, "partita di domani: chiuso");
+assert.equal(sondaggioAperto("2026-09-04", alle(0, 1)), true, "partita passata: resta aperto");
 
 console.log("cacche: ok");

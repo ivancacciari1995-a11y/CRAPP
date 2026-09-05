@@ -46,6 +46,9 @@ smart in app, che usano lo stesso service worker.
 
 - **`push-config`** — espone la sola chiave pubblica VAPID.
 - **`push-subscribe`** — registra o rimuove l'iscrizione di un dispositivo.
+- **`apri-sondaggio`** — premuto da un admin dalla pagina partita: mette in coda su
+  `promemoria_push` l'avviso di apertura del sondaggio pre-partita per **tutti** i dispositivi
+  iscritti e manda la push (vedi [Scout Live](scout-live.md)).
 - **`push-messaggio`** — non invia nulla: il service worker la interroga **al momento della
   ricezione** di una push (che arriva sempre "vuota", senza testo, per compatibilità) per
   sapere quale messaggio mostrare. Priorità: un messaggio in coda su `promemoria_push`
