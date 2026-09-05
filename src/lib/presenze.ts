@@ -17,9 +17,7 @@ function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string) {
   return eventi.filter(
     (e) =>
       (e.tipo === "partita" || e.tipo === "allenamento") &&
-      (giocatoreId === undefined ||
-        e.convocati.length === 0 ||
-        e.convocati.includes(giocatoreId)),
+      (giocatoreId === undefined || e.convocati.length === 0 || e.convocati.includes(giocatoreId)),
   );
 }
 
