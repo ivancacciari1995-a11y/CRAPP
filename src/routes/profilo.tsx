@@ -126,7 +126,7 @@ function Profilo() {
       <PageHeader
         titolo={g.nome}
         sottotitolo={`#${g.numero} · ${g.ruolo}`}
-        azione={<TeamLogo className="h-11 w-11" />}
+        azione={<TeamLogo src="/logo-nerorosso.svg" className="h-11 w-11" />}
       />
 
       <Reveal className="-mt-6 px-5">

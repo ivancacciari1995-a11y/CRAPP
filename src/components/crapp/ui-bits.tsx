@@ -8,10 +8,20 @@ import { Avatar } from "@/components/crapp/Avatar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Numero } from "@/components/motion/Numero";
 
-export function TeamLogo({ className }: { className?: string }) {
+export function TeamLogo({
+  className,
+  /**
+   * Di default l'icona della PWA, che ha dentro il nome dell'app. Dove serve lo
+   * stemma della squadra e basta si passa `/logo-nerorosso.svg`.
+   */
+  src = "/icon-192.png",
+}: {
+  className?: string;
+  src?: string;
+}) {
   return (
     <img
-      src="/icon-192.png"
+      src={src}
       alt="CRAP Volley"
       width={192}
       height={192}
