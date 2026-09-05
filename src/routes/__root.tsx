@@ -22,7 +22,7 @@ import { useSessione } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="font-display-lg text-7xl text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina non trovata</h2>
@@ -50,7 +50,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Questa pagina non si è caricata
@@ -187,7 +187,7 @@ function AppShell() {
 
   if (!mounted || !pronta) {
     return (
-      <div className="grid min-h-screen place-items-center bg-background">
+      <div className="grid min-h-dvh place-items-center bg-background">
         <TeamLogo className="h-16 w-16 animate-pulse" />
       </div>
     );
@@ -195,7 +195,7 @@ function AppShell() {
 
   return (
     <>
-      <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
+      <div className="spazio-nav mx-auto min-h-dvh max-w-md bg-background">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </div>

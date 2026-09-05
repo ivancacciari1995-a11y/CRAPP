@@ -32,7 +32,7 @@ export function CelebrazioneBadge() {
   if (!notifica) return null;
 
   return (
-    <div className="anim-reveal fixed inset-0 z-50 grid place-items-end bg-foreground/40 p-4 pb-28 backdrop-blur-sm">
+    <div className="anim-reveal spazio-nav fixed inset-0 z-50 grid place-items-end bg-foreground/40 px-4 pt-4 backdrop-blur-sm">
       <div
         className={cn(
           "anim-pop w-full max-w-md rounded-3xl bg-card p-5 shadow-pop ring-2",

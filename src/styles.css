@@ -62,6 +62,19 @@
 :root {
   color-scheme: light;
   --radius: 1rem;
+  /*
+   * Geometria della barra di navigazione, unica sorgente di verità: prima
+   * l'altezza era ricopiata a occhio come `pb-24` nel contenuto e `pb-28`
+   * nella celebrazione badge, e su iPhone i conti tornavano per 2 px.
+   *
+   * `--pad-sicura-fondo` è il motivo per cui la barra su iPhone e su Android
+   * non può essere alta uguale: `env(safe-area-inset-bottom)` vale ~34 px
+   * sopra la home indicator e 0 su Android, dove la barra di sistema sta
+   * fuori dal viewport. Il `max()` dà comunque ad Android un respiro minimo,
+   * così la differenza è un margine in più, non un allineamento diverso.
+   */
+  --altezza-nav: 3.75rem;
+  --pad-sicura-fondo: max(env(safe-area-inset-bottom), 0.5rem);
   --background: oklch(0.985 0.002 240);
   --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
@@ -349,6 +362,27 @@
   background-color: color-mix(in oklab, var(--color-card) 72%, transparent);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * Chrome su Android disattiva `backdrop-filter` quando l'accelerazione
+ * hardware non è disponibile: senza questo, su quei device la barra resta
+ * solo semitrasparente e il contenuto si legge attraverso.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .materiale {
+    background-color: var(--color-card);
+  }
+}
+
+/** Padding inferiore della chrome flottante. */
+@utility pad-sicura-fondo {
+  padding-bottom: var(--pad-sicura-fondo);
+}
+
+/** Spazio che il contenuto deve lasciare sotto di sé per non finire dietro la barra. */
+@utility spazio-nav {
+  padding-bottom: calc(var(--altezza-nav) + var(--pad-sicura-fondo) + 1rem);
 }
 
 @utility bordo-sfumato {

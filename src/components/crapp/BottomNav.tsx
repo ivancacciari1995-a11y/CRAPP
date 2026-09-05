@@ -15,9 +15,15 @@ export function BottomNav() {
       aria-label="Navigazione principale"
       // `materiale` + `bordo-sfumato`: la barra è un vetro sotto cui il
       // contenuto scorre, con una sfumatura al posto della riga netta.
-      className="materiale bordo-sfumato fixed inset-x-0 bottom-0 z-40"
+      className="materiale bordo-sfumato pad-sicura-fondo fixed inset-x-0 bottom-0 z-40"
     >
-      <div className="mx-auto grid max-w-md grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)]">
+      {/*
+        Altezza fissa dal token, non dedotta dal contenuto: la striscia
+        toccabile misura uguale su iOS e Android, e sotto varia solo l'inset
+        di sistema. Prima l'altezza dipendeva dai padding delle voci e nessuno
+        poteva saperla da fuori.
+      */}
+      <div className="mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-5 px-1">
         {items.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
@@ -26,7 +32,7 @@ export function BottomNav() {
             activeProps={{ "aria-current": "page" }}
             // Lo stato attivo non è solo colore: cambia anche il peso del
             // testo e compare la barretta sopra l'icona.
-            className="group relative flex min-h-11 flex-col items-center gap-1 py-2.5 text-xs font-semibold text-muted-foreground transition-colors data-[status=active]:font-extrabold data-[status=active]:text-accent"
+            className="group relative flex h-full flex-col items-center justify-center gap-1 text-xs font-semibold text-muted-foreground transition-colors data-[status=active]:font-extrabold data-[status=active]:text-accent"
           >
             {({ isActive }) => (
               <>
