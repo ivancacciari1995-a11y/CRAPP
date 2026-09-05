@@ -1,7 +1,14 @@
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { useRiempimento } from "@/lib/motion";
+import { molla } from "@/lib/molla";
 
-/** Barra di avanzamento che si riempie in ~700 ms all'apertura. */
+/**
+ * Barra di avanzamento a molla.
+ *
+ * Anima `scaleX` e non `width`: la larghezza rifà il layout a ogni frame,
+ * la trasformazione la gestisce il compositore. La molla riparte dal valore
+ * a schermo, quindi se il dato cambia a metà riempimento non c'è scatto.
+ */
 export function Barra({
   percentuale,
   className,
@@ -13,12 +20,22 @@ export function Barra({
   trackClassName?: string;
   altezza?: string;
 }) {
-  const larghezza = useRiempimento(Math.max(0, Math.min(100, Math.round(percentuale))));
+  const ridotto = useReducedMotion();
+  const valore = Math.max(0, Math.min(100, Math.round(percentuale)));
+
   return (
-    <div className={cn("overflow-hidden rounded-full bg-secondary", altezza, trackClassName)}>
-      <div
-        className={cn("anim-barra h-full rounded-full bg-accent-grad", className)}
-        style={{ width: `${larghezza}%` }}
+    <div
+      className={cn("overflow-hidden rounded-full bg-secondary", altezza, trackClassName)}
+      role="progressbar"
+      aria-valuenow={valore}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <motion.div
+        className={cn("h-full w-full origin-left rounded-full bg-accent-grad", className)}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: valore / 100 }}
+        transition={ridotto ? { duration: 0.2 } : molla.ui}
       />
     </div>
   );
