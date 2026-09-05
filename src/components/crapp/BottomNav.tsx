@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, Home, Trophy, User, Users } from "lucide-react";
+import { CalendarDays, Home, Trophy, Users } from "lucide-react";
 
+// Quattro voci e non cinque: il profilo sta in alto a destra
+// nell'intestazione di ogni pagina, dove lo cerca chi arriva da iOS.
 const items = [
   { to: "/", label: "Oggi", icon: Home },
   { to: "/calendario", label: "Calendario", icon: CalendarDays },
   { to: "/squadra", label: "Squadra", icon: Users },
   { to: "/classifica", label: "Classifica", icon: Trophy },
-  { to: "/profilo", label: "Profilo", icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -25,7 +26,7 @@ export function BottomNav() {
         di sistema. Prima l'altezza dipendeva dai padding delle voci e nessuno
         poteva saperla da fuori.
       */}
-      <div className="materiale pointer-events-auto mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-5 overflow-hidden rounded-full border border-border/60 px-1 shadow-lg">
+      <div className="materiale pointer-events-auto mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-4 overflow-hidden rounded-full border border-border/60 px-1 shadow-lg">
         {items.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}

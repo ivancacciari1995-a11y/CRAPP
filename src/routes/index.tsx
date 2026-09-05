@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
-import { Card, Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
+import { Card, LinkProfilo, Section, StatTile } from "@/components/crapp/ui-bits";
 import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
@@ -72,7 +72,7 @@ function Index() {
             </p>
             <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
           </div>
-          <TeamLogo className="h-12 w-12" />
+          <LinkProfilo />
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-2 text-center">

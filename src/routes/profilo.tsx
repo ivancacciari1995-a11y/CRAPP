@@ -3,7 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, PageHeader, Section, SezioneTendina, StatTile } from "@/components/crapp/ui-bits";
+import {
+  Card,
+  PageHeader,
+  Section,
+  SezioneTendina,
+  StatTile,
+  TeamLogo,
+} from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import {
   caricaAvatar,
@@ -115,7 +122,12 @@ function Profilo() {
 
   return (
     <>
-      <PageHeader titolo={g.nome} sottotitolo={`#${g.numero} · ${g.ruolo}`} />
+      {/* Qui il link al profilo sarebbe un link a sé stessa: torna il logo. */}
+      <PageHeader
+        titolo={g.nome}
+        sottotitolo={`#${g.numero} · ${g.ruolo}`}
+        azione={<TeamLogo className="h-11 w-11" />}
+      />
 
       <Reveal className="-mt-6 px-5">
         <Card>
