@@ -100,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "CRAP Volley" },
       // Deve combaciare con --background, altrimenti la barra di stato resta
       // nera sopra un'interfaccia chiara.
-      { name: "theme-color", content: "#fafafb" },
+      { name: "theme-color", content: "#e4e8ed" },
       { property: "og:title", content: "CrAPP — L'app del CRAP Volley" },
       {
         property: "og:description",
