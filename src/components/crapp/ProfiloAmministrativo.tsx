@@ -27,7 +27,7 @@ const classiInput = "w-full rounded-xl border border-border bg-background px-3 p
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <span className="mt-1 block">{children}</span>

@@ -41,14 +41,14 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
   return (
     <div className="mt-3 rounded-2xl bg-secondary/60 p-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           <Vote className="h-3.5 w-3.5" /> Voto MVP · {totale} {totale === 1 ? "voto" : "voti"}
         </p>
         <button
           type="button"
           onClick={() => setAperto((v) => !v)}
           disabled={!io}
-          className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase text-accent-foreground disabled:opacity-50"
+          className="rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase text-accent-foreground disabled:opacity-50"
         >
           {mio ? "Cambia voto" : "Vota"}
         </button>
@@ -66,7 +66,7 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
         )}
       </p>
       {mio ? (
-        <p className="mt-1 text-[11px] text-muted-foreground">Hai votato {mio.votato_nome}</p>
+        <p className="mt-1 text-xs text-muted-foreground">Hai votato {mio.votato_nome}</p>
       ) : null}
 
       {aperto ? (
@@ -91,7 +91,7 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
       ) : conteggio.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {conteggio.map((c) => (
-            <span key={c.id} className="rounded-lg bg-card px-2 py-1 text-[11px] font-semibold">
+            <span key={c.id} className="rounded-lg bg-card px-2 py-1 text-xs font-semibold">
               {c.nome} · {c.voti}
             </span>
           ))}

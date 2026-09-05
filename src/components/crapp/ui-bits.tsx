@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { statoMeta, type Stato } from "@/lib/crapp-data";
@@ -10,9 +10,27 @@ export function TeamLogo({ className }: { className?: string }) {
     <img
       src="/icon-192.png"
       alt="CRAP Volley"
+      width={192}
+      height={192}
       className={cn("shrink-0 rounded-2xl object-cover shadow-pop", className)}
     />
   );
+}
+
+/**
+ * Superficie standard dell'app: era ripetuta a mano una ventina di volte come
+ * `rounded-3xl bg-card p-4 shadow-card`, quindi cambiare raggio od ombra
+ * voleva dire toccare venti file.
+ *
+ * Gerarchia dei raggi: contenitore `3xl` → elemento interno `2xl` →
+ * controllo `full`.
+ */
+export function Card({
+  className,
+  as: Tag = "div",
+  ...props
+}: ComponentPropsWithoutRef<"div"> & { as?: "div" | "article" | "section" }) {
+  return <Tag className={cn("premi rounded-3xl bg-card p-4 shadow-card", className)} {...props} />;
 }
 
 export function PageHeader({ titolo, sottotitolo }: { titolo: string; sottotitolo?: string }) {
@@ -20,9 +38,9 @@ export function PageHeader({ titolo, sottotitolo }: { titolo: string; sottotitol
     <header className="bg-hero px-5 pb-8 pt-7 text-primary-foreground">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <div className="min-w-0">
-          <h1 className="truncate font-display text-3xl uppercase">{titolo}</h1>
+          <h1 className="truncate font-display-lg text-3xl uppercase">{titolo}</h1>
           {sottotitolo ? (
-            <p className="mt-1 truncate text-sm text-primary-foreground/70">{sottotitolo}</p>
+            <p className="mt-1 truncate text-sm text-primary-foreground/80">{sottotitolo}</p>
           ) : null}
         </div>
         <TeamLogo className="h-11 w-11" />
@@ -45,7 +63,7 @@ export function Section({
   return (
     <Reveal as="section" indice={indice} className="px-5 py-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display text-lg uppercase tracking-wide">{titolo}</h2>
+        <h2 className="font-display-sm text-lg uppercase">{titolo}</h2>
         {azione}
       </div>
       {children}
@@ -70,15 +88,17 @@ export function SezioneTendina({
   indice?: number;
 }) {
   const [aperta, setAperta] = useState(defaultAperta);
+  const id = useId();
   return (
     <Reveal as="section" indice={indice} className="px-5 py-4">
       <button
         type="button"
         onClick={() => setAperta((v) => !v)}
-        className="mb-3 flex w-full items-center justify-between gap-3 text-left active:scale-[0.99]"
+        className="mb-3 flex min-h-11 w-full items-center justify-between gap-3 text-left active:scale-[0.99]"
         aria-expanded={aperta}
+        aria-controls={id}
       >
-        <h2 className="font-display text-lg uppercase tracking-wide">{titolo}</h2>
+        <h2 className="font-display-sm text-lg uppercase">{titolo}</h2>
         <span className="flex shrink-0 items-center gap-2">
           {azione}
           <ChevronDown
@@ -90,7 +110,7 @@ export function SezioneTendina({
         </span>
       </button>
       {anteprima}
-      {aperta ? children : null}
+      <div id={id}>{aperta ? children : null}</div>
     </Reveal>
   );
 }
@@ -100,7 +120,7 @@ export function StatoBadge({ stato, className }: { stato: Stato; className?: str
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
         meta.className,
         className,
       )}
@@ -124,10 +144,10 @@ export function StatTile({
       <p className="font-display text-2xl leading-none">
         {typeof valore === "number" ? <Numero valore={valore} /> : valore}
       </p>
-      <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      {hint ? <p className="mt-0.5 text-[11px] text-accent">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-xs text-accent">{hint}</p> : null}
     </div>
   );
 }

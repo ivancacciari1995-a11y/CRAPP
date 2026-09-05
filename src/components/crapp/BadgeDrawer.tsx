@@ -42,15 +42,13 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
       {stato ? (
         <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Stato attuale
             </p>
             {grado ? (
-              <span className={cn("text-[11px] font-bold uppercase", meta?.text)}>
-                {meta?.label}
-              </span>
+              <span className={cn("text-xs font-bold uppercase", meta?.text)}>{meta?.label}</span>
             ) : (
-              <span className="text-[11px] font-bold uppercase text-muted-foreground">
+              <span className="text-xs font-bold uppercase text-muted-foreground">
                 In progresso
               </span>
             )}
@@ -73,7 +71,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
       ) : null}
 
       <div>
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           Soglie
         </p>
         <div className="grid grid-cols-3 gap-2">
@@ -90,7 +88,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
               >
                 <p
                   className={cn(
-                    "text-[10px] font-bold uppercase",
+                    "text-xs font-bold uppercase",
                     raggiunto ? gm.text : "text-muted-foreground",
                   )}
                 >
@@ -104,7 +102,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
                 >
                   {def.soglie[g]}
                 </p>
-                <p className="text-[10px] text-muted-foreground">{def.unita}</p>
+                <p className="text-xs text-muted-foreground">{def.unita}</p>
               </div>
             );
           })}

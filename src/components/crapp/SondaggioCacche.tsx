@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/crapp/ui-bits";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { mediaPartita, useCacche, useSalvaCacche } from "@/lib/cacche";
@@ -35,16 +36,16 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
   }
 
   return (
-    <div className="rounded-3xl bg-card p-4 shadow-card">
+    <Card>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
           💩 Sondaggio pre-partita
         </p>
-        <span className="rounded-full bg-secondary px-2.5 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold uppercase text-muted-foreground">
           {dellaPartita.length} risposte
         </span>
       </div>
-      <p className="mt-1 text-[11px] text-muted-foreground">
+      <p className="mt-1 text-xs text-muted-foreground">
         Quante cacche hai fatto prima di questa partita? Dato scientifico fondamentale.
       </p>
 
@@ -67,7 +68,7 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded-full bg-secondary px-2.5 py-1 font-semibold">
           Media squadra {media}
         </span>
@@ -80,6 +81,6 @@ export function SondaggioCacche({ eventoId }: { eventoId: string }) {
           </span>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

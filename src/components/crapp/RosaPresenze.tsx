@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BellRing, HelpCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
 import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
@@ -49,7 +50,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-3xl bg-card p-4 shadow-card">
+      <Card>
         <div className="flex items-baseline justify-between">
           <p className="text-sm font-bold">
             Hanno risposto {risposteN}/{rosa.length}
@@ -65,7 +66,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
               <span
                 key={s}
                 className={cn(
-                  "rounded-full px-2.5 py-1 text-[11px] font-bold",
+                  "rounded-full px-2.5 py-1 text-xs font-bold",
                   n > 0 ? statoMeta[s].className : "bg-secondary text-muted-foreground",
                 )}
               >
@@ -73,14 +74,14 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
               </span>
             );
           })}
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
+          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-muted-foreground">
             ❔ {mancanti.length} da rispondere
           </span>
         </div>
 
         {io ? (
           <div className="mt-4 border-t border-border pt-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               La tua risposta
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -95,7 +96,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
                       salva.mutate({ eventoId, giocatoreId: io.id, stato: attivo ? null : s })
                     }
                     className={cn(
-                      "rounded-full border border-border px-2.5 py-1.5 text-[11px] font-semibold transition-all active:scale-95",
+                      "rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold transition-all active:scale-95",
                       attivo
                         ? cn(statoMeta[s].className, "border-transparent shadow-card")
                         : "bg-background text-muted-foreground",
@@ -124,10 +125,12 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
             Sollecita {daSollecitare} giocatori
           </button>
         ) : null}
-      </div>
+      </Card>
 
       {isPending ? (
-        <p className="text-center text-xs text-muted-foreground">Carico le risposte…</p>
+        <p aria-busy="true" className="text-center text-xs text-muted-foreground">
+          Carico le risposte…
+        </p>
       ) : null}
 
       {ordine.map((s) => {

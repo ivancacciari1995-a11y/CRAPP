@@ -1,6 +1,7 @@
 import { MapPin, Clock, Users, Cake, ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/crapp/ui-bits";
 import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { Barra } from "@/components/motion/Barra";
@@ -53,7 +54,7 @@ export function EventoCard({
 
   if (isCompleanno) {
     return (
-      <article className="premi flex items-center gap-3 rounded-3xl bg-card p-4 shadow-card">
+      <Card as="article" className="flex items-center gap-3">
         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-success/15 text-success">
           <Cake className="h-5 w-5" />
         </div>
@@ -63,21 +64,21 @@ export function EventoCard({
         </div>
         <div className="shrink-0 rounded-2xl bg-secondary px-3 py-2 text-center">
           <p className="font-display text-xl leading-none">{evento.data.slice(8, 10)}</p>
-          <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
             {formatData(evento.data).split(" ")[2]?.slice(0, 3)}
           </p>
         </div>
-      </article>
+      </Card>
     );
   }
 
   return (
-    <article className="premi rounded-3xl bg-card p-4 shadow-card">
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span
             className={cn(
-              "inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+              "inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide",
               tipo.className,
             )}
           >
@@ -87,7 +88,7 @@ export function EventoCard({
         </div>
         <div className="shrink-0 rounded-2xl bg-secondary px-3 py-2 text-center">
           <p className="font-display text-xl leading-none">{evento.data.slice(8, 10)}</p>
-          <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
             {formatData(evento.data).split(" ")[2]?.slice(0, 3)}
           </p>
         </div>
@@ -98,7 +99,7 @@ export function EventoCard({
           <Link
             to={linkTo.to}
             params={linkTo.params}
-            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground transition-transform active:scale-95"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-primary-foreground transition-transform active:scale-95"
           >
             {linkTo.label} <ArrowRight className="h-3 w-3" />
           </Link>
@@ -121,7 +122,7 @@ export function EventoCard({
       <Barra percentuale={perc} altezza="h-1.5" trackClassName="mt-3" />
 
       {io ? (
-        <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap gap-2">
           {stati.map((s) => {
             const meta = statoMeta[s];
             const attivo = stato === s;
@@ -137,8 +138,11 @@ export function EventoCard({
                     stato: attivo ? null : s,
                   })
                 }
+                aria-pressed={attivo}
                 className={cn(
-                  "rounded-full border border-border px-2.5 py-1.5 text-[11px] font-semibold transition-all active:scale-95",
+                  // min-h-11: sono i controlli più toccati dell'app, sotto i
+                  // 44px si sbaglia bersaglio.
+                  "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95",
                   attivo
                     ? cn(meta.className, "border-transparent shadow-card")
                     : "bg-background text-muted-foreground",
@@ -150,6 +154,6 @@ export function EventoCard({
           })}
         </div>
       ) : null}
-    </article>
+    </Card>
   );
 }

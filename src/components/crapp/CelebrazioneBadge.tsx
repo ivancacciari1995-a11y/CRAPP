@@ -51,7 +51,7 @@ export function CelebrazioneBadge() {
             {notifica.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-accent">
+            <p className="text-xs font-bold uppercase tracking-wide text-accent">
               {notifica.tono === "segreto" ? "Badge segreto sbloccato" : "Traguardo raggiunto"}
             </p>
             <p className="mt-0.5 font-display text-2xl leading-none">{notifica.titolo}</p>
@@ -61,7 +61,7 @@ export function CelebrazioneBadge() {
             type="button"
             onClick={chiudi}
             aria-label="Chiudi"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>
