@@ -409,7 +409,11 @@ export function CompletaProfilo({
 
   return (
     <Reveal indice={indice} className="px-5 pt-4">
-      <Link to="/profilo" className="premi block rounded-3xl bg-card p-4 shadow-card">
+      <Link
+        to="/profilo"
+        search={{ tab: "tesseramento" }}
+        className="premi block rounded-3xl bg-card p-4 shadow-card"
+      >
         <div className="flex items-center justify-between gap-3">
           <span className="font-display text-sm uppercase tracking-wide">
             Completa il tuo profilo

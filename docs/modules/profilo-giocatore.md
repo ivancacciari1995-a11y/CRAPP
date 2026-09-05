@@ -67,6 +67,9 @@ Viene mostrata una barra di avanzamento (esempio: _Profilo completato — 85%_),
 
 Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
+Il tap apre Profilo sulla sottosezione **Tesseramento** (`/profilo?tab=tesseramento`), non
+sulla tab Stagione.
+
 ## Profilo
 
 Il profilo viene suddiviso in sette aree.

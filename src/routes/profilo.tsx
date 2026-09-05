@@ -29,7 +29,18 @@ import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { Reveal } from "@/components/motion/Reveal";
 
+const TAB_PROFILO = ["stagione", "badge", "tesseramento", "impostazioni"] as const;
+type TabProfilo = (typeof TAB_PROFILO)[number];
+
+function isTabProfilo(v: unknown): v is TabProfilo {
+  return typeof v === "string" && (TAB_PROFILO as readonly string[]).includes(v);
+}
+
 export const Route = createFileRoute("/profilo")({
+  validateSearch: (search: Record<string, unknown>): { tab?: TabProfilo } => {
+    const tab = isTabProfilo(search["tab"]) ? search["tab"] : undefined;
+    return tab ? { tab } : {};
+  },
   head: () => ({
     meta: [
       { title: "Profilo giocatore — CrAPP" },
@@ -48,6 +59,8 @@ export const Route = createFileRoute("/profilo")({
 });
 
 function Profilo() {
+  const { tab } = Route.useSearch();
+  const tabIniziale = tab ?? "stagione";
   const votiSocial = useVotiSocial();
   const g = useIo();
   const admin = useIsAdmin();
@@ -178,7 +191,8 @@ function Profilo() {
       </Reveal>
 
       <BarraSottosezioni
-        defaultId="stagione"
+        key={tabIniziale}
+        defaultId={tabIniziale}
         voci={[
           {
             id: "stagione",

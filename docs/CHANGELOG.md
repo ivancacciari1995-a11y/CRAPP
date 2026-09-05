@@ -10,6 +10,8 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 - L’interruttore in Impostazioni non è più «Notifiche turno palloni»: iscrive il dispositivo
   a tutte le push (palloni, solleciti) e alle smart in app. Testo e docs aggiornati.
+- Il widget Home «Completa il tuo profilo» apre direttamente la tab Tesseramento
+  (`/profilo?tab=tesseramento`).
 
 ### Revisione dell'interfaccia: accessibilità, movimento, peso
 
