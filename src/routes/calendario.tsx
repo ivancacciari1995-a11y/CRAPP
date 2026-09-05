@@ -208,8 +208,14 @@ function Calendario() {
               decelerazione dello scroll iOS), non dalla posizione del dito.
               `dragElastic` dà la resistenza progressiva al bordo invece di
               uno stop netto.
+
+              `p-1` con `-mx-1` compensato: l'anello del giorno corrente
+              (`ring-2 ring-offset-1`) sporge 3 px fuori dalla cella, e senza
+              questo margine interno `overflow-hidden` lo taglia sulla prima
+              riga e sulle colonne di bordo. Il padding sta dentro il riquadro
+              di ritaglio, i margini negativi rimettono la griglia dov'era.
             */}
-            <div className="relative mt-2 overflow-hidden">
+            <div className="relative -mx-1 mt-1 overflow-hidden p-1">
               <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
                 <motion.div
                   key={mesePrefix}
@@ -296,7 +302,7 @@ function Calendario() {
                 </motion.div>
               </AnimatePresence>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               Scorri a destra o sinistra per cambiare mese.
             </p>
             <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
