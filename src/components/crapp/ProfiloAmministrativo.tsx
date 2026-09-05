@@ -265,9 +265,12 @@ export function CampiProfilo({
 export function ProfiloAmministrativo({
   giocatoreId,
   indice = 0,
+  /** Se false, mostra solo il contenuto (es. dentro `BarraSottosezioni`). */
+  conTendina = true,
 }: {
   giocatoreId: string;
   indice?: number;
+  conTendina?: boolean;
 }) {
   const { profili } = useProfili();
   const salva = useSalvaProfilo();
@@ -301,79 +304,90 @@ export function ProfiloAmministrativo({
   const caricato = (campo: keyof Profilo) => async (path: string) =>
     scrivi({ ...corrente, [campo]: path });
 
+  const corpo = (
+    <div className="space-y-3 rounded-3xl bg-card p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-secondary">
+          <div
+            className="h-full rounded-full bg-accent-grad transition-all"
+            style={{ width: `${perc}%` }}
+          />
+        </div>
+        <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
+          {perc}%
+        </span>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Servono agli amministratori per il tesseramento CSI. Li vedi solo tu e loro.
+      </p>
+
+      <CampiProfilo
+        corrente={corrente}
+        aggiorna={aggiorna}
+        sezioni={sezioni}
+        fileDocumento={
+          <div className="divide-y divide-border">
+            <CampoFile
+              label="Foto fronte"
+              path={corrente.documentoFrontePath}
+              sezione="documento-fronte"
+              giocatoreId={giocatoreId}
+              onCaricato={caricato("documentoFrontePath")}
+            />
+            <CampoFile
+              label="Foto retro"
+              path={corrente.documentoRetroPath}
+              sezione="documento-retro"
+              giocatoreId={giocatoreId}
+              onCaricato={caricato("documentoRetroPath")}
+            />
+          </div>
+        }
+        fileCertificato={
+          <CampoFile
+            label="Certificato medico"
+            path={corrente.certificatoPath}
+            sezione="certificato"
+            giocatoreId={giocatoreId}
+            onCaricato={caricato("certificatoPath")}
+          />
+        }
+        fileFoto={
+          <>
+            <Intestazione titolo="Foto tessera" completa={sezioni.foto} />
+            <CampoFile
+              label="Foto tessera"
+              path={corrente.fotoPath}
+              sezione="foto"
+              giocatoreId={giocatoreId}
+              onCaricato={caricato("fotoPath")}
+            />
+          </>
+        }
+      />
+
+      <button
+        type="button"
+        onClick={salvaBozza}
+        disabled={!sporco || salva.isPending}
+        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+      >
+        {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        {sporco ? "Salva" : "Salvato"}
+      </button>
+    </div>
+  );
+
+  if (!conTendina) return corpo;
+
   return (
     <SezioneTendina
       titolo="Dati per il tesseramento"
       indice={indice}
       azione={<span className="text-xs font-bold tabular-nums text-muted-foreground">{perc}%</span>}
     >
-      <div className="space-y-3 rounded-3xl bg-card p-4 shadow-card">
-        <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-          <div
-            className="h-full rounded-full bg-accent-grad transition-all"
-            style={{ width: `${perc}%` }}
-          />
-        </div>
-
-        <p className="text-xs text-muted-foreground">
-          Servono agli amministratori per il tesseramento CSI. Li vedi solo tu e loro.
-        </p>
-
-        <CampiProfilo
-          corrente={corrente}
-          aggiorna={aggiorna}
-          sezioni={sezioni}
-          fileDocumento={
-            <div className="divide-y divide-border">
-              <CampoFile
-                label="Foto fronte"
-                path={corrente.documentoFrontePath}
-                sezione="documento-fronte"
-                giocatoreId={giocatoreId}
-                onCaricato={caricato("documentoFrontePath")}
-              />
-              <CampoFile
-                label="Foto retro"
-                path={corrente.documentoRetroPath}
-                sezione="documento-retro"
-                giocatoreId={giocatoreId}
-                onCaricato={caricato("documentoRetroPath")}
-              />
-            </div>
-          }
-          fileCertificato={
-            <CampoFile
-              label="Certificato medico"
-              path={corrente.certificatoPath}
-              sezione="certificato"
-              giocatoreId={giocatoreId}
-              onCaricato={caricato("certificatoPath")}
-            />
-          }
-          fileFoto={
-            <>
-              <Intestazione titolo="Foto tessera" completa={sezioni.foto} />
-              <CampoFile
-                label="Foto tessera"
-                path={corrente.fotoPath}
-                sezione="foto"
-                giocatoreId={giocatoreId}
-                onCaricato={caricato("fotoPath")}
-              />
-            </>
-          }
-        />
-
-        <button
-          type="button"
-          onClick={salvaBozza}
-          disabled={!sporco || salva.isPending}
-          className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
-        >
-          {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {sporco ? "Salva" : "Salvato"}
-        </button>
-      </div>
+      {corpo}
     </SezioneTendina>
   );
 }

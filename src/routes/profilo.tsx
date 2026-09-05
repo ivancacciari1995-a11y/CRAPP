@@ -3,14 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Card,
-  PageHeader,
-  Section,
-  SezioneTendina,
-  StatTile,
-  TeamLogo,
-} from "@/components/crapp/ui-bits";
+import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
+import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import {
   caricaAvatar,
@@ -126,7 +120,7 @@ function Profilo() {
       <PageHeader
         titolo={g.nome}
         sottotitolo={`#${g.numero} · ${g.ruolo}`}
-        azione={<TeamLogo src="/logo-nerorosso.svg" className="h-11 w-11" />}
+        azione={<TeamLogo src="/logo-nerorosso.svg" className="h-14 w-14" />}
       />
 
       <Reveal className="-mt-6 px-5">
@@ -183,105 +177,124 @@ function Profilo() {
         </Card>
       </Reveal>
 
-      <Section titolo="Stagione" indice={1}>
-        <div className="grid grid-cols-3 gap-2">
-          <StatTile valore={g.presenze} label="Presenze" hint={`${percPresenze}% del totale`} />
-          <StatTile
-            valore={`${ultimoMese.percentuale}%`}
-            label="Presenze 30gg"
-            hint={`${ultimoMese.presenti}/${ultimoMese.totali} eventi`}
-          />
-          <StatTile
-            valore={
-              <span className="inline-flex items-center gap-1">
-                <Flame className="h-5 w-5 text-accent" />
-                {g.streak}
-              </span>
-            }
-            label="Presenze di fila"
-          />
-          <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
-          <StatTile valore={g.mvp} label="MVP" />
-          <StatTile valore={g.palloni} label="Turni palloni" />
-        </div>
-      </Section>
-
-      <Section titolo="Serie di presenze" indice={2}>
-        <SerieGriglia g={g} />
-      </Section>
-
-      <SezioneTendina titolo="Collezione badge" indice={3}>
-        <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />
-      </SezioneTendina>
-
-      <ProfiloAmministrativo giocatoreId={g.id} indice={4} />
-
-      <Section titolo="Impostazioni">
-        <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
-          <button
-            type="button"
-            onClick={cambiaNotifiche}
-            disabled={!supportate || inCorso}
-            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
-          >
-            <span className="min-w-0">
-              <span className="block truncate">Notifiche turno palloni</span>
-              <span className="block text-xs text-muted-foreground">
-                {supportate
-                  ? notifiche
-                    ? "Attive su questo dispositivo"
-                    : "Ricevi l'avviso il giorno stesso e la volta dopo"
-                  : "Non supportate su questo dispositivo"}
-              </span>
-            </span>
-            <span
-              className={cn(
-                "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
-                notifiche
-                  ? "bg-accent-grad text-accent-foreground"
-                  : "bg-secondary text-muted-foreground",
-              )}
-            >
-              <Bell className="h-4 w-4" />
-            </span>
-          </button>
-          {admin ? (
-            <Link
-              to="/admin"
-              className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-            >
-              <span className="min-w-0 truncate">Dashboard amministratore</span>
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          ) : null}
-          <a
-            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Segnala un bug</span>
-            <Bug className="h-4 w-4 text-muted-foreground" />
-          </a>
-          <a
-            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
-            <Lightbulb className="h-4 w-4 text-muted-foreground" />
-          </a>
-          <button
-            type="button"
-            onClick={logout}
-            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Esci</span>
-            <LogOut className="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
-      </Section>
+      <BarraSottosezioni
+        defaultId="stagione"
+        voci={[
+          {
+            id: "stagione",
+            label: "Stagione",
+            contenuto: (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <StatTile
+                    valore={g.presenze}
+                    label="Presenze"
+                    hint={`${percPresenze}% del totale`}
+                  />
+                  <StatTile
+                    valore={`${ultimoMese.percentuale}%`}
+                    label="Presenze 30gg"
+                    hint={`${ultimoMese.presenti}/${ultimoMese.totali} eventi`}
+                  />
+                  <StatTile
+                    valore={
+                      <span className="inline-flex items-center gap-1">
+                        <Flame className="h-5 w-5 text-accent" />
+                        {g.streak}
+                      </span>
+                    }
+                    label="Presenze di fila"
+                  />
+                  <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
+                  <StatTile valore={g.mvp} label="MVP" />
+                  <StatTile valore={g.palloni} label="Turni palloni" />
+                </div>
+                <SerieGriglia g={g} />
+              </div>
+            ),
+          },
+          {
+            id: "badge",
+            label: "Badge",
+            contenuto: <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />,
+          },
+          {
+            id: "tesseramento",
+            label: "Tesseramento",
+            contenuto: <ProfiloAmministrativo giocatoreId={g.id} conTendina={false} />,
+          },
+          {
+            id: "impostazioni",
+            label: "Impostazioni",
+            contenuto: (
+              <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
+                <button
+                  type="button"
+                  onClick={cambiaNotifiche}
+                  disabled={!supportate || inCorso}
+                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate">Notifiche turno palloni</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {supportate
+                        ? notifiche
+                          ? "Attive su questo dispositivo"
+                          : "Ricevi l'avviso il giorno stesso e la volta dopo"
+                        : "Non supportate su questo dispositivo"}
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
+                      notifiche
+                        ? "bg-accent-grad text-accent-foreground"
+                        : "bg-secondary text-muted-foreground",
+                    )}
+                  >
+                    <Bell className="h-4 w-4" />
+                  </span>
+                </button>
+                {admin ? (
+                  <Link
+                    to="/admin"
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                  >
+                    <span className="min-w-0 truncate">Dashboard amministratore</span>
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                ) : null}
+                <a
+                  href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                >
+                  <span className="min-w-0 truncate">Segnala un bug</span>
+                  <Bug className="h-4 w-4 text-muted-foreground" />
+                </a>
+                <a
+                  href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                >
+                  <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
+                  <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                </a>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                >
+                  <span className="min-w-0 truncate">Esci</span>
+                  <LogOut className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }
