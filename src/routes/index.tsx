@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
-import { Card, LinkProfilo, Section, StatTile } from "@/components/crapp/ui-bits";
+import { Card, LinkProfilo, Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
@@ -66,11 +66,17 @@ function Index() {
     <>
       <Reveal as="section" className="bg-hero px-5 pb-10 pt-7 text-primary-foreground">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
-              Ciao {giocatore.nome.split(" ")[0]}
-            </p>
-            <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
+          <div className="flex min-w-0 items-center gap-3">
+            <TeamLogo
+              src="/logo-nerorosso.svg"
+              className="h-14 w-14 rounded-full shadow-pop ring-2 ring-primary-foreground/25"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
+                Ciao {giocatore.nome.split(" ")[0]}
+              </p>
+              <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
+            </div>
           </div>
           <LinkProfilo />
         </div>

@@ -125,13 +125,15 @@
   /* Il focus non è una selezione: viene dal neutro, non dall'accento. */
   --ring: oklch(0.35 0.03 265);
   /* Luminosità scelte perché il testo bianco sopra superi 4.5:1 (WCAG AA). */
-  --success: oklch(0.53 0.16 152);
+  /* Compleanni / successi: verde un po' più chiaro e saturo. */
+  --success: oklch(0.60 0.17 152);
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.78 0.15 78);
   --warning-foreground: oklch(0.18 0.02 60);
   --info: oklch(0.54 0.13 245);
   --info-foreground: oklch(0.99 0 0);
-  --training: oklch(0.53 0.2 245);
+  /* Allenamenti: blu acceso (più chiaro del blu navy, più saturo dell'azzurro). */
+  --training: oklch(0.62 0.18 250);
   --training-foreground: oklch(0.99 0 0);
   /* Metalli: la variante chiara va su sfondi e bordi, la `-testo` sul testo
      (la chiara sta sotto 2.5:1 su bianco ed è illeggibile). */
