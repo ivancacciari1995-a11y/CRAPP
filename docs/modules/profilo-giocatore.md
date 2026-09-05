@@ -144,7 +144,9 @@ Contiene tutti i badge ottenuti e quelli ancora da sbloccare.
 Contiene.
 
 - Logout
-- Preferenze notifiche
+- Preferenze notifiche: un solo interruttore che iscrive il dispositivo a **tutte** le push
+  (turno palloni, solleciti presenze) e abilita le notifiche smart in app — non è limitato
+  ai soli palloni (vedi [Notifiche](notifiche.md))
 - Impostazioni applicazione
 - Segnala un bug e Suggerisci una nuova funzionalità: due link che aprono una issue GitHub
   già impostata sul template giusto (`.github/ISSUE_TEMPLATE/bug_report.yml` e

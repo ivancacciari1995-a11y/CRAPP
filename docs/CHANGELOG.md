@@ -6,6 +6,11 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Profilo: etichetta notifiche allineata al comportamento
+
+- L’interruttore in Impostazioni non è più «Notifiche turno palloni»: iscrive il dispositivo
+  a tutte le push (palloni, solleciti) e alle smart in app. Testo e docs aggiornati.
+
 ### Revisione dell'interfaccia: accessibilità, movimento, peso
 
 - **Contrasto**: `--success`, `--info` e `--training` erano tra 3.3:1 e 3.5:1 con il testo

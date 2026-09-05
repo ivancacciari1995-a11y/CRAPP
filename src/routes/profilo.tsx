@@ -80,7 +80,7 @@ function Profilo() {
       } else {
         await attivaNotifiche(g.id);
         setNotifiche(true);
-        toast.success("Notifiche palloni attive");
+        toast.success("Notifiche attive");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Notifiche non disponibili");
@@ -227,68 +227,70 @@ function Profilo() {
             id: "impostazioni",
             label: "Impostazioni",
             contenuto: (
-              <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
-                <button
-                  type="button"
-                  onClick={cambiaNotifiche}
-                  disabled={!supportate || inCorso}
-                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate">Notifiche turno palloni</span>
-                    <span className="block text-xs text-muted-foreground">
-                      {supportate
-                        ? notifiche
-                          ? "Attive su questo dispositivo"
-                          : "Ricevi l'avviso il giorno stesso e la volta dopo"
-                        : "Non supportate su questo dispositivo"}
-                    </span>
-                  </span>
-                  <span
-                    className={cn(
-                      "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
-                      notifiche
-                        ? "bg-accent-grad text-accent-foreground"
-                        : "bg-secondary text-muted-foreground",
-                    )}
+              <div className="space-y-3">
+                <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
+                  <button
+                    type="button"
+                    onClick={cambiaNotifiche}
+                    disabled={!supportate || inCorso}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
                   >
-                    <Bell className="h-4 w-4" />
-                  </span>
-                </button>
-                {admin ? (
-                  <Link
-                    to="/admin"
+                    <span className="min-w-0">
+                      <span className="block truncate">Notifiche</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {supportate
+                          ? notifiche
+                            ? "Attive su questo dispositivo"
+                            : "Palloni, solleciti presenze e avvisi in app"
+                          : "Non supportate su questo dispositivo"}
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
+                        notifiche
+                          ? "bg-accent-grad text-accent-foreground"
+                          : "bg-secondary text-muted-foreground",
+                      )}
+                    >
+                      <Bell className="h-4 w-4" />
+                    </span>
+                  </button>
+                  {admin ? (
+                    <Link
+                      to="/admin"
+                      className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                    >
+                      <span className="min-w-0 truncate">Dashboard amministratore</span>
+                      <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                  ) : null}
+                  <a
+                    href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
                   >
-                    <span className="min-w-0 truncate">Dashboard amministratore</span>
-                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                ) : null}
-                <a
-                  href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-                >
-                  <span className="min-w-0 truncate">Segnala un bug</span>
-                  <Bug className="h-4 w-4 text-muted-foreground" />
-                </a>
-                <a
-                  href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-                >
-                  <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
-                  <Lightbulb className="h-4 w-4 text-muted-foreground" />
-                </a>
+                    <span className="min-w-0 truncate">Segnala un bug</span>
+                    <Bug className="h-4 w-4 text-muted-foreground" />
+                  </a>
+                  <a
+                    href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                  >
+                    <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
+                    <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                  </a>
+                </div>
                 <button
                   type="button"
                   onClick={logout}
-                  className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                  className="premi flex min-h-11 w-full items-center justify-center gap-2 rounded-3xl bg-destructive/15 px-4 py-3 text-sm font-bold text-destructive shadow-card"
                 >
-                  <span className="min-w-0 truncate">Esci</span>
-                  <LogOut className="h-4 w-4 text-muted-foreground" />
+                  <LogOut className="h-4 w-4" />
+                  Esci
                 </button>
               </div>
             ),

@@ -1,7 +1,6 @@
 # Modulo — Notifiche
 
-**Stato:** implementato parzialmente — solo il canale "turno palloni" è realmente collegato
-(vedi Limiti noti)
+**Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push
 **File principali:** `src/lib/notifiche-smart.ts`, `src/lib/push-client.ts`,
 `src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
 `src/routes/api/public/push-messaggio.ts`, `src/routes/api/public/push-subscribe.ts`,
@@ -30,7 +29,12 @@ persistente: la riga viene eliminata non appena letta dal service worker).
 
 ## Iscrizione alle notifiche push
 
-1. Il giocatore attiva "Notifiche turno palloni" in `/profilo` → richiesta permesso browser.
+In Profilo → Impostazioni c’è **un solo interruttore** («Notifiche»). Non esistono preferenze
+separate per tipo di messaggio: l’iscrizione registra il dispositivo e lo rende destinatario
+di **tutte** le push (promemoria palloni, solleciti presenze) e abilita anche le notifiche
+smart in app, che usano lo stesso service worker.
+
+1. Il giocatore attiva «Notifiche» in `/profilo` → richiesta permesso browser.
 2. `GET /api/public/push-config` restituisce solo la chiave pubblica VAPID.
 3. Registrazione del service worker `public/push-sw.js` e `pushManager.subscribe()`.
 4. `POST /api/public/push-subscribe` registra endpoint e chiavi in `push_subscriptions`
@@ -66,11 +70,8 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 
 ## Limiti noti
 
-- **Le 4 voci "Notifiche convocazioni", "Promemoria allenamenti", "Cambi orario", "Bacheca
-  squadra" in `/profilo` sono placeholder statici**: checkbox non controllati
-  (`defaultChecked`, nessun `onChange`), non collegati a nessuno stato, nessuna colonna DB
-  per queste preferenze. L'unica preferenza realmente funzionante è "Notifiche turno
-  palloni".
+- Non ci sono preferenze granulari (solo palloni / solo presenze / solo smart): un dispositivo
+  è iscritto o no. Separare i canali richiederebbe schema e UI dedicati.
 - `promemoria_push` è descritta altrove come "storico" ma nel codice è una coda che si
   autocancella alla lettura: non conserva nulla.
 - Nessuna verifica di autenticazione su `push-messaggio` (chiunque conosca un endpoint push
@@ -88,6 +89,6 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 
 ## Evoluzioni possibili
 
-- Collegare (o rimuovere) le 4 preferenze placeholder in `/profilo`.
+- Preferenze per canale (palloni, solleciti, smart), se servono davvero alla squadra.
 - Aggiungere autenticazione alle route pubbliche coinvolte.
 - Gestire esplicitamente il caso iOS (messaggio se l'app non è installata da Home).
