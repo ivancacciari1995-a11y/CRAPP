@@ -2,10 +2,11 @@
   "name": "CrAPP — CRAP Volley",
   "short_name": "CrAPP",
   "description": "L'app della squadra CRAP Volley: presenze, calendario, statistiche, classifica e scout live.",
+  "lang": "it",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#111111",
+  "background_color": "#fafafb",
+  "theme_color": "#fafafb",
   "orientation": "portrait",
   "icons": [
     {
