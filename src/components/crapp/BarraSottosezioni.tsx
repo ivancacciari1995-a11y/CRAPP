@@ -58,7 +58,10 @@ export function BarraSottosezioni({
 
   return (
     <div>
-      <div className="border-b border-border bg-background/80 pt-3 backdrop-blur-md">
+      {/* Niente backdrop-blur: la barra non è sticky, quindi non sfoca nulla, ma su
+          iOS il backdrop root forza il rendering a layer degli antenati e sporca il
+          pannello alto qui sotto. */}
+      <div className="border-b border-border bg-background pt-3">
         <div
           role="tablist"
           aria-label="Sottosezioni"
@@ -111,6 +114,10 @@ export function BarraSottosezioni({
           initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={ridotto ? { duration: 0.1 } : transizioneTab}
+          // iOS: il will-change automatico di Motion promuove il pannello a layer
+          // composito. Sui tab lunghi (Tesseramento) supera il tile di WebKit e il
+          // contenuto viene ridisegnato a fasce sfalsate. "auto" disattiva la gestione.
+          style={{ willChange: "auto" }}
           className="touch-pan-y px-5 py-4"
         >
           <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
