@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
@@ -210,7 +210,7 @@ function PartitaDetail() {
 
       {scout && totaliTeam ? (
         <Section titolo="Report tecnico">
-          <div className="rounded-3xl bg-card p-4 shadow-card">
+          <Card>
             <div className="grid grid-cols-4 gap-2 text-center">
               {[
                 { l: "Punti", v: totaliTeam.punti },
@@ -220,13 +220,13 @@ function PartitaDetail() {
               ].map((t) => (
                 <div key={t.l} className="rounded-2xl bg-secondary p-2.5">
                   <p className="font-display text-xl leading-none">{t.v}</p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
+                  <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
                     {t.l}
                   </p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Dettaglio giocatori (uso interno allenatori)
             </p>
             <div className="mt-2 space-y-1">
@@ -262,7 +262,7 @@ function PartitaDetail() {
                 <Download className="h-4 w-4" /> Esporta CSV
               </button>
             ) : null}
-          </div>
+          </Card>
         </Section>
       ) : null}
 

@@ -30,7 +30,7 @@ import {
 
 function RuoloBadge({ ruolo }: { ruolo: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">
+    <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-accent-foreground">
       {ruolo}
     </span>
   );
@@ -113,7 +113,7 @@ function Squadra() {
                 <button
                   type="button"
                   onClick={() => setAperto(isOpen ? null : g.id)}
-                  className="flex w-full items-center gap-3 p-3 text-left active:scale-[0.99]"
+                  className="flex min-h-11 w-full items-center gap-3 p-3 text-left active:scale-[0.99]"
                   aria-expanded={isOpen}
                 >
                   <Avatar
@@ -125,7 +125,7 @@ function Squadra() {
                     <span className="block truncate text-sm font-bold leading-tight">{g.nome}</span>
                     <span className="mt-1 flex items-center gap-2">
                       <RuoloBadge ruolo={g.ruolo} />
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {g.numero ? `#${g.numero}` : "n° da definire"}
                       </span>
                     </span>
@@ -135,8 +135,17 @@ function Squadra() {
                       {sbloccati.map((b) => {
                         const Icon = b.def.icon;
                         return (
-                          <span key={b.def.id} className="cursor-help" title={b.def.nome}>
-                            <Icon className={cn("h-3 w-3", gradoMeta[b.grado!].text)} />
+                          <span
+                            key={b.def.id}
+                            title={`${b.def.nome} — ${gradoMeta[b.grado!].label}`}
+                          >
+                            <Icon
+                              className={cn("h-3.5 w-3.5", gradoMeta[b.grado!].text)}
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">
+                              {b.def.nome}: {gradoMeta[b.grado!].label}
+                            </span>
                           </span>
                         );
                       })}
@@ -170,14 +179,14 @@ function Squadra() {
                       ].map((s) => (
                         <div key={s.l} className="rounded-2xl bg-secondary p-2.5 text-center">
                           <p className="font-display text-xl leading-none">{s.v}</p>
-                          <p className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
+                          <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
                             {s.l}
                           </p>
                         </div>
                       ))}
                     </div>
 
-                    <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                    <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                       Badge sbloccati · {collezioneBadge(g).ottenuti}/{collezioneBadge(g).totali}
                     </p>
                     {sbloccati.length === 0 ? (
@@ -194,18 +203,13 @@ function Squadra() {
                               <div className={cn("rounded-2xl p-2.5 ring-1", meta.bg, meta.ring)}>
                                 <Icon className={cn("h-4 w-4", meta.text)} />
                                 <p className="mt-1 text-xs font-bold leading-tight">{b.def.nome}</p>
-                                <p className="text-[10px] text-muted-foreground">
+                                <p className="text-xs text-muted-foreground">
                                   {b.valore} {b.def.unita}
                                   {b.prossimaSoglia
                                     ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}`
                                     : ""}
                                 </p>
-                                <p
-                                  className={cn(
-                                    "mt-1.5 text-[10px] font-bold uppercase",
-                                    meta.text,
-                                  )}
-                                >
+                                <p className={cn("mt-1.5 text-xs font-bold uppercase", meta.text)}>
                                   {meta.label}
                                 </p>
                               </div>
@@ -240,8 +244,9 @@ function Squadra() {
               key={c.id}
               type="button"
               onClick={() => setCriterio(c.id)}
+              aria-pressed={criterio === c.id}
               className={cn(
-                "min-w-0 flex-1 truncate rounded-full px-1.5 py-1.5 text-center text-[10px] font-bold uppercase transition-colors",
+                "min-h-11 min-w-0 flex-1 truncate rounded-full px-1.5 text-center text-xs font-bold uppercase transition-colors",
                 criterio === c.id
                   ? "bg-accent text-accent-foreground shadow-pop"
                   : "bg-secondary text-muted-foreground",
@@ -264,7 +269,7 @@ function Squadra() {
                       {g.nome}
                       {i === 0 ? <Crown className="ml-1 inline h-3.5 w-3.5 text-warning" /> : null}
                     </p>
-                    <p className="truncate text-[11px] text-muted-foreground">
+                    <p className="truncate text-xs text-muted-foreground">
                       #{g.numero} · {g.ruolo} · {g.streak} presenze consecutive
                     </p>
                   </div>
@@ -273,12 +278,11 @@ function Squadra() {
                   {valore(g, criterio) || "—"}
                 </span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-accent-grad"
-                  style={{ width: `${Math.max(6, (valore(g, criterio) / max) * 100)}%` }}
-                />
-              </div>
+              <Barra
+                percentuale={Math.max(6, (valore(g, criterio) / max) * 100)}
+                altezza="h-1.5"
+                trackClassName="mt-2"
+              />
             </div>
           ))}
         </div>
@@ -290,7 +294,7 @@ function Squadra() {
           <div className="mb-3 rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-foreground/60">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">
                   Progresso collettivo
                 </p>
                 <p className="font-display text-4xl leading-none">
@@ -326,7 +330,7 @@ function Squadra() {
                   </div>
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                      "rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide",
                       fatto
                         ? "bg-success text-success-foreground"
                         : "bg-secondary text-muted-foreground",
@@ -341,7 +345,7 @@ function Squadra() {
                   {o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
                 </p>
                 <p className="mt-1 text-xs font-semibold text-accent">{microcopyObiettivo(o)}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{o.impatto}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{o.impatto}</p>
               </Reveal>
             );
           })}
@@ -358,9 +362,7 @@ function Squadra() {
                   <div className="flex items-center gap-2">
                     <Icon className="h-5 w-5 text-accent" />
                     <p className="text-sm font-bold leading-tight">{b.nome}</p>
-                    <p className="ml-auto text-[10px] text-muted-foreground">
-                      {descrizioneSoglie(b)}
-                    </p>
+                    <p className="ml-auto text-xs text-muted-foreground">{descrizioneSoglie(b)}</p>
                   </div>
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
                     {gradiOrdine.map((grado) => {
@@ -376,11 +378,11 @@ function Squadra() {
                           key={grado}
                           className={cn("rounded-2xl p-2 text-center ring-1", meta.bg, meta.ring)}
                         >
-                          <p className={cn("text-[10px] font-bold uppercase", meta.text)}>
+                          <p className={cn("text-xs font-bold uppercase", meta.text)}>
                             {meta.label}
                           </p>
                           <p className="font-display text-lg leading-none">{b.soglie[grado]}</p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-xs text-muted-foreground">
                             {quanti}/{rosa.length}
                           </p>
                         </div>

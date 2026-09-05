@@ -83,7 +83,7 @@ function Classifica() {
 
       <Section titolo="Classifica">
         <div className="overflow-hidden rounded-3xl bg-card shadow-card">
-          <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-[10px] font-bold uppercase text-muted-foreground">
+          <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-xs font-bold uppercase text-muted-foreground">
             <span>#</span>
             <span>Squadra</span>
             <span className="text-center">G</span>
@@ -141,7 +141,7 @@ function Classifica() {
                         {m.casa ? "CRAP Volley" : m.avversario} vs{" "}
                         {m.casa ? m.avversario : "CRAP Volley"}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {formatData(m.data)} · MVP {m.mvp || "da votare"}
                         {m.scout ? " · scoutata" : ""}
                       </p>
@@ -162,7 +162,7 @@ function Classifica() {
                       <span
                         key={i}
                         className={cn(
-                          "rounded-lg px-2 py-1 text-[11px] font-semibold tabular-nums",
+                          "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
                           p[0] > p[1] ? "bg-secondary" : "bg-muted text-muted-foreground",
                         )}
                       >
@@ -170,7 +170,7 @@ function Classifica() {
                       </span>
                     ))}
                     {eventoId && !m.mvp ? (
-                      <span className="ml-auto inline-flex items-center gap-0.5 text-[11px] font-bold uppercase text-accent">
+                      <span className="ml-auto inline-flex items-center gap-0.5 text-xs font-bold uppercase text-accent">
                         Vota MVP <ChevronRight className="h-3.5 w-3.5" />
                       </span>
                     ) : null}

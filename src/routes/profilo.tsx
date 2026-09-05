@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section, SezioneTendina, StatTile } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, Section, SezioneTendina, StatTile } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import {
   caricaAvatar,
@@ -97,15 +97,12 @@ function Profilo() {
     }
   }
 
-  const percPresenze = g.totaliEventi
-    ? Math.round((g.presenze / g.totaliEventi) * 100)
-    : 0;
+  const percPresenze = g.totaliEventi ? Math.round((g.presenze / g.totaliEventi) * 100) : 0;
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !g) return;
-    if (!confirm("Aggiornare l'immagine profilo?")) return;
     try {
       await caricaAvatar(g.id, file);
       setBust(Date.now());
@@ -121,7 +118,7 @@ function Profilo() {
       <PageHeader titolo={g.nome} sottotitolo={`#${g.numero} · ${g.ruolo}`} />
 
       <Reveal className="-mt-6 px-5">
-        <div className="premi rounded-3xl bg-card p-4 shadow-card">
+        <Card>
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" bust={bust} />
@@ -135,7 +132,7 @@ function Profilo() {
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-accent-grad text-accent-foreground shadow-pop"
+                className="absolute -bottom-1 -right-1 grid h-11 w-11 place-items-center rounded-full bg-accent-grad text-accent-foreground shadow-pop"
                 aria-label="Cambia foto"
               >
                 <Camera className="h-4 w-4" />
@@ -146,7 +143,7 @@ function Profilo() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="flex-1 rounded-xl bg-secondary px-3 py-2 text-xs font-bold uppercase tracking-wide"
+              className="premi min-h-11 flex-1 rounded-xl bg-secondary px-3 text-xs font-bold uppercase tracking-wide"
             >
               Cambia immagine profilo
             </button>
@@ -164,14 +161,14 @@ function Profilo() {
                     toast.error("Non sono riuscito a rimuovere l'immagine");
                   }
                 }}
-                className="grid h-9 w-9 place-items-center rounded-xl bg-secondary text-muted-foreground"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
                 aria-label="Rimuovi immagine"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             ) : null}
           </div>
-        </div>
+        </Card>
       </Reveal>
 
       <Section titolo="Stagione" indice={1}>
@@ -213,11 +210,11 @@ function Profilo() {
             type="button"
             onClick={cambiaNotifiche}
             disabled={!supportate || inCorso}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
           >
             <span className="min-w-0">
               <span className="block truncate">Notifiche turno palloni</span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="block text-xs text-muted-foreground">
                 {supportate
                   ? notifiche
                     ? "Attive su questo dispositivo"
@@ -236,21 +233,10 @@ function Profilo() {
               <Bell className="h-4 w-4" />
             </span>
           </button>
-          {[
-            "Notifiche convocazioni",
-            "Promemoria allenamenti",
-            "Cambi orario",
-            "Bacheca squadra",
-          ].map((v) => (
-            <label key={v} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-              <span className="min-w-0 truncate">{v}</span>
-              <input type="checkbox" defaultChecked className="h-5 w-9 accent-[var(--accent)]" />
-            </label>
-          ))}
           {admin ? (
             <Link
               to="/admin"
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+              className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
             >
               <span className="min-w-0 truncate">Dashboard amministratore</span>
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
@@ -260,7 +246,7 @@ function Profilo() {
             href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
           >
             <span className="min-w-0 truncate">Segnala un bug</span>
             <Bug className="h-4 w-4 text-muted-foreground" />
@@ -269,7 +255,7 @@ function Profilo() {
             href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
           >
             <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
@@ -277,7 +263,7 @@ function Profilo() {
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
           >
             <span className="min-w-0 truncate">Esci</span>
             <LogOut className="h-4 w-4 text-muted-foreground" />

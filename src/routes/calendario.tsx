@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { molla, proietta } from "@/lib/molla";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
@@ -55,8 +57,12 @@ function useMeseNav(initial?: { anno: number; mese: number }) {
   const oggi = new Date();
   const [anno, setAnno] = useState(initial?.anno ?? oggi.getFullYear());
   const [mese, setMese] = useState(initial?.mese ?? oggi.getMonth());
+  // Serve a far entrare e uscire la griglia dallo stesso lato del gesto:
+  // se un mese esce a sinistra, il precedente deve rientrare da sinistra.
+  const [direzione, setDirezione] = useState(0);
 
   const precedente = () => {
+    setDirezione(-1);
     if (mese === 0) {
       setMese(11);
       setAnno((a) => a - 1);
@@ -66,6 +72,7 @@ function useMeseNav(initial?: { anno: number; mese: number }) {
   };
 
   const successivo = () => {
+    setDirezione(1);
     if (mese === 11) {
       setMese(0);
       setAnno((a) => a + 1);
@@ -74,7 +81,7 @@ function useMeseNav(initial?: { anno: number; mese: number }) {
     }
   };
 
-  return { anno, mese, precedente, successivo };
+  return { anno, mese, direzione, precedente, successivo };
 }
 
 function giorniDelMese(anno: number, mese: number) {
@@ -102,7 +109,8 @@ function Calendario() {
   const admin = useIsAdmin();
   const { eventi } = useEventi();
   const rosa = useRosa();
-  const { anno, mese, precedente, successivo } = useMeseNav();
+  const ridotto = useReducedMotion();
+  const { anno, mese, direzione, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
   const mesePrefix = `${anno}-${pad2(mese + 1)}`;
 
@@ -129,12 +137,8 @@ function Calendario() {
     : [];
 
   // Prossimi 4 eventi da oggi in avanti (indipendenti dal mese selezionato nella griglia).
-  const oggiIso = oggi
-    ? `${oggi.anno}-${pad2(oggi.mese + 1)}-${pad2(oggi.giorno)}`
-    : null;
-  const prossimiEventi = oggiIso
-    ? eventi.filter((e) => e.data >= oggiIso).slice(0, 4)
-    : [];
+  const oggiIso = oggi ? `${oggi.anno}-${pad2(oggi.mese + 1)}-${pad2(oggi.giorno)}` : null;
+  const prossimiEventi = oggiIso ? eventi.filter((e) => e.data >= oggiIso).slice(0, 4) : [];
 
   return (
     <>
@@ -147,8 +151,9 @@ function Calendario() {
               key={v}
               type="button"
               onClick={() => setVista(v)}
+              aria-pressed={vista === v}
               className={cn(
-                "flex-1 rounded-full py-2 text-xs font-bold uppercase tracking-wide transition-colors",
+                "min-h-11 flex-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors",
                 vista === v ? "bg-card shadow-card text-foreground" : "text-muted-foreground",
               )}
             >
@@ -160,91 +165,127 @@ function Calendario() {
 
       {vista === "mese" ? (
         <Section titolo={mesiIT[mese]!}>
-          <div className="rounded-3xl bg-card p-4 shadow-card">
+          <Card>
             <div className="mb-3 flex items-center justify-between">
               <button
                 type="button"
                 onClick={precedente}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+                className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
                 aria-label="Mese precedente"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="font-display text-xl uppercase tracking-wide">
+              <span className="font-display-sm text-xl uppercase">
                 {mesiIT[mese]} {anno}
               </span>
               <button
                 type="button"
                 onClick={successivo}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+                className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
                 aria-label="Mese successivo"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-muted-foreground">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
               {giorniIT.map((g, i) => (
                 <span key={i}>{g}</span>
               ))}
             </div>
-            <div className="mt-2 grid grid-cols-7 gap-1">
-              {Array.from({ length: offsetLunedi }).map((_, i) => (
-                <span key={`v${i}`} />
-              ))}
-              {Array.from({ length: giorni }).map((_, i) => {
-                const giorno = i + 1;
-                const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
-                const haEventi = eventiGiorno.length > 0;
-                const tipiGiorno = Array.from(new Set(eventiGiorno.map((e) => e.tipo)));
-                const coloreTipo: Record<Evento["tipo"], string> = {
-                  partita: "var(--accent)",
-                  allenamento: "var(--training)",
-                  evento: "var(--warning)",
-                  compleanno: "var(--success)",
-                };
-                const sfondo =
-                  tipiGiorno.length > 1
-                    ? `linear-gradient(135deg, ${tipiGiorno
-                        .map((t, idx) => {
-                          const da = (idx / tipiGiorno.length) * 100;
-                          const a = ((idx + 1) / tipiGiorno.length) * 100;
-                          return `${coloreTipo[t]} ${da}%, ${coloreTipo[t]} ${a}%`;
-                        })
-                        .join(", ")})`
-                    : undefined;
-                const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
-                const isOggi =
-                  !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
-                const Cella = haEventi ? "button" : "div";
-                return (
-                  <Cella
-                    key={giorno}
-                    type={haEventi ? "button" : undefined}
-                    onClick={haEventi ? () => apriGiorno(giorno) : undefined}
-                    style={sfondo ? { backgroundImage: sfondo } : undefined}
-                    className={cn(
-                      "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
-                      tipo === "partita" && "bg-accent text-accent-foreground",
-                      tipo === "allenamento" && "bg-training text-training-foreground",
-                      tipo === "evento" && "bg-warning text-warning-foreground",
-                      tipo === "compleanno" && "bg-success text-success-foreground",
-                      !tipo && !haEventi && "text-muted-foreground",
-                      !tipo && haEventi && "text-foreground",
-                      haEventi && "cursor-pointer transition-transform active:scale-90",
-                      isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
-                    )}
-                    aria-label={haEventi ? `Eventi del ${giorno}` : undefined}
-                    aria-current={isOggi ? "date" : undefined}
-                  >
-                    <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      {giorno}
-                    </span>
-                  </Cella>
-                );
-              })}
+            {/*
+              Il mese si cambia anche con lo swipe: il punto d'arrivo si
+              decide proiettando la velocità di rilascio (come la
+              decelerazione dello scroll iOS), non dalla posizione del dito.
+              `dragElastic` dà la resistenza progressiva al bordo invece di
+              uno stop netto.
+            */}
+            <div className="relative mt-2 overflow-hidden">
+              <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
+                <motion.div
+                  key={mesePrefix}
+                  custom={direzione}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.18}
+                  dragMomentum={false}
+                  onDragEnd={(_, info) => {
+                    const arrivo = info.offset.x + proietta(info.velocity.x);
+                    if (arrivo < -60) successivo();
+                    else if (arrivo > 60) precedente();
+                  }}
+                  initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * 48 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * -48 }}
+                  transition={ridotto ? { duration: 0.2 } : molla.foglio}
+                  className="grid touch-pan-y grid-cols-7 gap-1"
+                >
+                  {Array.from({ length: offsetLunedi }).map((_, i) => (
+                    <span key={`v${i}`} />
+                  ))}
+                  {Array.from({ length: giorni }).map((_, i) => {
+                    const giorno = i + 1;
+                    const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
+                    const haEventi = eventiGiorno.length > 0;
+                    const tipiGiorno = Array.from(new Set(eventiGiorno.map((e) => e.tipo)));
+                    // Un solo tipo: cella piena, il colore è l'informazione.
+                    // Più tipi: fondo neutro e un puntino per tipo. Prima si
+                    // generava un gradiente a fette, che rendeva il numero
+                    // illeggibile e costringeva a un'ombra bianca di ripiego.
+                    const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
+                    const isOggi =
+                      !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+                    const Cella = haEventi ? "button" : "div";
+                    return (
+                      <Cella
+                        key={giorno}
+                        type={haEventi ? "button" : undefined}
+                        onClick={haEventi ? () => apriGiorno(giorno) : undefined}
+                        className={cn(
+                          "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
+                          tipo === "partita" && "bg-accent text-accent-foreground",
+                          tipo === "allenamento" && "bg-training text-training-foreground",
+                          tipo === "evento" && "bg-warning text-warning-foreground",
+                          tipo === "compleanno" && "bg-success text-success-foreground",
+                          !tipo && !haEventi && "text-muted-foreground",
+                          !tipo && haEventi && "bg-secondary text-foreground",
+                          haEventi && "cursor-pointer transition-transform active:scale-90",
+                          isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                        )}
+                        aria-label={
+                          haEventi
+                            ? `${giorno} ${mesiIT[mese]}: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}`
+                            : undefined
+                        }
+                        aria-current={isOggi ? "date" : undefined}
+                      >
+                        <span>{giorno}</span>
+                        {tipiGiorno.length > 1 ? (
+                          <span aria-hidden="true" className="absolute bottom-1 flex gap-0.5">
+                            {tipiGiorno.slice(0, 3).map((t) => (
+                              <i
+                                key={t}
+                                className={cn(
+                                  "h-1 w-1 rounded-full",
+                                  t === "partita" && "bg-accent",
+                                  t === "allenamento" && "bg-training",
+                                  t === "evento" && "bg-warning",
+                                  t === "compleanno" && "bg-success",
+                                )}
+                              />
+                            ))}
+                          </span>
+                        ) : null}
+                      </Cella>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <div className="mt-4 flex flex-wrap gap-3 text-[11px] font-semibold text-muted-foreground">
+            <p className="mt-3 text-xs text-muted-foreground">
+              Scorri a destra o sinistra per cambiare mese.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <i className="h-2.5 w-2.5 rounded-full bg-accent" /> Partita
               </span>
@@ -258,7 +299,7 @@ function Calendario() {
                 <i className="h-2.5 w-2.5 rounded-full bg-success" /> Compleanni
               </span>
             </div>
-          </div>
+          </Card>
         </Section>
       ) : null}
 
@@ -303,10 +344,10 @@ function Calendario() {
       <Drawer open={drawerAperto} onOpenChange={setDrawerAperto}>
         <DrawerContent className="rounded-t-[24px] border-border bg-background px-4 pb-6 pt-2">
           <DrawerHeader className="relative px-0 pb-2 text-left">
-            <DrawerTitle className="font-display text-2xl uppercase tracking-wide">
+            <DrawerTitle className="font-display-lg text-2xl uppercase">
               {giornoSelezionato ? `${giornoSelezionato} ${mesiIT[mese]}` : "Eventi"}
             </DrawerTitle>
-            <DrawerClose className="absolute right-0 top-1 grid h-8 w-8 place-items-center rounded-full bg-secondary text-foreground transition-transform active:scale-90">
+            <DrawerClose className="absolute right-0 top-0 grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground transition-transform active:scale-90">
               <X className="h-4 w-4" />
               <span className="sr-only">Chiudi</span>
             </DrawerClose>

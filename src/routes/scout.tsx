@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Undo2, Save, CheckCircle2, Radio, Lock, CalendarX2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
@@ -322,7 +323,7 @@ function ScoutBoard({
     <>
       <header className="sticky top-0 z-30 bg-hero px-5 pb-4 pt-6 text-primary-foreground">
         <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide">
             <Radio className="h-3 w-3 text-accent" /> Scout live · Set {setCorrente}
           </span>
           <div className="flex items-center gap-2">
@@ -346,14 +347,14 @@ function ScoutBoard({
 
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
           <div className="min-w-0">
-            <p className="truncate text-[11px] uppercase text-primary-foreground/60">CRAP Volley</p>
+            <p className="truncate text-xs uppercase text-primary-foreground/60">CRAP Volley</p>
             <p className="font-display text-5xl leading-none text-accent">{puntiNoi}</p>
           </div>
           <p className="font-display text-2xl leading-none text-primary-foreground/50">
             {setNostri}-{setLoro}
           </p>
           <div className="min-w-0">
-            <p className="truncate text-[11px] uppercase text-primary-foreground/60">
+            <p className="truncate text-xs uppercase text-primary-foreground/60">
               {avversario || "Avversario"}
             </p>
             <p className="font-display text-5xl leading-none">{puntiLoro}</p>
@@ -365,7 +366,7 @@ function ScoutBoard({
             {setChiusi.map((p, i) => (
               <span
                 key={i}
-                className="rounded-lg bg-primary-foreground/10 px-2 py-0.5 text-[11px] font-semibold tabular-nums"
+                className="rounded-lg bg-primary-foreground/10 px-2 py-0.5 text-xs font-semibold tabular-nums"
               >
                 {p[0]}-{p[1]}
               </span>
@@ -375,7 +376,7 @@ function ScoutBoard({
       </header>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           1. Tocca il giocatore
         </p>
         <div className="grid grid-cols-4 gap-2">
@@ -393,10 +394,10 @@ function ScoutBoard({
                 )}
               >
                 <p className="font-display text-2xl leading-none">{g.numero}</p>
-                <p className="mt-1 text-[10px] font-bold leading-tight">{g.nome}</p>
+                <p className="mt-1 text-xs font-bold leading-tight">{g.nome}</p>
                 <p
                   className={cn(
-                    "text-[10px] tabular-nums",
+                    "text-xs tabular-nums",
                     attivo ? "text-accent-foreground/70" : "text-muted-foreground",
                   )}
                 >
@@ -409,7 +410,7 @@ function ScoutBoard({
       </section>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           2. Tocca l'azione
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -447,7 +448,7 @@ function ScoutBoard({
 
       <section className="px-5 pt-4">
         <div className="rounded-3xl bg-card p-3 shadow-card">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Ultime azioni
           </p>
           {ultime.length === 0 ? (
@@ -467,7 +468,7 @@ function ScoutBoard({
                     <span className="truncate">{g ? `#${g.numero} ${g.nome}` : "Avversario"}</span>
                     <span
                       className={cn(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                        "shrink-0 rounded-full px-2 py-0.5 text-xs font-bold uppercase",
                         azioniMeta[a.tipo].className,
                       )}
                     >
@@ -482,8 +483,8 @@ function ScoutBoard({
       </section>
 
       <section className="px-5 pt-4">
-        <div className="rounded-3xl bg-card p-4 shadow-card">
-          <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <Card>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Avversario
           </label>
           <input
@@ -507,7 +508,7 @@ function ScoutBoard({
               </button>
             ))}
           </div>
-        </div>
+        </Card>
       </section>
 
       <section className="grid grid-cols-2 gap-2 px-5 pb-4 pt-4">

@@ -90,7 +90,7 @@ function messaggioErrore(e: unknown, fallback: string): string {
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <span className="mt-1 block">{children}</span>
@@ -375,7 +375,7 @@ function Documento({
       onClick={scarica}
       disabled={!path || inCorso}
       className={cn(
-        "premi flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase disabled:opacity-60",
+        "premi flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase disabled:opacity-60",
         statoClasse[stato],
       )}
     >
@@ -464,7 +464,7 @@ function SchedaGiocatore({
         />
         <span
           className={cn(
-            "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase",
+            "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
             statoClasse[g.numeroTessera ? "presente" : "assente"],
           )}
         >
