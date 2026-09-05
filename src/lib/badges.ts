@@ -19,10 +19,25 @@ export type Grado = "bronzo" | "argento" | "oro";
 
 export const gradiOrdine: Grado[] = ["bronzo", "argento", "oro"];
 
+/**
+ * `text` usa i token `-testo` (varianti scurite): l'oro e l'argento chiari
+ * stanno sotto 2.5:1 su bianco e come colore di testo sono illeggibili.
+ * Le versioni chiare restano su sfondi e bordi, dove il contrasto non conta.
+ */
 export const gradoMeta: Record<Grado, { label: string; text: string; bg: string; ring: string }> = {
-  bronzo: { label: "Bronzo", text: "text-bronzo", bg: "bg-bronzo/15", ring: "ring-bronzo/40" },
-  argento: { label: "Argento", text: "text-argento", bg: "bg-argento/20", ring: "ring-argento/50" },
-  oro: { label: "Oro", text: "text-oro", bg: "bg-oro/20", ring: "ring-oro/50" },
+  bronzo: {
+    label: "Bronzo",
+    text: "text-bronzo-testo",
+    bg: "bg-bronzo/15",
+    ring: "ring-bronzo/40",
+  },
+  argento: {
+    label: "Argento",
+    text: "text-argento-testo",
+    bg: "bg-argento/20",
+    ring: "ring-argento/50",
+  },
+  oro: { label: "Oro", text: "text-oro-testo", bg: "bg-oro/20", ring: "ring-oro/50" },
 };
 
 export type BadgeDef = {

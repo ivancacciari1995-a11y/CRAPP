@@ -1,8 +1,5 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-display: "Bebas Neue", ui-sans-serif, sans-serif;
@@ -10,17 +7,26 @@
 }
 
 /*
- * Design system definition.
+ * Definizione del design system.
  *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
+ * Il blocco @theme inline mappa le custom property sulle utility Tailwind
+ * (es. --color-primary -> bg-primary, text-primary).
  *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
+ * Il blocco :root definisce i valori reali in oklch. Tutti i colori DEVONO
+ * essere in oklch.
  *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * L'app è solo chiara (DD: niente tema scuro finché non è completo per tutti
+ * i token, gradienti e ombre comprese): `color-scheme: light` lo dichiara al
+ * browser così form e scrollbar native restano coerenti.
+ *
+ * Per aggiungere un colore semantico:
+ * 1. Aggiungi la variabile in :root
+ * 2. Registrala in @theme inline come --color-<nome>: var(--<nome>)
+ *
+ * Contrasto: i token con suffisso `-testo` sono le varianti scurite da usare
+ * come colore del testo; quelli senza suffisso servono per sfondi e bordi.
+ * Non usare `text-oro`/`text-argento`/`text-bronzo`: hanno meno di 3:1 su
+ * bianco. Vedi `gradoMeta` in lib/badges.ts.
  */
 
 @theme inline {
@@ -51,22 +57,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
+  color-scheme: light;
   --radius: 1rem;
   --background: oklch(0.985 0.002 240);
   --foreground: oklch(0.16 0.01 260);
@@ -87,17 +81,23 @@
   --border: oklch(0.915 0.006 255);
   --input: oklch(0.915 0.006 255);
   --ring: oklch(0.58 0.22 27);
-  --success: oklch(0.62 0.16 152);
+  /* Luminosità scelte perché il testo bianco sopra superi 4.5:1 (WCAG AA). */
+  --success: oklch(0.53 0.16 152);
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.78 0.15 78);
   --warning-foreground: oklch(0.18 0.02 60);
-  --info: oklch(0.6 0.13 245);
+  --info: oklch(0.54 0.13 245);
   --info-foreground: oklch(0.99 0 0);
-  --training: oklch(0.62 0.2 245);
+  --training: oklch(0.53 0.2 245);
   --training-foreground: oklch(0.99 0 0);
+  /* Metalli: la variante chiara va su sfondi e bordi, la `-testo` sul testo
+     (la chiara sta sotto 2.5:1 su bianco ed è illeggibile). */
   --bronzo: oklch(0.62 0.11 55);
   --argento: oklch(0.72 0.02 260);
   --oro: oklch(0.8 0.15 85);
+  --bronzo-testo: oklch(0.55 0.11 55);
+  --argento-testo: oklch(0.54 0.02 260);
+  --oro-testo: oklch(0.55 0.15 85);
   --gradient-hero: linear-gradient(
     140deg,
     oklch(0.18 0.012 265),
@@ -107,19 +107,6 @@
   --gradient-accent: linear-gradient(120deg, oklch(0.58 0.22 27), oklch(0.68 0.19 40));
   --shadow-card: 0 1px 2px oklch(0.16 0.01 260 / 6%), 0 12px 28px -18px oklch(0.16 0.01 260 / 35%);
   --shadow-pop: 0 18px 40px -20px oklch(0.58 0.22 27 / 55%);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
 @theme inline {
@@ -137,6 +124,9 @@
   --color-bronzo: var(--bronzo);
   --color-argento: var(--argento);
   --color-oro: var(--oro);
+  --color-bronzo-testo: var(--bronzo-testo);
+  --color-argento-testo: var(--argento-testo);
+  --color-oro-testo: var(--oro-testo);
 }
 
 @utility bg-hero {
@@ -155,9 +145,25 @@
   box-shadow: var(--shadow-pop);
 }
 
+/*
+ * Il tracking del display è specifico per taglia: Bebas Neue a corpo grande
+ * legge troppo spaziato (serve tracking negativo), a corpo piccolo troppo
+ * stretto (serve positivo). Un solo valore sarebbe sbagliato da qualche parte.
+ * `font-display-lg` da text-3xl in su, `font-display-sm` sotto text-xl.
+ */
 @utility font-display {
   font-family: var(--font-display);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+}
+
+@utility font-display-lg {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+@utility font-display-sm {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
 }
 
 /* --- Micro-animazioni (solo CSS standard, nessuna dipendenza esterna) --- */
@@ -258,10 +264,6 @@
   border-radius: 0.5rem;
 }
 
-@utility anim-barra {
-  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* Feedback al tocco sulle card interattive (+ hover leggero su desktop). */
 @utility premi {
   transition:
@@ -280,49 +282,98 @@
   }
 }
 
+/*
+ * Meno movimento non vuol dire nessun feedback: si tolgono spostamenti,
+ * rimbalzi e ripetizioni, si tiene una dissolvenza breve che continua a
+ * spiegare cosa è cambiato.
+ */
+@keyframes crapp-dissolvenza {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .anim-reveal,
+  .anim-pop,
+  .anim-riga {
+    animation: crapp-dissolvenza 200ms ease-out both !important;
+  }
+
+  .premi {
+    transition: opacity 120ms ease-out !important;
+  }
+
+  .premi:active {
+    transform: none;
+    opacity: 0.72;
+  }
+
+  .premi:hover {
+    transform: none;
   }
 }
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+/* Superfici traslucide: se l'utente chiede meno trasparenza diventano piene. */
+@media (prefers-reduced-transparency: reduce) {
+  .materiale {
+    background-color: var(--color-card);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .materiale {
+    background-color: var(--color-card);
+    backdrop-filter: none;
+    border-color: var(--color-foreground);
+  }
+}
+
+/*
+ * Chrome flottante in stile Apple: la barra è un materiale traslucido sotto
+ * cui il contenuto scorre, con una sfumatura al bordo al posto della linea
+ * netta (scroll edge effect).
+ */
+@utility materiale {
+  background-color: color-mix(in oklab, var(--color-card) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+@utility bordo-sfumato {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-background) 85%, transparent),
+      transparent
+    );
+  }
+}
+
+/* Focus da tastiera sempre visibile: nessun controllo custom lo definiva. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
 }
 
 @layer base {
@@ -334,6 +385,10 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    line-height: 1.5;
+    font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
+    /* Niente pull-to-refresh accidentale né rimbalzo che scopre il fondo. */
+    overscroll-behavior-y: contain;
   }
 }
