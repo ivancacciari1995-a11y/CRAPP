@@ -358,10 +358,24 @@
  * cui il contenuto scorre, con una sfumatura al bordo al posto della linea
  * netta (scroll edge effect).
  */
+/*
+ * Il materiale deve reggersi sul colore, non sul blur.
+ *
+ * Con un fondo poco denso (era 72%) l'aspetto dipendeva quasi tutto da
+ * `backdrop-filter`, ed è lì che i due motori divergono: WebKit sfoca in modo
+ * molto più denso e "latteo" di Blink, e `saturate` amplifica lo scarto. Il
+ * risultato era una barra che su Safari sembrava piena e su Chrome Android
+ * trasparente, a parità di CSS. A 85% il colore fa il lavoro e il blur è la
+ * rifinitura: resta la profondità, sparisce quasi tutta la differenza.
+ *
+ * `in srgb` e non `in oklab`: mescolare con `transparent` — che è nero con
+ * alpha 0 — dipende da come il motore premoltiplica, e in srgb è implementato
+ * in modo molto più uniforme.
+ */
 @utility materiale {
-  background-color: color-mix(in oklab, var(--color-card) 72%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background-color: color-mix(in srgb, var(--color-card) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
 
 /*
