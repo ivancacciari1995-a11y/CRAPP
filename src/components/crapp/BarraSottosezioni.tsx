@@ -80,7 +80,9 @@ export function BarraSottosezioni({
                   vaiA(i);
                 }}
                 className={cn(
-                  "snap-center shrink-0 rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition-colors",
+                  // grow+basis-0: se le voci ci stanno riempiono la riga in parti uguali,
+                  // altrimenti shrink-0 le tiene leggibili e la barra torna a scorrere.
+                  "snap-center shrink-0 grow basis-0 rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition-colors",
                   "min-h-11 touch-manipulation whitespace-nowrap",
                   selezionata
                     ? "bg-accent text-accent-foreground shadow-pop"

@@ -67,7 +67,7 @@ Viene mostrata una barra di avanzamento (esempio: _Profilo completato — 85%_),
 
 Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
-Il tap apre Profilo sulla sottosezione **Tesseramento** (`/profilo?tab=tesseramento`), non
+Il tap apre Profilo sulla sottosezione **Documenti** (`/profilo?tab=documenti`), non
 sulla tab Stagione.
 
 ## Profilo
@@ -142,7 +142,7 @@ Sezione già presente.
 
 Contiene tutti i badge ottenuti e quelli ancora da sbloccare.
 
-### Impostazioni
+### Opzioni
 
 Contiene.
 
@@ -159,7 +159,7 @@ Contiene.
 ## Dashboard amministratore
 
 Gli amministratori dispongono di una schermata dedicata (`/admin`, raggiungibile da
-Profilo → Impostazioni).
+Profilo → Opzioni).
 
 Per ogni giocatore vengono mostrati.
 

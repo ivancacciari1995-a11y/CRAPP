@@ -6,6 +6,16 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Profilo: tab Documenti e Opzioni, barra senza scroll
+
+- L'etichetta nominava lo scopo (il tesseramento CSI) invece del contenuto: dentro ci sono
+  dati personali, documento, certificato medico e foto tessera. Cambia anche la rotta
+  (`/profilo?tab=documenti`): i vecchi link `?tab=tesseramento` aprono la tab Stagione.
+- «Impostazioni» diventa «Opzioni»: con le quattro etichette accorciate la barra delle
+  sottosezioni ci sta in uno schermo da telefono. Le voci ora si dividono la riga in parti
+  uguali (`grow basis-0`) e tornano a scorrere solo se non ci stanno, quindi vale anche per
+  le barre di Squadra e Classifica.
+
 ### Palloni: allenamenti senza proposta automatica
 
 - `completaTurni` non assegna più gli allenamenti: restano «da assegnare» finché non si

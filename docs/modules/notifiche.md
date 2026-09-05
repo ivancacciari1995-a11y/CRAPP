@@ -29,7 +29,7 @@ persistente: la riga viene eliminata non appena letta dal service worker).
 
 ## Iscrizione alle notifiche push
 
-In Profilo → Impostazioni c’è **un solo interruttore** («Notifiche»). Non esistono preferenze
+In Profilo → Opzioni c’è **un solo interruttore** («Notifiche»). Non esistono preferenze
 separate per tipo di messaggio: l’iscrizione registra il dispositivo e lo rende destinatario
 di **tutte** le push (promemoria palloni, solleciti presenze) e abilita anche le notifiche
 smart in app, che usano lo stesso service worker.

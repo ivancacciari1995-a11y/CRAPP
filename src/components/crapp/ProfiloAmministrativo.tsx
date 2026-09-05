@@ -418,7 +418,7 @@ export function CompletaProfilo({
     <Reveal indice={indice} className="px-5 pt-4">
       <Link
         to="/profilo"
-        search={{ tab: "tesseramento" }}
+        search={{ tab: "documenti" }}
         className="premi block rounded-3xl bg-card p-4 shadow-card"
       >
         <div className="flex items-center justify-between gap-3">

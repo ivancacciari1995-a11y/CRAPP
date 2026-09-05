@@ -29,7 +29,7 @@ import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { Reveal } from "@/components/motion/Reveal";
 
-const TAB_PROFILO = ["stagione", "badge", "tesseramento", "impostazioni"] as const;
+const TAB_PROFILO = ["stagione", "badge", "documenti", "impostazioni"] as const;
 type TabProfilo = (typeof TAB_PROFILO)[number];
 
 function isTabProfilo(v: unknown): v is TabProfilo {
@@ -233,13 +233,13 @@ function Profilo() {
             contenuto: <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />,
           },
           {
-            id: "tesseramento",
-            label: "Tesseramento",
+            id: "documenti",
+            label: "Documenti",
             contenuto: <ProfiloAmministrativo giocatoreId={g.id} conTendina={false} />,
           },
           {
             id: "impostazioni",
-            label: "Impostazioni",
+            label: "Opzioni",
             contenuto: (
               <div className="space-y-3">
                 <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
