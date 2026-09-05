@@ -156,6 +156,27 @@ export function SezioneTendina({
   );
 }
 
+/** Classi condivise di input, select e textarea nei form dell'app. */
+export const classiInput =
+  "w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
+
+/**
+ * Etichetta + controllo di un form. `min-w-0`: dentro `grid-cols-2` questa label
+ * è l'elemento di griglia e ha `min-width: auto`, quindi si allarga fino al
+ * contenuto invece di stare nella colonna. Con un controllo nativo largo dentro
+ * (una data o un'ora su iOS) la coppia sfonda la card.
+ */
+export function Campo({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block min-w-0">
+      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="mt-1 block">{children}</span>
+    </label>
+  );
+}
+
 export function StatoBadge({ stato, className }: { stato: Stato; className?: string }) {
   const meta = statoMeta[stato];
   return (

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
+import { Campo, classiInput, PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
 import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import {
   nomeCompleto,
@@ -76,8 +76,6 @@ const statoClasse: Record<StatoScadenza | "presente" | "assente", string> = {
   assente: "bg-secondary text-muted-foreground",
 };
 
-const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
-
 /** L'unico vincolo unique lato database sulla tabella è l'email: messaggio leggibile invece
  * del codice Postgres (23505). */
 function messaggioErrore(e: unknown, fallback: string): string {
@@ -85,17 +83,6 @@ function messaggioErrore(e: unknown, fallback: string): string {
     return "Email già usata da un altro giocatore.";
   }
   return e instanceof Error ? e.message : fallback;
-}
-
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="mt-1 block">{children}</span>
-    </label>
-  );
 }
 
 /**

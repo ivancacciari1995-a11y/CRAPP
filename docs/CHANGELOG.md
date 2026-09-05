@@ -6,6 +6,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Form eventi: data e ora non sfondano più la card su iOS
+
+- Lo stesso difetto già corretto sul tesseramento: `Campo` e le classi degli input erano
+  ricopiati identici in tre file, quindi il `min-w-0` aggiunto in `ProfiloAmministrativo`
+  non arrivava né al form «Nuovo evento» né alla dashboard admin. Ora `Campo` e
+  `classiInput` stanno una volta sola in `ui-bits`.
+- La regola CSS che rende ridimensionabili i controlli nativi copre anche
+  `input[type="time"]`, che nel form eventi sta affiancato alla data in `grid-cols-2`.
+
 ### Profilo: tab Documenti e Opzioni, barra senza scroll
 
 - L'etichetta nominava lo scopo (il tesseramento CSI) invece del contenuto: dentro ci sono

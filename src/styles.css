@@ -126,7 +126,7 @@
   --ring: oklch(0.35 0.03 265);
   /* Luminosità scelte perché il testo bianco sopra superi 4.5:1 (WCAG AA). */
   /* Compleanni / successi: verde un po' più chiaro e saturo. */
-  --success: oklch(0.60 0.17 152);
+  --success: oklch(0.6 0.17 152);
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.78 0.15 78);
   --warning-foreground: oklch(0.18 0.02 60);
@@ -528,15 +528,16 @@
 }
 
 /*
- * Su iOS `input[type="date"]` è un controllo nativo con una larghezza
- * intrinseca (lo spazio di «gg/mm/aaaa») che `width: 100%` non riesce a far
- * scendere: dentro `grid-cols-2` due date affiancate sfondano la card, e
- * l'`overflow-hidden` del pannello a tab taglia via quello che esce.
- * `appearance: none` è quello che rende il campo davvero ridimensionabile;
- * bordo, sfondo e padding li mette già la classe condivisa.
+ * Su iOS `input[type="date"]` e `input[type="time"]` sono controlli nativi con
+ * una larghezza intrinseca (lo spazio di «gg/mm/aaaa», «--:--») che
+ * `width: 100%` non riesce a far scendere: dentro `grid-cols-2` due campi
+ * affiancati sfondano la card, e l'`overflow-hidden` del pannello a tab taglia
+ * via quello che esce. `appearance: none` è quello che rende il campo davvero
+ * ridimensionabile; bordo, sfondo e padding li mette già la classe condivisa.
  */
 @layer base {
-  input[type="date"] {
+  input[type="date"],
+  input[type="time"] {
     min-width: 0;
     appearance: none;
     -webkit-appearance: none;

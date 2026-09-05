@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Eye, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { SezioneTendina } from "@/components/crapp/ui-bits";
+import { Campo, classiInput, SezioneTendina } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import {
   caricaFile,
@@ -21,26 +21,6 @@ import {
 } from "@/lib/profili-core";
 
 const TIPI_DOCUMENTO = ["Carta d'identità", "Patente", "Passaporto"];
-
-const classiInput =
-  "w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
-
-/**
- * `min-w-0`: dentro `grid-cols-2` questa label è l'elemento di griglia e ha
- * `min-width: auto`, quindi si allarga fino al contenuto invece di stare nella
- * colonna. Con un controllo nativo largo dentro (una data su iOS) la coppia
- * sfonda la card.
- */
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block min-w-0">
-      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="mt-1 block">{children}</span>
-    </label>
-  );
-}
 
 function Intestazione({ titolo, completa }: { titolo: string; completa: boolean }) {
   return (

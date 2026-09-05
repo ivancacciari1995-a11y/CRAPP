@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
@@ -151,7 +151,7 @@ function GestioneEventi() {
                 maxLength={80}
                 onChange={(e) => aggiorna({ titolo: e.target.value })}
                 placeholder="Es. CRAP Volley vs Aurora Nera"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -161,7 +161,7 @@ function GestioneEventi() {
                   type="date"
                   value={bozza.data}
                   onChange={(e) => aggiorna({ data: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  className={classiInput}
                 />
               </Campo>
               <Campo label="Ora">
@@ -169,7 +169,7 @@ function GestioneEventi() {
                   type="time"
                   value={bozza.ora}
                   onChange={(e) => aggiorna({ ora: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  className={classiInput}
                 />
               </Campo>
             </div>
@@ -179,7 +179,7 @@ function GestioneEventi() {
                 value={bozza.luogo}
                 maxLength={80}
                 onChange={(e) => aggiorna({ luogo: e.target.value })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -189,7 +189,7 @@ function GestioneEventi() {
                 maxLength={300}
                 rows={2}
                 onChange={(e) => aggiorna({ note: e.target.value })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -319,17 +319,6 @@ function GestioneEventi() {
         )}
       </Section>
     </>
-  );
-}
-
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="mt-1 block">{children}</span>
-    </label>
   );
 }
 
