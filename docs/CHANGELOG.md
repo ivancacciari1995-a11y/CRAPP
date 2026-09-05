@@ -6,6 +6,12 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Palloni: allenamenti senza proposta automatica
+
+- `completaTurni` non assegna più gli allenamenti: restano «da assegnare» finché non si
+  sceglie a mano. Le partite tengono la rotazione. Migration M10 cancella eventuali turni
+  salvati su allenamenti da oggi in poi.
+
 ### Profilo: etichetta notifiche allineata al comportamento
 
 - L’interruttore in Impostazioni non è più «Notifiche turno palloni»: iscrive il dispositivo

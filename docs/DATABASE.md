@@ -52,7 +52,7 @@ non in questo file.
 
 | Tabella              | Scopo                                         | Note |
 | -------------------- | --------------------------------------------- | ---- |
-| `turni_palloni`      | Gestione dei turni palloni.                   |      |
+| `turni_palloni`      | Gestione dei turni palloni.                   | Solo turni **confermati**. Gli allenamenti non ricevono proposta automatica (vedi [palloni.md](modules/palloni.md)); M10 azzera i turni salvati su allenamenti da oggi in poi. |
 | `push_subscriptions` | Dispositivi registrati per le notifiche Push. |      |
 | `promemoria_push`    | Storico dei promemoria inviati.               |      |
 

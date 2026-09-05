@@ -22,7 +22,7 @@ async function fetchTurni(): Promise<Record<string, string>> {
   return mappa;
 }
 
-/** Turni salvati + proposta automatica a rotazione per gli eventi non ancora assegnati. */
+/** Turni salvati + proposta automatica (solo partite/eventi) per i mancanti. */
 export function useTurniPalloni() {
   // Cambia raramente: una lettura per sessione è sufficiente.
   const query = useQuery({ queryKey: TURNI_KEY, queryFn: fetchTurni, staleTime: 30 * 60_000 });

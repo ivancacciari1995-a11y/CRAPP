@@ -60,25 +60,26 @@ assert.deepEqual(
   "il compleanno dello stesso giorno non richiede palloni",
 );
 
-// --- completaTurni: assegna i mancanti, rispetta quelli già decisi -----------
+// --- completaTurni: niente proposta sugli allenamenti; partite sì ------------
 const turni = completaTurni({ e2: "g5" }, eventi, rosa);
 assert.equal(turni["e2"], "g5", "il turno già assegnato non viene toccato");
-assert.equal(Object.keys(turni).length, 3, "tutti gli eventi hanno un incaricato");
-assert.ok(
-  giocatori.some((g) => g.id === turni["e1"]),
-  "assegna a un giocatore reale",
-);
-assert.notEqual(turni["e1"], turni["e3"], "non tocca due volte di fila alla stessa persona");
+assert.equal(turni["e1"], undefined, "allenamento senza salvataggio resta da assegnare");
+assert.equal(turni["e3"], undefined, "allenamento futuro resta da assegnare");
+assert.equal(Object.keys(turni).length, 1, "solo i turni salvati / partite proposte");
+
+const conAllenamentoSalvato = completaTurni({ e1: "g3", e2: "g5" }, eventi, rosa);
+assert.equal(conAllenamentoSalvato["e1"], "g3", "un allenamento salvato resta");
+assert.equal(conAllenamentoSalvato["e2"], "g5");
 
 const molti = Array.from({ length: giocatori.length + 2 }, (_, i) =>
-  evento(`x${i}`, `2026-10-${String(i + 1).padStart(2, "0")}`),
+  evento(`x${i}`, `2026-10-${String(i + 1).padStart(2, "0")}`, "partita"),
 );
 const rotazione = conteggioTurni(completaTurni({}, molti, rosa));
 const carichi = Object.values(rotazione);
 assert.equal(
   Math.max(...carichi) - Math.min(...carichi),
   1,
-  "su un giro completo il carico resta bilanciato",
+  "su un giro completo di partite il carico resta bilanciato",
 );
 assert.equal(
   Object.keys(rotazione).length,
@@ -86,10 +87,20 @@ assert.equal(
   "nessuno viene saltato prima che tutti abbiano fatto un turno",
 );
 
+const soloAllenamenti = Array.from({ length: 5 }, (_, i) =>
+  evento(`a${i}`, `2026-11-${String(i + 1).padStart(2, "0")}`),
+);
+assert.deepEqual(
+  completaTurni({}, soloAllenamenti, rosa),
+  {},
+  "solo allenamenti: nessuna proposta automatica",
+);
+
 // Un turno salvato per un giocatore non più in rosa non deve rompere il conteggio.
 const conFantasma = completaTurni({ e1: "gXX" }, eventi, rosa);
 assert.equal(conFantasma["e1"], "gXX", "il turno storico resta com'è");
-assert.equal(Object.keys(conFantasma).length, 3);
+assert.ok(conFantasma["e2"], "la partita riceve comunque una proposta");
+assert.equal(conFantasma["e3"], undefined, "l'allenamento senza salvataggio resta vuoto");
 
 // --- conteggioTurni ----------------------------------------------------------
 assert.deepEqual(conteggioTurni({ a: "g1", b: "g1", c: "g2" }), { g1: 2, g2: 1 });
