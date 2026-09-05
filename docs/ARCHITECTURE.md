@@ -5,12 +5,12 @@ riferimento tecnico — `CLAUDE.md` non ripete questi contenuti, li richiama.
 
 ## Stack
 
-| Livello       | Tecnologie                                                                            |
-| ------------- | ------------------------------------------------------------------------------------- |
-| Frontend      | React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, Radix UI / shadcn |
-| Backend       | Supabase (PostgreSQL, Auth, Storage)                                                  |
-| Hosting       | Vercel                                                                                |
-| Versionamento | Git, GitHub                                                                           |
+| Livello       | Tecnologie                                                                       |
+| ------------- | -------------------------------------------------------------------------------- |
+| Frontend      | React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, motion, vaul |
+| Backend       | Supabase (PostgreSQL, Auth, Storage)                                             |
+| Hosting       | Vercel                                                                           |
+| Versionamento | Git, GitHub                                                                      |
 
 Le dipendenze sono installate con **bun** (`bun.lock`, `bunfig.toml`). `bunfig.toml` impone
 `minimumReleaseAge = 24h` come guardia supply-chain: aggiungere un pacchetto a
@@ -24,7 +24,6 @@ src/
   routes/       routing file-based
   lib/          logica di dominio, un file per modulo
   integrations/ client Supabase e integrazioni esterne
-  hooks/
   assets/
 supabase/       migration SQL
 test/           suite di test (unit, integration, end-to-end)
@@ -84,9 +83,23 @@ quando il database non risponde.
 
 ## UI
 
-Componenti condivisi in `src/components/crapp/` (`ui-bits.tsx` per `PageHeader`, `Section`,
-`StatTile`), primitive shadcn in `src/components/ui/`, animazioni in
-`src/components/motion/`. Mobile-first (DD-005): poche schermate, pochi click.
+Componenti condivisi in `src/components/crapp/` (`ui-bits.tsx` per `Card`, `PageHeader`,
+`Section`, `StatTile`), animazioni in `src/components/motion/`. Mobile-first (DD-005): poche
+schermate, pochi click.
+
+In `src/components/ui/` restano solo le due primitive shadcn davvero usate, `drawer` (vaul) e
+`sonner`: le altre 43 non erano importate da nessuna parte (DD-021). Il resto dell'interfaccia
+è composto con Tailwind e la primitiva `Card`, che è l'unica definizione di raggio, sfondo e
+ombra delle superfici.
+
+L'app è **solo chiara** (DD-022): non esiste un tema scuro e `:root` dichiara
+`color-scheme: light`.
+
+Il movimento usa molle interrompibili di `motion` con i preset in `src/lib/molla.ts`
+(DD-021): `molla.ui` di default, `molla.slancio` solo dopo un gesto con inerzia,
+`molla.foglio` per drawer e cambi di vista. `proietta()` calcola dove finirebbe un elemento
+lanciato, così swipe come quello del calendario atterrano dove il gesto stava andando.
+`src/lib/motion.ts` conserva solo il rilevamento del movimento ridotto e i coriandoli.
 
 ## Comandi
 

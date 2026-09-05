@@ -6,6 +6,43 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Revisione dell'interfaccia: accessibilità, movimento, peso
+
+- **Contrasto**: `--success`, `--info` e `--training` erano tra 3.3:1 e 3.5:1 con il testo
+  bianco sopra (chip «Presente», «Allenamento», celle del calendario): ora sono sotto la
+  soglia di luminosità che garantisce 4.5:1. I gradi dei badge usavano `text-oro` e
+  `text-argento` su bianco, cioè 1.9:1 e 2.5:1 — praticamente invisibili: nascono i token
+  `--oro-testo`, `--argento-testo`, `--bronzo-testo` per il testo, mentre le versioni chiare
+  restano su sfondi e bordi.
+- **PWA**: mancava `viewport-fit=cover`, quindi `env(safe-area-inset-bottom)` valeva sempre 0
+  e su iPhone la BottomNav finiva sotto la home bar. `theme-color` e `background_color` erano
+  `#111111` su un'app chiara: barra di stato nera e splash nero prima di una UI bianca.
+- **`lang="it"`** al posto di `lang="en"`, su un'app interamente in italiano; 404 e schermata
+  d'errore tradotte; anteprima social ripulita dall'immagine Lovable scaduta e da
+  `twitter:site` che puntava a `@Lovable`.
+- **Tocco e tastiera**: nessun `:focus-visible` era definito (ora c'è una regola globale);
+  chip presenza, filtri e bottoni icona portati a 44px; `aria-current` sulla navigazione,
+  `aria-pressed` sui controlli a stato, `aria-controls` sulle sezioni a tendina, `aria-busy`
+  sui caricamenti. Il testo sotto i 12px è sparito (108 occorrenze).
+- **Movimento** (DD-021): molle interrompibili di `motion` al posto delle `@keyframes` a
+  durata fissa. `Reveal` compare quando entra davvero nel viewport (prima consumava
+  l'animazione a vuoto sotto la piega); `Barra` anima `scaleX` invece di `width`; `Numero`
+  cambia rotta se il dato cambia a metà conteggio. Il calendario si cambia mese anche con lo
+  swipe, con il punto d'arrivo scelto proiettando la velocità di rilascio.
+- **Meno dipendenze** (DD-021): rimossi 43 componenti `src/components/ui/` non importati da
+  nessuna parte e ~45 dipendenze (tutti i `@radix-ui/*`, `recharts`, `react-hook-form`,
+  `date-fns`, `embla`, `cmdk`; `zod` resta perché lo usano le route API). Restano `drawer` e
+  `sonner`. Il bundle **non** cala per questo — quel codice era già escluso dal
+  tree-shaking — ma cala la superficie da aggiornare e da controllare: 50 dipendenze dirette
+  diventano 21. Il bundle client cresce di ~42 KB gzip per `motion` (267 → 308 KB).
+- **Primitiva `Card`**: `rounded-3xl bg-card p-4 shadow-card` era ricopiato a mano 22 volte.
+- **Tema scuro rimosso** (DD-022): esisteva un blocco `.dark` mai applicato e incoerente.
+- Tolte le quattro switch di notifica in `/profilo` che erano `defaultChecked` e non facevano
+  niente, e la conferma nativa prima di _cambiare_ la foto profilo (resta su quella che la
+  rimuove, che è irreversibile).
+- Le celle del calendario con più tipi di evento non usano più un gradiente a fette con
+  un'ombra bianca sul numero per restare leggibili: fondo neutro e un puntino per tipo.
+
 ### Serie di presenze calcolate sui dati reali
 
 - `serieConsecutiva()` (`src/lib/presenze.ts`) deriva le serie da eventi passati e
