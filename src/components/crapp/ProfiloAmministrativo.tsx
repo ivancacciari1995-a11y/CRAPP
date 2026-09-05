@@ -22,11 +22,18 @@ import {
 
 const TIPI_DOCUMENTO = ["Carta d'identità", "Patente", "Passaporto"];
 
-const classiInput = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm";
+const classiInput =
+  "w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
 
+/**
+ * `min-w-0`: dentro `grid-cols-2` questa label è l'elemento di griglia e ha
+ * `min-width: auto`, quindi si allarga fino al contenuto invece di stare nella
+ * colonna. Con un controllo nativo largo dentro (una data su iOS) la coppia
+ * sfonda la card.
+ */
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
