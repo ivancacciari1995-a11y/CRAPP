@@ -13,9 +13,11 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigazione principale"
-      // `materiale` + `bordo-sfumato`: la barra è un vetro sotto cui il
-      // contenuto scorre, con una sfumatura al posto della riga netta.
-      className="materiale bordo-sfumato pad-sicura-fondo fixed inset-x-0 bottom-0 z-40"
+      // Barra flottante: il contenitore esterno tiene solo la posizione e
+      // l'inset di sistema, il materiale sta sulla pillola dentro.
+      // `pointer-events-none` perché ai lati della pillola i tocchi devono
+      // arrivare al contenuto sotto.
+      className="pad-sicura-fondo pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3"
     >
       {/*
         Altezza fissa dal token, non dedotta dal contenuto: la striscia
@@ -23,7 +25,7 @@ export function BottomNav() {
         di sistema. Prima l'altezza dipendeva dai padding delle voci e nessuno
         poteva saperla da fuori.
       */}
-      <div className="mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-5 px-1">
+      <div className="materiale pointer-events-auto mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-5 overflow-hidden rounded-full border border-border/60 px-1 shadow-lg">
         {items.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
