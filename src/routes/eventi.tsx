@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
@@ -134,7 +134,7 @@ function GestioneEventi() {
                   type="button"
                   onClick={() => aggiorna(daCategoria(t.id))}
                   className={cn(
-                    "rounded-full py-2 text-[11px] font-bold uppercase transition-colors",
+                    "rounded-full py-2 text-xs font-bold uppercase transition-colors",
                     categoriaEvento(bozza) === t.id
                       ? "bg-card shadow-card text-foreground"
                       : "text-muted-foreground",
@@ -151,7 +151,7 @@ function GestioneEventi() {
                 maxLength={80}
                 onChange={(e) => aggiorna({ titolo: e.target.value })}
                 placeholder="Es. CRAP Volley vs Aurora Nera"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -161,7 +161,7 @@ function GestioneEventi() {
                   type="date"
                   value={bozza.data}
                   onChange={(e) => aggiorna({ data: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  className={classiInput}
                 />
               </Campo>
               <Campo label="Ora">
@@ -169,7 +169,7 @@ function GestioneEventi() {
                   type="time"
                   value={bozza.ora}
                   onChange={(e) => aggiorna({ ora: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  className={classiInput}
                 />
               </Campo>
             </div>
@@ -179,7 +179,7 @@ function GestioneEventi() {
                 value={bozza.luogo}
                 maxLength={80}
                 onChange={(e) => aggiorna({ luogo: e.target.value })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -189,7 +189,7 @@ function GestioneEventi() {
                 maxLength={300}
                 rows={2}
                 onChange={(e) => aggiorna({ note: e.target.value })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                className={classiInput}
               />
             </Campo>
 
@@ -281,7 +281,9 @@ function GestioneEventi() {
 
       <Section titolo="Eventi in calendario">
         {isPending ? (
-          <p className="text-center text-xs text-muted-foreground">Carico gli eventi…</p>
+          <p aria-busy="true" className="text-center text-xs text-muted-foreground">
+            Carico gli eventi…
+          </p>
         ) : (
           <div className="space-y-2">
             {eventi.map((e) => (
@@ -291,14 +293,14 @@ function GestioneEventi() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {formatData(e.data)} · {e.ora} · {e.luogo || "luogo da definire"}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setBozza(e)}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
                   aria-label={`Modifica ${e.titolo}`}
                 >
                   <Pencil className="h-4 w-4" />
@@ -306,7 +308,7 @@ function GestioneEventi() {
                 <button
                   type="button"
                   onClick={() => rimuovi(e.id)}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
                   aria-label={`Elimina ${e.titolo}`}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -317,17 +319,6 @@ function GestioneEventi() {
         )}
       </Section>
     </>
-  );
-}
-
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="mt-1 block">{children}</span>
-    </label>
   );
 }
 
@@ -345,7 +336,7 @@ function Interruttore({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full px-3 py-1.5 text-[11px] font-bold uppercase transition-colors",
+        "rounded-full px-3 py-1.5 text-xs font-bold uppercase transition-colors",
         attivo ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground",
       )}
     >

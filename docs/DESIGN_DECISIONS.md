@@ -36,12 +36,14 @@ Serve a rispondere a domande del tipo:
 | [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
 | [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                         | Il branch lo decide l'utente          |
 | [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                | Test obbligatori e verdi              |
+| [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)  | Molle interrompibili con motion       |
+| [DD-022](#dd-022--lapp-è-solo-chiara)                                             | App solo chiara                       |
 
 **In valutazione**
 
-| ID                                                                | Titolo                 |
-| ----------------------------------------------------------------- | ---------------------- |
-| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)  | Convergenza schema DB  |
+| ID                                                               | Titolo                |
+| ---------------------------------------------------------------- | --------------------- |
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
 
 **Sostituite**
 
@@ -668,3 +670,81 @@ dicendo perché.
 
 **Riesame**  
 Se comparisse un ambiente di staging stabile che rende superflua parte della copertura.
+
+---
+
+### DD-021 — Molle interrompibili al posto delle animazioni a durata fissa
+
+**Data:** 5 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Il movimento era fatto con `@keyframes` CSS e transizioni a durata fissa. Funzionava, ma
+nessuna di quelle animazioni può essere interrotta: se l'utente tocca o scorre a metà, la
+sequenza va avanti per conto suo, e per ripartire deve prima finire. Mancava del tutto
+qualsiasi gesto: il calendario si cambiava solo con due frecce.
+
+Contemporaneamente 43 componenti su 45 in `src/components/ui/` non erano importati da nessuna
+parte, e con loro ~45 dipendenze (tutti i `@radix-ui/*`, `recharts`, `react-hook-form`,
+`date-fns`, `embla`, `cmdk`, …): superficie di aggiornamento e di sicurezza pagata a vuoto.
+
+**Decisione**  
+Aggiungere **una** libreria di animazione — `motion` — e toglierne ~45 inutilizzate. I
+parametri stanno in `src/lib/molla.ts` e sono i due di Apple (_Designing Fluid Interfaces_):
+rimbalzo e durata, non massa/rigidità/smorzamento. `molla.ui` (nessun sorpasso) è il default;
+`molla.slancio` si usa **solo** dopo un gesto che portava già inerzia.
+
+**Alternative scartate**
+
+- Tenere solo CSS con easing `linear()` e View Transitions → copre le comparse, non i gesti:
+  niente handoff di velocità, niente ripartenza dal valore corrente.
+- GSAP → più grande e orientato alla timeline, cioè al modello prescritto che stiamo lasciando.
+
+**Conseguenze**
+
+- Le animazioni partono dal valore _a schermo_: un dato che cambia a metà transizione non
+  produce salti.
+- Il movimento è ora codice JavaScript: senza JS non c'è comparsa (l'app già non funziona
+  senza, per auth e dati).
+- `src/lib/motion.ts` resta solo per il movimento ridotto e i coriandoli.
+- `src/components/ui/` non è più una libreria: aggiungere una primitiva shadcn significa
+  installarla, non pescarla da lì.
+
+**Riesame**  
+Se il peso del bundle client diventasse un problema misurato, o se il web recuperasse
+nativamente l'interrompibilità (`ScrollTimeline` e `linear()` sono un primo passo).
+
+---
+
+### DD-022 — L'app è solo chiara
+
+**Data:** 5 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+`styles.css` conteneva un blocco `.dark` completo che non veniva mai applicato: nessun
+interruttore, nessun `prefers-color-scheme`. Peggio, era incoerente. In `.dark` l'accento
+diventava grigio-blu — il rosso del brand spariva — e mancavano del tutto `--success`,
+`--warning`, `--info`, `--training`, i metalli dei badge, i due gradienti e le due ombre. Un
+terzo stato: presente, sbagliato, morto.
+
+**Decisione**  
+CrAPP è un'app solo chiara. Il blocco `.dark` è rimosso e `:root` dichiara
+`color-scheme: light`, così anche i controlli nativi restano coerenti.
+
+**Alternative scartate**
+
+- Completare il tema scuro → è lavoro vero (gradienti, ombre, i due colori dei metalli, le
+  superfici traslucide) per una richiesta che nessuno ha fatto.
+- Lasciare il blocco lì «per dopo» → un tema mai attivato non si accorge di rompersi.
+
+**Conseguenze**
+
+- Chi riaprirà il tema scuro parte da zero, ma da zero onesto: la palette chiara ha ora
+  contrasti verificati e i token con suffisso `-testo` per i colori che come testo non
+  reggono.
+- La barra di stato (`theme-color`) e lo splash del manifest sono allineati al fondo chiaro.
+
+**Riesame**  
+Se arriva una richiesta reale dalla squadra, o se si gioca in palestre al buio abbastanza
+spesso da rendere il tema scuro una funzione e non un vezzo.

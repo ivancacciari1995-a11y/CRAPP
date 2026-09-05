@@ -25,14 +25,16 @@ compaiono.
 
 ## Implementazione
 
-- `completaTurni()` (`palloni-core.ts`) propone, per ogni evento senza turno già salvato, il
-  candidato con meno turni fatti, poi quello che non lo fa da più tempo, poi per ordine
-  alfabetico — un algoritmo greedy, non un ordine fisso né solo per data.
+- `completaTurni()` (`palloni-core.ts`) propone, per ogni **partita** o evento extra senza
+  turno già salvato, il candidato con meno turni fatti, poi quello che non lo fa da più
+  tempo, poi per ordine alfabetico — un algoritmo greedy, non un ordine fisso né solo per
+  data. Gli **allenamenti** non ricevono proposta automatica: restano «da assegnare» finché
+  qualcuno non sceglie un incaricato in `TurnoPalloni` (scelta della squadra).
 - `useAssegnaTurno()` (`palloni.ts`) conferma una proposta o riassegna manualmente, con
   upsert su `evento_id`.
 - Il conteggio "quante volte hai portato i palloni" mostrato nel profilo e nei badge è
   ricalcolato a runtime da `conteggioTurni()` su turni salvati **più proposte non ancora
-  confermate** — non è uno storico in tabella dedicata.
+  confermate** (partite/eventi) — non è uno storico in tabella dedicata.
 - `TurnoPalloni.tsx` mostra/assegna il turno sulla card di un evento; `PromemoriaPalloni.tsx`
   è il banner in Home per il giocatore di turno.
 

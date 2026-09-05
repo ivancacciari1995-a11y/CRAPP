@@ -1,8 +1,5 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-display: "Bebas Neue", ui-sans-serif, sans-serif;
@@ -10,17 +7,26 @@
 }
 
 /*
- * Design system definition.
+ * Definizione del design system.
  *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
+ * Il blocco @theme inline mappa le custom property sulle utility Tailwind
+ * (es. --color-primary -> bg-primary, text-primary).
  *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
+ * Il blocco :root definisce i valori reali in oklch. Tutti i colori DEVONO
+ * essere in oklch.
  *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * L'app è solo chiara (DD: niente tema scuro finché non è completo per tutti
+ * i token, gradienti e ombre comprese): `color-scheme: light` lo dichiara al
+ * browser così form e scrollbar native restano coerenti.
+ *
+ * Per aggiungere un colore semantico:
+ * 1. Aggiungi la variabile in :root
+ * 2. Registrala in @theme inline come --color-<nome>: var(--<nome>)
+ *
+ * Contrasto: i token con suffisso `-testo` sono le varianti scurite da usare
+ * come colore del testo; quelli senza suffisso servono per sfondi e bordi.
+ * Non usare `text-oro`/`text-argento`/`text-bronzo`: hanno meno di 3:1 su
+ * bianco. Vedi `gradoMeta` in lib/badges.ts.
  */
 
 @theme inline {
@@ -51,24 +57,43 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
+  color-scheme: light;
   --radius: 1rem;
-  --background: oklch(0.985 0.002 240);
+  /*
+   * Geometria della barra di navigazione, unica sorgente di verità: prima
+   * l'altezza era ricopiata a occhio come `pb-24` nel contenuto e `pb-28`
+   * nella celebrazione badge, e su iPhone i conti tornavano per 2 px.
+   *
+   * `--pad-sicura-fondo` è il motivo per cui la barra su iPhone e su Android
+   * non può essere alta uguale: `env(safe-area-inset-bottom)` vale ~34 px
+   * sopra la home indicator e 0 su Android, dove la barra di sistema sta
+   * fuori dal viewport. Il `max()` dà comunque ad Android un respiro minimo,
+   * così la differenza è un margine in più, non un allineamento diverso.
+   */
+  --altezza-nav: 3.75rem;
+  --pad-sicura-fondo: max(env(safe-area-inset-bottom), 0.5rem);
+  /*
+   * Rampa dei neutri, distanziata per essere vista.
+   *
+   * Prima fondo (0.985), carta (1.0) e `secondary` (0.955) stavano dentro tre
+   * punti di luminosità: carta e fondo avevano un rapporto di contrasto di
+   * 1.04, cioè erano lo stesso bianco. Le carte non si leggevano come carte e
+   * l'unica cosa che le staccava era `shadow-card`, che su un telefono al sole
+   * sparisce.
+   *
+   * Ora fondo 0.93 e carta 1.0 stanno a 1.23, e `secondary` (0.90) sta a 1.35
+   * dalla carta: un elemento dentro una carta è più scuro della carta, come
+   * nelle liste raggruppate di iOS.
+   *
+   * 0.93 è il fondo più scuro possibile senza toccare altro: il limite lo
+   * impone `text-accent` appoggiato sul fondo, che qui vale 4.62 e a 0.92
+   * scenderebbe a 4.48, sotto AA. Per andare più giù va scurito anche
+   * l'accento.
+   */
+  --background: oklch(0.93 0.008 255);
   --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.01 260);
@@ -76,50 +101,74 @@
   --popover-foreground: oklch(0.16 0.01 260);
   --primary: oklch(0.16 0.012 265);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 250);
+  --secondary: oklch(0.9 0.01 255);
   --secondary-foreground: oklch(0.2 0.012 265);
-  --muted: oklch(0.955 0.004 250);
-  --muted-foreground: oklch(0.52 0.015 260);
-  --accent: oklch(0.58 0.22 27);
+  --muted: oklch(0.925 0.008 255);
+  /* 0.48 e non 0.52: sul nuovo `secondary` il vecchio valore scendeva a 4.2. */
+  --muted-foreground: oklch(0.48 0.015 260);
+  /*
+   * Accento più scuro (era 0.58): su un fondo più scuro il rosso di prima
+   * scendeva a 4.07 come testo. A 0.54 migliora in tutte e tre le direzioni —
+   * 4.62 sul fondo, 5.67 sulla carta, 5.51 per il bianco che ci sta sopra.
+   */
+  --accent: oklch(0.54 0.22 27);
   --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.58 0.22 27);
+  /*
+   * Distruttivo e accento erano lo stesso identico colore: «elimina» e
+   * «selezionato» davano lo stesso segnale. Resta rosso — è la convenzione —
+   * ma più scuro e più cupo dell'accento del brand.
+   */
+  --destructive: oklch(0.47 0.19 18);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.915 0.006 255);
-  --input: oklch(0.915 0.006 255);
-  --ring: oklch(0.58 0.22 27);
-  --success: oklch(0.62 0.16 152);
+  --border: oklch(0.875 0.01 255);
+  --input: oklch(0.875 0.01 255);
+  /* Il focus non è una selezione: viene dal neutro, non dall'accento. */
+  --ring: oklch(0.35 0.03 265);
+  /* Luminosità scelte perché il testo bianco sopra superi 4.5:1 (WCAG AA). */
+  /* Compleanni / successi: verde un po' più chiaro e saturo. */
+  --success: oklch(0.6 0.17 152);
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.78 0.15 78);
   --warning-foreground: oklch(0.18 0.02 60);
-  --info: oklch(0.6 0.13 245);
+  --info: oklch(0.54 0.13 245);
   --info-foreground: oklch(0.99 0 0);
-  --training: oklch(0.62 0.2 245);
+  /* Allenamenti: blu acceso (più chiaro del blu navy, più saturo dell'azzurro). */
+  --training: oklch(0.62 0.18 250);
   --training-foreground: oklch(0.99 0 0);
+  /* Metalli: la variante chiara va su sfondi e bordi, la `-testo` sul testo
+     (la chiara sta sotto 2.5:1 su bianco ed è illeggibile). */
   --bronzo: oklch(0.62 0.11 55);
   --argento: oklch(0.72 0.02 260);
   --oro: oklch(0.8 0.15 85);
+  --bronzo-testo: oklch(0.55 0.11 55);
+  --argento-testo: oklch(0.54 0.02 260);
+  --oro-testo: oklch(0.55 0.15 85);
   --gradient-hero: linear-gradient(
     140deg,
     oklch(0.18 0.012 265),
     oklch(0.24 0.03 20) 55%,
     oklch(0.45 0.19 27)
   );
-  --gradient-accent: linear-gradient(120deg, oklch(0.58 0.22 27), oklch(0.68 0.19 40));
+  /* Parte dall'accento nuovo: era rimasto sul vecchio 0.58 e il gradiente
+     risultava più chiaro del colore pieno che gli sta accanto. */
+  --gradient-accent: linear-gradient(120deg, oklch(0.54 0.22 27), oklch(0.64 0.19 40));
+  /*
+   * Tre quote, non una. Prima `shadow-card` valeva sia per una tessera 3x3 sia
+   * per la barra di navigazione: superfici grandi e piccole sullo stesso piano.
+   * Una superficie più grande deve leggersi più spessa.
+   */
   --shadow-card: 0 1px 2px oklch(0.16 0.01 260 / 6%), 0 12px 28px -18px oklch(0.16 0.01 260 / 35%);
-  --shadow-pop: 0 18px 40px -20px oklch(0.58 0.22 27 / 55%);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  /*
+   * Chrome flottante: barra, drawer. Ombra più profonda e più diffusa, più il
+   * filo chiaro sul bordo alto — la luce che prende il materiale, ed è quello
+   * che lo fa leggere come un oggetto sopra il contenuto invece che un buco.
+   */
+  --shadow-chrome:
+    inset 0 1px 0 oklch(1 0 0 / 60%), 0 1px 3px oklch(0.16 0.01 260 / 10%),
+    0 24px 48px -24px oklch(0.16 0.01 260 / 45%);
+  /* Sollevamento al passaggio del mouse: neutro, non tinto di accento. */
+  --shadow-alza: 0 12px 28px -14px oklch(0.16 0.01 260 / 40%);
+  --shadow-pop: 0 18px 40px -20px oklch(0.54 0.22 27 / 55%);
 }
 
 @theme inline {
@@ -137,6 +186,9 @@
   --color-bronzo: var(--bronzo);
   --color-argento: var(--argento);
   --color-oro: var(--oro);
+  --color-bronzo-testo: var(--bronzo-testo);
+  --color-argento-testo: var(--argento-testo);
+  --color-oro-testo: var(--oro-testo);
 }
 
 @utility bg-hero {
@@ -155,9 +207,29 @@
   box-shadow: var(--shadow-pop);
 }
 
+@utility shadow-chrome {
+  box-shadow: var(--shadow-chrome);
+}
+
+/*
+ * Il tracking del display è specifico per taglia: Bebas Neue a corpo grande
+ * legge troppo spaziato (serve tracking negativo), a corpo piccolo troppo
+ * stretto (serve positivo). Un solo valore sarebbe sbagliato da qualche parte.
+ * `font-display-lg` da text-3xl in su, `font-display-sm` sotto text-xl.
+ */
 @utility font-display {
   font-family: var(--font-display);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+}
+
+@utility font-display-lg {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+@utility font-display-sm {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
 }
 
 /* --- Micro-animazioni (solo CSS standard, nessuna dipendenza esterna) --- */
@@ -258,10 +330,6 @@
   border-radius: 0.5rem;
 }
 
-@utility anim-barra {
-  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* Feedback al tocco sulle card interattive (+ hover leggero su desktop). */
 @utility premi {
   transition:
@@ -275,8 +343,24 @@
   @media (hover: hover) {
     &:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-pop);
+      /* Neutra: `shadow-pop` è un alone di accento, e sotto una riga di
+         classifica era colore senza significato. */
+      box-shadow: var(--shadow-alza);
     }
+  }
+}
+
+/*
+ * Meno movimento non vuol dire nessun feedback: si tolgono spostamenti,
+ * rimbalzi e ripetizioni, si tiene una dissolvenza breve che continua a
+ * spiegare cosa è cambiato.
+ */
+@keyframes crapp-dissolvenza {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -284,45 +368,189 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .anim-reveal,
+  .anim-pop,
+  .anim-riga {
+    animation: crapp-dissolvenza 200ms ease-out both !important;
+  }
+
+  .premi {
+    transition: opacity 120ms ease-out !important;
+  }
+
+  .premi:active {
+    transform: none;
+    opacity: 0.72;
+  }
+
+  .premi:hover {
+    transform: none;
   }
 }
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+/* Superfici traslucide: se l'utente chiede meno trasparenza diventano piene. */
+@media (prefers-reduced-transparency: reduce) {
+  .materiale {
+    background-color: var(--color-card);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .materiale {
+    background-color: var(--color-card);
+    backdrop-filter: none;
+    border-color: var(--color-foreground);
+  }
+}
+
+/*
+ * Chrome flottante in stile Apple: la barra è un materiale traslucido sotto
+ * cui il contenuto scorre, con una sfumatura al bordo al posto della linea
+ * netta (scroll edge effect).
+ */
+/*
+ * Il materiale deve reggersi sul colore, non sul blur.
+ *
+ * Con un fondo poco denso (era 72%) l'aspetto dipendeva quasi tutto da
+ * `backdrop-filter`, ed è lì che i due motori divergono: WebKit sfoca in modo
+ * molto più denso e "latteo" di Blink, e `saturate` amplifica lo scarto. Il
+ * risultato era una barra che su Safari sembrava piena e su Chrome Android
+ * trasparente, a parità di CSS. A 85% il colore fa il lavoro e il blur è la
+ * rifinitura: resta la profondità, sparisce quasi tutta la differenza.
+ *
+ * `in srgb` e non `in oklab`: mescolare con `transparent` — che è nero con
+ * alpha 0 — dipende da come il motore premoltiplica, e in srgb è implementato
+ * in modo molto più uniforme.
+ */
+@utility materiale {
+  background-color: color-mix(in srgb, var(--color-card) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/*
+ * Vetro della barra flottante. È `materiale` spinto: si vede attraverso.
+ *
+ * `materiale` sta all'85% di card perché è una superficie larga quanto lo
+ * schermo, dove il divario di blur fra WebKit e Blink si nota (608f2ed). Qui
+ * la superficie è una pillola piccola: si può scendere al 62% e lasciare che
+ * sia il blur a fare il lavoro, che è la condizione perché si legga come vetro
+ * invece che come plastica bianca.
+ *
+ * Le tre ombre interne sono la luce sul bordo, non decorazione: filo chiaro in
+ * alto (la luce che entra), filo scuro in basso (lo spessore del vetro), alone
+ * chiaro diffuso appena dentro il bordo (il riflesso sulla curva). Senza queste
+ * un rettangolo sfocato resta un rettangolo sfocato.
+ */
+@utility vetro {
+  background-color: color-mix(in srgb, var(--color-card) 62%, transparent);
+  backdrop-filter: blur(18px) saturate(180%) brightness(1.04);
+  -webkit-backdrop-filter: blur(18px) saturate(180%) brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 85%),
+    inset 0 -1px 0 oklch(0.16 0.01 260 / 8%),
+    inset 0 0 12px oklch(1 0 0 / 35%),
+    0 1px 3px oklch(0.16 0.01 260 / 10%),
+    0 24px 48px -24px oklch(0.16 0.01 260 / 45%);
+}
+
+/*
+ * La distorsione vera: `feDisplacementMap` sposta i pixel del fondale, quindi
+ * quello che sta sotto si deforma davvero invece di sfocarsi soltanto.
+ *
+ * Sta dietro `@supports` perché solo Blink accetta un filtro SVG dentro
+ * `backdrop-filter`: WebKit lo ignora — e ignorandolo scarterebbe tutta la
+ * dichiarazione, blur compreso — quindi su iPhone resta la regola sopra. È una
+ * miglioria progressiva, non l'effetto principale: se sparisse domani la barra
+ * resterebbe quella giusta.
+ */
+@supports (backdrop-filter: url("#vetro-rifrazione")) {
+  .vetro {
+    backdrop-filter: url("#vetro-rifrazione") blur(18px) saturate(180%) brightness(1.04);
+  }
+}
+
+/* Il vetro traslucido è un vezzo: se l'utente chiede meno trasparenza sparisce. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vetro {
+    background-color: var(--color-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vetro {
+    background-color: var(--color-card);
+  }
+}
+
+/*
+ * Chrome su Android disattiva `backdrop-filter` quando l'accelerazione
+ * hardware non è disponibile: senza questo, su quei device la barra resta
+ * solo semitrasparente e il contenuto si legge attraverso.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .materiale {
+    background-color: var(--color-card);
+  }
+}
+
+/** Padding inferiore della chrome flottante. */
+@utility pad-sicura-fondo {
+  padding-bottom: var(--pad-sicura-fondo);
+}
+
+/** Spazio che il contenuto deve lasciare sotto di sé per non finire dietro la barra. */
+@utility spazio-nav {
+  padding-bottom: calc(var(--altezza-nav) + var(--pad-sicura-fondo) + 1rem);
+}
+
+@utility bordo-sfumato {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-background) 85%, transparent),
+      transparent
+    );
+  }
+}
+
+/*
+ * Su iOS `input[type="date"]` e `input[type="time"]` sono controlli nativi con
+ * una larghezza intrinseca (lo spazio di «gg/mm/aaaa», «--:--») che
+ * `width: 100%` non riesce a far scendere: dentro `grid-cols-2` due campi
+ * affiancati sfondano la card, e l'`overflow-hidden` del pannello a tab taglia
+ * via quello che esce. `appearance: none` è quello che rende il campo davvero
+ * ridimensionabile; bordo, sfondo e padding li mette già la classe condivisa.
+ */
+@layer base {
+  input[type="date"],
+  input[type="time"] {
+    min-width: 0;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+}
+
+/* Focus da tastiera sempre visibile: nessun controllo custom lo definiva. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
 }
 
 @layer base {
@@ -334,6 +562,10 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    line-height: 1.5;
+    font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
+    /* Niente pull-to-refresh accidentale né rimbalzo che scopre il fondo. */
+    overscroll-behavior-y: contain;
   }
 }

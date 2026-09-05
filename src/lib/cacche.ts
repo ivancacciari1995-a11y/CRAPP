@@ -1,5 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { oggiISO } from "./palloni-core";
+
+/** Ora di apertura del sondaggio, il giorno stesso della partita. */
+export const ORA_APERTURA_SONDAGGIO = 8;
+
+/** Il sondaggio apre alle 8:00 del giorno della partita e da lì resta aperto. */
+export function sondaggioAperto(dataEvento: string, adesso = new Date()): boolean {
+  const oggi = oggiISO(adesso);
+  if (dataEvento !== oggi) return dataEvento < oggi;
+  return adesso.getHours() >= ORA_APERTURA_SONDAGGIO;
+}
 
 /** Sondaggio goliardico pre-partita: quante cacche prima del match di campionato. */
 export type RigaCacche = {

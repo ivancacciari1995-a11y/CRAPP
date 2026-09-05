@@ -24,9 +24,18 @@ export function Avatar({
     return (
       <img
         src={src}
-        alt={alt ?? `Foto di ${fallback}`}
+        // `fallback` è spesso il numero di maglia: "Foto di 12" non descrive
+        // niente. Senza un nome vero l'immagine è decorativa e il nome sta già
+        // scritto accanto, quindi alt vuoto.
+        alt={alt ?? ""}
+        // Le dimensioni reali le dà la classe; width/height servono solo a
+        // riservare il rapporto e non far saltare il layout al caricamento.
+        width={96}
+        height={96}
+        loading="lazy"
+        decoding="async"
         onError={() => setErrore(true)}
-        className={cn("shrink-0 rounded-2xl object-cover", className)}
+        className={cn("aspect-square shrink-0 rounded-2xl object-cover", className)}
       />
     );
   }

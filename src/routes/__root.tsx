@@ -22,19 +22,19 @@ import { useSessione } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h1 className="font-display-lg text-7xl text-foreground">404</h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina non trovata</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          La pagina che cerchi non esiste o è stata spostata.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
-            Go home
+            Torna alla home
           </Link>
         </div>
       </div>
@@ -50,29 +50,30 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Questa pagina non si è caricata
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Qualcosa è andato storto da parte nostra. Puoi riprovare o tornare alla home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
-            Try again
+            Riprova
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
           >
-            Go home
+            Torna alla home
           </a>
         </div>
       </div>
@@ -84,7 +85,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // `viewport-fit=cover` è obbligatorio perché env(safe-area-inset-*) sia
+      // diverso da 0 su iOS: senza, la BottomNav finisce sotto la home bar.
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
       { title: "CrAPP — L'app del CRAP Volley" },
       {
         name: "description",
@@ -92,7 +98,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
       { name: "author", content: "CRAP Volley" },
-      { name: "theme-color", content: "#111111" },
+      // Deve combaciare con --background, altrimenti la barra di stato resta
+      // nera sopra un'interfaccia chiara.
+      { name: "theme-color", content: "#e4e8ed" },
       { property: "og:title", content: "CrAPP — L'app del CRAP Volley" },
       {
         property: "og:description",
@@ -100,24 +108,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      // `summary` e non `summary_large_image`: l'unica immagine è l'icona
+      // quadrata della squadra, non una copertina 2:1.
+      { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "CrAPP — L'app del CRAP Volley" },
       {
         name: "twitter:description",
         content:
           "Convocazioni, presenze, statistiche e classifica del CRAP Volley in un'unica app mobile.",
       },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd5ebd0b-6661-43fa-936c-35856d1068c4/id-preview-2942946e--8d07b0e4-6bd2-4a17-9dd2-bb2cf13f9f7c.lovable.app-1785491191791.png",
-      },
+      { property: "og:image", content: "/icon-512.png" },
+      { name: "twitter:image", content: "/icon-512.png" },
     ],
     links: [
       {
@@ -143,7 +144,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="it">
       <head>
         <HeadContent />
       </head>
@@ -186,7 +187,7 @@ function AppShell() {
 
   if (!mounted || !pronta) {
     return (
-      <div className="grid min-h-screen place-items-center bg-background">
+      <div className="grid min-h-dvh place-items-center bg-background">
         <TeamLogo className="h-16 w-16 animate-pulse" />
       </div>
     );
@@ -194,7 +195,7 @@ function AppShell() {
 
   return (
     <>
-      <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
+      <div className="spazio-nav mx-auto min-h-dvh max-w-md bg-background">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </div>

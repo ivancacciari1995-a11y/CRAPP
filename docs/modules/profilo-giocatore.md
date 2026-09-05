@@ -67,6 +67,9 @@ Viene mostrata una barra di avanzamento (esempio: _Profilo completato — 85%_),
 
 Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
+Il tap apre Profilo sulla sottosezione **Documenti** (`/profilo?tab=documenti`), non
+sulla tab Stagione.
+
 ## Profilo
 
 Il profilo viene suddiviso in sette aree.
@@ -139,12 +142,14 @@ Sezione già presente.
 
 Contiene tutti i badge ottenuti e quelli ancora da sbloccare.
 
-### Impostazioni
+### Opzioni
 
 Contiene.
 
 - Logout
-- Preferenze notifiche
+- Preferenze notifiche: un solo interruttore che iscrive il dispositivo a **tutte** le push
+  (turno palloni, solleciti presenze) e abilita le notifiche smart in app — non è limitato
+  ai soli palloni (vedi [Notifiche](notifiche.md))
 - Impostazioni applicazione
 - Segnala un bug e Suggerisci una nuova funzionalità: due link che aprono una issue GitHub
   già impostata sul template giusto (`.github/ISSUE_TEMPLATE/bug_report.yml` e
@@ -154,7 +159,7 @@ Contiene.
 ## Dashboard amministratore
 
 Gli amministratori dispongono di una schermata dedicata (`/admin`, raggiungibile da
-Profilo → Impostazioni).
+Profilo → Opzioni).
 
 Per ogni giocatore vengono mostrati.
 

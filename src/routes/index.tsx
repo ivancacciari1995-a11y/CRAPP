@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
-import { Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
+import { Card, LinkProfilo, Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
@@ -41,6 +41,7 @@ function Index() {
   const oggi = new Date().toISOString().slice(0, 10);
   const prossimi: Evento[] = eventi.filter((e) => e.data >= oggi).slice(0, 3);
   const prossimo = prossimi[0] ?? null;
+  const daConfermare = prossimi.slice(1);
   const linkProssimo = prossimo ? linkPerEvento(prossimo) : null;
   const { data: csi } = useCsi();
   const noi = csi?.classifica.find((r) => isNostraSquadra(r.squadra));
@@ -65,32 +66,38 @@ function Index() {
     <>
       <Reveal as="section" className="bg-hero px-5 pb-10 pt-7 text-primary-foreground">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">
-              Ciao {giocatore.nome.split(" ")[0]}
-            </p>
-            <h1 className="font-display text-4xl uppercase leading-none">CrAPP</h1>
+          <div className="flex min-w-0 items-center gap-3">
+            <TeamLogo
+              src="/logo-nerorosso.svg"
+              className="h-14 w-14 rounded-full shadow-pop ring-2 ring-primary-foreground/25"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
+                Ciao {giocatore.nome.split(" ")[0]}
+              </p>
+              <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
+            </div>
           </div>
-          <TeamLogo className="h-12 w-12" />
+          <LinkProfilo />
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-2 text-center">
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">{noi ? `${noi.pos}º` : "—"}</p>
-            <p className="text-[10px] uppercase text-primary-foreground/60">In classifica</p>
+            <p className="text-xs uppercase text-primary-foreground/80">In classifica</p>
           </div>
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">
               {noi ? `${noi.vinte}-${noi.perse}` : "—"}
             </p>
-            <p className="text-[10px] uppercase text-primary-foreground/60">Bilancio</p>
+            <p className="text-xs uppercase text-primary-foreground/80">Bilancio W-L</p>
           </div>
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="inline-flex items-center gap-1 font-display text-2xl leading-none">
               <Flame className="h-4 w-4 text-accent" />
               {giocatore.streak}
             </p>
-            <p className="text-[10px] uppercase text-primary-foreground/60">Streak</p>
+            <p className="text-xs uppercase text-primary-foreground/80">Streak</p>
           </div>
         </div>
       </Reveal>
@@ -122,10 +129,16 @@ function Index() {
 
       <Section titolo="Da confermare" indice={3}>
         <div className="space-y-3">
-          {prossimi.slice(1).map((e) => {
-            const link = linkPerEvento(e);
-            return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
-          })}
+          {daConfermare.length > 0 ? (
+            daConfermare.map((e) => {
+              const link = linkPerEvento(e);
+              return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
+            })
+          ) : (
+            <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+              Nient'altro da confermare: sei in pari.
+            </p>
+          )}
         </div>
       </Section>
 
@@ -161,7 +174,7 @@ function Index() {
                   {ultima.parziali.map((p, i) => (
                     <span
                       key={i}
-                      className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-semibold tabular-nums"
+                      className="rounded-lg bg-secondary px-2 py-1 text-xs font-semibold tabular-nums"
                     >
                       {p[0]}-{p[1]}
                     </span>
@@ -178,7 +191,7 @@ function Index() {
                 {corpo}
               </Link>
             ) : (
-              <div className="premi rounded-3xl bg-card p-4 shadow-card">{corpo}</div>
+              <Card>{corpo}</Card>
             );
           })()
         ) : (
@@ -201,7 +214,7 @@ function Index() {
         }
       >
         {obiettivo ? (
-          <div className="premi rounded-3xl bg-card p-4 shadow-card">
+          <Card>
             <div className="flex items-center gap-2 text-sm font-bold">
               <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
             </div>
@@ -213,8 +226,8 @@ function Index() {
             <p className="mt-1 text-xs font-semibold text-accent">
               {microcopyObiettivo(obiettivo)}
             </p>
-            <p className="mt-1 text-[11px] text-muted-foreground">{obiettivo.impatto}</p>
-          </div>
+            <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
+          </Card>
         ) : null}
       </Section>
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
@@ -9,6 +9,7 @@ import { useCsi } from "@/lib/csi";
 import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
+import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
 import { useGiocatoreCorrente } from "@/lib/user-store";
@@ -139,6 +140,12 @@ function PartitaDetail() {
             </span>
           </div>
 
+          {evento.note ? (
+            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-sm">
+              {evento.note}
+            </p>
+          ) : null}
+
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocati.length}
@@ -198,8 +205,12 @@ function PartitaDetail() {
         </Section>
       )}
 
+      <Section titolo="Scout live">
+        <ScoutEntry eventoId={evento.id} />
+      </Section>
+
       <Section titolo="Sondaggio pre-partita">
-        <SondaggioCacche eventoId={evento.id} />
+        <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} />
       </Section>
 
       {match ? (
@@ -210,7 +221,7 @@ function PartitaDetail() {
 
       {scout && totaliTeam ? (
         <Section titolo="Report tecnico">
-          <div className="rounded-3xl bg-card p-4 shadow-card">
+          <Card>
             <div className="grid grid-cols-4 gap-2 text-center">
               {[
                 { l: "Punti", v: totaliTeam.punti },
@@ -220,13 +231,13 @@ function PartitaDetail() {
               ].map((t) => (
                 <div key={t.l} className="rounded-2xl bg-secondary p-2.5">
                   <p className="font-display text-xl leading-none">{t.v}</p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
+                  <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
                     {t.l}
                   </p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Dettaglio giocatori (uso interno allenatori)
             </p>
             <div className="mt-2 space-y-1">
@@ -262,7 +273,7 @@ function PartitaDetail() {
                 <Download className="h-4 w-4" /> Esporta CSV
               </button>
             ) : null}
-          </div>
+          </Card>
         </Section>
       ) : null}
 

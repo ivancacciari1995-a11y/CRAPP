@@ -23,16 +23,16 @@ serie).
 
 ## Obiettivi definiti
 
-| Obiettivo                          | Calcolo                                          | Target | Fonte                                       |
-| ----------------------------------- | ------------------------------------------------- | ------ | -------------------------------------------- |
-| 90% presenze ad agosto              | risposte presente/ritardo sugli eventi del mese    | 90%    | `risposte_presenze`                          |
-| Tutti rispondono alle convocazioni  | risposte totali / eventi possibili                 | 90%    | `risposte_presenze`                          |
-| 250 presenze complessive            | somma presenze di tutta la rosa                    | 250    | aggregato da `useRosa()`                     |
-| Media pagelle da 7.5                | media di squadra                                   | 7.5    | `pagelle_voti`                               |
-| 200 pagelle compilate               | conteggio voti                                     | 200    | `pagelle_voti`                               |
-| Continuità di squadra               | giocatori con ≥3 allenamenti consecutivi           | 12     | `serieAllenamenti`                           |
-| 1 / 5 / 10 vittorie in campionato   | partite vinte da dati CSI ufficiali                | 1/5/10 | modulo [Collegamento CSI](collegamento-csi.md) |
-| 1 evento di squadra al mese         | eventi di tipo "evento" nel mese                   | 1      | `eventi_app`                                 |
+| Obiettivo                          | Calcolo                                         | Target | Fonte                                          |
+| ---------------------------------- | ----------------------------------------------- | ------ | ---------------------------------------------- |
+| 90% presenze ad agosto             | risposte presente/ritardo sugli eventi del mese | 90%    | `risposte_presenze`                            |
+| Tutti rispondono alle convocazioni | risposte totali / eventi possibili              | 90%    | `risposte_presenze`                            |
+| 250 presenze complessive           | somma presenze di tutta la rosa                 | 250    | aggregato da `useRosa()`                       |
+| Media pagelle da 7.5               | media di squadra                                | 7.5    | `pagelle_voti`                                 |
+| 200 pagelle compilate              | conteggio voti                                  | 200    | `pagelle_voti`                                 |
+| Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi        | 12     | `serieAllenamenti`                             |
+| 1 / 5 / 10 vittorie in campionato  | partite vinte da dati CSI ufficiali             | 1/5/10 | modulo [Collegamento CSI](collegamento-csi.md) |
+| 1 evento di squadra al mese        | eventi di tipo "evento" nel mese                | 1      | `eventi_app`                                   |
 
 Mostrati in `squadra.tsx` (elenco completo con barra di progresso) e in `index.tsx` (home: il
 primo obiettivo non completato). Un obiettivo che supera il 90% genera anche una notifica

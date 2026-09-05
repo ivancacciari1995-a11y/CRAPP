@@ -1,9 +1,18 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { motion, useReducedMotion, type MotionStyle } from "motion/react";
 import { cn } from "@/lib/utils";
+import { molla } from "@/lib/molla";
 
 /**
- * Comparsa graduale con leggero slide dal basso (~300 ms).
- * `indice` sfalsa l'animazione tra elementi vicini.
+ * Comparsa graduale quando l'elemento entra davvero nel viewport.
+ *
+ * Prima partiva al mount: gli elementi sotto la piega consumavano
+ * l'animazione a vuoto e l'utente li trovava già fermi. Ora la molla è
+ * interrompibile e riparte dal valore corrente, quindi uno scroll a metà
+ * animazione non produce salti.
+ *
+ * `indice` sfalsa elementi vicini, con un tetto basso: oltre ~200 ms
+ * l'ultimo elemento di una lista sembra in ritardo rispetto al tocco.
  */
 export function Reveal({
   children,
@@ -15,15 +24,23 @@ export function Reveal({
   children: ReactNode;
   indice?: number;
   className?: string;
-  style?: CSSProperties;
+  style?: MotionStyle;
   as?: "div" | "section" | "li" | "article";
 }) {
+  const ridotto = useReducedMotion();
+  const Componente = motion[Tag];
+  const ritardo = Math.min(indice, 5) * 0.04;
+
   return (
-    <Tag
-      className={cn("anim-reveal", className)}
-      style={{ animationDelay: `${Math.min(indice, 8) * 60}ms`, ...style }}
+    <Componente
+      className={cn(className)}
+      {...(style ? { style } : {})}
+      initial={ridotto ? { opacity: 0 } : { opacity: 0, y: 10 }}
+      whileInView={ridotto ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15, margin: "0px 0px -10% 0px" }}
+      transition={ridotto ? { duration: 0.2, delay: ritardo } : { ...molla.ui, delay: ritardo }}
     >
       {children}
-    </Tag>
+    </Componente>
   );
 }

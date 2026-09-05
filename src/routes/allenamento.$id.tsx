@@ -90,6 +90,12 @@ function AllenamentoDetail() {
             </span>
           </div>
 
+          {evento.note ? (
+            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-sm">
+              {evento.note}
+            </p>
+          ) : null}
+
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocatiEvento(evento, rosa).length}

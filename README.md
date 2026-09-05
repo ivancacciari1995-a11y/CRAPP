@@ -16,7 +16,7 @@ CrAPP è una Progressive Web App sviluppata per digitalizzare completamente la g
 
 ## Stack tecnologico
 
-React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, Radix UI / shadcn,
+React 19, TypeScript, TanStack Start (SSR), Vite 8, Tailwind CSS 4, motion, vaul,
 Supabase (PostgreSQL, Auth, Storage), Vercel, GitHub. Dettagli in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

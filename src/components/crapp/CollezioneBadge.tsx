@@ -45,21 +45,21 @@ function CardBadge({ b, opaco, indice = 0 }: { b: BadgeStato; opaco?: boolean; i
       <div className="flex items-center justify-between">
         <Icon className={cn("h-6 w-6", meta ? meta.text : "text-muted-foreground/50")} />
         {meta ? (
-          <span className={cn("text-[10px] font-bold uppercase", meta.text)}>{meta.label}</span>
+          <span className={cn("text-xs font-bold uppercase", meta.text)}>{meta.label}</span>
         ) : null}
       </div>
       <p className="mt-1.5 text-sm font-bold leading-tight">{b.def.nome}</p>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {b.valore} {b.def.unita}
       </p>
       {b.prossimaSoglia ? (
         <>
           <Barra percentuale={b.progresso} altezza="h-1.5" trackClassName="mt-2" />
-          <p className="mt-1 text-[10px] font-semibold text-accent">{mancanoPer(b)}</p>
-          <p className="text-[10px] text-muted-foreground">{microcopyBadge(b)}</p>
+          <p className="mt-1 text-xs font-semibold text-accent">{mancanoPer(b)}</p>
+          <p className="text-xs text-muted-foreground">{microcopyBadge(b)}</p>
         </>
       ) : (
-        <p className="mt-2 text-[10px] text-muted-foreground">{microcopyBadge(b)}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{microcopyBadge(b)}</p>
       )}
     </Reveal>
   );
@@ -96,9 +96,7 @@ function SocialDrawer({
             </div>
           </div>
           <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-              Vinto
-            </p>
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Vinto</p>
             <p className="mt-1 font-display text-3xl leading-none">
               {conteggio}{" "}
               <span className="text-lg text-muted-foreground">
@@ -141,7 +139,7 @@ export function CollezioneBadge({
       <div className="rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-foreground/60">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">
               Collezione badge
             </p>
             <p className="font-display text-4xl leading-none">
@@ -158,7 +156,7 @@ export function CollezioneBadge({
 
       {vicino ? (
         <div className="rounded-3xl bg-card p-4 shadow-card ring-1 ring-accent/30">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-accent">
+          <p className="text-xs font-bold uppercase tracking-wide text-accent">
             Prossimo traguardo
           </p>
           <p className="mt-1 text-sm font-bold leading-tight">{vicino.def.nome}</p>
@@ -171,7 +169,7 @@ export function CollezioneBadge({
 
       {c.sbloccati.length > 0 ? (
         <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Sbloccati ({c.sbloccati.length})
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -186,7 +184,7 @@ export function CollezioneBadge({
 
       {c.inProgresso.length > 0 ? (
         <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             In progresso ({c.inProgresso.length})
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -201,7 +199,7 @@ export function CollezioneBadge({
 
       {socialVinti.length > 0 ? (
         <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Votati dai compagni
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -210,7 +208,7 @@ export function CollezioneBadge({
                 <div className="rounded-2xl bg-card p-3 shadow-card ring-1 ring-accent/25">
                   <p className="text-lg leading-none">{cat.emoji}</p>
                   <p className="mt-1 text-sm font-bold leading-tight">{cat.nome}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Vinto {social[cat.id]} {social[cat.id] === 1 ? "volta" : "volte"}
                   </p>
                 </div>
@@ -221,7 +219,7 @@ export function CollezioneBadge({
       ) : null}
 
       <div>
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           Badge segreti
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -232,7 +230,7 @@ export function CollezioneBadge({
                 <div className="rounded-2xl bg-card p-3 shadow-card ring-1 ring-oro/40">
                   <Icon className="h-6 w-6 text-oro" />
                   <p className="mt-1.5 text-sm font-bold leading-tight">{b.def.nome}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {b.def.celebrazione ?? "Badge segreto sbloccato."}
                   </p>
                 </div>
@@ -246,7 +244,7 @@ export function CollezioneBadge({
             >
               <Lucchetto className="h-6 w-6 text-muted-foreground/50" />
               <p className="mt-1.5 text-sm font-bold leading-tight text-muted-foreground">???</p>
-              <p className="text-[11px] text-muted-foreground/70">Badge segreto da scoprire</p>
+              <p className="text-xs text-muted-foreground/70">Badge segreto da scoprire</p>
             </div>
           ))}
         </div>

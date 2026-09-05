@@ -32,7 +32,7 @@ export function CelebrazioneBadge() {
   if (!notifica) return null;
 
   return (
-    <div className="anim-reveal fixed inset-0 z-50 grid place-items-end bg-foreground/40 p-4 pb-28 backdrop-blur-sm">
+    <div className="anim-reveal spazio-nav fixed inset-0 z-50 grid place-items-end bg-foreground/40 px-4 pt-4 backdrop-blur-sm">
       <div
         className={cn(
           "anim-pop w-full max-w-md rounded-3xl bg-card p-5 shadow-pop ring-2",
@@ -51,7 +51,7 @@ export function CelebrazioneBadge() {
             {notifica.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-accent">
+            <p className="text-xs font-bold uppercase tracking-wide text-accent">
               {notifica.tono === "segreto" ? "Badge segreto sbloccato" : "Traguardo raggiunto"}
             </p>
             <p className="mt-0.5 font-display text-2xl leading-none">{notifica.titolo}</p>
@@ -61,7 +61,7 @@ export function CelebrazioneBadge() {
             type="button"
             onClick={chiudi}
             aria-label="Chiudi"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>

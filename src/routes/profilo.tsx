@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Section, SezioneTendina, StatTile } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
+import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import {
   caricaAvatar,
@@ -28,7 +29,18 @@ import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { Reveal } from "@/components/motion/Reveal";
 
+const TAB_PROFILO = ["stagione", "badge", "documenti", "impostazioni"] as const;
+type TabProfilo = (typeof TAB_PROFILO)[number];
+
+function isTabProfilo(v: unknown): v is TabProfilo {
+  return typeof v === "string" && (TAB_PROFILO as readonly string[]).includes(v);
+}
+
 export const Route = createFileRoute("/profilo")({
+  validateSearch: (search: Record<string, unknown>): { tab?: TabProfilo } => {
+    const tab = isTabProfilo(search["tab"]) ? search["tab"] : undefined;
+    return tab ? { tab } : {};
+  },
   head: () => ({
     meta: [
       { title: "Profilo giocatore — CrAPP" },
@@ -47,6 +59,8 @@ export const Route = createFileRoute("/profilo")({
 });
 
 function Profilo() {
+  const { tab } = Route.useSearch();
+  const tabIniziale = tab ?? "stagione";
   const votiSocial = useVotiSocial();
   const g = useIo();
   const admin = useIsAdmin();
@@ -79,7 +93,7 @@ function Profilo() {
       } else {
         await attivaNotifiche(g.id);
         setNotifiche(true);
-        toast.success("Notifiche palloni attive");
+        toast.success("Notifiche attive");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Notifiche non disponibili");
@@ -97,15 +111,12 @@ function Profilo() {
     }
   }
 
-  const percPresenze = g.totaliEventi
-    ? Math.round((g.presenze / g.totaliEventi) * 100)
-    : 0;
+  const percPresenze = g.totaliEventi ? Math.round((g.presenze / g.totaliEventi) * 100) : 0;
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !g) return;
-    if (!confirm("Aggiornare l'immagine profilo?")) return;
     try {
       await caricaAvatar(g.id, file);
       setBust(Date.now());
@@ -118,10 +129,15 @@ function Profilo() {
 
   return (
     <>
-      <PageHeader titolo={g.nome} sottotitolo={`#${g.numero} · ${g.ruolo}`} />
+      {/* Qui il link al profilo sarebbe un link a sé stessa: torna il logo. */}
+      <PageHeader
+        titolo={g.nome}
+        sottotitolo={`#${g.numero} · ${g.ruolo}`}
+        azione={<TeamLogo src="/logo-nerorosso.svg" className="h-14 w-14" />}
+      />
 
       <Reveal className="-mt-6 px-5">
-        <div className="premi rounded-3xl bg-card p-4 shadow-card">
+        <Card>
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" bust={bust} />
@@ -135,7 +151,7 @@ function Profilo() {
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-accent-grad text-accent-foreground shadow-pop"
+                className="absolute -bottom-1 -right-1 grid h-11 w-11 place-items-center rounded-full bg-accent-grad text-accent-foreground shadow-pop"
                 aria-label="Cambia foto"
               >
                 <Camera className="h-4 w-4" />
@@ -146,7 +162,7 @@ function Profilo() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="flex-1 rounded-xl bg-secondary px-3 py-2 text-xs font-bold uppercase tracking-wide"
+              className="premi min-h-11 flex-1 rounded-xl bg-secondary px-3 text-xs font-bold uppercase tracking-wide"
             >
               Cambia immagine profilo
             </button>
@@ -164,126 +180,137 @@ function Profilo() {
                     toast.error("Non sono riuscito a rimuovere l'immagine");
                   }
                 }}
-                className="grid h-9 w-9 place-items-center rounded-xl bg-secondary text-muted-foreground"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
                 aria-label="Rimuovi immagine"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             ) : null}
           </div>
-        </div>
+        </Card>
       </Reveal>
 
-      <Section titolo="Stagione" indice={1}>
-        <div className="grid grid-cols-3 gap-2">
-          <StatTile valore={g.presenze} label="Presenze" hint={`${percPresenze}% del totale`} />
-          <StatTile
-            valore={`${ultimoMese.percentuale}%`}
-            label="Presenze 30gg"
-            hint={`${ultimoMese.presenti}/${ultimoMese.totali} eventi`}
-          />
-          <StatTile
-            valore={
-              <span className="inline-flex items-center gap-1">
-                <Flame className="h-5 w-5 text-accent" />
-                {g.streak}
-              </span>
-            }
-            label="Presenze di fila"
-          />
-          <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
-          <StatTile valore={g.mvp} label="MVP" />
-          <StatTile valore={g.palloni} label="Turni palloni" />
-        </div>
-      </Section>
-
-      <Section titolo="Serie di presenze" indice={2}>
-        <SerieGriglia g={g} />
-      </Section>
-
-      <SezioneTendina titolo="Collezione badge" indice={3}>
-        <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />
-      </SezioneTendina>
-
-      <ProfiloAmministrativo giocatoreId={g.id} indice={4} />
-
-      <Section titolo="Impostazioni">
-        <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
-          <button
-            type="button"
-            onClick={cambiaNotifiche}
-            disabled={!supportate || inCorso}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
-          >
-            <span className="min-w-0">
-              <span className="block truncate">Notifiche turno palloni</span>
-              <span className="block text-[11px] text-muted-foreground">
-                {supportate
-                  ? notifiche
-                    ? "Attive su questo dispositivo"
-                    : "Ricevi l'avviso il giorno stesso e la volta dopo"
-                  : "Non supportate su questo dispositivo"}
-              </span>
-            </span>
-            <span
-              className={cn(
-                "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
-                notifiche
-                  ? "bg-accent-grad text-accent-foreground"
-                  : "bg-secondary text-muted-foreground",
-              )}
-            >
-              <Bell className="h-4 w-4" />
-            </span>
-          </button>
-          {[
-            "Notifiche convocazioni",
-            "Promemoria allenamenti",
-            "Cambi orario",
-            "Bacheca squadra",
-          ].map((v) => (
-            <label key={v} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-              <span className="min-w-0 truncate">{v}</span>
-              <input type="checkbox" defaultChecked className="h-5 w-9 accent-[var(--accent)]" />
-            </label>
-          ))}
-          {admin ? (
-            <Link
-              to="/admin"
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-            >
-              <span className="min-w-0 truncate">Dashboard amministratore</span>
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          ) : null}
-          <a
-            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Segnala un bug</span>
-            <Bug className="h-4 w-4 text-muted-foreground" />
-          </a>
-          <a
-            href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
-            <Lightbulb className="h-4 w-4 text-muted-foreground" />
-          </a>
-          <button
-            type="button"
-            onClick={logout}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
-          >
-            <span className="min-w-0 truncate">Esci</span>
-            <LogOut className="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
-      </Section>
+      <BarraSottosezioni
+        key={tabIniziale}
+        defaultId={tabIniziale}
+        voci={[
+          {
+            id: "stagione",
+            label: "Stagione",
+            contenuto: (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <StatTile
+                    valore={g.presenze}
+                    label="Presenze"
+                    hint={`${percPresenze}% del totale`}
+                  />
+                  <StatTile
+                    valore={`${ultimoMese.percentuale}%`}
+                    label="Presenze 30gg"
+                    hint={`${ultimoMese.presenti}/${ultimoMese.totali} eventi`}
+                  />
+                  <StatTile
+                    valore={
+                      <span className="inline-flex items-center gap-1">
+                        <Flame className="h-5 w-5 text-accent" />
+                        {g.streak}
+                      </span>
+                    }
+                    label="Presenze di fila"
+                  />
+                  <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
+                  <StatTile valore={g.mvp} label="MVP" />
+                  <StatTile valore={g.palloni} label="Turni palloni" />
+                </div>
+                <SerieGriglia g={g} />
+              </div>
+            ),
+          },
+          {
+            id: "badge",
+            label: "Badge",
+            contenuto: <CollezioneBadge g={g} votiSocial={votiSocial.data ?? []} />,
+          },
+          {
+            id: "documenti",
+            label: "Documenti",
+            contenuto: <ProfiloAmministrativo giocatoreId={g.id} conTendina={false} />,
+          },
+          {
+            id: "impostazioni",
+            label: "Opzioni",
+            contenuto: (
+              <div className="space-y-3">
+                <div className="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-card">
+                  <button
+                    type="button"
+                    onClick={cambiaNotifiche}
+                    disabled={!supportate || inCorso}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate">Notifiche</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {supportate
+                          ? notifiche
+                            ? "Attive su questo dispositivo"
+                            : "Palloni, solleciti presenze e avvisi in app"
+                          : "Non supportate su questo dispositivo"}
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
+                        notifiche
+                          ? "bg-accent-grad text-accent-foreground"
+                          : "bg-secondary text-muted-foreground",
+                      )}
+                    >
+                      <Bell className="h-4 w-4" />
+                    </span>
+                  </button>
+                  {admin ? (
+                    <Link
+                      to="/admin"
+                      className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                    >
+                      <span className="min-w-0 truncate">Dashboard amministratore</span>
+                      <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                  ) : null}
+                  <a
+                    href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                  >
+                    <span className="min-w-0 truncate">Segnala un bug</span>
+                    <Bug className="h-4 w-4 text-muted-foreground" />
+                  </a>
+                  <a
+                    href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+                  >
+                    <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
+                    <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="premi flex min-h-11 w-full items-center justify-center gap-2 rounded-3xl bg-destructive/15 px-4 py-3 text-sm font-bold text-destructive shadow-card"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Esci
+                </button>
+              </div>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }
