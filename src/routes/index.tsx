@@ -90,7 +90,7 @@ function Index() {
             <p className="font-display text-2xl leading-none">
               {noi ? `${noi.vinte}-${noi.perse}` : "—"}
             </p>
-            <p className="text-xs uppercase text-primary-foreground/80">Bilancio vittorie</p>
+            <p className="text-xs uppercase text-primary-foreground/80">Bilancio W-L</p>
           </div>
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="inline-flex items-center gap-1 font-display text-2xl leading-none">
