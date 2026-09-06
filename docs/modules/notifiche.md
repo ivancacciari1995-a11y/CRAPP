@@ -119,13 +119,27 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 - Compatibilità iOS/Safari non gestita esplicitamente nel codice (nessun branch dedicato):
   serve l'installazione da schermata Home per funzionare, ma l'app non lo segnala
   esplicitamente. È il primo sospetto quando una notifica non arriva ad app chiusa su iPhone.
-- **Android con l'app installata (WebAPK) è il caso fragile.** A parità di server — stessa
-  push, stesso payload — su iPhone installato da Home arriva ad app chiusa, sullo stesso
-  invio verso un Android installato come webapp no. Il WebAPK è un'app Android a sé: ha un
-  proprio permesso notifiche di sistema. Le restrizioni di sistema possono impedire la
-  visualizzazione o ritardare il risveglio del browser: un 201 dal servizio push non permette
-  di distinguerli. Controllare Impostazioni → App → **CrAPP** → Notifiche e le eventuali
-  restrizioni di batteria dell'app e del browser.
+- **Su Android non riceve la webapp: riceve il browser.** Il WebAPK è solo l'identità con
+  cui la notifica viene mostrata; la connessione con i server push la tiene Chrome, tramite
+  Google Play Services. Se Android non può avviare Chrome, il messaggio resta in coda e
+  compare tutto insieme al lancio successivo — il sintomo classico è «arriva solo quando
+  riapro l'app». Un 201 dal servizio push non lo distingue in alcun modo da una consegna
+  riuscita.
+
+  Verificato sul campo (settembre 2026, Motorola): con Chrome vivo in secondo piano la push
+  arriva ad app chiusa e schermo bloccato, WebAPK compreso — quindi server, cifratura,
+  service worker, permesso notifiche e canale erano già corretti. L'unica condizione che
+  fallisce è **Chrome non in esecuzione**. La cura sta in Impostazioni → App → **Chrome** →
+  Batteria → «Senza restrizioni», più Impostazioni → Batteria → «Batteria adattiva»
+  disattivata. Mettere «Senza restrizioni» solo su CrAPP non basta e depista.
+
+  **Come misurarlo invece di indovinare:** `chrome://gcm-internals` sul telefono, sezione
+  «Receive Message Log». Se la riga porta l'orario dell'invio, il messaggio era arrivato e
+  non è stato mostrato (permesso o canale); se porta l'orario in cui si è riaperta l'app,
+  non era stato consegnato (risveglio, quindi batteria). Attenzione: tenere quella scheda
+  aperta **tiene Chrome vivo**, quindi falsa la prova stretta — per quella, nessuna scheda
+  aperta e Chrome tolto dai recenti.
+
 - Su Motorola verificare anche le restrizioni del **browser che ha installato CrAPP** e,
   dove presente, Impostazioni → Batteria → Ottimizzazione standby app. Il produttore
   documenta la limitazione dei processi in background
