@@ -42,23 +42,26 @@ compaiono.
 
 ## Route API pubblica `/api/public/promemoria-palloni`
 
-Pensata per essere chiamata quotidianamente da uno scheduler esterno (pg_cron o simile,
-secondo `docs/PORTABILITA.md`), non da nessun componente client. Calcola i destinatari del
-giorno — chi deve **prendere** i palloni oggi e chi deve **riportarli** (l'incaricato
-dell'evento precedente) — e invia loro una push "vuota" (`src/lib/webpush.server.ts`); il
-testo effettivo viene calcolato al volo dal service worker interrogando
-`/api/public/push-messaggio` (vedi [Notifiche](notifiche.md)).
+La fa partire un **amministratore** dal pulsante «Avvisa chi è di turno» dentro il riquadro
+palloni dell'evento (`TurnoPalloni.tsx`), riservato agli admin (DD-025). Riceve l'`eventoId`,
+e `avvisiPalloniEvento()` calcola i due destinatari di _quell'evento_: chi deve **prendere** i
+palloni e chi deve **riportarli** (l'incaricato dell'evento precedente), con un testo diverso
+per ciascuno.
+
+Il testo va messo in coda su `promemoria_push` prima di inviare la push, perché la push parte
+"vuota" e il service worker chiede a `/api/public/push-messaggio` cosa mostrare — e quella
+route da sola sa raccontare solo la giornata corrente, quindi un avviso mandato con giorni di
+anticipo arriverebbe con il testo generico. Stesso meccanismo di `apri-sondaggio` (vedi
+[Notifiche](notifiche.md)).
 
 ---
 
 ## Limiti noti
 
-- **Nessun cron nel repository**: lo scheduling effettivo (se esiste) è configurato fuori dal
-  codice versionato — da verificare lato Supabase/hosting. Finché non esiste, il promemoria
-  quotidiano non parte da solo.
-- La route è protetta dal segreto previsto dal piano originale (DD-024): chi la chiama deve
-  mandare `x-cron-segreto` uguale alla variabile `CRON_SEGRETO`. Se la variabile non è
-  configurata nell'ambiente la route risponde `503`.
+- **L'invio è manuale**: nessun cron manda il promemoria da solo, se l'admin non preme il
+  pulsante non parte niente (DD-025). `destinatariPromemoriaPalloni()` — la versione "chi è di
+  turno oggi" — resta in `palloni-core.ts` perché la usa `push-messaggio` per il testo
+  calcolato al volo, ma nessuno scheduler la interroga.
 - Il conteggio dei turni include anche le proposte non confermate: badge e statistiche
   possono contare turni mai effettivamente convalidati da nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto

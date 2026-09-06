@@ -40,6 +40,7 @@ Serve a rispondere a domande del tipo:
 | [DD-022](#dd-022--lapp-è-solo-chiara)                                             | App solo chiara                       |
 | [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                          | Scritture limitate per ruolo          |
 | [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
+| [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
 
 **In valutazione**
 
@@ -839,8 +840,8 @@ i chiamanti sono diversi (`src/lib/auth-route.server.ts`):
   `src/lib/ruoli.ts` (DD-011). `401` senza token valido, `403` con token ma senza ruolo. Il
   controllo viene **prima** della validazione dell'input, così la risposta non rivela
   nemmeno se un evento esiste.
-- `promemoria-palloni` → `richiediSegreto`: intestazione `x-cron-segreto` confrontata con la
-  variabile `CRON_SEGRETO`. La chiama un cron, che una sessione non ce l'ha.
+- `promemoria-palloni` → all'inizio `richiediSegreto`, con un segreto da cron; sostituito
+  subito dopo da `richiediAdmin` quando la route è diventata manuale (DD-025).
 
 `csi`, `push-config`, `push-subscribe` e `push-messaggio` restano aperte: le chiamano il
 browser prima del login e il service worker, dove qualsiasi segreto sarebbe pubblico.
@@ -857,9 +858,8 @@ browser prima del login e il service worker, dove qualsiasi segreto sarebbe pubb
 
 **Conseguenze**
 
-- Se `CRON_SEGRETO` non è configurata, `promemoria-palloni` risponde `503` e il promemoria
-  non parte. È voluto: una porta che si riapre da sola quando manca una variabile
-  d'ambiente non se ne accorge nessuno. Va impostata negli ambienti di deploy e nel cron.
+- Nessuna variabile d'ambiente da configurare: dopo DD-025 tutte e tre le route usano lo
+  stesso controllo sul ruolo.
 - I due pulsanti dell'app mandano ora il token con `intestazioniAutenticate()`
   (`src/lib/auth.ts`), letto al momento della chiamata e non da uno stato React, così non si
   spedisce un token scaduto.
@@ -871,3 +871,55 @@ browser prima del login e il service worker, dove qualsiasi segreto sarebbe pubb
 **Riesame**  
 Se un giorno l'app userà `createServerFn`, il middleware già presente diventa la strada
 naturale e questi controlli vanno riletti alla sua luce.
+
+### DD-025 — Il promemoria palloni lo manda l'admin, per un evento
+
+**Data:** 6 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+`promemoria-palloni` era disegnata per un cron quotidiano: calcolava chi è di turno **oggi** e
+gli mandava una push. DD-024 l'aveva chiusa con un segreto condiviso, coerente con quel
+disegno. Ma nel repository non c'è nessun cron, e `docs/modules/palloni.md` lo annotava già
+come «da verificare lato hosting»: nei fatti quel promemoria non è mai partito. Una route che
+funziona e che nessuno chiama.
+
+Nel frattempo l'app aveva già il precedente giusto: `apri-sondaggio` è manuale fin dall'inizio
+(«Nessun cron: l'invio è manuale», CHANGELOG v1.0.6).
+
+**Decisione**  
+Il promemoria lo fa partire un amministratore dal pulsante «Avvisa chi è di turno», dentro il
+riquadro palloni della pagina evento. La route accetta un `eventoId` e avvisa i destinatari di
+**quell'evento** — chi deve prendere i palloni e chi deve riportarli — invece della giornata
+corrente. Il controllo di accesso diventa `richiediAdmin` come le altre due, e
+`richiediSegreto` con la sua variabile `CRON_SEGRETO` spariscono.
+
+Il testo dell'avviso viaggia in coda su `promemoria_push`: la push parte vuota e il service
+worker chiede a `push-messaggio` cosa mostrare, ma quella route sa raccontare solo la giornata
+corrente. Senza la coda, un avviso mandato il martedì per il sabato arriverebbe con il testo
+generico.
+
+**Alternative scartate**
+
+- Un pulsante «manda il promemoria di oggi» in Dashboard → rispecchia la route com'era, ma
+  premuto un martedì qualsiasi risponderebbe «inviate: 0» e sembrerebbe rotto. L'admin
+  ragiona per evento, non per giornata.
+- Tenere il cron e configurarlo davvero → più lavoro, una variabile d'ambiente da gestire in
+  ogni ambiente, e nessuno l'aveva chiesto. Un pulsante che funziona batte uno scheduler che
+  non esiste.
+- Calcolare il testo al volo come fa `messaggioPalloniOggi` → funziona solo se l'avviso parte
+  il giorno stesso, cioè proprio il vincolo da cui volevamo uscire.
+
+**Conseguenze**
+
+- Il promemoria è ora una scelta consapevole di un admin, non un automatismo: se nessuno preme
+  il pulsante, non parte niente. È un passo indietro rispetto all'idea originale, ma un passo
+  avanti rispetto alla realtà, dove non partiva mai.
+- `destinatariPromemoriaPalloni()` non è più usata dalla route ma resta in `palloni-core.ts`,
+  perché `push-messaggio` continua a costruire il testo della giornata per le push senza coda.
+- Sparisce `CRON_SEGRETO`: nessuna variabile d'ambiente nuova da configurare in nessun
+  ambiente.
+
+**Riesame**  
+Se la squadra si accorge che l'admin si dimentica di premere il pulsante. A quel punto il cron
+torna utile, e con lui il segreto: DD-024 descrive già come farlo.

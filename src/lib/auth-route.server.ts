@@ -7,13 +7,10 @@
  * è un timestamp in base 36 e compare negli URL che la squadra si scambia — quindi non
  * può fare da credenziale.
  *
- * Due tipi di chiamante, due controlli:
- * - dall'app, per un'azione da amministratore -> `richiediAdmin`, che verifica il token
- *   della sessione Supabase e poi il ruolo in `user_roles`;
- * - da una macchina (cron), dove nessuna sessione esiste -> `richiediSegreto`.
- *
- * Entrambe tornano `null` quando la richiesta può proseguire, altrimenti la `Response` di
- * rifiuto già pronta.
+ * Tutte e tre le route che mandano notifiche partono da un pulsante riservato agli
+ * amministratori, quindi il controllo è uno solo: `richiediAdmin` verifica il token della
+ * sessione Supabase e poi il ruolo in `user_roles`. Torna `null` quando la richiesta può
+ * proseguire, altrimenti la `Response` di rifiuto già pronta.
  */
 
 /** Il token della sessione Supabase, se la richiesta ne porta uno ben formato. */
@@ -47,23 +44,5 @@ export async function richiediAdmin(request: Request): Promise<Response | null> 
     .maybeSingle();
 
   if (!ruolo) return new Response("Riservato agli amministratori", { status: 403 });
-  return null;
-}
-
-/**
- * Lascia passare solo chi conosce `CRON_SEGRETO`, per le chiamate senza sessione.
- *
- * Se la variabile non è configurata la route resta chiusa: una porta che si apre da sola
- * quando manca una configurazione è peggio di una porta che non funziona, perché nessuno
- * se ne accorge.
- */
-export function richiediSegreto(request: Request): Response | null {
-  const atteso = process.env["CRON_SEGRETO"];
-  if (!atteso) {
-    console.error("[auth] CRON_SEGRETO non configurato: la route resta chiusa");
-    return new Response("Route non configurata", { status: 503 });
-  }
-  const fornito = request.headers.get("x-cron-segreto");
-  if (fornito !== atteso) return new Response("Segreto non valido", { status: 401 });
   return null;
 }

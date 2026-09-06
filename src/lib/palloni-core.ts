@@ -139,3 +139,49 @@ export function messaggioPalloniOggi(
     body: nome ? `${nome}, controlla il turno palloni nel calendario.` : "Controlla il calendario.",
   };
 }
+
+/**
+ * Avvisi da mandare per un evento preciso, con il testo già pronto (DD-025).
+ *
+ * Diverso da `destinatariPromemoriaPalloni`, che guarda la giornata di oggi: qui l'admin
+ * sceglie l'evento dalla sua pagina, quindi il messaggio nomina quell'evento e non "oggi".
+ * Il testo viaggia in coda su `promemoria_push` perché la push parte vuota e il service
+ * worker chiede a `push-messaggio` cosa mostrare — che da solo saprebbe raccontare solo
+ * la giornata corrente.
+ */
+export function avvisiPalloniEvento(
+  turni: Record<string, string>,
+  eventi: Evento[],
+  eventoId: string,
+): Array<{ giocatoreId: string; titolo: string; testo: string }> {
+  const evento = eventiPalloni(eventi).find((e) => e.id === eventoId);
+  if (!evento) return [];
+
+  const avvisi: Array<{ giocatoreId: string; titolo: string; testo: string }> = [];
+  const quando = `${evento.titolo} · ${formatData(evento.data)} alle ${evento.ora}`;
+
+  const incaricato = turni[evento.id];
+  if (incaricato) {
+    const dopo = eventoSuccessivo(eventi, evento.id);
+    avvisi.push({
+      giocatoreId: incaricato,
+      titolo: "Tocca a te prendere i palloni",
+      testo: dopo
+        ? `${quando}: a fine evento porti a casa i palloni e li riporti il ${formatData(dopo.data)}.`
+        : `${quando}: a fine evento porti a casa i palloni.`,
+    });
+  }
+
+  // Chi li ha presi la volta scorsa deve ricordarsi di portarli.
+  const prima = eventoPrecedente(eventi, evento.id);
+  const precedente = prima ? turni[prima.id] : undefined;
+  if (precedente && precedente !== incaricato) {
+    avvisi.push({
+      giocatoreId: precedente,
+      titolo: "Porta i palloni",
+      testo: `${quando}: i palloni li hai tu dalla volta scorsa.`,
+    });
+  }
+
+  return avvisi;
+}

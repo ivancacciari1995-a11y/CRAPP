@@ -117,18 +117,18 @@ try {
   // Il controllo di accesso viene prima della validazione: senza credenziali la
   // risposta non deve nemmeno dire se l'evento esiste.
   await prova("le route che avvisano la squadra chiedono le credenziali", async () => {
-    for (const percorso of ["/api/public/sollecita-presenze", "/api/public/apri-sondaggio"]) {
+    const route = [
+      "/api/public/sollecita-presenze",
+      "/api/public/apri-sondaggio",
+      "/api/public/promemoria-palloni",
+    ];
+    for (const percorso of route) {
       assert.equal(
         (await postJson(percorso, { eventoId: "non-esiste" })).status,
         401,
         `${percorso} senza token`,
       );
     }
-    assert.equal(
-      (await postJson("/api/public/promemoria-palloni", {})).status < 400,
-      false,
-      "promemoria-palloni senza segreto non parte",
-    );
   });
 
   await prova("un token malformato non passa", async () => {

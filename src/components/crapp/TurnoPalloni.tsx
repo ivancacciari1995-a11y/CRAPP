@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { Check, CircleDot, Loader2, Pencil } from "lucide-react";
+import { BellRing, Check, CircleDot, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
+import { intestazioniAutenticate } from "@/lib/auth";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useAssegnaTurno, useTurniPalloni } from "@/lib/palloni";
+import { useIsAdmin } from "@/lib/ruoli";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 
 export function TurnoPalloni({ eventoId }: { eventoId: string }) {
   const [aperto, setAperto] = useState(false);
+  const [avviso, setAvviso] = useState(false);
   const { salvati, turni, isPending } = useTurniPalloni();
   const assegna = useAssegnaTurno();
   const io = useGiocatoreCorrente();
+  const admin = useIsAdmin();
   const { righe: squadra } = useGiocatoriSquadra();
   const rosa = squadra.filter((g) => g.attivo);
 
@@ -28,6 +32,29 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
         onError: () => toast.error("Non sono riuscito a salvare il turno"),
       },
     );
+  }
+
+  /** Avvisa via push chi è di turno per questo evento, e chi deve riportare i palloni. */
+  async function avvisa() {
+    setAvviso(true);
+    try {
+      const res = await fetch("/api/public/promemoria-palloni", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await intestazioniAutenticate()) },
+        body: JSON.stringify({ eventoId }),
+      });
+      if (!res.ok) throw new Error();
+      const dati = (await res.json()) as { inviate: number; destinatari: number };
+      toast.success(
+        dati.inviate > 0
+          ? `Promemoria inviato a ${dati.inviate} dispositivi`
+          : "Nessun dispositivo con le notifiche attive tra gli incaricati",
+      );
+    } catch {
+      toast.error("Non sono riuscito a inviare il promemoria");
+    } finally {
+      setAvviso(false);
+    }
   }
 
   return (
@@ -77,6 +104,22 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
             </button>
           ))}
         </div>
+      ) : null}
+
+      {admin && giocatore ? (
+        <button
+          type="button"
+          onClick={avvisa}
+          disabled={avviso}
+          className="premi mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-card px-3 py-2 text-xs font-bold uppercase text-foreground disabled:opacity-50"
+        >
+          {avviso ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <BellRing className="h-3.5 w-3.5" />
+          )}
+          Avvisa chi è di turno
+        </button>
       ) : null}
     </div>
   );

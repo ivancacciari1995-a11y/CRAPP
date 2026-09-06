@@ -59,20 +59,17 @@ L'invio effettivo (`src/lib/webpush.server.ts`, funzione `inviaPush`) firma un J
 (ECDSA P-256) e fa una POST senza corpo all'endpoint push del browser; è riusato identico da
 `sollecita-presenze.ts` e `promemoria-palloni.ts`.
 
-### Chi può farle partire (DD-024)
+### Chi può farle partire (DD-024, DD-025)
 
 Queste route usano la service role e saltano la RLS, quindi il permesso deve stare nella
-route. `src/lib/auth-route.server.ts` fornisce i due controlli:
+route. Tutte e tre partono da un gesto di un amministratore dentro l'app, quindi il controllo
+è uno solo (`richiediAdmin` in `src/lib/auth-route.server.ts`) e non serve configurare nessuna
+variabile d'ambiente.
 
-| Route                                                    | Controllo                                                                              | Chi la chiama                                                                   |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `apri-sondaggio`, `sollecita-presenze`                   | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles`     | l'app, dal pulsante riservato agli admin                                        |
-| `promemoria-palloni`                                     | `richiediSegreto` — intestazione `x-cron-segreto` uguale alla variabile `CRON_SEGRETO` | un cron, senza sessione                                                         |
-| `csi`, `push-config`, `push-subscribe`, `push-messaggio` | nessuno                                                                                | il browser prima del login e il service worker, che una sessione non ce l'hanno |
-
-**`CRON_SEGRETO` va configurata negli ambienti**: se manca, `promemoria-palloni` risponde
-503 e il promemoria non parte. È voluto — una porta che si riapre da sola quando manca una
-configurazione non se ne accorge nessuno.
+| Route                                                        | Controllo                                                                          | Chi la chiama                                                                   |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante riservato agli admin                                      |
+| `csi`, `push-config`, `push-subscribe`, `push-messaggio`     | nessuno                                                                            | il browser prima del login e il service worker, che una sessione non ce l'hanno |
 
 ---
 

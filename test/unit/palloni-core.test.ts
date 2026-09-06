@@ -5,6 +5,7 @@ import type { Evento } from "@/lib/eventi";
 import {
   completaTurni,
   conteggioTurni,
+  avvisiPalloniEvento,
   destinatariPromemoriaPalloni,
   eventiDelGiorno,
   eventiPalloni,
@@ -137,6 +138,42 @@ assert.deepEqual(
   destinatariPromemoriaPalloni({ p1: "g1", p2: "g1" }, eventiPush, "2026-02-02"),
   ["g1"],
   "stessa persona oggi e alla volta prima: un solo avviso",
+);
+
+// --- avvisiPalloniEvento ------------------------------------------------------
+// Il promemoria per un evento scelto dall'admin: due destinatari, con testi diversi.
+const avvisi = avvisiPalloniEvento(turniPush, eventiPush, "p2");
+assert.deepEqual(
+  avvisi.map((a) => a.giocatoreId),
+  ["g2", "g1"],
+  "l'incaricato di questo evento, e chi ha i palloni dalla volta prima",
+);
+assert.match(avvisi[0]!.titolo, /prendere i palloni/);
+assert.match(avvisi[1]!.titolo, /Porta i palloni/);
+assert.ok(
+  avvisi.every((a) => !/oggi/i.test(a.testo)),
+  "il testo nomina l'evento, non 'oggi': può arrivare giorni prima",
+);
+
+assert.deepEqual(
+  avvisiPalloniEvento(turniPush, eventiPush, "p1").map((a) => a.giocatoreId),
+  ["g1"],
+  "il primo evento non ha un precedente da avvisare",
+);
+assert.deepEqual(
+  avvisiPalloniEvento({ p1: "g1", p2: "g1" }, eventiPush, "p2").map((a) => a.giocatoreId),
+  ["g1"],
+  "stessa persona nei due ruoli: un avviso solo, non due notifiche uguali",
+);
+assert.deepEqual(
+  avvisiPalloniEvento(turniPush, eventiPush, "non-esiste"),
+  [],
+  "un evento inesistente non produce avvisi",
+);
+assert.deepEqual(
+  avvisiPalloniEvento({}, eventiPush, "p2"),
+  [],
+  "senza turni assegnati non c'è nessuno da avvisare",
 );
 
 // --- messaggioPalloniOggi -----------------------------------------------------
