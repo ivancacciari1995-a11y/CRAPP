@@ -60,8 +60,9 @@ ricorrente:
   `src/router.tsx` (`staleTime` 5 min, `gcTime` 30 min, `refetchOnWindowFocus/Mount/Reconnect`
   disattivati, `retry: 1`);
 - dopo una mutazione la cache si aggiorna con `setQueryData`, **non** con
-  `invalidateQueries`: invalidare provoca una rilettura e costa una query in più (unica
-  eccezione oggi: `scout-live.ts`);
+  `invalidateQueries`: invalidare provoca una rilettura e costa una query in più. Unica
+  eccezione: `scout-live.ts`, dove il lock può essere stato preso da un altro dispositivo,
+  quindi quello che abbiamo scritto non è detto sia quello che vale;
 - le funzioni pure di calcolo sono separate dagli hook (es. `palloni-core.ts` vs
   `palloni.ts`, `mediePagelle()` vs `usePagelle()`);
 - `src/lib/rosa.ts` è l'aggregatore: compone tutti gli hook e restituisce la rosa completa

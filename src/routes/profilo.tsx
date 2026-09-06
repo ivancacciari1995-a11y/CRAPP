@@ -10,7 +10,7 @@ import {
   caricaAvatar,
   rimuoviAvatar,
   useAvatarEsiste,
-  useInvalidaAvatarEsiste,
+  useImpostaAvatarEsiste,
 } from "@/lib/avatar-store";
 import { SerieGriglia } from "@/components/crapp/SerieCard";
 import { CollezioneBadge } from "@/components/crapp/CollezioneBadge";
@@ -68,7 +68,7 @@ function Profilo() {
   const ultimoMese = usePresenzeUltimoMese(g?.id);
   const inputRef = useRef<HTMLInputElement>(null);
   const fotoEsiste = useAvatarEsiste(g?.id);
-  const invalidaAvatarEsiste = useInvalidaAvatarEsiste();
+  const impostaAvatarEsiste = useImpostaAvatarEsiste();
   const [bust, setBust] = useState(0);
   const [notifiche, setNotifiche] = useState(false);
   const [inCorso, setInCorso] = useState(false);
@@ -121,7 +121,7 @@ function Profilo() {
     try {
       await caricaAvatar(g.id, file);
       setBust(Date.now());
-      invalidaAvatarEsiste(g.id);
+      impostaAvatarEsiste(g.id, true);
       toast.success("Immagine profilo aggiornata");
     } catch {
       toast.error("Non sono riuscito a caricare l'immagine");
@@ -175,7 +175,7 @@ function Profilo() {
                   try {
                     await rimuoviAvatar(g.id);
                     setBust(Date.now());
-                    invalidaAvatarEsiste(g.id);
+                    impostaAvatarEsiste(g.id, false);
                     toast.success("Immagine rimossa");
                   } catch {
                     toast.error("Non sono riuscito a rimuovere l'immagine");

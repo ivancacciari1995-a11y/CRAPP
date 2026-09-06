@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import type { Evento } from "@/lib/eventi";
 import {
   contaPresenzeGiocatore,
+  destinatariSollecito,
   serieConferme,
   serieConsecutiva,
   totaliEventiGiocatore,
@@ -79,6 +80,44 @@ assert.equal(totaliEventiGiocatore("g1", conAltri, OGGI), 5, "solo partite e all
 const conRistretti: Evento[] = [...eventi, ev("a7", "allenamento", "2026-08-29", ["g9"])];
 assert.equal(totaliEventiGiocatore("g9", conRistretti, OGGI), 6, "il convocato ce l'ha in più");
 assert.equal(totaliEventiGiocatore("g1", conRistretti, OGGI), 5, "chi non è convocato no");
+
+// --- destinatari del sollecito: chi non ha risposto, più i "forse" ------------
+const squadra = [
+  { id: "g1", attivo: true },
+  { id: "g2", attivo: true },
+  { id: "g3", attivo: true },
+  { id: "g4", attivo: true },
+  { id: "g5", attivo: false }, // uscito dalla squadra: non lo si disturba più
+];
+
+const risposte = [
+  { giocatore_id: "g1", stato: "presente" },
+  { giocatore_id: "g2", stato: "forse" },
+  { giocatore_id: "g4", stato: "assente" },
+  { giocatore_id: "g5", stato: "forse" },
+];
+
+assert.deepEqual(
+  destinatariSollecito(squadra, risposte),
+  ["g2", "g3"],
+  "il forse va sollecitato come chi non ha risposto; presente e assente no",
+);
+assert.deepEqual(
+  destinatariSollecito(squadra, []),
+  ["g1", "g2", "g3", "g4"],
+  "senza nessuna risposta si avvisano tutti gli attivi",
+);
+assert.deepEqual(
+  destinatariSollecito(squadra, [
+    { giocatore_id: "g1", stato: "presente" },
+    { giocatore_id: "g2", stato: "ritardo" },
+    { giocatore_id: "g3", stato: "infortunato" },
+    { giocatore_id: "g4", stato: "assente" },
+  ]),
+  [],
+  "quando hanno risposto tutti non parte nessuna push",
+);
+assert.deepEqual(destinatariSollecito([], risposte), [], "rosa vuota, nessun destinatario");
 
 // --- serie conferme: risposta entro 24h dalla convocazione --------------------
 const convocati = (id: string, data: string, creatoIl?: string): Evento => ({

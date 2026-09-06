@@ -11,8 +11,9 @@ Query, traffico e invocazioni vanno tenuti al minimo **per costruzione**, non ot
    (`staleTime` 5 min, `gcTime` 30 min, `refetchOnWindowFocus/Mount/Reconnect` disattivati,
    `retry: 1`). Non alzare la frequenza di refetch modulo per modulo.
 3. **Dopo una mutazione si aggiorna la cache con `setQueryData`**, non con
-   `invalidateQueries`: invalidare costa una rilettura. Unica eccezione oggi:
-   `src/lib/scout-live.ts`.
+   `invalidateQueries`: invalidare costa una rilettura. Unica eccezione:
+   `src/lib/scout-live.ts`, dove il lock di sessione può essere stato preso da un altro
+   dispositivo e la riga scritta non basta a sapere chi ha vinto.
 4. **Scout Live**: scrive solo chi sta segnando; gli altri leggono dati già salvati.
 5. **Write once, read many**: statistiche, badge e classifiche si calcolano una volta e non
    si ricalcolano a ogni apertura di pagina. I badge restano calcolati a runtime dai dati già

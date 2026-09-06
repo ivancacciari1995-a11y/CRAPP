@@ -46,6 +46,25 @@ export function totaliEventiGiocatore(
 }
 
 /**
+ * Chi va sollecitato per un evento: i giocatori attivi che non hanno ancora risposto, più
+ * quelli che hanno risposto «forse». Funzione pura, come `avvisiPalloniEvento()` per i
+ * palloni: la route `/api/public/sollecita-presenze` la chiama con i dati che ha già letto.
+ */
+export function destinatariSollecito(
+  squadra: Array<{ id: string; attivo: boolean }>,
+  risposte: Array<{ giocatore_id: string; stato: string }>,
+): string[] {
+  const stati = new Map(risposte.map((r) => [r.giocatore_id, r.stato]));
+  return squadra
+    .filter((g) => g.attivo)
+    .filter((g) => {
+      const stato = stati.get(g.id);
+      return stato === undefined || stato === "forse";
+    })
+    .map((g) => g.id);
+}
+
+/**
  * Serie di presenze consecutive su eventi già passati, in ordine di data:
  * ogni presenza (o ritardo) vale +1, qualsiasi altra risposta — o nessuna
  * risposta — azzera la serie. Senza `tipo` conta partite e allenamenti insieme.

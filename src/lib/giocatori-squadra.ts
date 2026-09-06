@@ -219,19 +219,28 @@ export function useSalvaTesseramento() {
 export function useAggiungiGiocatore() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; dati: DatiSquadra }) => {
-      const { error } = await supabaseNuoveTabelle.from("giocatori_squadra").insert({
+    mutationFn: async (input: { id: string; dati: DatiSquadra }): Promise<GiocatoreSquadra> => {
+      const riga = {
         id: input.id,
         nome: input.dati.nome.trim(),
         cognome: input.dati.cognome.trim(),
         numero: input.dati.numero,
         ruolo: input.dati.ruolo.trim(),
         email: input.dati.email?.trim() || null,
-      });
+      };
+      const { error } = await supabaseNuoveTabelle.from("giocatori_squadra").insert(riga);
       if (error) throw error;
+      // Le colonne non inviate hanno i default della tabella (M1): `attivo` true, il resto NULL.
+      return { ...riga, authUserId: null, attivo: true, numeroTessera: null, dataTessera: null };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: SQUADRA_KEY });
+    // Aggiornamento locale della cache: nessuna rilettura, stesso ordine della query
+    // (`.order("cognome").order("nome")`).
+    onSuccess: (nuovo) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        [...(prec ?? []), nuovo].sort(
+          (a, b) => a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome),
+        ),
+      );
     },
   });
 }

@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 04/09/2026
+Ultimo aggiornamento: 06/09/2026
 
 ## Stato generale
 
@@ -21,7 +21,7 @@ reali (M9).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 20 migration in `supabase/migrations/`, fino a `m9_risposte_presenze_risposto_il`
+- 23 migration in `supabase/migrations/`, fino a `m12_niente_autovoto`
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -36,7 +36,8 @@ reali (M9).
 
 ## Database
 
-- Schema v1.0 e migration da M1 a M9 applicate al nuovo Supabase
+- Schema v1.0 e migration da M1 a M11 applicate al nuovo Supabase; `m12_niente_autovoto`
+  applicata in locale, **da applicare in produzione** (`npx supabase db push`)
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza
@@ -48,6 +49,14 @@ reali (M9).
   ancora presente su `giocatori_squadra`)
 - Migration `m6_avatar_giocatori`: bucket pubblico `avatar-giocatori` per le foto profilo,
   al posto di `localStorage` (una per giocatore, letto da `src/lib/avatar-store.ts`)
+- Migration `m10_azzera_turni_palloni_allenamenti`: toglie i turni palloni salvati sugli
+  allenamenti, che non ricevono più una proposta automatica (vedi
+  [docs/modules/palloni.md](docs/modules/palloni.md))
+- Migration `m11_scritture_per_ruolo`: le policy di scrittura rispecchiano i permessi
+  dell'interfaccia (DD-023). Fino a M10 un qualsiasi utente autenticato poteva svuotare il
+  calendario o riscrivere il voto di un altro parlando direttamente con PostgREST; la tabella
+  dei permessi sta in [docs/DATABASE.md](docs/DATABASE.md) ed è verificata da
+  `test/integration/permessi.test.ts`
 - Migration `m7_scout_partite`: nuova tabella `scout_partite` per l'archivio delle partite
   scoutate concluse, e collegamento della tabella `scout_sessioni` (già presente nello
   schema ma mai usata) al blocco condiviso dello Scout Live — prima entrambi vivevano solo

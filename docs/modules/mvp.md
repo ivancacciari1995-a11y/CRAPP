@@ -25,6 +25,9 @@ partita, sovrascrivibile.
   per la partita, altrimenti mostra "la partita non è ancora stata disputata".
 - `useVotaMvp()` fa upsert `onConflict: match_id, votante_id`: il voto è modificabile senza
   limiti, senza storico.
+- Nessuno vota sé stesso: `VotazioneMvp.tsx` toglie il votante dall'elenco e il vincolo
+  `mvp_no_autovoto` (migration `m12_niente_autovoto`) rifiuta la riga anche a chi scrive
+  direttamente su PostgREST, come già faceva `pagelle_no_autovoto` per le pagelle.
 - `conteggioPartita()`/`vincitoriMvp()` richiedono un margine netto: in caso di parità,
   nessun vincitore viene assegnato per quella partita finché non arrivano altri voti.
 - `mvpVintiPerGiocatore()` conta una vittoria per ogni partita "vinta" con margine netto; il
@@ -35,18 +38,15 @@ partita, sovrascrivibile.
 
 ## Limiti noti
 
-- **Nessun controllo che impedisca di votare se stessi** — a differenza dei
-  [Badge social](badge.md), che escludono esplicitamente l'auto-voto. È una lacuna, non un
-  limite di design dichiarato altrove.
 - Nessuna scadenza o chiusura della votazione: resta aperta indefinitamente.
-- RLS permissiva: `votante_id`/`votato_id` sono testo libero inviato dal client (l'id
-  giocatore proviene da `localStorage`, non da un claim di sessione verificato server-side);
-  nessun trigger lega il voto all'utente autenticato.
+- Il voto è legato a chi lo scrive: da `m11_scritture_per_ruolo` la policy impone che
+  `votante_id` sia lo slot collegato all'account (DD-023). Su chi viene votato l'unico
+  vincolo è che non sia il votante stesso (`mvp_no_autovoto`): che sia un convocato di
+  quella partita resta un filtro solo applicativo.
 - In caso di parità, nessun MVP viene assegnato per quella partita.
 
 ---
 
 ## Evoluzioni possibili
 
-- Impedire l'auto-voto come già avviene nei Badge social.
 - Introdurre una scadenza (es. la votazione si chiude N giorni dopo la partita).

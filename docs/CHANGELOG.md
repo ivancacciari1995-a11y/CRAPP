@@ -6,6 +6,33 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Tre riletture in meno dopo ogni salvataggio
+
+- «Aggiungi giocatore», salvataggio ed eliminazione di una partita scoutata e cambio della
+  foto profilo aggiornavano la cache con `invalidateQueries`, cioè rileggendo tutto dal
+  database. Ora usano `setQueryData` come il resto dell'app: il dato scritto è noto, non
+  serve richiederlo indietro.
+- Resta una sola eccezione, `scout-live.ts`: lì il lock può essere stato preso da un altro
+  dispositivo, quindi rileggere è l'unico modo per sapere chi ha vinto.
+
+### Il cronometro delle conferme è verificato dai test
+
+- `test/integration/scritture.test.ts` controlla ora che un ripensamento non riscriva
+  `risposto_il`, cioè che il trigger di `m9` sia davvero al suo posto: prima il test guardava
+  `aggiornato_il`, che è l'ultima modifica e non alimenta nessuna statistica, quindi restava
+  verde anche senza trigger.
+- Il calcolo dei destinatari del sollecito presenze esce dalla route ed è ora
+  `destinatariSollecito()` in `src/lib/presenze.ts`, con i suoi test — stesso trattamento già
+  dato ad `avvisiPalloniEvento()` per i palloni.
+
+### Nessuno si vota da solo
+
+- L'elenco della votazione MVP non mostra più il votante: prima bastava toccare il proprio
+  nome per eleggersi MVP, e il titolo finiva tra le statistiche come qualsiasi altro.
+- I vincoli `mvp_no_autovoto` e `badge_social_no_autovoto` (migration `m12_niente_autovoto`)
+  rifiutano l'auto-voto anche a chi scrive direttamente su PostgREST, come `pagelle_voti`
+  faceva già dalla v1.0. Le righe che violavano la regola vengono cancellate dalla migration.
+
 ### La suite copre i conteggi presenze, il calendario e la guardia delle notifiche
 
 - Nuovi check unitari su `contaPresenzeGiocatore`/`totaliEventiGiocatore` (numeratore e

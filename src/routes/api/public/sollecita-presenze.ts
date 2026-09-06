@@ -4,6 +4,7 @@ import { richiediAdmin } from "@/lib/auth-route.server";
 import { formatData } from "@/lib/crapp-data";
 import { leggiEventi } from "@/lib/eventi.server";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
+import { destinatariSollecito } from "@/lib/presenze";
 import { inviaPush } from "@/lib/webpush.server";
 
 const schema = z.object({
@@ -33,14 +34,7 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
           .eq("evento_id", evento.id);
 
         const squadra = await leggiGiocatoriSquadra();
-        const stati = new Map((righe ?? []).map((r) => [r.giocatore_id, r.stato]));
-        const destinatari = squadra
-          .filter((g) => g.attivo)
-          .filter((g) => {
-            const stato = stati.get(g.id);
-            return stato === undefined || stato === "forse";
-          })
-          .map((g) => g.id);
+        const destinatari = destinatariSollecito(squadra, righe ?? []);
 
         if (destinatari.length === 0) return Response.json({ inviate: 0, destinatari: 0 });
 

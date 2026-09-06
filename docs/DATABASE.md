@@ -61,11 +61,11 @@ La tabella è verificata da `test/integration/permessi.test.ts` contro il databa
 
 ## Votazioni
 
-| Tabella             | Scopo                                | Note                     |
-| ------------------- | ------------------------------------ | ------------------------ |
-| `mvp_voti`          | Voti MVP assegnati a fine partita.   |                          |
-| `pagelle_voti`      | Voti anonimi assegnati ai giocatori. | Usati per il voto medio. |
-| `badge_social_voti` | Voti social per i badge.             |                          |
+| Tabella             | Scopo                                | Note                                                                                                               |
+| ------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `mvp_voti`          | Voti MVP assegnati a fine partita.   | Un voto per votante e partita; auto-voto rifiutato (`mvp_no_autovoto`, migration `m12_niente_autovoto`).           |
+| `pagelle_voti`      | Voti anonimi assegnati ai giocatori. | Usati per il voto medio. Voto 1-10 e auto-voto rifiutato dai vincoli della v1.0.                                   |
+| `badge_social_voti` | Voti social per i badge.             | Un voto per categoria, votante e partita; auto-voto rifiutato (`badge_social_no_autovoto`, `m12_niente_autovoto`). |
 
 ## Turni e notifiche
 

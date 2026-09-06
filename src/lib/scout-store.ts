@@ -135,7 +135,12 @@ export function useSalvaScoutMatch() {
       if (error) throw error;
       return input.match;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SCOUT_MATCHES_KEY }),
+    // La query ordina per `creato_il` decrescente: la partita appena salvata è la più recente.
+    onSuccess: (match) =>
+      queryClient.setQueryData<ScoutMatch[]>(SCOUT_MATCHES_KEY, (prec) => [
+        match,
+        ...(prec ?? []).filter((m) => m.id !== match.id),
+      ]),
   });
 }
 
@@ -147,7 +152,10 @@ export function useEliminaScoutMatch() {
       if (error) throw error;
       return id;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SCOUT_MATCHES_KEY }),
+    onSuccess: (id) =>
+      queryClient.setQueryData<ScoutMatch[]>(SCOUT_MATCHES_KEY, (prec) =>
+        (prec ?? []).filter((m) => m.id !== id),
+      ),
   });
 }
 

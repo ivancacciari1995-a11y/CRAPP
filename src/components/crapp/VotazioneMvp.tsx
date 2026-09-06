@@ -71,22 +71,26 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
 
       {aperto ? (
         <div className="mt-3 grid max-h-60 grid-cols-2 gap-1.5 overflow-y-auto">
-          {rosa.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              disabled={vota.isPending}
-              onClick={() => invia(g.id, nomeCompleto(g))}
-              className={cn(
-                "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
-                mio?.votato_id === g.id
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-card text-foreground",
-              )}
-            >
-              {nomeCompleto(g)}
-            </button>
-          ))}
+          {/* Sé stessi fuori dall'elenco, come nei badge social: l'auto-voto è vietato
+              anche dal vincolo `mvp_no_autovoto` (M12). */}
+          {rosa
+            .filter((g) => g.id !== io?.id)
+            .map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                disabled={vota.isPending}
+                onClick={() => invia(g.id, nomeCompleto(g))}
+                className={cn(
+                  "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
+                  mio?.votato_id === g.id
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-card text-foreground",
+                )}
+              >
+                {nomeCompleto(g)}
+              </button>
+            ))}
         </div>
       ) : conteggio.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1.5">

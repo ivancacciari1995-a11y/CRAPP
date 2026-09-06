@@ -29,9 +29,13 @@ export function useAvatarEsiste(id: string | undefined) {
   });
 }
 
-export function useInvalidaAvatarEsiste() {
+/**
+ * Dopo un caricamento o una rimozione lo stato è noto: si scrive in cache invece di
+ * rileggere l'elenco del bucket (una richiesta in meno per ogni cambio foto).
+ */
+export function useImpostaAvatarEsiste() {
   const qc = useQueryClient();
-  return (id: string) => qc.invalidateQueries({ queryKey: chiaveEsiste(id) });
+  return (id: string, esiste: boolean) => qc.setQueryData(chiaveEsiste(id), esiste);
 }
 
 /** Ridimensiona e comprime l'immagine scelta in un quadrato JPEG. */

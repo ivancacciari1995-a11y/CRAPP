@@ -4,7 +4,8 @@
 **File principali:** `src/lib/serie.ts`, `src/lib/presenze.ts`, `src/lib/rosa.ts`,
 `src/components/crapp/SerieCard.tsx`
 **Migration collegata:** `m9_risposte_presenze_risposto_il`
-**Test:** `test/unit/serie.test.ts`, `test/unit/presenze.test.ts`
+**Test:** `test/unit/serie.test.ts`, `test/unit/presenze.test.ts`,
+`test/integration/scritture.test.ts` (il trigger che congela `risposto_il`)
 
 ---
 
@@ -58,6 +59,18 @@ UPDATE: senza, un giocatore che risponde subito e cambia idea una settimana dopo
 lento. `aggiornato_il` continua a registrare l'ultima modifica ed è un'altra cosa: non usarlo
 per le conferme.
 
+Le due colonne si confondono facilmente, e sbagliarle non rompe niente di visibile: la serie
+comincia solo a raccontare il falso. Per questo il confine è verificato in
+`test/integration/scritture.test.ts` («la risposta di presenza si aggiorna senza far ripartire
+il cronometro»), che riscrive la risposta provando a riscrivere anche `risposto_il` e controlla
+che il database abbia tenuto la prima: se qualcuno togliesse il trigger, quel test diventa
+rosso. Il test precedente guardava `aggiornato_il` e passava anche senza trigger.
+
+| Colonna         | Cosa registra         | Chi la usa              |
+| --------------- | --------------------- | ----------------------- |
+| `risposto_il`   | la **prima** risposta | la serie "Conferme 24h" |
+| `aggiornato_il` | l'**ultima** modifica | nessuna statistica      |
+
 Cancellare la risposta (`stato: null` → DELETE) elimina anche `risposto_il`: se il giocatore
 risponde di nuovo, riparte il cronometro. È voluto — ha ritirato la risposta.
 
@@ -102,8 +115,11 @@ ordine:
    - solo eventi a cui il giocatore era convocato. **`convocati` vuoto significa "tutta la
      rosa"**, non "nessuno": chi non è nell'elenco di una convocazione ristretta non vede
      quell'evento e la sua serie non si spezza.
-2. **Scarta il futuro** (`e.data <= oggi`). Gli eventi di oggi contano già: se serve un
-   confronto diverso, il parametro `oggi` è iniettabile (i test lo fissano a una data).
+2. **Tiene solo gli eventi già passati** (`e.data < oggi`, dentro `eventiContanoPresenze()`).
+   Il confronto è **stretto**: l'evento di oggi non conta ancora, perché nessuno ha potuto
+   presentarsi e conterebbe come assenza, azzerando la serie di tutta la squadra la mattina
+   della partita. Entra in gioco dal giorno dopo. Il parametro `oggi` è iniettabile — di
+   default `dataOggi()` — e i test lo fissano a una data per non dipendere dall'orologio.
 3. **Ordina per data crescente** (`localeCompare` su `YYYY-MM-DD`).
 4. **Riduce** applicando `aggiornaSerie(serie, onorato(e))` a ogni evento: `+1` se onorato,
    `0` altrimenti. La serie finale è quella che risulta **dopo l'ultimo evento passato**.

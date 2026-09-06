@@ -121,6 +121,32 @@ if (!locale) {
     });
 
     // --- MVP: qui la regola è l'opposta -------------------------------------------
+    await prova("l'MVP e i badge social rifiutano l'autovoto", async () => {
+      // M12: `pagelle_no_autovoto` esisteva dalla v1.0, queste due tabelle no. Il vincolo sta
+      // a database perché l'interfaccia non è l'unica strada per scrivere una riga.
+      await assert.rejects(
+        () =>
+          upsert("mvp_voti", "match_id,votante_id", {
+            match_id: `${PREFISSO}-m3`,
+            votante_id: "g1",
+            votato_id: "g1",
+            votato_nome: "Uno",
+          }),
+        "nessuno si elegge MVP da solo (mvp_no_autovoto)",
+      );
+      await assert.rejects(
+        () =>
+          upsert("badge_social_voti", "match_id,categoria,votante_id", {
+            match_id: `${PREFISSO}-m3`,
+            categoria: "cuore",
+            votante_id: "g1",
+            votato_id: "g1",
+            votato_nome: "Uno",
+          }),
+        "né si assegna un badge social (badge_social_no_autovoto)",
+      );
+    });
+
     await prova("l'MVP tiene un solo voto per votante e partita", async () => {
       const match = `${PREFISSO}-m3`;
       const chiave = "match_id,votante_id";
@@ -226,34 +252,49 @@ if (!locale) {
       assert.equal(righe[0]?.["aggiornato_da"], "g9", "e si sa chi l'ha fatta");
     });
 
-    // --- presenze: la risposta si cambia fino all'ultimo ---------------------------
-    await prova("la risposta di presenza si aggiorna, non si duplica", async () => {
-      const evento = `${PREFISSO}-e3`;
-      const chiave = "evento_id,giocatore_id";
-      const prima = await upsert("risposte_presenze", chiave, {
-        evento_id: evento,
-        giocatore_id: "g1",
-        stato: "presente",
-        aggiornato_il: new Date("2026-01-01T18:00:00Z").toISOString(),
-      });
-      await upsert("risposte_presenze", chiave, {
-        evento_id: evento,
-        giocatore_id: "g1",
-        stato: "assente",
-        aggiornato_il: new Date("2026-01-01T19:00:00Z").toISOString(),
-      });
-      const righe = await leggi(
-        "risposte_presenze",
-        `evento_id=eq.${evento}&select=stato,aggiornato_il`,
-      );
-      assert.equal(righe.length, 1, "una risposta per giocatore");
-      assert.equal(righe[0]?.["stato"], "assente", "vale l'ultima risposta");
-      assert.notEqual(
-        righe[0]?.["aggiornato_il"],
-        prima[0]?.["aggiornato_il"],
-        "l'istante della risposta si muove: è quello che alimenta la serie di conferme",
-      );
-    });
+    // --- presenze: la risposta si cambia, il cronometro no --------------------------
+    // Due colonne che sembrano la stessa cosa e non lo sono: `risposto_il` è la PRIMA
+    // risposta e alimenta la serie "Conferme 24h", `aggiornato_il` è l'ultima modifica e non
+    // alimenta niente. Il trigger `risposte_presenze_risposto_il_immutabile` (M9) tiene ferma
+    // la prima: senza, chi risponde subito e ci ripensa una settimana dopo risulterebbe lento.
+    await prova(
+      "la risposta di presenza si aggiorna senza far ripartire il cronometro",
+      async () => {
+        const evento = `${PREFISSO}-e3`;
+        const chiave = "evento_id,giocatore_id";
+        const prima = await upsert("risposte_presenze", chiave, {
+          evento_id: evento,
+          giocatore_id: "g1",
+          stato: "presente",
+          aggiornato_il: new Date("2026-01-01T18:00:00Z").toISOString(),
+        });
+        await upsert("risposte_presenze", chiave, {
+          evento_id: evento,
+          giocatore_id: "g1",
+          stato: "assente",
+          aggiornato_il: new Date("2026-01-01T19:00:00Z").toISOString(),
+          // Il ripensamento prova anche a riscrivere l'istante della prima risposta: è
+          // esattamente la mossa che il trigger deve annullare.
+          risposto_il: new Date("2026-01-08T19:00:00Z").toISOString(),
+        });
+        const righe = await leggi(
+          "risposte_presenze",
+          `evento_id=eq.${evento}&select=stato,aggiornato_il,risposto_il`,
+        );
+        assert.equal(righe.length, 1, "una risposta per giocatore");
+        assert.equal(righe[0]?.["stato"], "assente", "vale l'ultima risposta");
+        assert.notEqual(
+          righe[0]?.["aggiornato_il"],
+          prima[0]?.["aggiornato_il"],
+          "l'ultima modifica si muove",
+        );
+        assert.equal(
+          righe[0]?.["risposto_il"],
+          prima[0]?.["risposto_il"],
+          "la prima risposta resta quella: il trigger di M9 la congela",
+        );
+      },
+    );
 
     // --- scout live: lo stato viene sostituito, non fuso ----------------------------
     await prova("lo scout live sostituisce lo stato invece di fonderlo", async () => {

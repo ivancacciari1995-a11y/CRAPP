@@ -33,7 +33,8 @@ badge assegnati per voto dai compagni.
 - **Badge social** (`badge-social.ts`, tabella `badge_social_voti`): 5 categorie fisse per
   partita ("Compagno affidabile", "Miglior spirito di squadra", "Fair play", "Meme della
   partita", "Cuore del gruppo"), votabili una volta a testa per categoria/partita
-  (modificabile), con **auto-voto escluso sia in UI sia in logica** (`VotoSocial.tsx`). A
+  (modificabile), con **auto-voto escluso in interfaccia** (`VotoSocial.tsx`) e rifiutato dal
+  database (vincolo `badge_social_no_autovoto`, migration `m12_niente_autovoto`). A
   differenza delle [Pagelle](pagelle.md), qui non c'è alcun tentativo di anonimato:
   `votante_id`/`votato_id` sono entrambi visibili.
 - `CollezioneBadge.tsx` mostra sbloccati, in progresso, badge social vinti e un contatore di
@@ -63,8 +64,9 @@ badge assegnati per voto dai compagni.
   risposte precedenti a `m9`: su quelle righe la serie è un'approssimazione.
 - Nessuno storico dei badge sbloccati: se cambiano le soglie o i dati sorgente, un badge già
   "ottenuto" può sparire o apparire retroattivamente.
-- RLS permissiva su `badge_social_voti` (stesso schema di `mvp_voti`): nessun controllo
-  server-side che `votante_id` coincida con l'utente autenticato.
+- La policy di M11 garantisce che il voto sia firmato con il proprio `votante_id`, ma non
+  che il votato sia un giocatore convocato per quella partita: quello resta un filtro solo
+  applicativo.
 - Notifiche "nuovo badge" solo locali al dispositivo (localStorage), si ripetono cambiando
   browser o dispositivo.
 

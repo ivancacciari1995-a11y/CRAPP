@@ -53,7 +53,8 @@ Bottone "Sollecita" (RosaPresenze.tsx) → POST /api/public/sollecita-presenze
       ↓
 src/routes/api/public/sollecita-presenze.ts
       ├─ legge l'evento (eventi_app) e le risposte già date
-      ├─ calcola i destinatari: giocatori attivi senza risposta o con "forse"
+      ├─ destinatariSollecito()  → src/lib/presenze.ts
+      │  (attivi senza risposta o con "forse"; funzione pura, testata in unit)
       ├─ per ciascuno invia una push col testo cifrato nel payload
       │  (src/lib/webpush.server.ts)
       └─ elimina le iscrizioni push scadute (404/410)
@@ -70,24 +71,25 @@ vale per tutta la rosa) — `eventiContanoPresenze()` in `presenze.ts`.
 - Aggiornamento ottimistico della cache locale dopo ogni salvataggio: nessuna rilettura dal
   server, la UI risponde subito.
 - Il sollecito è **manuale**: nessun cron nel repository lo richiama automaticamente, parte
-  solo dal bottone admin.
+  solo dal bottone admin, e la route verifica il ruolo lato server con `richiediAdmin`
+  (DD-024).
+- Ognuno risponde **solo per sé**, e non è più una regola della sola interfaccia: dalla
+  migration `m11_scritture_per_ruolo` la policy di `risposte_presenze` lega la riga allo slot
+  `giocatori_squadra` collegato all'account, con gli amministratori come sola deroga
+  (DD-023). Verificato da `test/integration/permessi.test.ts`.
 
 ---
 
 ## Limiti noti
 
 - Nessuna finestra temporale per rispondere: si può cambiare risposta anche a evento passato.
-- Il controllo "solo il giocatore risponde per sé" è solo lato UI: le policy RLS di
-  `risposte_presenze` permettono a qualunque utente autenticato di scrivere qualunque riga
-  (`USING(true) WITH CHECK(true)`).
+- La risposta di un evento passato resta modificabile: `risposte_presenze` non ha una
+  finestra di chiusura, né in UI né in RLS.
 - `useRispostePresenze()` legge sempre l'intera tabella, non filtrata per evento: adeguato per
   una singola squadra, da rivedere se il volume cresce molto.
-- La route `/api/public/sollecita-presenze` non verifica lato server che il chiamante sia
-  admin: la protezione è solo nell'interfaccia (bottone visibile solo se `useIsAdmin()`).
 
 ---
 
 ## Evoluzioni possibili
 
-- Restringere anche lato RLS/route chi può scrivere una risposta o chiamare il sollecito.
 - Filtrare la lettura delle presenze per evento invece di caricare tutta la tabella.
