@@ -180,7 +180,7 @@ function GestioneEventi() {
                 maxLength={300}
                 rows={2}
                 onChange={(e) => aggiorna({ note: e.target.value })}
-                className={classiInput}
+                className={cn(classiInput, "h-auto")}
               />
             </Campo>
 

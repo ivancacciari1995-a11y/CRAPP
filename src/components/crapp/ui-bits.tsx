@@ -156,9 +156,14 @@ export function SezioneTendina({
   );
 }
 
-/** Classi condivise di input, select e textarea nei form dell'app. */
+/**
+ * Classi condivise di input, select e textarea nei form dell'app. `h-10`:
+ * `input[type="date"]` ha al suo interno segmenti e icona nativi che, anche
+ * con `appearance-none`, restano un filo più alti di un input di testo a
+ * parità di padding — un'altezza esplicita allinea tutti i campi tra loro.
+ */
 export const classiInput =
-  "w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
+  "h-10 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
 
 /**
  * Etichetta + controllo di un form. `min-w-0`: dentro `grid-cols-2` questa label
