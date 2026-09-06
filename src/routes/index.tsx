@@ -147,7 +147,8 @@ function Index() {
         indice={4}
         azione={
           <Link
-            to="/squadra"
+            to="/classifica"
+            search={{ tab: "storico" }}
             className="inline-flex items-center text-xs font-semibold text-accent"
           >
             Storico <ChevronRight className="h-4 w-4" />

@@ -10,7 +10,18 @@ import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-co
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 import { useEventi } from "@/lib/eventi";
 
+const TAB_CLASSIFICA = ["classifica", "storico"] as const;
+type TabClassifica = (typeof TAB_CLASSIFICA)[number];
+
+function isTabClassifica(v: unknown): v is TabClassifica {
+  return typeof v === "string" && (TAB_CLASSIFICA as readonly string[]).includes(v);
+}
+
 export const Route = createFileRoute("/classifica")({
+  validateSearch: (search: Record<string, unknown>): { tab?: TabClassifica } => {
+    const tab = isTabClassifica(search["tab"]) ? search["tab"] : undefined;
+    return tab ? { tab } : {};
+  },
   head: () => ({
     meta: [
       { title: "Classifica campionato — CrAPP" },
@@ -33,6 +44,7 @@ function formatAggiornamento(iso: string) {
 }
 
 function Classifica() {
+  const { tab } = Route.useSearch();
   const scoutMatches = useScoutMatches();
   const { data: csi } = useCsi();
   const votiMvp = useVotiMvp();
@@ -70,7 +82,7 @@ function Classifica() {
       />
 
       <BarraSottosezioni
-        defaultId="classifica"
+        defaultId={tab ?? "classifica"}
         voci={[
           {
             id: "classifica",
