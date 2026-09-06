@@ -5,8 +5,8 @@ su questo repository. Valgono integralmente; `CLAUDE.md` le richiama e non le ri
 
 CrAPP è una PWA per la gestione di una squadra di pallavolo. Deve ridurre il lavoro degli
 amministratori, aumentare il coinvolgimento dei giocatori, centralizzare le informazioni della
-squadra e usare l'AI solo quando porta un beneficio reale. Il perché sta in
-[docs/VISION.md](docs/VISION.md).
+squadra e usare l'AI solo quando porta un beneficio reale. Deve restare semplice, veloce e
+usabile dallo smartphone anche da chi non è pratico.
 
 ## Prima di modificare il codice
 
@@ -83,8 +83,7 @@ conversazioni: commit con messaggio descrittivo, più il documento giusto tra
 [docs/CHANGELOG.md](docs/CHANGELOG.md) (cosa è stato rilasciato e quando),
 [PROJECT_STATE.md](PROJECT_STATE.md) (stato generale del progetto),
 [docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md) (decisioni architetturali, voci `DD-XXX`),
-[docs/ROADMAP.md](docs/ROADMAP.md), [docs/TODO.md](docs/TODO.md),
-[docs/DATABASE.md](docs/DATABASE.md) (se cambia lo schema).
+[docs/ROADMAP.md](docs/ROADMAP.md), [docs/DATABASE.md](docs/DATABASE.md) (se cambia lo schema).
 
 Quali contenuti vanno in quale file, e le convenzioni di scrittura, stanno nelle regole di
 manutenzione di [docs/README.md](docs/README.md): ogni informazione ha una sola casa, non
