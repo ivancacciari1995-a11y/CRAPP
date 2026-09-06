@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Cake, ChevronDown, Crown } from "lucide-react";
+import { Cake, ChevronDown, Crown, SlidersHorizontal, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/crapp/ui-bits";
+import { PageHeader, Select, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData } from "@/lib/crapp-data";
@@ -13,11 +13,17 @@ import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import { partiteGiocate } from "@/lib/csi-core";
 import { mediaSquadra, usePagelle } from "@/lib/pagelle";
-import { StatTile } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
 import { BadgeDrawer } from "@/components/crapp/BadgeDrawer";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   badgeDefs,
   badgeGiocatore,
@@ -80,6 +86,7 @@ function Squadra() {
   const { voti: pagelle } = usePagelle();
   const [aperto, setAperto] = useState<string | null>(null);
   const [criterio, setCriterio] = useState<Criterio>("presenze");
+  const [filtroAperto, setFiltroAperto] = useState(false);
   const obiettivi = useObiettivi();
   const team = totaliSquadra(scoutMatches);
   const mediaPresenze = rosa.length
@@ -102,6 +109,7 @@ function Squadra() {
 
       <BarraSottosezioni
         defaultId="rosa"
+        variante="sottolineatura"
         voci={[
           {
             id: "rosa",
@@ -262,32 +270,68 @@ function Squadra() {
           {
             id: "classifica-giocatori",
             label: "Classifica",
+            nascondiTitolo: true,
             contenuto: (
               <>
-                <div className="mb-3 flex flex-nowrap gap-1.5">
-                  {criteri.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCriterio(c.id)}
-                      aria-pressed={criterio === c.id}
-                      className={cn(
-                        "min-h-11 min-w-0 flex-1 truncate rounded-full px-1.5 text-center text-xs font-bold uppercase transition-colors",
-                        criterio === c.id
-                          ? "bg-accent text-accent-foreground shadow-pop"
-                          : "bg-secondary text-muted-foreground",
-                      )}
+                <div className="flex min-w-0 items-center gap-2 border-b border-border bg-card px-5 py-2.5">
+                  <Trophy className="h-4 w-4 shrink-0 text-warning" aria-hidden />
+                  <span className="shrink-0 text-sm text-foreground/80">Classifica per</span>
+                  <span className="min-w-0 flex-1">
+                    <Select
+                      value={criterio}
+                      onChange={(e) => setCriterio(e.target.value as Criterio)}
+                      aria-label="Criterio della classifica interna"
+                      className="h-9 rounded-lg border-border bg-background font-semibold shadow-none"
                     >
-                      {c.label}
-                    </button>
-                  ))}
+                      {criteri.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFiltroAperto(true)}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground"
+                    aria-label="Scegli criterio classifica"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="space-y-2">
+
+                <Drawer open={filtroAperto} onOpenChange={setFiltroAperto}>
+                  <DrawerContent>
+                    <DrawerHeader>
+                      <DrawerTitle>Classifica per</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="flex flex-col gap-1 px-4 pb-6">
+                      {criteri.map((c) => (
+                        <DrawerClose key={c.id} asChild>
+                          <button
+                            type="button"
+                            onClick={() => setCriterio(c.id)}
+                            className={cn(
+                              "flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-bold",
+                              criterio === c.id
+                                ? "bg-accent text-accent-foreground"
+                                : "bg-secondary text-foreground",
+                            )}
+                          >
+                            {c.label}
+                          </button>
+                        </DrawerClose>
+                      ))}
+                    </div>
+                  </DrawerContent>
+                </Drawer>
+
+                <div className="space-y-2 px-5 pt-3">
                   {ordinati.map((g, i) => (
                     <div key={g.id} className="rounded-2xl bg-card p-3 shadow-card">
                       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary font-display text-base">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary font-display text-base">
                             {i + 1}
                           </span>
                           <div className="min-w-0">

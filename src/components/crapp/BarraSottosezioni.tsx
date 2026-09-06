@@ -7,6 +7,8 @@ export type VoceSottosezione = {
   id: string;
   label: string;
   contenuto: ReactNode;
+  /** Se true, non ripete il titolo della tab sopra il contenuto (es. Classifica già nella barra). */
+  nascondiTitolo?: boolean;
 };
 
 /** Tween breve: evita molle + exit che tengono due pannelli in DOM insieme. */
@@ -17,15 +19,18 @@ const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.
  * pannello che mostra una sola sezione alla volta, cambiabile anche con
  * swipe sul contenuto.
  *
- * Il pannello precedente si smonta subito (niente AnimatePresence/exit):
- * al cambio tab resta un solo albero da animare in ingresso.
+ * `variante="sottolineatura"`: tab a testo con sottolineatura rossa e senza titolo
+ * ripetuto sotto la barra (Squadra e Classifica CSI). Default `pillole`: restano le
+ * pill e i titoli usati dal Profilo.
  */
 export function BarraSottosezioni({
   voci,
   defaultId,
+  variante = "pillole",
 }: {
   voci: VoceSottosezione[];
   defaultId?: string;
+  variante?: "pillole" | "sottolineatura";
 }) {
   const [attiva, setAttiva] = useState(defaultId ?? voci[0]?.id ?? "");
   const direzione = useRef(0);
@@ -36,6 +41,7 @@ export function BarraSottosezioni({
     voci.findIndex((v) => v.id === attiva),
   );
   const voce = voci[indice] ?? voci[0];
+  const sottolineatura = variante === "sottolineatura";
 
   useEffect(() => {
     // `auto`: lo smooth competerebbe col tween del pannello sul main thread.
@@ -58,11 +64,19 @@ export function BarraSottosezioni({
 
   return (
     <div>
-      <div className="border-b border-border bg-background/80 pt-3 backdrop-blur-md">
+      <div
+        className={cn(
+          "border-b border-border bg-background",
+          !sottolineatura && "bg-background/80 pt-3 backdrop-blur-md",
+        )}
+      >
         <div
           role="tablist"
           aria-label="Sottosezioni"
-          className="-mx-0 flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={cn(
+            "flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            sottolineatura ? "gap-0 px-2" : "-mx-0 gap-1.5 px-5 pb-3",
+          )}
         >
           {voci.map((v) => {
             const selezionata = v.id === attiva;
@@ -80,13 +94,21 @@ export function BarraSottosezioni({
                   vaiA(i);
                 }}
                 className={cn(
-                  // grow+basis-0: se le voci ci stanno riempiono la riga in parti uguali,
-                  // altrimenti shrink-0 le tiene leggibili e la barra torna a scorrere.
-                  "snap-center shrink-0 grow basis-0 rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition-colors",
-                  "min-h-11 touch-manipulation whitespace-nowrap",
-                  selezionata
-                    ? "bg-accent text-accent-foreground shadow-pop"
-                    : "bg-secondary text-muted-foreground",
+                  "snap-center shrink-0 grow basis-0 touch-manipulation whitespace-nowrap text-xs font-bold uppercase tracking-wide transition-colors",
+                  "min-h-11",
+                  sottolineatura
+                    ? cn(
+                        "rounded-none border-b-2 px-3 py-3",
+                        selezionata
+                          ? "border-accent text-foreground"
+                          : "border-transparent text-muted-foreground",
+                      )
+                    : cn(
+                        "rounded-full px-3.5 py-2",
+                        selezionata
+                          ? "bg-accent text-accent-foreground shadow-pop"
+                          : "bg-secondary text-muted-foreground",
+                      ),
                 )}
               >
                 {v.label}
@@ -113,9 +135,11 @@ export function BarraSottosezioni({
           initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={ridotto ? { duration: 0.1 } : transizioneTab}
-          className="touch-pan-y px-5 py-4"
+          className={cn("touch-pan-y", voce.nascondiTitolo ? "px-0 pt-0 pb-4" : "px-5 py-4")}
         >
-          <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
+          {voce.nascondiTitolo || sottolineatura ? null : (
+            <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
+          )}
           {voce.contenuto}
         </motion.div>
       </div>

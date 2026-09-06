@@ -83,6 +83,7 @@ function Classifica() {
 
       <BarraSottosezioni
         defaultId={tab ?? "classifica"}
+        variante="sottolineatura"
         voci={[
           {
             id: "classifica",
