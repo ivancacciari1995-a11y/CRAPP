@@ -246,7 +246,7 @@ Usare l’AI solo quando riduce lavoro agli admin o migliora concretamente l’e
 
 **Conseguenze**
 
-- “AI Allenamenti” è in roadmap v1.2, non v1.1.
+- “AI Allenamenti” è tra le voci ancora da fare in roadmap.
 - Ogni proposta AI va valutata con la domanda: _chi risparmia tempo e quanto?_
 
 **Riesame**  
@@ -887,7 +887,7 @@ come «da verificare lato hosting»: nei fatti quel promemoria non è mai partit
 funziona e che nessuno chiama.
 
 Nel frattempo l'app aveva già il precedente giusto: `apri-sondaggio` è manuale fin dall'inizio
-(«Nessun cron: l'invio è manuale», CHANGELOG v1.0.6).
+(«Nessun cron: l'invio è manuale», CHANGELOG).
 
 **Decisione**  
 Il promemoria lo fa partire un amministratore dal pulsante «Avvisa chi è di turno», dentro il

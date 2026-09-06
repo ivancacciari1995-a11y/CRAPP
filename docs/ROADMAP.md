@@ -1,10 +1,12 @@
 # Roadmap
 
 Elenco unico delle funzionalità di CrAPP, fatte e previste. È la fonte di riferimento per
-il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata,
+il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata e con quale versione,
 [PROJECT_STATE.md](../PROJECT_STATE.md) cosa si sta facendo adesso.
 
-## Versione 1.0 — rilasciata
+## Fatto
+
+Tutto quello che è in `main` e finirà nella prima release.
 
 - [x] Gestione squadra
 - [x] Calendario
@@ -16,32 +18,23 @@ il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata,
 - [x] Pagelle
 - [x] Obiettivi di squadra
 - [x] Notifiche Push (promemoria intelligenti)
-
-## Versione 1.1
-
-Le voci spuntate sono in produzione su `main`. I passaggi di attivazione ancora aperti (per
-esempio il collegamento dei singoli account) stanno in [PROJECT_STATE.md](../PROJECT_STATE.md).
-
+- [x] Dashboard amministratore
+- [x] Download CSV dati
 - [x] Certificati medici — caricamento, scadenza, stato e download; lo storico dei
       certificati resta un'estensione futura
 - [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
       tesserato (numero e data di tessera)
-- [x] Dashboard amministratore
-- [x] Download CSV dati
-
-## Versione 1.2
-
-- [ ] Database esercizi
-- [ ] AI Allenamenti
-- [ ] Archivio allenamenti
-
-## Versione 2.0
-
 - [x] Collegamento CSI (stagione 2025/26)
 - [x] Classifica automatica
 - [x] Risultati campionato
+
+## Prossimo
+
 - [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
       Campionato usa solo quelle giocate
+- [ ] Database esercizi
+- [ ] AI Allenamenti
+- [ ] Archivio allenamenti
 
 ## Idee future
 

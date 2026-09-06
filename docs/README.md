@@ -8,7 +8,7 @@ ancora e va **prima documentata** (vedi [DD-002](DESIGN_DECISIONS.md#dd-002--svi
 
 | Documento                                  | Risponde a                                                                   |
 | ------------------------------------------ | ---------------------------------------------------------------------------- |
-| [ROADMAP.md](ROADMAP.md)                   | Cosa è fatto e cosa è previsto, versione per versione                        |
+| [ROADMAP.md](ROADMAP.md)                   | Cosa è fatto, cosa è previsto, cosa resta un'idea                            |
 | [ARCHITECTURE.md](ARCHITECTURE.md)         | Com'è fatta l'app: stack, struttura del codice, flusso di sviluppo           |
 | [DATABASE.md](DATABASE.md)                 | Quali tabelle esistono, a cosa servono, chi le usa                           |
 | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Perché abbiamo scelto così, cosa abbiamo escluso e quando riaprire la scelta |
@@ -30,7 +30,9 @@ Prima di modificare il codice, nell'ordine: questo indice → `ROADMAP.md` → `
 Ogni informazione ha **una sola casa**, per evitare che le copie divergano:
 
 - l'elenco delle funzionalità (fatte e previste) sta solo in `ROADMAP.md`;
-- `CHANGELOG.md` registra _quando_ qualcosa è stato rilasciato, non ripete l'elenco;
+- `CHANGELOG.md` registra _quando_ qualcosa è stato rilasciato, non ripete l'elenco: segue
+  il formato Keep a Changelog, con il lavoro non ancora rilasciato sotto `[Non rilasciato]`
+  e le voci divise per categoria (Aggiunto, Modificato, Sicurezza…);
 - il lavoro in corso sta solo in `PROJECT_STATE.md`, che rimanda alla roadmap per il resto;
 - lo schema del database sta solo in `DATABASE.md`, allineato alle migration in
   `supabase/migrations/`: una tabella nuova si documenta nella stessa modifica che la crea;

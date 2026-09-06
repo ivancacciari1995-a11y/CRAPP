@@ -134,9 +134,9 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: la v1.1 è completa, tesseramento CSI incluso (numero e data di tessera
-registrabili da `/admin`, migration `m8_tesseramento_csi`). Le voci ancora aperte stanno in
-[docs/ROADMAP.md](docs/ROADMAP.md).
+Niente di assegnato: tutto quello che era in lavorazione è chiuso, tesseramento CSI incluso
+(numero e data di tessera registrabili da `/admin`, migration `m8_tesseramento_csi`). Le voci
+ancora aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---
 
