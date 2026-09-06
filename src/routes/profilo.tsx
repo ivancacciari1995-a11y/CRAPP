@@ -28,6 +28,7 @@ import { resetGiocatore } from "@/lib/user-store";
 import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { Reveal } from "@/components/motion/Reveal";
+import { version as APP_VERSION } from "../../package.json";
 
 const TAB_PROFILO = ["stagione", "badge", "documenti", "impostazioni"] as const;
 type TabProfilo = (typeof TAB_PROFILO)[number];
@@ -298,6 +299,7 @@ function Profilo() {
                     <Lightbulb className="h-4 w-4 text-muted-foreground" />
                   </a>
                 </div>
+                <p className="text-center text-xs text-muted-foreground">CrAPP v{APP_VERSION}</p>
                 <button
                   type="button"
                   onClick={logout}
