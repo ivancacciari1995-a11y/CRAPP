@@ -4,15 +4,34 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
-import { conteggioPartita, mioVoto, useVotaMvp, useVotiMvp, type VotoMvp } from "@/lib/mvp-voti";
+import { usePresenzeEvento } from "@/lib/presenze";
+import type { Evento } from "@/lib/eventi";
+import {
+  conteggioPartita,
+  mioVoto,
+  ORE_ATTESA_MVP,
+  useVotaMvp,
+  useVotiMvp,
+  votoMvpAperto,
+  type VotoMvp,
+} from "@/lib/mvp-voti";
 
-/** Pannello di votazione MVP di una partita: un voto a testa, modificabile. */
-export function VotazioneMvp({ matchId }: { matchId: string }) {
+/**
+ * Pannello di votazione MVP di una partita: un voto a testa, modificabile.
+ *
+ * I voti sono legati all'evento CrAPP, non al referto CSI né allo scout: si vota anche
+ * senza risultato caricato, dalle due ore dopo il fischio d'inizio. Votano e sono votabili
+ * solo i presenti (o in ritardo) di quell'evento.
+ */
+export function VotazioneMvp({ evento }: { evento: Evento }) {
+  const matchId = evento.id;
   const io = useGiocatoreCorrente();
   const voti = useVotiMvp();
   const vota = useVotaMvp();
   const { righe: squadra } = useGiocatoriSquadra();
-  const rosa = squadra.filter((g) => g.attivo);
+  const { risposte } = usePresenzeEvento(evento.id);
+  const presente = (id: string) => risposte[id] === "presente" || risposte[id] === "ritardo";
+  const rosa = squadra.filter((g) => g.attivo && presente(g.id));
   const [aperto, setAperto] = useState(false);
 
   const tutti: VotoMvp[] = voti.data ?? [];
@@ -21,6 +40,20 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
   const totale = conteggio.reduce((s, c) => s + c.voti, 0);
   const testa = conteggio[0];
   const pareggio = conteggio.length > 1 && conteggio[1]!.voti === testa?.voti;
+  const puoVotare = !!io && presente(io.id);
+
+  if (!votoMvpAperto(evento.data, evento.ora)) {
+    return (
+      <div className="mt-3 rounded-2xl bg-secondary/60 p-3">
+        <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <Vote className="h-3.5 w-3.5" /> Voto MVP
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Apre {ORE_ATTESA_MVP} ore dopo l'inizio della partita.
+        </p>
+      </div>
+    );
+  }
 
   async function invia(id: string, nome: string) {
     if (!io) return;
@@ -47,7 +80,7 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
         <button
           type="button"
           onClick={() => setAperto((v) => !v)}
-          disabled={!io}
+          disabled={!puoVotare}
           className="rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase text-accent-foreground disabled:opacity-50"
         >
           {mio ? "Cambia voto" : "Vota"}
@@ -67,6 +100,10 @@ export function VotazioneMvp({ matchId }: { matchId: string }) {
       </p>
       {mio ? (
         <p className="mt-1 text-xs text-muted-foreground">Hai votato {mio.votato_nome}</p>
+      ) : !puoVotare ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Vota chi era presente a questa partita.
+        </p>
       ) : null}
 
       {aperto ? (

@@ -169,13 +169,15 @@ function PartitaDetail() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-center text-xs font-semibold text-muted-foreground">
-              MVP eletto dalla squadra
-            </p>
-            <VotazioneMvp matchId={match.id} />
           </div>
         </Section>
       ) : null}
+
+      <Section titolo="MVP eletto dalla squadra">
+        <div className="rounded-3xl bg-card p-5 shadow-card">
+          <VotazioneMvp evento={evento} />
+        </div>
+      </Section>
 
       {match ? (
         <Section titolo="Badge votati dai compagni">

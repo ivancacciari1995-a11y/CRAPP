@@ -5,6 +5,7 @@ import {
   mioVoto,
   mvpVintiPerGiocatore,
   vincitoriMvp,
+  votoMvpAperto,
   type VotoMvp,
 } from "@/lib/mvp-voti";
 
@@ -73,5 +74,15 @@ assert.deepEqual(
   "i titoli si sommano su partite diverse",
 );
 assert.deepEqual(mvpVintiPerGiocatore([]), {});
+
+// --- votoMvpAperto: due ore dopo il fischio d'inizio -------------------------
+const alle = (o: number, m = 0) => new Date(2026, 8, 5, o, m);
+assert.equal(votoMvpAperto("2026-09-05", "20:30", alle(22, 29)), false, "un minuto prima");
+assert.equal(votoMvpAperto("2026-09-05", "20:30", alle(22, 30)), true, "due ore in punto");
+assert.equal(votoMvpAperto("2026-09-05", "20:30", alle(23)), true);
+assert.equal(votoMvpAperto("2026-09-06", "10:00", alle(23)), false, "partita di domani");
+assert.equal(votoMvpAperto("2026-09-04", "20:30", alle(0, 1)), true, "partita passata: aperto");
+assert.equal(votoMvpAperto("2026-09-05", "", alle(1, 59)), false, "senza ora vale mezzanotte");
+assert.equal(votoMvpAperto("2026-09-05", "", alle(2)), true);
 
 console.log("mvp-voti: ok");

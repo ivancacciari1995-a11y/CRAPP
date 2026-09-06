@@ -10,6 +10,16 @@ export type VotoMvp = {
 
 const CHIAVE = ["mvp-voti"] as const;
 
+/** Ore da aspettare dall'inizio della partita prima di poter votare l'MVP. */
+export const ORE_ATTESA_MVP = 2;
+
+/** Il voto MVP apre 2 ore dopo l'inizio della partita e da lì resta aperto. */
+export function votoMvpAperto(data: string, ora: string, adesso = new Date()): boolean {
+  const inizio = new Date(`${data}T${ora || "00:00"}:00`);
+  if (Number.isNaN(inizio.getTime())) return false;
+  return adesso.getTime() >= inizio.getTime() + ORE_ATTESA_MVP * 60 * 60_000;
+}
+
 /** Tutti i voti MVP della squadra (poche righe, si carica tutto).
  *  Nessun polling: la lista si aggiorna dopo il proprio voto o al rientro sull'app. */
 export function useVotiMvp() {

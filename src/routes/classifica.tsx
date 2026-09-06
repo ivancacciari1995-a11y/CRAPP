@@ -56,12 +56,13 @@ function Classifica() {
   const eventoIdPerData = new Map(
     eventi.filter((e) => e.tipo === "partita").map((e) => [e.data, e.id]),
   );
+  // I voti MVP sono legati all'evento CrAPP, non al referto CSI né allo scout.
+  const mvpPerData = (data: string) => mvpPerMatch[eventoIdPerData.get(data) ?? ""] ?? "";
   const tuttiMatch = csiGiocate.length
-    ? csiGiocate.map((p) => ({
-        ...matchDaPartitaCsi(p),
-        mvp: mvpPerMatch[p.id] ?? "",
-        scout: false,
-      }))
+    ? csiGiocate.map((p) => {
+        const m = matchDaPartitaCsi(p);
+        return { ...m, mvp: mvpPerData(m.data), scout: false };
+      })
     : scoutMatches.map((m) => ({
         id: m.id,
         data: m.data,
@@ -70,7 +71,7 @@ function Classifica() {
         setNostri: m.setNostri,
         setLoro: m.setLoro,
         parziali: m.parziali,
-        mvp: mvpPerMatch[m.id] ?? "",
+        mvp: mvpPerData(m.data),
         scout: true,
       }));
 

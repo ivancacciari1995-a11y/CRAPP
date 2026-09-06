@@ -49,15 +49,15 @@ function Index() {
   const votiMvp = useVotiMvp();
   const mvpPerMatch = vincitoriMvp(votiMvp.data ?? []);
   const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
-  const ultima = csiGiocate[0]
-    ? { ...matchDaPartitaCsi(csiGiocate[0]), mvp: mvpPerMatch[csiGiocate[0].id] ?? "" }
-    : scoutMatches[0]
-      ? { ...scoutMatches[0], mvp: mvpPerMatch[scoutMatches[0].id] ?? "" }
-      : null;
+  const ultimaBase = csiGiocate[0] ? matchDaPartitaCsi(csiGiocate[0]) : (scoutMatches[0] ?? null);
   const obiettivi = useObiettivi();
   const obiettivo = obiettivi.find((o) => progressoObiettivo(o) < 100) ?? obiettivi[0] ?? null;
-  const eventoUltima = ultima
-    ? (eventi.find((e) => e.tipo === "partita" && e.data === ultima.data) ?? null)
+  const eventoUltima = ultimaBase
+    ? (eventi.find((e) => e.tipo === "partita" && e.data === ultimaBase.data) ?? null)
+    : null;
+  // I voti MVP sono legati all'evento CrAPP, non al referto CSI né allo scout.
+  const ultima = ultimaBase
+    ? { ...ultimaBase, mvp: (eventoUltima && mvpPerMatch[eventoUltima.id]) ?? "" }
     : null;
 
   if (!giocatore) return null;

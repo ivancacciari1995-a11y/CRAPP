@@ -6,6 +6,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Il voto MVP apre due ore dopo il fischio d'inizio, e vota solo chi c'era
+
+- La votazione non dipende più dal referto CSI né dallo Scout: il pannello ha una sezione sua
+  in `/partita/$id` e si apre due ore dopo `data`+`ora` dell'evento, anche senza risultato
+  caricato.
+- Votano — e sono votabili — solo i giocatori dati `presente` o `ritardo` a quell'evento.
+- I voti sono ora legati all'id dell'evento CrAPP: le righe scritte prima con l'id dello
+  scout o della partita CSI restano nel database ma non vengono più lette.
+
 ### Tre riletture in meno dopo ogni salvataggio
 
 - «Aggiungi giocatore», salvataggio ed eliminazione di una partita scoutata e cambio della
