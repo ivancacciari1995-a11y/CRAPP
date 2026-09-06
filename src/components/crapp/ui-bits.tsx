@@ -177,6 +177,22 @@ export function Campo({ label, children }: { label: string; children: ReactNode 
   );
 }
 
+/**
+ * `<select>` nativo con la stessa altezza degli altri campi del form. Il
+ * controllo nativo di un `<select>` ignora parzialmente il padding di
+ * `classiInput` (soprattutto su Android), risultando più alto o più basso
+ * degli input accanto: `appearance-none` lo riporta a una scatola CSS
+ * normale, la freccia va poi ridisegnata a mano perché sparisce con lui.
+ */
+export function Select(props: ComponentPropsWithoutRef<"select">) {
+  return (
+    <span className="relative block">
+      <select {...props} className={cn(classiInput, "appearance-none pr-8", props.className)} />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    </span>
+  );
+}
+
 export function StatoBadge({ stato, className }: { stato: Stato; className?: string }) {
   const meta = statoMeta[stato];
   return (

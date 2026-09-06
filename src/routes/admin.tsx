@@ -16,7 +16,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Campo, classiInput, PageHeader, Section, StatTile } from "@/components/crapp/ui-bits";
+import {
+  Campo,
+  classiInput,
+  PageHeader,
+  Section,
+  Select,
+  StatTile,
+} from "@/components/crapp/ui-bits";
 import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import {
   nomeCompleto,
@@ -212,10 +219,9 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
           />
         </Campo>
         <Campo label="Ruolo">
-          <select
+          <Select
             value={squadraCorrente.ruolo}
             onChange={(e) => setDatiSquadra({ ...squadraCorrente, ruolo: e.target.value })}
-            className={classiInput}
           >
             <option value="">—</option>
             {RUOLI.map((r) => (
@@ -223,7 +229,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
                 {r}
               </option>
             ))}
-          </select>
+          </Select>
         </Campo>
       </div>
       <Campo label="Email (collegamento automatico al login, DD-018)">
@@ -536,18 +542,14 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
           />
         </Campo>
         <Campo label="Ruolo">
-          <select
-            value={dati.ruolo}
-            onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}
-            className={classiInput}
-          >
+          <Select value={dati.ruolo} onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}>
             <option value="">—</option>
             {RUOLI.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
-          </select>
+          </Select>
         </Campo>
       </div>
       <Campo label="Email (collegamento automatico al login, opzionale)">

@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Eye, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Campo, classiInput, SezioneTendina } from "@/components/crapp/ui-bits";
+import { Campo, classiInput, Select, SezioneTendina } from "@/components/crapp/ui-bits";
 import { Reveal } from "@/components/motion/Reveal";
 import {
   caricaFile,
@@ -180,10 +180,9 @@ export function CampiProfilo({
       <Intestazione titolo="Documento di identità" completa={sezioni.documento} />
       <div className="grid grid-cols-2 gap-3">
         <Campo label="Tipo">
-          <select
+          <Select
             value={corrente.documentoTipo ?? ""}
             onChange={(e) => aggiorna({ documentoTipo: e.target.value })}
-            className={classiInput}
           >
             <option value="">—</option>
             {TIPI_DOCUMENTO.map((t) => (
@@ -191,7 +190,7 @@ export function CampiProfilo({
                 {t}
               </option>
             ))}
-          </select>
+          </Select>
         </Campo>
         <Campo label="Numero">
           <input
