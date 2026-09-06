@@ -5,6 +5,25 @@ sono le migration in `supabase/migrations/`: **una tabella nuova va documentata 
 stessa modifica che la crea**. Le funzionalità future stanno in [ROADMAP.md](ROADMAP.md),
 non in questo file.
 
+## Permessi di scrittura
+
+Chi può scrivere cosa, dopo la migration `m11_scritture_per_ruolo` (DD-023). La **lettura**
+resta aperta a tutti gli autenticati su ogni tabella di questo elenco; `anon` non arriva a
+nessuna di esse da M4 (DD-011).
+
+| Tabella                                                          | Chi può scrivere                                                    |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `eventi_app`                                                     | solo admin (nell'app li gestisce la rotta `/eventi`, già riservata) |
+| `risposte_presenze`, `cacche_partita`                            | il giocatore sulla propria riga (`giocatore_id`), più gli admin     |
+| `pagelle_voti`, `mvp_voti`, `badge_social_voti`                  | il votante sui propri voti (`votante_id`), più gli admin            |
+| `turni_palloni`, `scout_sessioni`, `scout_live`, `scout_partite` | qualsiasi autenticato: nell'interfaccia non hanno gate              |
+| `profili_giocatore`                                              | il giocatore sul proprio profilo, admin su tutti (DD-016, DD-017)   |
+| `giocatori_squadra`                                              | admin; il giocatore può solo reclamare uno slot libero (DD-016)     |
+| `user_roles`                                                     | solo admin                                                          |
+
+L'identità del giocatore è lo slot di `giocatori_squadra` con `auth_user_id = auth.uid()`.
+La tabella è verificata da `test/integration/permessi.test.ts` contro il database locale.
+
 ## Anagrafica e utenti
 
 | Tabella             | Scopo                                                                                                                                                                                              | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -50,11 +69,11 @@ non in questo file.
 
 ## Turni e notifiche
 
-| Tabella              | Scopo                                         | Note |
-| -------------------- | --------------------------------------------- | ---- |
+| Tabella              | Scopo                                         | Note                                                                                                                                                                           |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `turni_palloni`      | Gestione dei turni palloni.                   | Solo turni **confermati**. Gli allenamenti non ricevono proposta automatica (vedi [palloni.md](modules/palloni.md)); M10 azzera i turni salvati su allenamenti da oggi in poi. |
-| `push_subscriptions` | Dispositivi registrati per le notifiche Push. |      |
-| `promemoria_push`    | Storico dei promemoria inviati.               |      |
+| `push_subscriptions` | Dispositivi registrati per le notifiche Push. |                                                                                                                                                                                |
+| `promemoria_push`    | Storico dei promemoria inviati.               |                                                                                                                                                                                |
 
 ## Funzioni speciali
 

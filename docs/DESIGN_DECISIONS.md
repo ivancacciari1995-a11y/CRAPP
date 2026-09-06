@@ -748,3 +748,63 @@ CrAPP è un'app solo chiara. Il blocco `.dark` è rimosso e `:root` dichiara
 **Riesame**  
 Se arriva una richiesta reale dalla squadra, o se si gioca in palestre al buio abbastanza
 spesso da rendere il tema scuro una funzione e non un vezzo.
+
+### DD-023 — Ogni scrittura è limitata a chi la fa
+
+**Data:** 6 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Le tabelle della v1.0 sono nate con policy `USING (true)` per `anon, authenticated`. M4
+(DD-011) ha tolto il GRANT ad `anon`, e la cosa è stata letta come «ora è chiuso». Non lo
+era: per gli autenticati non c'era rimasto nessun limite. Verificato sul database locale con
+un utente appena creato, senza ruolo e senza slot nella rosa: `POST /rest/v1/eventi_app` →
+201, `DELETE` → 200. Qualsiasi giocatore loggato poteva svuotare il calendario della squadra
+o riscrivere il voto pagella di un altro, parlando direttamente con PostgREST — senza
+passare dall'interfaccia, che quei pulsanti glieli nasconde.
+
+Il permesso viveva quindi solo nei componenti (`useIsAdmin()`, `io.id`), cioè nel posto che
+un attaccante non usa.
+
+**Decisione**  
+Le policy rispecchiano quello che l'interfaccia già fa. Tre gruppi:
+
+- **solo admin**: `eventi_app`. Nell'app li scrive unicamente la rotta `/eventi`, che è già
+  riservata agli amministratori.
+- **solo la propria riga**: `risposte_presenze`, `cacche_partita` (per `giocatore_id`),
+  `pagelle_voti`, `mvp_voti`, `badge_social_voti` (per `votante_id`). L'admin resta incluso,
+  perché DD-017 gli riconosce già il diritto di agire al posto del giocatore.
+- **invariate**: `turni_palloni` e le tre tabelle scout. Nell'interfaccia non hanno nessun
+  gate — il turno palloni se lo passa chiunque, e chiunque può aprire lo Scout Live —
+  quindi stringerle sarebbe una funzionalità nuova, non una messa in sicurezza.
+
+L'identità è lo slot di `giocatori_squadra` collegato all'account, espresso con lo stesso
+`EXISTS` che usano le policy dei profili — la funzione `mio_giocatore_id()` di M2 è stata
+rimossa dalla migration di correzione e non si reintroduce. Regge perché `io.id` non è una
+scelta libera: dopo DD-011 e DD-018 il `localStorage` viene forzato sullo slot collegato
+all'account (`benvenuto.tsx`), e senza slot non si entra.
+
+**Alternative scartate**
+
+- Lasciare tutto aperto e documentarlo → si può difendere per una squadra di venti persone
+  che si conoscono, ma non regge il primo account che passa di mano o il primo telefono
+  perso, e rende ogni bug indistinguibile da un dispetto.
+- Controllare i permessi nelle route server → CrAPP scrive dal client con supabase-js. Ci
+  vorrebbe un livello API che oggi non esiste, per ottenere quello che la RLS fa da sola.
+- Stringere anche palloni e scout → cambierebbe come funziona la squadra, e nessuno l'ha
+  chiesto.
+
+**Conseguenze**
+
+- Un giocatore che non ha ancora collegato lo slot non scrive più niente: l'`EXISTS` non
+  trova nessuna riga. È lo stesso muro di `/benvenuto`, ora applicato anche al database.
+- La lettura resta aperta a tutti gli autenticati, pagelle comprese: chi interroga PostgREST
+  può ancora vedere **chi** ha votato cosa. L'anonimato delle pagelle è una scelta di
+  interfaccia, non una garanzia del database, e questa migration non lo cambia.
+- I test in `test/integration/permessi.test.ts` diventano la definizione eseguibile di questa
+  tabella dei permessi.
+
+**Riesame**  
+Se l'anonimato delle pagelle deve diventare reale (servirebbe una vista aggregata e la
+chiusura della lettura riga per riga), o se turni e scout acquistano un gate
+nell'interfaccia: allora le loro policy devono seguirlo.

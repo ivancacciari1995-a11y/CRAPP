@@ -3,14 +3,16 @@
  *
  * A differenza di `schema-profili`, che si limita a provare l'utente anonimo, qui si
  * creano utenti veri e si interroga il database *come loro*: è l'unico modo per
- * verificare le policy scritte su `auth.uid()` e la funzione `mio_giocatore_id()`.
+ * verificare policy scritte su `auth.uid()`. È anche la definizione eseguibile della
+ * tabella dei permessi di DD-023 (migration M11).
  *
  * Il test **scrive**, quindi gira solo contro l'istanza locale di `npx supabase start`:
  * le credenziali le legge da `supabase status`, non da `.env`, così non può puntare per
  * sbaglio alla produzione. Senza stack locale si salta con il motivo.
  *
- * Stato toccato e ripristinato alla fine: gli utenti creati (cancellati), lo slot
- * reclamato in `giocatori_squadra` e il telefono del profilo g1.
+ * Stato toccato e ripristinato alla fine: gli utenti creati (cancellati), gli slot
+ * reclamati in `giocatori_squadra`, il telefono del profilo g1 e le righe con il
+ * prefisso `test-permessi`.
  */
 import assert from "node:assert/strict";
 import { statoLocale } from "../helpers/locale";
@@ -76,6 +78,7 @@ if (!locale) {
     });
 
   const PASSWORD = "prova-permessi-123";
+  const PREFISSO = "test-permessi";
   const idUtenti: string[] = [];
   let telefonoOriginale: string | null = null;
   let tokenAdmin = "";
@@ -222,9 +225,143 @@ if (!locale) {
         "l'elenco degli amministratori non è pubblico",
       );
     });
+
+    // --- M11: le scritture seguono i permessi dell'interfaccia (DD-023) -------------
+    // Prima di M11 ognuna di queste andava a buon fine: le policy della v1.0 erano
+    // `USING (true)` per chiunque fosse autenticato.
+    const EVENTO = `${PREFISSO}-evento`;
+
+    await prova("gli eventi li crea e li cancella solo un amministratore", async () => {
+      const daGiocatore = await rest("eventi_app", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: `${PREFISSO}-abusivo`,
+          tipo: "allenamento",
+          titolo: "Non deve esistere",
+          data: "2026-01-01",
+          ora: "20:00",
+          luogo: "",
+        }),
+      });
+      assert.ok(!daGiocatore.ok, `creazione da giocatore rifiutata (${daGiocatore.status})`);
+
+      // Controllo positivo: l'admin deve poterlo fare, altrimenti l'app è rotta.
+      const daAdmin = await rest("eventi_app", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: EVENTO,
+          tipo: "allenamento",
+          titolo: "Allenamento di prova",
+          data: "2026-01-01",
+          ora: "20:00",
+          luogo: "Palestra",
+        }),
+      });
+      assert.equal(await righeToccate(daAdmin), 1, "l'admin crea gli eventi");
+
+      const cancella = await rest(`eventi_app?id=eq.${EVENTO}`, tokenGiocatore, {
+        method: "DELETE",
+        headers: { Prefer: "return=representation" },
+      });
+      assert.equal(await righeToccate(cancella), 0, "il giocatore non svuota il calendario");
+      const dopo = await rest(`eventi_app?id=eq.${EVENTO}&select=id`, SERVIZIO);
+      assert.equal(((await dopo.json()) as unknown[]).length, 1, "l'evento è ancora lì");
+    });
+
+    await prova("ognuno risponde alla convocazione solo per sé", async () => {
+      const mia = await rest("risposte_presenze", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g1", stato: "presente" }),
+      });
+      assert.equal(await righeToccate(mia), 1, "la propria risposta si salva");
+
+      const altrui = await rest("risposte_presenze", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", stato: "assente" }),
+      });
+      assert.ok(!altrui.ok, `nessuno risponde al posto di un altro (${altrui.status})`);
+    });
+
+    await prova("i voti si firmano con il proprio nome", async () => {
+      const mio = await rest("pagelle_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          votante_id: "g1",
+          votato_id: "g5",
+          voto: 7,
+        }),
+      });
+      assert.equal(await righeToccate(mio), 1, "il proprio voto si registra");
+
+      const falso = await rest("pagelle_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          votante_id: "g5",
+          votato_id: "g1",
+          voto: 10,
+        }),
+      });
+      assert.ok(!falso.ok, `non si vota a nome di un altro (${falso.status})`);
+
+      const mvp = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          votante_id: "g5",
+          votato_id: "g1",
+          votato_nome: "Uno",
+        }),
+      });
+      assert.ok(!mvp.ok, `vale anche per l'MVP (${mvp.status})`);
+    });
+
+    await prova("le cacche le dichiara il diretto interessato", async () => {
+      const mie = await rest("cacche_partita", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g1", quantita: 2 }),
+      });
+      assert.equal(await righeToccate(mie), 1, "le proprie si dichiarano");
+
+      const altrui = await rest("cacche_partita", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", quantita: 9 }),
+      });
+      assert.ok(!altrui.ok, `quelle di un altro no (${altrui.status})`);
+    });
+
+    // I turni palloni restano aperti di proposito: nell'interfaccia il turno se lo passa
+    // chiunque, senza gate. Se un giorno arriva il gate, questo test va cambiato.
+    await prova("il turno palloni resta assegnabile da chiunque sia autenticato", async () => {
+      const res = await rest("turni_palloni", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", aggiornato_da: "g1" }),
+      });
+      assert.equal(await righeToccate(res), 1, "DD-023 lascia questa tabella invariata");
+    });
   } finally {
-    // Ripristino: prima gli slot (serve il JWT admin, il trigger rifiuta la service key),
-    // poi il telefono, infine gli utenti.
+    // Ripristino: prima le righe create (la service role passa sopra alle policy di M11),
+    // poi gli slot (serve il JWT admin, il trigger rifiuta la service key), il telefono e
+    // infine gli utenti.
+    for (const tabella of ["risposte_presenze", "cacche_partita", "turni_palloni"]) {
+      await rest(`${tabella}?evento_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
+    }
+    for (const tabella of ["pagelle_voti", "mvp_voti"]) {
+      await rest(`${tabella}?match_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
+    }
+    await rest(`eventi_app?id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
+
     for (const id of ["g1", "g2"]) {
       if (tokenAdmin) {
         await rest(`giocatori_squadra?id=eq.${id}`, tokenAdmin, {
