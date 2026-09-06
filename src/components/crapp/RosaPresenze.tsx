@@ -9,6 +9,7 @@ import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { intestazioniAutenticate } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { dataOggi } from "@/lib/scout-live";
 
@@ -33,7 +34,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
     try {
       const res = await fetch("/api/public/sollecita-presenze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await intestazioniAutenticate()) },
         body: JSON.stringify({ eventoId, da: io?.nome }),
       });
       if (!res.ok) throw new Error();

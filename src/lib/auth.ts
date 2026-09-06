@@ -47,6 +47,17 @@ export function useSessione() {
   };
 }
 
+/**
+ * Intestazioni con il token della sessione, per le route server che verificano il ruolo
+ * (DD-024). Letta al momento della chiamata e non da uno stato React, così non si spedisce
+ * un token già scaduto.
+ */
+export async function intestazioniAutenticate(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function accediConGoogle(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",

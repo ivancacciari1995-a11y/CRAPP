@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { richiediAdmin } from "@/lib/auth-route.server";
 import { formatData } from "@/lib/crapp-data";
 import { leggiEventi } from "@/lib/eventi.server";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
@@ -14,6 +15,9 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const negato = await richiediAdmin(request);
+        if (negato) return negato;
+
         const parsed = schema.safeParse(await request.json());
         if (!parsed.success) return new Response("Dati non validi", { status: 400 });
 

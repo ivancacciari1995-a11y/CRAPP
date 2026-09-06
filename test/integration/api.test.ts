@@ -109,14 +109,44 @@ try {
     assert.equal(res.status, 400, "anche la cancellazione valida l'input");
   });
 
-  await prova("push-messaggio e sollecita-presenze rifiutano i payload non validi", async () => {
+  await prova("push-messaggio rifiuta i payload non validi", async () => {
     assert.equal((await postJson("/api/public/push-messaggio", {})).status, 400);
-    assert.equal((await postJson("/api/public/sollecita-presenze", {})).status, 400);
+  });
+
+  // --- le route che mandano notifiche a tutti (DD-024) ------------------------
+  // Il controllo di accesso viene prima della validazione: senza credenziali la
+  // risposta non deve nemmeno dire se l'evento esiste.
+  await prova("le route che avvisano la squadra chiedono le credenziali", async () => {
+    for (const percorso of ["/api/public/sollecita-presenze", "/api/public/apri-sondaggio"]) {
+      assert.equal(
+        (await postJson(percorso, { eventoId: "non-esiste" })).status,
+        401,
+        `${percorso} senza token`,
+      );
+    }
     assert.equal(
-      (await postJson("/api/public/sollecita-presenze", { eventoId: "" })).status,
-      400,
-      "eventoId vuoto non è valido",
+      (await postJson("/api/public/promemoria-palloni", {})).status < 400,
+      false,
+      "promemoria-palloni senza segreto non parte",
     );
+  });
+
+  await prova("un token malformato non passa", async () => {
+    const res = await fetch(url("/api/public/sollecita-presenze"), {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer non-un-jwt" },
+      body: JSON.stringify({ eventoId: "non-esiste" }),
+    });
+    assert.equal(res.status, 401, "tre segmenti separati da punto, o niente");
+  });
+
+  await prova("uno schema diverso da Bearer non passa", async () => {
+    const res = await fetch(url("/api/public/sollecita-presenze"), {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Basic aGVsbG86d29ybGQ=" },
+      body: JSON.stringify({ eventoId: "non-esiste" }),
+    });
+    assert.equal(res.status, 401);
   });
 
   // --- endpoint che leggono dal database -------------------------------------
@@ -130,10 +160,10 @@ try {
       assert.ok(dati.title && dati.body, "un endpoint sconosciuto riceve comunque un testo");
     });
 
-    await prova("sollecita-presenze su un evento inesistente risponde 404", async () => {
-      const res = await postJson("/api/public/sollecita-presenze", { eventoId: "non-esiste" });
-      assert.equal(res.status, 404);
-    });
+    // La validazione dell'input di sollecita-presenze (400 sul corpo vuoto, 404
+    // sull'evento inesistente) ora sta dietro al controllo di accesso: serve un
+    // token di amministratore, che questo file non ha. La copre
+    // `permessi-route.test.ts` sullo stack locale.
   } else {
     salta("endpoint con database", "SUPABASE_URL/SERVICE_ROLE_KEY non configurate");
   }

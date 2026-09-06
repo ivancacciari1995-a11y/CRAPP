@@ -53,11 +53,12 @@ testo effettivo viene calcolato al volo dal service worker interrogando
 
 ## Limiti noti
 
-- **Nessuna verifica di autenticazione/secret** sulla route `promemoria-palloni`: chiunque
-  può invocarla via POST diretto, nonostante il piano originale prevedesse una protezione
-  con secret.
 - **Nessun cron nel repository**: lo scheduling effettivo (se esiste) è configurato fuori dal
-  codice versionato — da verificare lato Supabase/hosting.
+  codice versionato — da verificare lato Supabase/hosting. Finché non esiste, il promemoria
+  quotidiano non parte da solo.
+- La route è protetta dal segreto previsto dal piano originale (DD-024): chi la chiama deve
+  mandare `x-cron-segreto` uguale alla variabile `CRON_SEGRETO`. Se la variabile non è
+  configurata nell'ambiente la route risponde `503`.
 - Il conteggio dei turni include anche le proposte non confermate: badge e statistiche
   possono contare turni mai effettivamente convalidati da nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
@@ -67,7 +68,6 @@ testo effettivo viene calcolato al volo dal service worker interrogando
 
 ## Evoluzioni possibili
 
-- Aggiungere un secret/header di autorizzazione alla route pubblica.
 - Versionare il cron (es. una migration con `cron.schedule`) invece di configurarlo solo
   lato dashboard.
 - Escludere dalla rotazione chi ha già dichiarato assenza per l'evento.

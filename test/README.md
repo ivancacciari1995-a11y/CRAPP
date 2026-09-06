@@ -17,12 +17,12 @@ non può inquinare gli altri.
 
 ## Struttura
 
-| Cartella       | Cosa verifica                                                                                                                                                                                                                                                                        | Serve rete? |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa. Più le funzioni pure isolabili nei moduli con hook/rete (validazione upload, guardie push, JWT VAPID, cattura errori, avatar)                        | No          |
-| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato; permessi per ruolo (`permessi`) e semantica degli upsert (`scritture`) sul database locale | Sì          |
-| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                                                                                                              | Sì          |
-| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                                                                                                                    | —           |
+| Cartella       | Cosa verifica                                                                                                                                                                                                                                                                                                                           | Serve rete? |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa. Più le funzioni pure isolabili nei moduli con hook/rete (validazione upload, guardie push, JWT VAPID, cattura errori, avatar)                                                                           | No          |
+| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato; permessi per ruolo (`permessi`), accesso alle route di notifica (`permessi-route`) e semantica degli upsert (`scritture`) sul database locale | Sì          |
+| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                                                                                                                                                                 | Sì          |
+| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                                                                                                                                                                       | —           |
 
 ## Database locale in Docker
 
@@ -36,9 +36,14 @@ npx supabase status    # URL e chiavi locali; Studio su http://127.0.0.1:54323
 npx supabase db reset  # ricrea il database da zero se i dati si sporcano
 npx supabase stop      # spegne tutto
 
-bun test/integration/permessi.test.ts    # permessi per ruolo
-bun test/integration/scritture.test.ts   # semantica degli upsert
+bun test/integration/permessi.test.ts        # permessi per ruolo sulle tabelle
+bun test/integration/permessi-route.test.ts  # chi può far partire le notifiche
+bun test/integration/scritture.test.ts       # semantica degli upsert
 ```
+
+`permessi-route` avvia il server di sviluppo **puntato al database locale** invece che al
+progetto di `.env`: gli serve creare utenti veri per provare i tre casi (nessun token,
+giocatore, amministratore).
 
 Il primo `start` scarica le immagini (qualche minuto), i successivi partono in
 una decina di secondi. Le mail finiscono in Mailpit (http://127.0.0.1:54324),

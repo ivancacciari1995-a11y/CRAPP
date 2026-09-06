@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { richiediSegreto } from "@/lib/auth-route.server";
 import { nomeCompleto } from "@/lib/giocatori-squadra";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 import { completaTurni, destinatariPromemoriaPalloni, oggiISO } from "@/lib/palloni-core";
@@ -8,7 +9,11 @@ import { leggiEventi } from "@/lib/eventi.server";
 export const Route = createFileRoute("/api/public/promemoria-palloni")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Chiamata da un cron, senza sessione: qui vale il segreto condiviso.
+        const negato = richiediSegreto(request);
+        if (negato) return negato;
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: righe } = await supabaseAdmin

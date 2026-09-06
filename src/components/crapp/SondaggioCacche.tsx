@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { intestazioniAutenticate } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { mediaPartita, sondaggioAperto, useCacche, useSalvaCacche } from "@/lib/cacche";
 
@@ -51,7 +52,7 @@ export function SondaggioCacche({
     try {
       const res = await fetch("/api/public/apri-sondaggio", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await intestazioniAutenticate()) },
         body: JSON.stringify({ eventoId }),
       });
       if (!res.ok) throw new Error();

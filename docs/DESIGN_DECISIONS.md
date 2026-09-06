@@ -38,6 +38,8 @@ Serve a rispondere a domande del tipo:
 | [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                | Test obbligatori e verdi              |
 | [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)  | Molle interrompibili con motion       |
 | [DD-022](#dd-022--lapp-è-solo-chiara)                                             | App solo chiara                       |
+| [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                          | Scritture limitate per ruolo          |
+| [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
 
 **In valutazione**
 
@@ -808,3 +810,64 @@ all'account (`benvenuto.tsx`), e senza slot non si entra.
 Se l'anonimato delle pagelle deve diventare reale (servirebbe una vista aggregata e la
 chiusura della lettura riga per riga), o se turni e scout acquistano un gate
 nell'interfaccia: allora le loro policy devono seguirlo.
+
+### DD-024 — Le route che avvisano la squadra chiedono le credenziali
+
+**Data:** 6 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Le route in `src/routes/api/public/` girano con la service role e saltano la RLS: DD-023 non
+le tocca. Nessuna di loro faceva un controllo di accesso — cercando `authorization` in quella
+cartella l'unico header era lo User-Agent con cui `csi.ts` chiama il portale CSI. Chiunque
+conoscesse l'URL poteva quindi far suonare i telefoni di tutta la squadra:
+`promemoria-palloni` accetta perfino una POST con il corpo vuoto.
+
+La difesa apparente delle altre due — «serve un id evento valido» — non è una difesa: l'id è
+`e` + il timestamp in base 36 (`nuovoIdEvento()`), compare negli URL che la squadra si
+scambia, ed è elencabile da qualsiasi utente loggato.
+
+Il danno non è furto di dati: i testi delle notifiche li costruisce il server. È molestia e
+consumo della quota push. Non è però una ragione per lasciare la porta aperta.
+
+**Decisione**  
+Le tre route che inviano notifiche chiedono le credenziali, con due controlli diversi perché
+i chiamanti sono diversi (`src/lib/auth-route.server.ts`):
+
+- `apri-sondaggio` e `sollecita-presenze` → `richiediAdmin`: token della sessione Supabase
+  verificato con `auth.getUser`, poi ruolo `admin` letto da `user_roles`, la stessa fonte di
+  `src/lib/ruoli.ts` (DD-011). `401` senza token valido, `403` con token ma senza ruolo. Il
+  controllo viene **prima** della validazione dell'input, così la risposta non rivela
+  nemmeno se un evento esiste.
+- `promemoria-palloni` → `richiediSegreto`: intestazione `x-cron-segreto` confrontata con la
+  variabile `CRON_SEGRETO`. La chiama un cron, che una sessione non ce l'ha.
+
+`csi`, `push-config`, `push-subscribe` e `push-messaggio` restano aperte: le chiamano il
+browser prima del login e il service worker, dove qualsiasi segreto sarebbe pubblico.
+
+**Alternative scartate**
+
+- Un segreto condiviso anche per le due route dell'app → finirebbe nel bundle JavaScript,
+  cioè pubblico.
+- Il middleware `requireSupabaseAuth` già presente nel repository → è
+  `createMiddleware({ type: "function" })`, protegge le server function di TanStack Start. In
+  CrAPP `createServerFn` non compare da nessuna parte: quel file non è mai stato eseguito,
+  e non si applica comunque alle route in `src/routes/api/`.
+- Fidarsi dell'id evento come credenziale → è un timestamp in un URL condiviso.
+
+**Conseguenze**
+
+- Se `CRON_SEGRETO` non è configurata, `promemoria-palloni` risponde `503` e il promemoria
+  non parte. È voluto: una porta che si riapre da sola quando manca una variabile
+  d'ambiente non se ne accorge nessuno. Va impostata negli ambienti di deploy e nel cron.
+- I due pulsanti dell'app mandano ora il token con `intestazioniAutenticate()`
+  (`src/lib/auth.ts`), letto al momento della chiamata e non da uno stato React, così non si
+  spedisce un token scaduto.
+- `api.test.ts` non può più verificare la validazione dell'input di `sollecita-presenze`,
+  che ora sta dietro all'accesso: quel pezzo si è spostato in
+  `test/integration/permessi-route.test.ts`, che gira sullo stack locale perché ha bisogno
+  di utenti veri.
+
+**Riesame**  
+Se un giorno l'app userà `createServerFn`, il middleware già presente diventa la strada
+naturale e questi controlli vanno riletti alla sua luce.
