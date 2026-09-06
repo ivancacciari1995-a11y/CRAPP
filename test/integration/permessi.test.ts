@@ -340,6 +340,60 @@ if (!locale) {
       assert.ok(!altrui.ok, `quelle di un altro no (${altrui.status})`);
     });
 
+    await prova("anche i badge social si firmano con il proprio nome", async () => {
+      const mio = await rest("badge_social_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          categoria: "sorriso",
+          votante_id: "g1",
+          votato_id: "g5",
+          votato_nome: "Cinque",
+        }),
+      });
+      assert.equal(await righeToccate(mio), 1, "il proprio voto social si registra");
+
+      const falso = await rest("badge_social_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          categoria: "sorriso",
+          votante_id: "g5",
+          votato_id: "g1",
+          votato_nome: "Uno",
+        }),
+      });
+      assert.ok(!falso.ok, `non si vota a nome di un altro (${falso.status})`);
+    });
+
+    // L'altra metà di M11: le policy `Gli admin gestiscono tutti/e …`. Senza queste
+    // l'amministratore non potrebbe correggere una risposta sbagliata né ripulire i voti
+    // di una partita, e la rotta /eventi sarebbe monca.
+    await prova("l'amministratore corregge i dati degli altri", async () => {
+      const presenza = await rest("risposte_presenze", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", stato: "assente" }),
+      });
+      assert.equal(await righeToccate(presenza), 1, "l'admin risponde anche per un altro");
+
+      const cacca = await rest("cacche_partita", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", quantita: 1 }),
+      });
+      assert.equal(await righeToccate(cacca), 1, "vale anche per le cacche");
+
+      const pagella = await rest(
+        `pagelle_voti?match_id=eq.${EVENTO}&votante_id=eq.g1`,
+        tokenAdmin,
+        { method: "DELETE", headers: { Prefer: "return=representation" } },
+      );
+      assert.equal(await righeToccate(pagella), 1, "e per cancellare il voto di un altro");
+    });
+
     // I turni palloni restano aperti di proposito: nell'interfaccia il turno se lo passa
     // chiunque, senza gate. Se un giorno arriva il gate, questo test va cambiato.
     await prova("il turno palloni resta assegnabile da chiunque sia autenticato", async () => {
@@ -357,7 +411,7 @@ if (!locale) {
     for (const tabella of ["risposte_presenze", "cacche_partita", "turni_palloni"]) {
       await rest(`${tabella}?evento_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
     }
-    for (const tabella of ["pagelle_voti", "mvp_voti"]) {
+    for (const tabella of ["pagelle_voti", "mvp_voti", "badge_social_voti"]) {
       await rest(`${tabella}?match_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
     }
     await rest(`eventi_app?id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });

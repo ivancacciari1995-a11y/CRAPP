@@ -6,6 +6,18 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### La suite copre i conteggi presenze, il calendario e la guardia delle notifiche
+
+- Nuovi check unitari su `contaPresenzeGiocatore`/`totaliEventiGiocatore` (numeratore e
+  denominatore delle statistiche), su `compleanniEventi`, `convocatiEvento` ed `eventoVuoto`,
+  su `mvpVintiPerGiocatore` e sui rifiuti `401` di `richiediAdmin` (DD-024).
+- I test dei permessi coprono ora anche `badge_social_voti` e le deroghe
+  «Gli admin gestiscono tutti/e …» introdotte da M11.
+- Perché servivano modifiche al codice: le funzioni di conteggio presenze leggevano la data
+  di oggi dall'orologio e non erano verificabili — ora accettano `oggi` come parametro,
+  come già facevano le serie; `richiediAdmin` scarta anche i token con segmenti vuoti
+  (`Bearer ..`), che prima arrivavano fino alla chiamata di rete.
+
 ### Le notifiche push arrivano anche ad app chiusa
 
 - Il testo della notifica viaggia ora cifrato **dentro** la push (`aes128gcm`, RFC 8291)

@@ -2,8 +2,10 @@
 import assert from "node:assert/strict";
 import type { Evento } from "@/lib/eventi";
 import {
+  contaPresenzeGiocatore,
   serieConferme,
   serieConsecutiva,
+  totaliEventiGiocatore,
   type MappaPresenze,
   type MappaTempiRisposta,
 } from "@/lib/presenze";
@@ -57,6 +59,26 @@ assert.equal(serieConsecutiva("g2", eventi, presenze, "allenamento", OGGI), 0);
 // Chi non è convocato non spezza la serie di nessun altro.
 const conConvocati = [...eventi, ev("a6", "allenamento", "2026-08-30", ["g9"])];
 assert.equal(serieConsecutiva("g1", conConvocati, presenze, "allenamento", OGGI), 2);
+
+// --- conteggio presenze: numeratore e denominatore delle statistiche ----------
+// a1 presente, a2 assente, a3 ritardo, a4 presente, p1 presente: 4 su 5 passati.
+assert.equal(contaPresenzeGiocatore("g1", eventi, presenze, OGGI), 4, "il ritardo conta presente");
+assert.equal(totaliEventiGiocatore("g1", eventi, OGGI), 5, "gli eventi futuri non contano");
+assert.equal(contaPresenzeGiocatore("g2", eventi, presenze, OGGI), 0, "chi non risponde è a zero");
+assert.equal(totaliEventiGiocatore("g2", eventi, OGGI), 5, "il denominatore è uguale per tutti");
+
+// Solo partite e allenamenti: compleanni e altri eventi restano fuori.
+const conAltri: Evento[] = [
+  ...eventi,
+  ev("x1", "evento", "2026-08-15"),
+  ev("c1", "compleanno", "2026-08-16"),
+];
+assert.equal(totaliEventiGiocatore("g1", conAltri, OGGI), 5, "solo partite e allenamenti");
+
+// Un evento con convocati espliciti conta solo per i convocati.
+const conRistretti: Evento[] = [...eventi, ev("a7", "allenamento", "2026-08-29", ["g9"])];
+assert.equal(totaliEventiGiocatore("g9", conRistretti, OGGI), 6, "il convocato ce l'ha in più");
+assert.equal(totaliEventiGiocatore("g1", conRistretti, OGGI), 5, "chi non è convocato no");
 
 // --- serie conferme: risposta entro 24h dalla convocazione --------------------
 const convocati = (id: string, data: string, creatoIl?: string): Evento => ({

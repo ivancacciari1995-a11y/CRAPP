@@ -1,6 +1,12 @@
 /** Check dei voti MVP: `bun test/unit/mvp-voti.test.ts`. */
 import assert from "node:assert/strict";
-import { conteggioPartita, mioVoto, vincitoriMvp, type VotoMvp } from "@/lib/mvp-voti";
+import {
+  conteggioPartita,
+  mioVoto,
+  mvpVintiPerGiocatore,
+  vincitoriMvp,
+  type VotoMvp,
+} from "@/lib/mvp-voti";
 
 const v = (
   match_id: string,
@@ -49,5 +55,23 @@ assert.deepEqual(
 assert.equal(mioVoto(partita, "m1", "g1")?.votato_nome, "Bruno");
 assert.equal(mioVoto(partita, "m1", "g9"), null, "chi non ha votato non ha voto");
 assert.equal(mioVoto(partita, "m9", "g1"), null);
+
+// --- mvpVintiPerGiocatore: una vittoria per partita, la parità non conta -----
+assert.deepEqual(
+  mvpVintiPerGiocatore(partita),
+  { g2: 1, g5: 1 },
+  "m1 la vince g2, m2 g5: un titolo a testa",
+);
+assert.deepEqual(
+  mvpVintiPerGiocatore([...partita, ...pari]),
+  { g2: 1, g5: 1 },
+  "la parità non assegna",
+);
+assert.deepEqual(
+  mvpVintiPerGiocatore([...partita, v("m5", "g1", "g2", "Bruno")]),
+  { g2: 2, g5: 1 },
+  "i titoli si sommano su partite diverse",
+);
+assert.deepEqual(mvpVintiPerGiocatore([]), {});
 
 console.log("mvp-voti: ok");

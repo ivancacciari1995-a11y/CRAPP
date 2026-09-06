@@ -14,8 +14,7 @@ export type MappaPresenze = Record<string, Record<string, Stato>>;
 export type MappaTempiRisposta = Record<string, Record<string, string>>;
 
 /** Allenamenti e partite CrAPP già passati, che contano per le statistiche di presenza. */
-function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string) {
-  const oggi = dataOggi();
+function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string, oggi = dataOggi()) {
   return eventi.filter(
     (e) =>
       (e.tipo === "partita" || e.tipo === "allenamento") &&
@@ -29,16 +28,21 @@ export function contaPresenzeGiocatore(
   giocatoreId: string,
   eventi: Evento[],
   presenze: MappaPresenze,
+  oggi: string = dataOggi(),
 ): number {
-  return eventiContanoPresenze(eventi, giocatoreId).filter((e) => {
+  return eventiContanoPresenze(eventi, giocatoreId, oggi).filter((e) => {
     const stato = presenze[e.id]?.[giocatoreId];
     return stato === "presente" || stato === "ritardo";
   }).length;
 }
 
 /** Eventi CrAPP rilevanti per il denominatore presenze di un giocatore. */
-export function totaliEventiGiocatore(giocatoreId: string, eventi: Evento[]): number {
-  return eventiContanoPresenze(eventi, giocatoreId).length;
+export function totaliEventiGiocatore(
+  giocatoreId: string,
+  eventi: Evento[],
+  oggi: string = dataOggi(),
+): number {
+  return eventiContanoPresenze(eventi, giocatoreId, oggi).length;
 }
 
 /**
@@ -96,8 +100,8 @@ function serieSu(
   tipo: "partita" | "allenamento" | undefined,
   onorato: (e: Evento) => boolean,
 ): number {
-  return eventiContanoPresenze(eventi, giocatoreId)
-    .filter((e) => (tipo === undefined || e.tipo === tipo) && e.data <= oggi)
+  return eventiContanoPresenze(eventi, giocatoreId, oggi)
+    .filter((e) => tipo === undefined || e.tipo === tipo)
     .sort((a, b) => a.data.localeCompare(b.data))
     .reduce((serie, e) => aggiornaSerie(serie, onorato(e)), 0);
 }

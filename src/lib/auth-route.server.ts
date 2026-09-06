@@ -18,8 +18,9 @@ function tokenDaRichiesta(request: Request): string | null {
   const intestazione = request.headers.get("authorization");
   if (!intestazione?.startsWith("Bearer ")) return null;
   const token = intestazione.slice("Bearer ".length).trim();
-  // Un JWT ha tre segmenti: scartarlo qui evita una chiamata di rete per ogni rumore.
-  return token && token.split(".").length === 3 ? token : null;
+  // Un JWT ha tre segmenti non vuoti: scartarlo qui evita una chiamata di rete per ogni rumore.
+  const segmenti = token.split(".");
+  return segmenti.length === 3 && segmenti.every(Boolean) ? token : null;
 }
 
 /**
