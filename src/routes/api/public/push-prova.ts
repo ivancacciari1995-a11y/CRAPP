@@ -45,7 +45,13 @@ export const Route = createFileRoute("/api/public/push-prova")({
         const { stato, corpo } = await inviaPush(
           iscrizione,
           "🔔 Notifica di prova",
-          `Inviata alle ${new Date().toLocaleTimeString("it-IT")}. Se la leggi ad app chiusa, il canale funziona.`,
+          // Il fuso va detto: il server gira in UTC, quindi senza `timeZone` l'orario
+          // arriverebbe indietro di un'ora o due e sembrerebbe un orologio sballato.
+          `Inviata alle ${new Date().toLocaleTimeString("it-IT", {
+            timeZone: "Europe/Rome",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}. Se la leggi ad app chiusa, il canale funziona.`,
         );
         return Response.json({ nelDatabase: true, stato, corpo });
       },
