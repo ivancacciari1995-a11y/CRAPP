@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Clock, Users, Dumbbell, CalendarDays } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { MapPin, Clock, Users, Dumbbell, CalendarDays } from "lucide-react";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
@@ -43,12 +43,6 @@ function AllenamentoDetail() {
   if (!evento) {
     return (
       <div className="px-5 pt-8">
-        <Link
-          to="/calendario"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Torna al calendario
-        </Link>
         <p className="mt-8 text-center text-sm text-muted-foreground">Allenamento non trovato</p>
       </div>
     );
@@ -56,15 +50,6 @@ function AllenamentoDetail() {
 
   return (
     <>
-      <div className="px-5 pt-4">
-        <Link
-          to="/calendario"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Calendario
-        </Link>
-      </div>
-
       <PageHeader titolo="Allenamento" sottotitolo={formatData(evento.data)} />
 
       <Section titolo={evento.titolo}>

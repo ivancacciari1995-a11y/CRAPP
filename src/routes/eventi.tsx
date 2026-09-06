@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
@@ -101,15 +101,6 @@ function GestioneEventi() {
 
   return (
     <>
-      <div className="px-5 pt-4">
-        <Link
-          to="/calendario"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Calendario
-        </Link>
-      </div>
-
       <PageHeader titolo="Gestione eventi" sottotitolo={`${eventi.length} eventi in calendario`} />
 
       <div className="px-5 pt-4">

@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
@@ -59,12 +59,6 @@ function PartitaDetail() {
   if (!evento) {
     return (
       <div className="px-5 pt-8">
-        <Link
-          to="/calendario"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Torna al calendario
-        </Link>
         <p className="mt-8 text-center text-sm text-muted-foreground">Partita non trovata</p>
       </div>
     );
@@ -97,15 +91,6 @@ function PartitaDetail() {
 
   return (
     <>
-      <div className="px-5 pt-4">
-        <Link
-          to="/calendario"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Calendario
-        </Link>
-      </div>
-
       <PageHeader
         titolo={evento.campionato ? "Partita" : "Amichevole"}
         sottotitolo={formatData(evento.data)}
