@@ -152,6 +152,38 @@ export function usePresenzeEvento(eventoId: string) {
   return { ...resto, risposte: presenze[eventoId] ?? {} };
 }
 
+/**
+ * La cache delle presenze dopo una risposta salvata, senza rileggere il database.
+ *
+ * Due dettagli non sono cosmetici e non vanno persi (vedi `docs/modules/serie-presenze.md`):
+ *
+ * - l'istante si scrive **solo se manca** (`??=`), come fa il database, dove `risposto_il`
+ *   non viene inviato sull'upsert e un trigger lo congela: è la prima risposta, non l'ultima,
+ *   e un ripensamento non deve far ripartire il cronometro della serie "Conferme 24h";
+ * - cancellare la risposta (`stato: null`) elimina **anche** l'istante, così se il giocatore
+ *   risponde di nuovo il cronometro riparte davvero — ha ritirato la risposta.
+ */
+export function conRisposta(
+  prec: LetturaPresenze | undefined,
+  input: { eventoId: string; giocatoreId: string; stato: Stato | null },
+  adesso: string = new Date().toISOString(),
+): LetturaPresenze {
+  const presenze: MappaPresenze = { ...(prec?.presenze ?? {}) };
+  const tempi: MappaTempiRisposta = { ...(prec?.tempi ?? {}) };
+  const stati = { ...(presenze[input.eventoId] ?? {}) };
+  const istanti = { ...(tempi[input.eventoId] ?? {}) };
+  if (input.stato === null) {
+    delete stati[input.giocatoreId];
+    delete istanti[input.giocatoreId];
+  } else {
+    stati[input.giocatoreId] = input.stato;
+    istanti[input.giocatoreId] ??= adesso;
+  }
+  presenze[input.eventoId] = stati;
+  tempi[input.eventoId] = istanti;
+  return { presenze, tempi };
+}
+
 export function useSalvaPresenza() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -179,23 +211,7 @@ export function useSalvaPresenza() {
     },
     // Scrittura unica + aggiornamento cache locale, nessuna rilettura.
     onSuccess: (input) => {
-      queryClient.setQueryData<LetturaPresenze>(PRESENZE_KEY, (prec) => {
-        const presenze: MappaPresenze = { ...(prec?.presenze ?? {}) };
-        const tempi: MappaTempiRisposta = { ...(prec?.tempi ?? {}) };
-        const stati = { ...(presenze[input.eventoId] ?? {}) };
-        const istanti = { ...(tempi[input.eventoId] ?? {}) };
-        if (input.stato === null) {
-          delete stati[input.giocatoreId];
-          delete istanti[input.giocatoreId];
-        } else {
-          stati[input.giocatoreId] = input.stato;
-          // Come a database: l'istante è quello della prima risposta, non dei ripensamenti.
-          istanti[input.giocatoreId] ??= new Date().toISOString();
-        }
-        presenze[input.eventoId] = stati;
-        tempi[input.eventoId] = istanti;
-        return { presenze, tempi };
-      });
+      queryClient.setQueryData<LetturaPresenze>(PRESENZE_KEY, (prec) => conRisposta(prec, input));
     },
   });
 }

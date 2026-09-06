@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import type { Evento } from "@/lib/eventi";
 import {
+  conRisposta,
   contaPresenzeGiocatore,
   destinatariSollecito,
   serieConferme,
@@ -152,5 +153,61 @@ assert.equal(
   "un evento senza istante di convocazione viene saltato, non spezza la serie",
 );
 assert.equal(serieConferme("g2", conConvocazione, tempi, OGGI), 0, "chi non risponde è a zero");
+
+// --- cache locale dopo una risposta: il cronometro non riparte ----------------
+// Stessa regola del database: `risposto_il` è la PRIMA risposta e un trigger la congela.
+// Qui la cache deve imitarla, altrimenti la serie "Conferme 24h" mente fino al refresh.
+const PRIMA = "2026-08-01T10:00:00Z";
+const POI = "2026-08-08T10:00:00Z";
+
+const dopoPrimaRisposta = conRisposta(
+  undefined,
+  { eventoId: "e1", giocatoreId: "g1", stato: "presente" },
+  PRIMA,
+);
+assert.deepEqual(dopoPrimaRisposta, {
+  presenze: { e1: { g1: "presente" } },
+  tempi: { e1: { g1: PRIMA } },
+});
+
+const dopoRipensamento = conRisposta(
+  dopoPrimaRisposta,
+  { eventoId: "e1", giocatoreId: "g1", stato: "assente" },
+  POI,
+);
+assert.equal(dopoRipensamento.presenze["e1"]?.["g1"], "assente", "vale l'ultima risposta");
+assert.equal(
+  dopoRipensamento.tempi["e1"]?.["g1"],
+  PRIMA,
+  "l'istante resta quello della prima risposta: il ripensamento non fa ripartire il cronometro",
+);
+
+const dopoRitiro = conRisposta(
+  dopoRipensamento,
+  { eventoId: "e1", giocatoreId: "g1", stato: null },
+  POI,
+);
+assert.deepEqual(dopoRitiro.presenze["e1"], {}, "ritirare la risposta la toglie");
+assert.deepEqual(
+  dopoRitiro.tempi["e1"],
+  {},
+  "e toglie anche l'istante: chi risponde di nuovo riparte da capo",
+);
+assert.equal(
+  conRisposta(dopoRitiro, { eventoId: "e1", giocatoreId: "g1", stato: "presente" }, POI).tempi[
+    "e1"
+  ]?.["g1"],
+  POI,
+  "dopo un ritiro il cronometro riparte davvero",
+);
+
+// Gli altri giocatori e gli altri eventi non vengono toccati.
+const conAltri2 = conRisposta(
+  conRisposta(undefined, { eventoId: "e1", giocatoreId: "g1", stato: "presente" }, PRIMA),
+  { eventoId: "e2", giocatoreId: "g2", stato: "forse" },
+  POI,
+);
+assert.equal(conAltri2.presenze["e1"]?.["g1"], "presente", "l'altro evento resta in cache");
+assert.equal(conAltri2.tempi["e2"]?.["g2"], POI);
 
 console.log("presenze: ok");

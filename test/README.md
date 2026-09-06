@@ -23,12 +23,12 @@ la consegna effettiva a schermo bloccato richiede un telefono e il servizio push
 
 ## Struttura
 
-| Cartella       | Cosa verifica                                                                                                                                                                                                                                                                                                                                                                                      | Serve rete? |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa. Più le funzioni pure isolabili nei moduli con hook/rete (validazione upload, guardie push, JWT VAPID, cattura errori, avatar, guardia admin delle route)                                                                                                           | No          |
-| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato; permessi per ruolo, incluse le policy di M11 e le deroghe dell'amministratore (`permessi`), accesso alle route di notifica (`permessi-route`) e semantica degli upsert (`scritture`) sul database locale | Sì          |
-| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                                                                                                                                                                                                                            | Sì          |
-| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                                                                                                                                                                                                                                  | —           |
+| Cartella       | Cosa verifica                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Serve rete? |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `unit/`        | Logica di dominio pura: badge, serie, palloni, pagelle, MVP, cacche, scout, obiettivi, notifiche, parsing CSI, dati della rosa. Più le funzioni pure isolabili nei moduli con hook/rete (validazione upload, guardie push, JWT VAPID, cattura errori, avatar, guardia admin delle route)                                                                                                                                                                                                                          | No          |
+| `integration/` | Le route `/api/public/*` sul server di sviluppo: risposte, cache, validazione degli input. Più schema e permessi del Profilo Giocatore (`schema-profili`) contro il database configurato; permessi per ruolo, incluse le policy di M11, le deroghe dell'amministratore e le tabelle lasciate aperte di proposito (`permessi`), accesso alle route di notifica (`permessi-route`), semantica degli upsert e vincoli (`scritture`) e le letture lato server delle route push (`lettori-server`) sul database locale | Sì          |
+| `e2e/`         | Percorsi completi sull'app servita: schermate, dati CSI fino alla pagina, file PWA, 404                                                                                                                                                                                                                                                                                                                                                                                                                           | Sì          |
+| `helpers/`     | Avvio del server di test e mini-harness condiviso                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | —           |
 
 ## Database locale in Docker
 
@@ -44,7 +44,8 @@ npx supabase stop      # spegne tutto
 
 bun test/integration/permessi.test.ts        # permessi per ruolo sulle tabelle
 bun test/integration/permessi-route.test.ts  # chi può far partire le notifiche
-bun test/integration/scritture.test.ts       # semantica degli upsert
+bun test/integration/scritture.test.ts       # semantica degli upsert e vincoli
+bun test/integration/lettori-server.test.ts  # le letture server delle route push
 ```
 
 `permessi-route` avvia il server di sviluppo **puntato al database locale** invece che al
@@ -54,6 +55,12 @@ giocatore, amministratore).
 Il primo `start` scarica le immagini (qualche minuto), i successivi partono in
 una decina di secondi. Le mail finiscono in Mailpit (http://127.0.0.1:54324),
 non escono dalla macchina.
+
+`lettori-server` fa la stessa cosa in un altro modo: mette le credenziali locali in
+`process.env` prima della prima chiamata, perché `client.server.ts` costruisce
+`supabaseAdmin` pigramente leggendo l'ambiente. Serve a eseguire per davvero le query di
+`leggiEventi()`/`leggiGiocatoriSquadra()`: nessuna delle due controlla l'errore di PostgREST,
+quindi una colonna rinominata darebbe zero righe e zero destinatari, in silenzio.
 
 I test che scrivono **non leggono `.env`**: prendono URL e chiavi da
 `supabase status` (helper `test/helpers/locale.ts`) e si fermano se l'URL non è

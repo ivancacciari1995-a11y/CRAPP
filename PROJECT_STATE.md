@@ -36,8 +36,8 @@ reali (M9).
 
 ## Database
 
-- Schema v1.0 e migration da M1 a M11 applicate al nuovo Supabase; `m12_niente_autovoto`
-  applicata in locale, **da applicare in produzione** (`npx supabase db push`)
+- Schema v1.0 e migration da M1 a M12 applicate al nuovo Supabase (`m12_niente_autovoto`
+  in produzione dal 06/09/2026, verificata con `npx supabase migration list`)
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza

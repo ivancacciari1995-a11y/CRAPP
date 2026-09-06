@@ -394,8 +394,12 @@ if (!locale) {
       assert.equal(await righeToccate(pagella), 1, "e per cancellare il voto di un altro");
     });
 
-    // I turni palloni restano aperti di proposito: nell'interfaccia il turno se lo passa
-    // chiunque, senza gate. Se un giorno arriva il gate, questo test va cambiato.
+    // Il terzo gruppo di DD-023: tabelle lasciate aperte **di proposito**, perché
+    // nell'interfaccia non hanno nessun gate — il turno palloni se lo passa chiunque, e lo
+    // Scout Live lo apre chiunque, con il solo lock di sessione a tenere l'ordine.
+    // Questi casi non dicono che sono sicure: dicono che sono aperte per scelta. Se un
+    // giorno una di loro prende un gate nell'interfaccia, le policy devono seguirlo e
+    // questi test vanno cambiati insieme.
     await prova("il turno palloni resta assegnabile da chiunque sia autenticato", async () => {
       const res = await rest("turni_palloni", tokenGiocatore, {
         method: "POST",
@@ -403,6 +407,79 @@ if (!locale) {
         body: JSON.stringify({ evento_id: EVENTO, giocatore_id: "g5", aggiornato_da: "g1" }),
       });
       assert.equal(await righeToccate(res), 1, "DD-023 lascia questa tabella invariata");
+    });
+
+    await prova("lo Scout Live resta aperto a chiunque sia autenticato", async () => {
+      const sessione = await rest("scout_sessioni", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          evento_id: EVENTO,
+          giocatore_id: "g5",
+          giocatore_nome: "Cinque",
+          aggiornato_il: new Date().toISOString(),
+        }),
+      });
+      assert.equal(await righeToccate(sessione), 1, "il lock lo prende chiunque");
+
+      const stato = await rest("scout_live", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({ evento_id: EVENTO, stato: { set: 1 } }),
+      });
+      assert.equal(await righeToccate(stato), 1, "e lo stato in corso lo scrive chiunque");
+
+      const archivio = await rest("scout_partite", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: `${PREFISSO}-match`,
+          evento_id: EVENTO,
+          data: "2026-01-01",
+          avversario: "Prova",
+          casa: true,
+          set_nostri: 3,
+          set_loro: 0,
+          parziali: [],
+          azioni: [],
+        }),
+      });
+      assert.equal(await righeToccate(archivio), 1, "come l'archivio di fine partita");
+
+      const cancella = await rest(`scout_partite?id=eq.${PREFISSO}-match`, tokenGiocatore, {
+        method: "DELETE",
+        headers: { Prefer: "return=representation" },
+      });
+      assert.equal(await righeToccate(cancella), 1, "e chiunque può anche cancellarlo");
+    });
+
+    // Le iscrizioni push non passano dalla RLS per identificare il dispositivo: la chiave è
+    // l'endpoint, che il browser conosce solo per sé. Restano scrivibili da chiunque sia
+    // autenticato, ed è il motivo per cui `push_subscriptions` non contiene dati personali
+    // oltre all'endpoint e alle sue chiavi.
+    await prova("l'iscrizione alle notifiche la registra qualsiasi autenticato", async () => {
+      const endpoint = `https://esempio.test/${PREFISSO}-push`;
+      const res = await rest("push_subscriptions", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          giocatore_id: "g1",
+          endpoint,
+          p256dh: "chiave-di-prova",
+          auth: "auth-di-prova",
+        }),
+      });
+      assert.equal(await righeToccate(res), 1, "il dispositivo si registra da solo");
+
+      const via = await rest(
+        `push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`,
+        tokenGiocatore,
+        {
+          method: "DELETE",
+          headers: { Prefer: "return=representation" },
+        },
+      );
+      assert.equal(await righeToccate(via), 1, "e si cancella quando le notifiche si spengono");
     });
   } finally {
     // Ripristino: prima le righe create (la service role passa sopra alle policy di M11),
@@ -414,6 +491,11 @@ if (!locale) {
     for (const tabella of ["pagelle_voti", "mvp_voti", "badge_social_voti"]) {
       await rest(`${tabella}?match_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
     }
+    for (const tabella of ["scout_sessioni", "scout_live"]) {
+      await rest(`${tabella}?evento_id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
+    }
+    await rest(`scout_partite?id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
+    await rest(`push_subscriptions?endpoint=like.*${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
     await rest(`eventi_app?id=like.${PREFISSO}*`, SERVIZIO, { method: "DELETE" });
 
     for (const id of ["g1", "g2"]) {
