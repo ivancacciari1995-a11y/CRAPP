@@ -13,26 +13,8 @@
  * reclamato in `giocatori_squadra` e il telefono del profilo g1.
  */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
-
-/** Credenziali dello stack locale. `null` se non è in esecuzione. */
-function statoLocale(): { url: string; anon: string; servizio: string } | null {
-  const esito = spawnSync("npx", ["supabase", "status", "-o", "env"], {
-    encoding: "utf8",
-    timeout: 60_000,
-  });
-  if (esito.status !== 0) return null;
-  const leggi = (nome: string) =>
-    new RegExp(`^${nome}="?([^"\\n]+)"?$`, "m").exec(esito.stdout)?.[1] ?? "";
-  const url = leggi("API_URL");
-  const anon = leggi("ANON_KEY");
-  const servizio = leggi("SERVICE_ROLE_KEY");
-  if (!url || !anon || !servizio) return null;
-  // Cintura di sicurezza: questo file scrive, e su un database non locale non deve girare.
-  if (!/^https?:\/\/(127\.0\.0\.1|localhost)/.test(url)) return null;
-  return { url, anon, servizio };
-}
 
 const locale = statoLocale();
 
