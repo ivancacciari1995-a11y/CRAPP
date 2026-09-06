@@ -2,7 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { inviaPush } from "@/lib/webpush.server";
 
-const schema = z.object({ endpoint: z.string().url().max(1000) });
+/** Quanto aspettare prima di mandare davvero, per dare il tempo di chiudere l'app. */
+const RITARDO_PREDEFINITO_MS = 10_000;
+
+const schema = z.object({
+  endpoint: z.string().url().max(1000),
+  ritardoMs: z.number().int().min(0).max(25_000).optional(),
+});
 
 /**
  * Manda una push di prova al dispositivo che la chiede, e racconta com'è andata.
@@ -13,6 +19,10 @@ const schema = z.object({ endpoint: z.string().url().max(1000) });
  * lo stato HTTP, il corpo della risposta e se l'endpoint è davvero quello registrato in
  * `push_subscriptions` — cioè se il server sta parlando con questo telefono o con una
  * vecchia iscrizione morta.
+ *
+ * L'invio è ritardato di qualche secondo: premendo il pulsante l'app è per forza aperta,
+ * quindi senza attesa la notifica arriverebbe sempre in primo piano — cioè nell'unico caso
+ * che non serve provare.
  *
  * Nessun controllo di accesso, come per `push-config` e `push-subscribe`: manda solo
  * all'endpoint che il chiamante fornisce, quindi al massimo si sveglia da solo. È un URL
@@ -41,6 +51,10 @@ export const Route = createFileRoute("/api/public/push-prova")({
             corpo: "Questo dispositivo non risulta iscritto: riattiva le notifiche.",
           });
         }
+
+        // ponytail: la funzione resta aperta per il ritardo, semplice ma limitato dal
+        // tetto di durata dell'hosting. Se servisse aspettare di più, ci vuole una coda.
+        await new Promise((r) => setTimeout(r, parsed.data.ritardoMs ?? RITARDO_PREDEFINITO_MS));
 
         const { stato, corpo } = await inviaPush(
           iscrizione,

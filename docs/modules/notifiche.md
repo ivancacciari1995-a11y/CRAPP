@@ -60,7 +60,9 @@ copre in particolare le sessioni lunghe della webapp (vedi il
   della risposta del servizio push, più se l'endpoint risulta in `push_subscriptions`. Serve
   a rendere osservabile un "non arriva": senza, ogni prova richiede un admin, un evento nello
   stato giusto e una seconda persona. Il pulsante sta in Profilo → Opzioni, sotto
-  l'interruttore, e compare solo a notifiche attive.
+  l'interruttore, e compare solo a notifiche attive. L'invio parte dopo 10 secondi
+  (`ritardoMs`, max 25): premendo il pulsante l'app è per forza aperta, e senza attesa si
+  proverebbe solo il caso che già funziona.
 - **`apri-sondaggio`** — premuto da un admin dalla pagina partita: manda a **tutti** i
   dispositivi iscritti l'avviso di apertura del sondaggio pre-partita (vedi
   [Scout Live](scout-live.md)).
