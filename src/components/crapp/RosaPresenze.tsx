@@ -10,16 +10,18 @@ import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useRosa } from "@/lib/rosa";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
+import { dataOggi } from "@/lib/scout-live";
 
 const ordine: Stato[] = ["presente", "ritardo", "forse", "infortunato", "assente"];
 
-export function RosaPresenze({ eventoId }: { eventoId: string }) {
+export function RosaPresenze({ eventoId, data }: { eventoId: string; data: string }) {
   const { risposte, isPending } = usePresenzeEvento(eventoId);
   const salva = useSalvaPresenza();
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const rosa = useRosa();
   const [sollecito, setSollecito] = useState(false);
+  const passato = data < dataOggi();
 
   const mancanti = rosa.filter((g) => !risposte[g.id]);
   const risposteN = rosa.length - mancanti.length;
@@ -91,12 +93,12 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
                   <button
                     key={s}
                     type="button"
-                    disabled={salva.isPending}
+                    disabled={salva.isPending || passato}
                     onClick={() =>
                       salva.mutate({ eventoId, giocatoreId: io.id, stato: attivo ? null : s })
                     }
                     className={cn(
-                      "rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold transition-all active:scale-95",
+                      "rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
                       attivo
                         ? cn(statoMeta[s].className, "border-transparent shadow-card")
                         : "bg-background text-muted-foreground",
@@ -114,7 +116,7 @@ export function RosaPresenze({ eventoId }: { eventoId: string }) {
           <button
             type="button"
             onClick={sollecita}
-            disabled={sollecito || daSollecitare === 0}
+            disabled={sollecito || daSollecitare === 0 || passato}
             className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             {sollecito ? (

@@ -91,7 +91,7 @@ function AllenamentoDetail() {
       </Section>
 
       <Section titolo="Rosa e presenze">
-        <RosaPresenze eventoId={evento.id} />
+        <RosaPresenze eventoId={evento.id} data={evento.data} />
       </Section>
     </>
   );

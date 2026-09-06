@@ -8,6 +8,7 @@ import { Barra } from "@/components/motion/Barra";
 import { useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreCorrente } from "@/lib/user-store";
+import { dataOggi } from "@/lib/scout-live";
 
 const tipoMeta = {
   partita: { label: "Partita", className: "bg-accent text-accent-foreground" },
@@ -51,6 +52,7 @@ export function EventoCard({
   const totale = rosa.length;
   const perc = totale ? Math.round((presentiVeri / totale) * 100) : 0;
   const isCompleanno = evento.tipo === "compleanno";
+  const passato = evento.data < dataOggi();
 
   if (isCompleanno) {
     return (
@@ -130,7 +132,7 @@ export function EventoCard({
               <button
                 key={s}
                 type="button"
-                disabled={salva.isPending}
+                disabled={salva.isPending || passato}
                 onClick={() =>
                   salva.mutate({
                     eventoId: evento.id,
@@ -142,7 +144,7 @@ export function EventoCard({
                 className={cn(
                   // min-h-11: sono i controlli più toccati dell'app, sotto i
                   // 44px si sbaglia bersaglio.
-                  "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95",
+                  "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
                   attivo
                     ? cn(meta.className, "border-transparent shadow-card")
                     : "bg-background text-muted-foreground",
