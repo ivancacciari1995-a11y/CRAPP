@@ -88,7 +88,15 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 - Non ci sono preferenze granulari (solo palloni / solo presenze / solo smart): un dispositivo
   è iscritto o no. Separare i canali richiederebbe schema e UI dedicati.
 - `promemoria_push` è descritta altrove come "storico" ma nel codice è una coda che si
-  autocancella alla lettura: non conserva nulla.
+  autocancella alla lettura: non conserva nulla. Un messaggio in coda **scade dopo 12 ore**
+  (`ORE_VALIDITA_PROMEMORIA`): la riga si cancella comunque alla prima lettura, ma se è
+  vecchia il testo non viene mostrato e si ripiega su quello calcolato. Serve perché la coda
+  si svuota solo quando il dispositivo legge, e se la push non arriva mai la riga resterebbe
+  a dirottare la notifica successiva, di qualunque tipo, giorni dopo.
+- **Un 2xx dal server push non significa consegnato.** FCM accetta con 201 anche verso
+  registrazioni scadute e poi butta via il messaggio, senza il 404/410 che farebbe pulire
+  `push_subscriptions`. Il conteggio "inviate a N dispositivi" va letto come "accettate da N
+  server push", non come "arrivate a N telefoni".
 - Nessuna verifica di autenticazione su `push-messaggio`: chiunque conosca un endpoint push
   valido può leggerne il messaggio. Non è chiudibile con un segreto, perché a chiamarla è il
   service worker, dove qualsiasi segreto sarebbe pubblico; di fatto la protegge il dover

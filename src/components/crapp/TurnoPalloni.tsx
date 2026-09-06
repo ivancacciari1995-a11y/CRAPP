@@ -45,11 +45,16 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
       });
       if (!res.ok) throw new Error();
       const dati = (await res.json()) as { inviate: number; destinatari: number };
-      toast.success(
-        dati.inviate > 0
-          ? `Promemoria inviato a ${dati.inviate} dispositivi`
-          : "Nessun dispositivo con le notifiche attive tra gli incaricati",
-      );
+      if (dati.inviate > 0) {
+        toast.success(`Promemoria inviato a ${dati.inviate} dispositivi`);
+      } else if (dati.destinatari === 0) {
+        toast.info("Nessun dispositivo con le notifiche attive tra gli incaricati");
+      } else {
+        // I dispositivi ci sono ma l'invio non è riuscito: quasi sempre le chiavi VAPID
+        // mancanti (in locale non sono configurate). Dirlo, invece di dare la colpa
+        // all'assenza di iscrizioni.
+        toast.error(`Invio non riuscito verso ${dati.destinatari} dispositivi`);
+      }
     } catch {
       toast.error("Non sono riuscito a inviare il promemoria");
     } finally {

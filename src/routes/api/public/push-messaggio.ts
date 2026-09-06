@@ -4,6 +4,7 @@ import { nomeCompleto } from "@/lib/giocatori-squadra";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 import { completaTurni, messaggioPalloniOggi, oggiISO } from "@/lib/palloni-core";
 import { leggiEventi } from "@/lib/eventi.server";
+import { promemoriaAncoraValido } from "@/lib/webpush.server";
 
 const schema = z.object({ endpoint: z.string().url().max(1000) });
 
@@ -19,14 +20,18 @@ export const Route = createFileRoute("/api/public/push-messaggio")({
         // Messaggio in coda (es. sollecito presenze): ha la precedenza e viene consumato.
         const { data: promemoria } = await supabaseAdmin
           .from("promemoria_push")
-          .select("id, titolo, testo")
+          .select("id, titolo, testo, creato_il")
           .eq("endpoint", parsed.data.endpoint)
           .order("creato_il", { ascending: false })
           .limit(1)
           .maybeSingle();
         if (promemoria) {
+          // La coda si svuota comunque, anche quando il messaggio è vecchio: altrimenti
+          // resterebbe lì a dirottare la prossima notifica di qualunque tipo.
           await supabaseAdmin.from("promemoria_push").delete().eq("endpoint", parsed.data.endpoint);
-          return Response.json({ title: promemoria.titolo, body: promemoria.testo });
+          if (promemoriaAncoraValido(promemoria.creato_il)) {
+            return Response.json({ title: promemoria.titolo, body: promemoria.testo });
+          }
         }
 
         const { data: iscrizione } = await supabaseAdmin

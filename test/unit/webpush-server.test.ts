@@ -5,7 +5,7 @@
  * per intercettare la richiesta, così il test non tocca mai la rete.
  */
 import assert from "node:assert/strict";
-import { inviaPush } from "@/lib/webpush.server";
+import { ORE_VALIDITA_PROMEMORIA, inviaPush, promemoriaAncoraValido } from "@/lib/webpush.server";
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = "";
@@ -89,5 +89,25 @@ try {
 } finally {
   ripristinaEnv();
 }
+
+// --- scadenza dei promemoria in coda ------------------------------------------
+// La coda si svuota solo quando il dispositivo legge: se la push non arriva mai, la
+// riga resta. Senza scadenza dirotterebbe la notifica successiva, giorni dopo.
+const ADESSO = new Date("2026-09-06T12:00:00Z");
+const oreFa = (n: number) => new Date(ADESSO.getTime() - n * 60 * 60 * 1000).toISOString();
+
+assert.equal(promemoriaAncoraValido(oreFa(1), ADESSO), true, "un'ora fa è attuale");
+assert.equal(
+  promemoriaAncoraValido(oreFa(ORE_VALIDITA_PROMEMORIA - 0.1), ADESSO),
+  true,
+  "poco prima della scadenza vale ancora",
+);
+assert.equal(
+  promemoriaAncoraValido(oreFa(ORE_VALIDITA_PROMEMORIA + 0.1), ADESSO),
+  false,
+  "oltre la scadenza non è più un promemoria",
+);
+assert.equal(promemoriaAncoraValido(oreFa(72), ADESSO), false, "un sollecito di tre giorni fa no");
+assert.equal(promemoriaAncoraValido("non-una-data", ADESSO), false, "una data illeggibile scade");
 
 console.log("webpush-server: ok");

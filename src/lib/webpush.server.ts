@@ -60,6 +60,23 @@ async function creaVapidJwt(
   return `${header}.${payload}.${base64UrlEncode(new Uint8Array(firma))}`;
 }
 
+/**
+ * Per quante ore un messaggio in coda su `promemoria_push` resta un promemoria.
+ *
+ * La coda si svuota solo quando il dispositivo legge il messaggio, e se la push non arriva
+ * mai (registrazione scaduta: i server push accettano con 2xx e poi buttano via) la riga
+ * resta lì. Senza una scadenza, la notifica successiva — di qualunque tipo — mostrerebbe
+ * un sollecito di giorni prima, per un evento ormai passato.
+ */
+export const ORE_VALIDITA_PROMEMORIA = 12;
+
+/** Un promemoria accodato è ancora attuale? */
+export function promemoriaAncoraValido(creatoIl: string, adesso: Date = new Date()): boolean {
+  const creato = Date.parse(creatoIl);
+  if (Number.isNaN(creato)) return false;
+  return adesso.getTime() - creato < ORE_VALIDITA_PROMEMORIA * 60 * 60 * 1000;
+}
+
 /** Invia una notifica "vuota": il service worker recupera poi il testo aggiornato. */
 export async function inviaPush(endpoint: string): Promise<number> {
   const publicKey = process.env["VAPID_PUBLIC_KEY"];
