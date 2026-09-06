@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Stato } from "./crapp-data";
 import type { Evento } from "./eventi";
 import { aggiornaSerie } from "./serie";
+import { dataOggi } from "./scout-live";
 
 export const PRESENZE_KEY = ["risposte-presenze"] as const;
 
@@ -12,11 +13,13 @@ export type MappaPresenze = Record<string, Record<string, Stato>>;
 /** eventoId -> giocatoreId -> istante della prima risposta (ISO). */
 export type MappaTempiRisposta = Record<string, Record<string, string>>;
 
-/** Allenamenti e partite CrAPP che contano per le statistiche di presenza. */
+/** Allenamenti e partite CrAPP già passati, che contano per le statistiche di presenza. */
 function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string) {
+  const oggi = dataOggi();
   return eventi.filter(
     (e) =>
       (e.tipo === "partita" || e.tipo === "allenamento") &&
+      e.data < oggi &&
       (giocatoreId === undefined || e.convocati.length === 0 || e.convocati.includes(giocatoreId)),
   );
 }
