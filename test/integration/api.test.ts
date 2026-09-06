@@ -114,12 +114,6 @@ try {
     assert.equal((await postJson("/api/public/push-messaggio", {})).status, 404);
   });
 
-  await prova("push-prova rifiuta i payload non validi senza inviare notifiche", async () => {
-    for (const body of [{}, { endpoint: "non-un-url" }, { endpoint: "x".repeat(1001) }]) {
-      assert.equal((await postJson("/api/public/push-prova", body)).status, 400);
-    }
-  });
-
   // --- le route che mandano notifiche a tutti (DD-024) ------------------------
   // Il controllo di accesso viene prima della validazione: senza credenziali la
   // risposta non deve nemmeno dire se l'evento esiste.
@@ -158,17 +152,6 @@ try {
 
   // --- endpoint che leggono dal database -------------------------------------
   if (haSupabase()) {
-    await prova("push-prova segnala un dispositivo non iscritto senza inviare", async () => {
-      const res = await postJson("/api/public/push-prova", {
-        endpoint: `https://push.example/test-${Date.now()}`,
-      });
-      assert.equal(res.status, 200);
-      const dati = (await json(res)) as { nelDatabase?: boolean; stato?: number; corpo?: string };
-      assert.equal(dati.nelDatabase, false);
-      assert.equal(dati.stato, 0, "nessuna chiamata al servizio push");
-      assert.ok(dati.corpo, "spiega come riattivare le notifiche");
-    });
-
     // La validazione dell'input di sollecita-presenze (400 sul corpo vuoto, 404
     // sull'evento inesistente) ora sta dietro al controllo di accesso: serve un
     // token di amministratore, che questo file non ha. La copre

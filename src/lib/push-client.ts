@@ -80,36 +80,6 @@ export async function attivaNotifiche(giocatoreId: string): Promise<void> {
   if (!res.ok) throw new Error("Salvataggio iscrizione non riuscito");
 }
 
-/**
- * Manda una push di prova a questo dispositivo e racconta com'è andata.
- *
- * Esiste perché "non arriva" è un sintomo cieco: senza, ogni prova richiede un admin, un
- * evento nello stato giusto e una seconda persona. Il server aspetta `ritardoMs` prima di
- * inviare: premendo il pulsante l'app è per forza aperta, e senza attesa si proverebbe
- * solo il caso che già funziona.
- */
-export async function notificaDiProva(ritardoMs?: number): Promise<{
-  nelDatabase: boolean;
-  stato: number;
-  corpo: string;
-}> {
-  if (!pushSupportato()) throw new Error("Notifiche non supportate su questo dispositivo");
-  const reg = await navigator.serviceWorker.getRegistration("/push-sw.js");
-  const sub = await reg?.pushManager.getSubscription();
-  if (!sub) throw new Error("Notifiche non attive su questo dispositivo");
-
-  const res = await fetch("/api/public/push-prova", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      endpoint: sub.endpoint,
-      ...(ritardoMs === undefined ? {} : { ritardoMs }),
-    }),
-  });
-  if (!res.ok) throw new Error("Prova non riuscita");
-  return (await res.json()) as { nelDatabase: boolean; stato: number; corpo: string };
-}
-
 export async function disattivaNotifiche(): Promise<void> {
   if (!pushSupportato()) return;
   const reg = await navigator.serviceWorker.getRegistration("/push-sw.js");

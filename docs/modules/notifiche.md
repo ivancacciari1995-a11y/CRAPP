@@ -3,8 +3,7 @@
 **Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push
 **File principali:** `src/lib/notifiche-smart.ts`, `src/lib/push-client.ts`,
 `src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
-`src/routes/api/public/push-subscribe.ts`, `src/routes/api/public/push-prova.ts`,
-`public/push-sw.js`
+`src/routes/api/public/push-subscribe.ts`, `public/push-sw.js`
 
 ---
 
@@ -56,13 +55,6 @@ copre in particolare le sessioni lunghe della webapp (vedi il
 
 - **`push-config`** — espone la sola chiave pubblica VAPID.
 - **`push-subscribe`** — registra o rimuove l'iscrizione di un dispositivo.
-- **`push-prova`** — manda una push al dispositivo che la chiede e riporta stato e corpo
-  della risposta del servizio push, più se l'endpoint risulta in `push_subscriptions`. Serve
-  a rendere osservabile un "non arriva": senza, ogni prova richiede un admin, un evento nello
-  stato giusto e una seconda persona. Il pulsante sta in Profilo → Opzioni, sotto
-  l'interruttore, e compare solo a notifiche attive. L'invio parte dopo 10 secondi
-  (`ritardoMs`, max 25): premendo il pulsante l'app è per forza aperta, e senza attesa si
-  proverebbe solo il caso che già funziona.
 - **`apri-sondaggio`** — premuto da un admin dalla pagina partita: manda a **tutti** i
   dispositivi iscritti l'avviso di apertura del sondaggio pre-partita (vedi
   [Scout Live](scout-live.md)).
@@ -92,7 +84,7 @@ variabile d'ambiente.
 | Route                                                        | Controllo                                                                          | Chi la chiama                                                   |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante riservato agli admin                      |
-| `csi`, `push-config`, `push-subscribe`, `push-prova`         | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
+| `csi`, `push-config`, `push-subscribe`                       | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
 
 ---
 

@@ -1,17 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-  Flame,
-  Camera,
-  Trash2,
-  Bell,
-  BellRing,
-  LogOut,
-  ShieldCheck,
-  Bug,
-  Lightbulb,
-} from "lucide-react";
+import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
@@ -31,7 +21,6 @@ import { usePresenzeUltimoMese } from "@/lib/presenze-mese";
 import {
   attivaNotifiche,
   disattivaNotifiche,
-  notificaDiProva,
   pushSupportato,
   statoNotifiche,
 } from "@/lib/push-client";
@@ -83,7 +72,6 @@ function Profilo() {
   const [bust, setBust] = useState(0);
   const [notifiche, setNotifiche] = useState(false);
   const [inCorso, setInCorso] = useState(false);
-  const [inProva, setInProva] = useState(false);
   const [supportate, setSupportate] = useState(true);
 
   useEffect(() => {
@@ -112,22 +100,6 @@ function Profilo() {
       toast.error(error instanceof Error ? error.message : "Notifiche non disponibili");
     } finally {
       setInCorso(false);
-    }
-  }
-
-  async function provaNotifica() {
-    if (inProva) return;
-    setInProva(true);
-    try {
-      const esito = await notificaDiProva();
-      if (!esito.nelDatabase) toast.error(esito.corpo);
-      else if (esito.stato >= 200 && esito.stato < 300)
-        toast.success("Push accettata dal servizio: verifica la notifica sul dispositivo");
-      else toast.error(`Il servizio push ha risposto ${esito.stato}: ${esito.corpo}`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Prova non riuscita");
-    } finally {
-      setInProva(false);
     }
   }
 
@@ -299,24 +271,6 @@ function Profilo() {
                       <Bell className="h-4 w-4" />
                     </span>
                   </button>
-                  {notifiche ? (
-                    <button
-                      type="button"
-                      onClick={provaNotifica}
-                      disabled={inProva}
-                      className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate">Mandami una notifica di prova</span>
-                        <span className="block text-xs text-muted-foreground">
-                          Invia subito una push a questo dispositivo
-                        </span>
-                      </span>
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground">
-                        <BellRing className="h-4 w-4" />
-                      </span>
-                    </button>
-                  ) : null}
                   {admin ? (
                     <Link
                       to="/admin"

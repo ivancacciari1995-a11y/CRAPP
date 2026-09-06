@@ -8,7 +8,6 @@ import {
   attivaNotifiche,
   disattivaNotifiche,
   mantieniWorkerPushAggiornato,
-  notificaDiProva,
   pushSupportato,
   statoNotifiche,
 } from "@/lib/push-client";
@@ -22,9 +21,6 @@ assert.equal(await statoNotifiche(), false);
 
 // --- attivaNotifiche: rifiuta subito, senza chiedere permessi o rete ----------
 await assert.rejects(() => attivaNotifiche("g1"), /Notifiche non supportate su questo dispositivo/);
-
-// --- notificaDiProva: rifiuta subito, senza toccare la rete -------------------
-await assert.rejects(() => notificaDiProva(), /Notifiche non supportate su questo dispositivo/);
 
 // --- disattivaNotifiche: no-op silenzioso, nessun errore ----------------------
 await assert.doesNotReject(() => disattivaNotifiche());
