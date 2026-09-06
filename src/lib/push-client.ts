@@ -21,6 +21,30 @@ export function pushSupportato() {
   );
 }
 
+/** Aggiorna il worker già installato anche nelle sessioni lunghe della webapp. */
+export function mantieniWorkerPushAggiornato(): () => void {
+  if (!pushSupportato()) return () => {};
+
+  let inCorso = false;
+  const aggiorna = async () => {
+    if (document.visibilityState !== "visible" || inCorso) return;
+    inCorso = true;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration("/push-sw.js");
+      // Non registrare né iscrivere chi non ha mai attivato le notifiche.
+      await reg?.update();
+    } catch {
+      // Offline: il worker attivo resta valido. Si riprova al prossimo ritorno nell'app.
+    } finally {
+      inCorso = false;
+    }
+  };
+
+  void aggiorna();
+  document.addEventListener("visibilitychange", aggiorna);
+  return () => document.removeEventListener("visibilitychange", aggiorna);
+}
+
 export async function statoNotifiche(): Promise<boolean> {
   if (!pushSupportato()) return false;
   const reg = await navigator.serviceWorker.getRegistration("/push-sw.js");
@@ -54,6 +78,32 @@ export async function attivaNotifiche(giocatoreId: string): Promise<void> {
     body: JSON.stringify({ endpoint: sub.endpoint, giocatoreId, ...chiaviDa(sub) }),
   });
   if (!res.ok) throw new Error("Salvataggio iscrizione non riuscito");
+}
+
+/**
+ * Manda una push di prova a questo dispositivo e racconta com'è andata.
+ *
+ * Esiste perché "non arriva" è un sintomo cieco: senza, ogni prova richiede un admin, un
+ * evento nello stato giusto e una seconda persona. L'invio è immediato: per verificare
+ * l'arrivo ad app chiusa serve invece un invio da un altro dispositivo.
+ */
+export async function notificaDiProva(): Promise<{
+  nelDatabase: boolean;
+  stato: number;
+  corpo: string;
+}> {
+  if (!pushSupportato()) throw new Error("Notifiche non supportate su questo dispositivo");
+  const reg = await navigator.serviceWorker.getRegistration("/push-sw.js");
+  const sub = await reg?.pushManager.getSubscription();
+  if (!sub) throw new Error("Notifiche non attive su questo dispositivo");
+
+  const res = await fetch("/api/public/push-prova", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endpoint: sub.endpoint }),
+  });
+  if (!res.ok) throw new Error("Prova non riuscita");
+  return (await res.json()) as { nelDatabase: boolean; stato: number; corpo: string };
 }
 
 export async function disattivaNotifiche(): Promise<void> {

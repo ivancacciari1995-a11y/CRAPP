@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/public/apri-sondaggio")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")
-          .select("endpoint");
+          .select("endpoint, p256dh, auth");
 
         const titolo = "💩 Sondaggio pre-partita aperto";
         const testo = `${partita.titolo} · ore ${partita.ora}. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.`;
@@ -32,10 +32,7 @@ export const Route = createFileRoute("/api/public/apri-sondaggio")({
         let inviate = 0;
         for (const iscrizione of iscrizioni ?? []) {
           try {
-            await supabaseAdmin
-              .from("promemoria_push")
-              .insert({ endpoint: iscrizione.endpoint, titolo, testo });
-            const stato = await inviaPush(iscrizione.endpoint);
+            const { stato } = await inviaPush(iscrizione, titolo, testo);
             if (stato === 404 || stato === 410) {
               await supabaseAdmin
                 .from("push_subscriptions")

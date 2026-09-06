@@ -3,7 +3,7 @@
 **Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push
 **File principali:** `src/lib/notifiche-smart.ts`, `src/lib/push-client.ts`,
 `src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
-`src/routes/api/public/push-messaggio.ts`, `src/routes/api/public/push-subscribe.ts`,
+`src/routes/api/public/push-subscribe.ts`, `src/routes/api/public/push-prova.ts`,
 `public/push-sw.js`
 
 ---
@@ -21,9 +21,9 @@ indipendenti:
 
 ## Dati
 
-`push_subscriptions` (un dispositivo per riga, chiave `endpoint`), `promemoria_push` (coda
-"consuma e cancella" del testo da mostrare — nonostante il nome, **non** è uno storico
-persistente: la riga viene eliminata non appena letta dal service worker).
+`push_subscriptions` (un dispositivo per riga, chiave `endpoint`, con le chiavi `p256dh` e
+`auth` con cui si cifra il payload per quel dispositivo). La tabella `promemoria_push` non è
+più usata da nessuno: serviva da coda del testo quando la push partiva vuota (DD-026).
 
 ---
 
@@ -40,24 +40,45 @@ smart in app, che usano lo stesso service worker.
 4. `POST /api/public/push-subscribe` registra endpoint e chiavi in `push_subscriptions`
    (upsert).
 
+All'avvio e quando l'app torna visibile viene richiesto l'aggiornamento della registrazione
+push esistente con `ServiceWorkerRegistration.update()`. Non si chiede un nuovo permesso,
+non si ricrea la sottoscrizione e non si cambia l'endpoint: anche chi ha già attivato le
+notifiche deve ricevere le correzioni del worker senza spegnere e riaccendere l'interruttore.
+Gli aggiornamenti contemporanei sono accorpati; un errore di rete non blocca l'app e si
+riprova al ritorno in primo piano. Il worker attende `skipWaiting()` durante l'installazione.
+Il browser controlla anche autonomamente gli aggiornamenti: questa richiesta esplicita
+copre in particolare le sessioni lunghe della webapp (vedi il
+[ciclo di vita del service worker](https://web.dev/articles/service-worker-lifecycle)).
+
 ---
 
 ## Ruolo delle tre route pubbliche
 
 - **`push-config`** — espone la sola chiave pubblica VAPID.
 - **`push-subscribe`** — registra o rimuove l'iscrizione di un dispositivo.
-- **`apri-sondaggio`** — premuto da un admin dalla pagina partita: mette in coda su
-  `promemoria_push` l'avviso di apertura del sondaggio pre-partita per **tutti** i dispositivi
-  iscritti e manda la push (vedi [Scout Live](scout-live.md)).
-- **`push-messaggio`** — non invia nulla: il service worker la interroga **al momento della
-  ricezione** di una push (che arriva sempre "vuota", senza testo, per compatibilità) per
-  sapere quale messaggio mostrare. Priorità: un messaggio in coda su `promemoria_push`
-  (scritto da `sollecita-presenze`, vedi [Presenze](presenze.md)), altrimenti il messaggio
-  calcolato al volo sul turno palloni (vedi [Palloni](palloni.md)).
+- **`push-prova`** — manda una push al dispositivo che la chiede e riporta stato e corpo
+  della risposta del servizio push, più se l'endpoint risulta in `push_subscriptions`. Serve
+  a rendere osservabile un "non arriva": senza, ogni prova richiede un admin, un evento nello
+  stato giusto e una seconda persona. Il pulsante sta in Profilo → Opzioni, sotto
+  l'interruttore, e compare solo a notifiche attive.
+- **`apri-sondaggio`** — premuto da un admin dalla pagina partita: manda a **tutti** i
+  dispositivi iscritti l'avviso di apertura del sondaggio pre-partita (vedi
+  [Scout Live](scout-live.md)).
 
 L'invio effettivo (`src/lib/webpush.server.ts`, funzione `inviaPush`) firma un JWT VAPID
-(ECDSA P-256) e fa una POST senza corpo all'endpoint push del browser; è riusato identico da
-`sollecita-presenze.ts` e `promemoria-palloni.ts`.
+(ECDSA P-256), cifra `{title, body}` per il dispositivo destinatario e fa una POST
+all'endpoint push del browser; è riusato identico da `sollecita-presenze.ts`,
+`promemoria-palloni.ts` e `apri-sondaggio.ts`.
+
+Il testo viaggia **dentro** la push, cifrato in `aes128gcm` (RFC 8188/8291) con le chiavi del
+dispositivo: il service worker fa `event.data.json()` e mostra la notifica senza toccare la
+rete. È il punto decisivo per la consegna ad app chiusa — il browser sveglia il worker per
+pochi secondi, e una fetch per recuperare il testo lo faceva morire prima di
+`showNotification` (DD-026).
+
+La POST porta `Urgency: high`. Con l'urgenza predefinita ("normal") un telefono in risparmio
+energetico accumula i messaggi fino al risveglio: la notifica arriva solo quando il
+dispositivo è già attivo — cioè, nella pratica, solo con l'app aperta.
 
 ### Chi può farle partire (DD-024, DD-025)
 
@@ -66,10 +87,10 @@ route. Tutte e tre partono da un gesto di un amministratore dentro l'app, quindi
 è uno solo (`richiediAdmin` in `src/lib/auth-route.server.ts`) e non serve configurare nessuna
 variabile d'ambiente.
 
-| Route                                                        | Controllo                                                                          | Chi la chiama                                                                   |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante riservato agli admin                                      |
-| `csi`, `push-config`, `push-subscribe`, `push-messaggio`     | nessuno                                                                            | il browser prima del login e il service worker, che una sessione non ce l'hanno |
+| Route                                                        | Controllo                                                                          | Chi la chiama                                                   |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante riservato agli admin                      |
+| `csi`, `push-config`, `push-subscribe`, `push-prova`         | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
 
 ---
 
@@ -87,34 +108,40 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 
 - Non ci sono preferenze granulari (solo palloni / solo presenze / solo smart): un dispositivo
   è iscritto o no. Separare i canali richiederebbe schema e UI dedicati.
-- `promemoria_push` è descritta altrove come "storico" ma nel codice è una coda che si
-  autocancella alla lettura: non conserva nulla. Un messaggio in coda **scade dopo 12 ore**
-  (`ORE_VALIDITA_PROMEMORIA`): la riga si cancella comunque alla prima lettura, ma se è
-  vecchia il testo non viene mostrato e si ripiega su quello calcolato. Serve perché la coda
-  si svuota solo quando il dispositivo legge, e se la push non arriva mai la riga resterebbe
-  a dirottare la notifica successiva, di qualunque tipo, giorni dopo.
+- La tabella `promemoria_push` è rimasta nel database ma non la usa più nessuno (DD-026): va
+  eliminata con una migrazione alla prossima occasione.
 - **Un 2xx dal server push non significa consegnato.** FCM accetta con 201 anche verso
   registrazioni scadute e poi butta via il messaggio, senza il 404/410 che farebbe pulire
   `push_subscriptions`. Il conteggio "inviate a N dispositivi" va letto come "accettate da N
   server push", non come "arrivate a N telefoni".
-- Nessuna verifica di autenticazione su `push-messaggio`: chiunque conosca un endpoint push
-  valido può leggerne il messaggio. Non è chiudibile con un segreto, perché a chiamarla è il
-  service worker, dove qualsiasi segreto sarebbe pubblico; di fatto la protegge il dover
-  conoscere l'endpoint, che è un URL segreto per dispositivo. `promemoria-palloni` invece è
-  chiusa da DD-024.
 - Compatibilità iOS/Safari non gestita esplicitamente nel codice (nessun branch dedicato):
   serve l'installazione da schermata Home per funzionare, ma l'app non lo segnala
-  esplicitamente.
+  esplicitamente. È il primo sospetto quando una notifica non arriva ad app chiusa su iPhone.
+- **Android con l'app installata (WebAPK) è il caso fragile.** A parità di server — stessa
+  push, stesso payload — su iPhone installato da Home arriva ad app chiusa, sullo stesso
+  invio verso un Android installato come webapp no. Il WebAPK è un'app Android a sé: ha un
+  proprio permesso notifiche di sistema. Le restrizioni di sistema possono impedire la
+  visualizzazione o ritardare il risveglio del browser: un 201 dal servizio push non permette
+  di distinguerli. Controllare Impostazioni → App → **CrAPP** → Notifiche e le eventuali
+  restrizioni di batteria dell'app e del browser.
+- Su Motorola verificare anche le restrizioni del **browser che ha installato CrAPP** e,
+  dove presente, Impostazioni → Batteria → Ottimizzazione standby app. Il produttore
+  documenta la limitazione dei processi in background
+  ([guida Motorola](https://help.motorola.com/hc/3505/14/global/en-us/CG2007980805.html)).
+  È una possibile causa del sintomo, non una diagnosi verificata sul dispositivo: il
+  codice web non può rimuovere questi vincoli. La verifica richiede un invio da un altro
+  dispositivo mentre CrAPP è chiusa e lo schermo del Motorola è bloccato. Il pulsante di
+  prova invia subito, quindi da solo non dimostra la ricezione in background.
 - Le notifiche smart dipendono da un service worker già registrato: se il giocatore non ha
   mai attivato le push, `notificaSistema()` non ha un `reg` a cui appoggiarsi e la notifica
   locale non viene mai mostrata, anche con permesso concesso.
-- Payload push sempre vuoto: ogni notifica richiede una fetch aggiuntiva (`push-messaggio`)
-  per ottenere il testo, quindi serve rete disponibile anche solo per mostrare il messaggio.
+- Il payload cifrato non può superare i ~4 KB: i testi attuali stanno larghi, ma un messaggio
+  molto lungo verrebbe rifiutato dal servizio push.
 
 ---
 
 ## Evoluzioni possibili
 
 - Preferenze per canale (palloni, solleciti, smart), se servono davvero alla squadra.
-- Aggiungere autenticazione alle route pubbliche coinvolte.
+- Eliminare `promemoria_push` con una migrazione.
 - Gestire esplicitamente il caso iOS (messaggio se l'app non è installata da Home).

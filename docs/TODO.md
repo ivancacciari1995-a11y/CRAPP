@@ -5,6 +5,9 @@ Solo il lavoro in corso o imminente. L'elenco completo delle funzionalità previ
 
 ## In corso
 
+- Correzione push Android pronta in locale: aggiornamento del worker nelle sessioni della
+  webapp e test del canale cifrato verificati. Resta la verifica su Motorola installato,
+  ad app chiusa e schermo bloccato; procedura e limiti in [Notifiche](modules/notifiche.md).
 - Documentazione tecnica del progetto.
 - Autenticazione Google e dashboard amministratore: il codice è in produzione su `main` e il
   login è l'unica via d'accesso. La migration M4, che chiude gli accessi `anon` alle

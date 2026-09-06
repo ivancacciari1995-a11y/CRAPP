@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")
-          .select("endpoint, giocatore_id")
+          .select("endpoint, p256dh, auth")
           .in("giocatore_id", destinatari);
 
         const titolo = "Manca la tua risposta";
@@ -57,10 +57,7 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
         let inviate = 0;
         for (const iscrizione of iscrizioni ?? []) {
           try {
-            await supabaseAdmin
-              .from("promemoria_push")
-              .insert({ endpoint: iscrizione.endpoint, titolo, testo });
-            const stato = await inviaPush(iscrizione.endpoint);
+            const { stato } = await inviaPush(iscrizione, titolo, testo);
             if (stato === 404 || stato === 410) {
               await supabaseAdmin
                 .from("push_subscriptions")

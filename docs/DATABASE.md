@@ -73,7 +73,7 @@ La tabella è verificata da `test/integration/permessi.test.ts` contro il databa
 | -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `turni_palloni`      | Gestione dei turni palloni.                   | Solo turni **confermati**. Gli allenamenti non ricevono proposta automatica (vedi [palloni.md](modules/palloni.md)); M10 azzera i turni salvati su allenamenti da oggi in poi. |
 | `push_subscriptions` | Dispositivi registrati per le notifiche Push. |                                                                                                                                                                                |
-| `promemoria_push`    | Storico dei promemoria inviati.               |                                                                                                                                                                                |
+| `promemoria_push`    | Non più usata.                                | Serviva da coda del testo quando la push partiva vuota; dal payload cifrato non la scrive né la legge nessuno. Tabella ancora presente, da eliminare con una migrazione.       |
 
 ## Funzioni speciali
 

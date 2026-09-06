@@ -1,36 +1,31 @@
-// Service worker dedicato alle notifiche push del turno palloni.
+// Service worker dedicato alle notifiche push di CrAPP.
 // Non memorizza nella cache pagine o asset dell'app.
 
-self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", (event) => event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
-async function testoNotifica() {
-  try {
-    const sub = await self.registration.pushManager.getSubscription();
-    if (!sub) return null;
-    const res = await fetch("/api/public/push-messaggio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: sub.endpoint }),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
 self.addEventListener("push", (event) => {
+  // Il testo arriva cifrato dentro la push: nessuna rete, nessuna attesa. A dispositivo
+  // dormiente il browser sveglia il worker per pochi secondi e una fetch di troppo lo fa
+  // terminare prima di `showNotification` — la notifica non appare affatto, mentre ad app
+  // aperta, con la rete calda, sembra funzionare tutto.
+  let dati = null;
+  try {
+    dati = event.data?.json() ?? null;
+  } catch {
+    dati = null;
+  }
   event.waitUntil(
-    (async () => {
-      const dati = await testoNotifica();
-      await self.registration.showNotification(dati?.title ?? "CrAPP · Turno palloni", {
-        body: dati?.body ?? "Controlla il turno palloni di oggi.",
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-        tag: "turno-palloni",
-      });
-    })(),
+    self.registration.showNotification(dati?.title ?? "CrAPP", {
+      body: dati?.body ?? "Apri l'app per i dettagli.",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      // Il tag fa sostituire la notifica precedente invece di accumularne una pila;
+      // `renotify` fa sì che la sostituzione avvisi di nuovo, altrimenti la seconda
+      // notifica comparirebbe in silenzio e sembrerebbe non essere mai arrivata.
+      tag: "crapp-notifica",
+      renotify: true,
+    }),
   );
 });
 

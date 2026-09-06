@@ -6,6 +6,15 @@ qui: sta in [ROADMAP.md](ROADMAP.md).
 
 ## Versione attuale — agosto 2026
 
+### Le notifiche push arrivano anche ad app chiusa
+
+- Il testo della notifica viaggia ora cifrato **dentro** la push (`aes128gcm`, RFC 8291)
+  invece di essere recuperato dal service worker con una fetch al risveglio: era quella fetch
+  a non arrivare mai in tempo a telefono bloccato, e la notifica non compariva affatto
+  (DD-026).
+- Spariscono la route `/api/public/push-messaggio`, la coda `promemoria_push` e
+  `messaggioPalloniOggi()`: esistevano solo per rimediare al payload vuoto.
+
 ### Lo Scout Live si apre dalla pagina della partita
 
 - Tolto dalla home, era rimasto senza nessun link: `/scout` si raggiungeva solo scrivendo

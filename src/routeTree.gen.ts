@@ -24,7 +24,7 @@ import { Route as ApiPublicApriSondaggioRouteImport } from './routes/api/public/
 import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
 import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/public/promemoria-palloni'
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
-import { Route as ApiPublicPushMessaggioRouteImport } from './routes/api/public/push-messaggio'
+import { Route as ApiPublicPushProvaRouteImport } from './routes/api/public/push-prova'
 import { Route as ApiPublicPushSubscribeRouteImport } from './routes/api/public/push-subscribe'
 import { Route as ApiPublicSollecitaPresenzeRouteImport } from './routes/api/public/sollecita-presenze'
 
@@ -104,9 +104,9 @@ const ApiPublicPushConfigRoute = ApiPublicPushConfigRouteImport.update({
   path: '/api/public/push-config',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPushMessaggioRoute = ApiPublicPushMessaggioRouteImport.update({
-  id: '/api/public/push-messaggio',
-  path: '/api/public/push-messaggio',
+const ApiPublicPushProvaRoute = ApiPublicPushProvaRouteImport.update({
+  id: '/api/public/push-prova',
+  path: '/api/public/push-prova',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPushSubscribeRoute = ApiPublicPushSubscribeRouteImport.update({
@@ -137,7 +137,7 @@ export interface FileRoutesByFullPath {
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
-  '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
+  '/api/public/push-prova': typeof ApiPublicPushProvaRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
 }
@@ -157,7 +157,7 @@ export interface FileRoutesByTo {
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
-  '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
+  '/api/public/push-prova': typeof ApiPublicPushProvaRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
 }
@@ -178,7 +178,7 @@ export interface FileRoutesById {
   '/api/public/csi': typeof ApiPublicCsiRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
-  '/api/public/push-messaggio': typeof ApiPublicPushMessaggioRoute
+  '/api/public/push-prova': typeof ApiPublicPushProvaRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
 }
@@ -200,7 +200,7 @@ export interface FileRouteTypes {
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
-    | '/api/public/push-messaggio'
+    | '/api/public/push-prova'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
   fileRoutesByTo: FileRoutesByTo
@@ -220,7 +220,7 @@ export interface FileRouteTypes {
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
-    | '/api/public/push-messaggio'
+    | '/api/public/push-prova'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
   id:
@@ -240,7 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/csi'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
-    | '/api/public/push-messaggio'
+    | '/api/public/push-prova'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
   fileRoutesById: FileRoutesById
@@ -261,7 +261,7 @@ export interface RootRouteChildren {
   ApiPublicCsiRoute: typeof ApiPublicCsiRoute
   ApiPublicPromemoriaPalloniRoute: typeof ApiPublicPromemoriaPalloniRoute
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
-  ApiPublicPushMessaggioRoute: typeof ApiPublicPushMessaggioRoute
+  ApiPublicPushProvaRoute: typeof ApiPublicPushProvaRoute
   ApiPublicPushSubscribeRoute: typeof ApiPublicPushSubscribeRoute
   ApiPublicSollecitaPresenzeRoute: typeof ApiPublicSollecitaPresenzeRoute
 }
@@ -373,11 +373,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/push-messaggio': {
-      id: '/api/public/push-messaggio'
-      path: '/api/public/push-messaggio'
-      fullPath: '/api/public/push-messaggio'
-      preLoaderRoute: typeof ApiPublicPushMessaggioRouteImport
+    '/api/public/push-prova': {
+      id: '/api/public/push-prova'
+      path: '/api/public/push-prova'
+      fullPath: '/api/public/push-prova'
+      preLoaderRoute: typeof ApiPublicPushProvaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/push-subscribe': {
@@ -413,7 +413,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCsiRoute: ApiPublicCsiRoute,
   ApiPublicPromemoriaPalloniRoute: ApiPublicPromemoriaPalloniRoute,
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,
-  ApiPublicPushMessaggioRoute: ApiPublicPushMessaggioRoute,
+  ApiPublicPushProvaRoute: ApiPublicPushProvaRoute,
   ApiPublicPushSubscribeRoute: ApiPublicPushSubscribeRoute,
   ApiPublicSollecitaPresenzeRoute: ApiPublicSollecitaPresenzeRoute,
 }

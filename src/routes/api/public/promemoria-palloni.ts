@@ -11,8 +11,7 @@ const schema = z.object({ eventoId: z.string().min(1).max(50) });
 
 /**
  * Promemoria del turno palloni per un evento: lo fa partire un admin dalla pagina
- * dell'evento (DD-025). Il testo va in coda su `promemoria_push` perché la push parte
- * vuota e il service worker chiede a `push-messaggio` cosa mostrare.
+ * dell'evento (DD-025). Il testo viaggia cifrato dentro la push.
  */
 export const Route = createFileRoute("/api/public/promemoria-palloni")({
   server: {
@@ -47,7 +46,7 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")
-          .select("endpoint, giocatore_id")
+          .select("endpoint, giocatore_id, p256dh, auth")
           .in(
             "giocatore_id",
             avvisi.map((a) => a.giocatoreId),
@@ -58,12 +57,7 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
           const avviso = avvisi.find((a) => a.giocatoreId === iscrizione.giocatore_id);
           if (!avviso) continue;
           try {
-            await supabaseAdmin.from("promemoria_push").insert({
-              endpoint: iscrizione.endpoint,
-              titolo: avviso.titolo,
-              testo: avviso.testo,
-            });
-            const stato = await inviaPush(iscrizione.endpoint);
+            const { stato } = await inviaPush(iscrizione, avviso.titolo, avviso.testo);
             if (stato === 404 || stato === 410) {
               await supabaseAdmin
                 .from("push_subscriptions")

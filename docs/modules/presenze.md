@@ -54,7 +54,7 @@ Bottone "Sollecita" (RosaPresenze.tsx) → POST /api/public/sollecita-presenze
 src/routes/api/public/sollecita-presenze.ts
       ├─ legge l'evento (eventi_app) e le risposte già date
       ├─ calcola i destinatari: giocatori attivi senza risposta o con "forse"
-      ├─ per ciascuno registra il messaggio in promemoria_push e invia una push
+      ├─ per ciascuno invia una push col testo cifrato nel payload
       │  (src/lib/webpush.server.ts)
       └─ elimina le iscrizioni push scadute (404/410)
 ```

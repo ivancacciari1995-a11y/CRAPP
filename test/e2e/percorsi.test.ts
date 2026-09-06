@@ -96,8 +96,14 @@ try {
 
   await prova("il service worker e la sua configurazione si parlano", async () => {
     const sw = await (await fetch(url("/push-sw.js"))).text();
-    assert.match(sw, /\/api\/public\/push-messaggio/, "endpoint invocato dal worker");
+    // DD-026: ora il worker riceve il testo cifrato, senza recuperarlo dalla rete.
+    assert.match(sw, /event\.data\?\.json\(\)/, "legge il payload della push");
     assert.match(sw, /showNotification/, "il worker mostra la notifica");
+    assert.doesNotMatch(
+      sw,
+      /\bfetch\s*\(|\/api\/public\/push-messaggio/,
+      "mostrare la push non deve richiedere rete ad app chiusa",
+    );
     const config = await fetch(url("/api/public/push-config"));
     assert.equal(config.status, 200, "la chiave pubblica VAPID è interrogabile");
   });

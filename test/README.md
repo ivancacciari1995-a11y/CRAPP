@@ -15,6 +15,12 @@ bun test/unit/badges.test.ts   # un singolo file
 Il runner (`test/run.ts`) esegue ogni file in un processo separato, così un test
 non può inquinare gli altri.
 
+Per le push, `unit/push-sw.test.ts` esegue il service worker reale in contesti isolati,
+senza pagina né rete: verifica la notifica al risveglio e le promesse di `waitUntil`.
+`unit/push-client.test.ts` verifica anche l'aggiornamento del worker all'avvio e al ritorno
+in primo piano, inclusi errori offline e pulizia del listener. Sono test del codice:
+la consegna effettiva a schermo bloccato richiede un telefono e il servizio push reale.
+
 ## Struttura
 
 | Cartella       | Cosa verifica                                                                                                                                                                                                                                                                                                                           | Serve rete? |

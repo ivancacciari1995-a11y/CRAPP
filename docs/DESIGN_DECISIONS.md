@@ -41,6 +41,7 @@ Serve a rispondere a domande del tipo:
 | [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                          | Scritture limitate per ruolo          |
 | [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
 | [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
+| [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
 
 **In valutazione**
 
@@ -843,8 +844,9 @@ i chiamanti sono diversi (`src/lib/auth-route.server.ts`):
 - `promemoria-palloni` → all'inizio `richiediSegreto`, con un segreto da cron; sostituito
   subito dopo da `richiediAdmin` quando la route è diventata manuale (DD-025).
 
-`csi`, `push-config`, `push-subscribe` e `push-messaggio` restano aperte: le chiamano il
-browser prima del login e il service worker, dove qualsiasi segreto sarebbe pubblico.
+`csi`, `push-config` e `push-subscribe` restano aperte: le chiama il browser prima del login,
+dove qualsiasi segreto sarebbe pubblico. (`push-messaggio` esisteva per lo stesso motivo ed è
+sparita con DD-026.)
 
 **Alternative scartate**
 
@@ -894,10 +896,9 @@ riquadro palloni della pagina evento. La route accetta un `eventoId` e avvisa i 
 corrente. Il controllo di accesso diventa `richiediAdmin` come le altre due, e
 `richiediSegreto` con la sua variabile `CRON_SEGRETO` spariscono.
 
-Il testo dell'avviso viaggia in coda su `promemoria_push`: la push parte vuota e il service
-worker chiede a `push-messaggio` cosa mostrare, ma quella route sa raccontare solo la giornata
-corrente. Senza la coda, un avviso mandato il martedì per il sabato arriverebbe con il testo
-generico.
+Il testo dell'avviso viaggia dentro la push, cifrato nel payload (DD-026): il service worker
+lo mostra così com'è, quindi un avviso mandato il martedì per il sabato arriva col testo
+giusto.
 
 **Alternative scartate**
 
@@ -907,19 +908,65 @@ generico.
 - Tenere il cron e configurarlo davvero → più lavoro, una variabile d'ambiente da gestire in
   ogni ambiente, e nessuno l'aveva chiesto. Un pulsante che funziona batte uno scheduler che
   non esiste.
-- Calcolare il testo al volo come fa `messaggioPalloniOggi` → funziona solo se l'avviso parte
-  il giorno stesso, cioè proprio il vincolo da cui volevamo uscire.
+- Calcolare il testo al volo sulla giornata corrente → funziona solo se l'avviso parte il
+  giorno stesso, cioè proprio il vincolo da cui volevamo uscire.
 
 **Conseguenze**
 
 - Il promemoria è ora una scelta consapevole di un admin, non un automatismo: se nessuno preme
   il pulsante, non parte niente. È un passo indietro rispetto all'idea originale, ma un passo
   avanti rispetto alla realtà, dove non partiva mai.
-- `destinatariPromemoriaPalloni()` non è più usata dalla route ma resta in `palloni-core.ts`,
-  perché `push-messaggio` continua a costruire il testo della giornata per le push senza coda.
+- `destinatariPromemoriaPalloni()` non è più usata dalla route ma resta in `palloni-core.ts`.
 - Sparisce `CRON_SEGRETO`: nessuna variabile d'ambiente nuova da configurare in nessun
   ambiente.
 
 **Riesame**  
 Se la squadra si accorge che l'admin si dimentica di premere il pulsante. A quel punto il cron
 torna utile, e con lui il segreto: DD-024 descrive già come farlo.
+
+---
+
+### DD-026 — Il testo della notifica viaggia dentro la push
+
+**Stato:** accettata · **Data:** settembre 2026
+
+**Contesto**  
+Le push partivano senza payload: il service worker, appena svegliato, chiedeva a
+`/api/public/push-messaggio` che cosa mostrare. Ad app aperta funzionava; ad app chiusa e
+telefono bloccato non arrivava niente. È lo scenario per cui il browser dà al worker pochi
+secondi di vita: una fetch verso un endpoint che interroga Supabase è esattamente ciò che non
+riesce a chiudersi in tempo, e senza `showNotification` non compare nulla. `Urgency: high` e
+un timeout di 3 secondi sul recupero del testo avevano attenuato il sintomo, non la causa.
+
+**Decisione**  
+Titolo e testo viaggiano cifrati nel corpo della push (`aes128gcm`, RFC 8188/8291) con le
+chiavi `p256dh` e `auth` già salvate in `push_subscriptions`. Il service worker legge
+`event.data.json()` e mostra la notifica: zero rete, zero attesa.
+
+Cadono di conseguenza la route `push-messaggio`, la coda `promemoria_push` (con la sua
+scadenza a 12 ore), `messaggioPalloniOggi()` e il timeout nel service worker: tutti pezzi che
+esistevano solo per rimediare al payload vuoto. Tutti e tre i mittenti
+(`apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni`) avevano già il testo pronto
+prima di inviare.
+
+**Alternative scartate**
+
+- Usare la libreria `web-push` → dipende da `node:crypto`, e il build nitro ha come target
+  Cloudflare. La cifratura sta in ~40 righe di Web Crypto, già disponibile ovunque.
+- Allungare ancora il timeout della fetch → allunga anche il tempo in cui il worker può
+  morire prima di mostrare qualcosa. Il problema era la fetch, non la sua durata.
+
+**Conseguenze**
+
+- La notifica non dipende più dalla rete al momento del risveglio, e nemmeno da una funzione
+  serverless che risponda in fretta a freddo.
+- Sparisce l'unico punto in cui chiunque conoscesse un endpoint push poteva leggere il
+  messaggio destinato a quel dispositivo.
+- Il payload sta sotto i 4 KB: i testi attuali sono ampiamente dentro, ma un messaggio molto
+  lungo andrebbe accorciato.
+- La tabella `promemoria_push` resta nel database, ora inutilizzata: va rimossa con una
+  migrazione quando si tocca lo schema.
+
+**Riesame**  
+Se servisse mandare payload più grandi del limite del protocollo, o se un servizio push
+smettesse di accettare corpi cifrati (nessuno lo fa: è lo standard).

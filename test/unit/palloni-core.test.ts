@@ -1,6 +1,6 @@
 /** Check dei turni palloni: `bun src/lib/palloni-core.test.ts`. */
 import assert from "node:assert/strict";
-import { formatData, giocatori } from "@/lib/crapp-data";
+import { giocatori } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import {
   completaTurni,
@@ -11,7 +11,6 @@ import {
   eventiPalloni,
   eventoPrecedente,
   eventoSuccessivo,
-  messaggioPalloniOggi,
   oggiISO,
 } from "@/lib/palloni-core";
 
@@ -174,39 +173,6 @@ assert.deepEqual(
   avvisiPalloniEvento({}, eventiPush, "p2"),
   [],
   "senza turni assegnati non c'è nessuno da avvisare",
-);
-
-// --- messaggioPalloniOggi -----------------------------------------------------
-assert.deepEqual(
-  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g1", "Mario"),
-  {
-    title: "Porta i palloni oggi",
-    body: "Evento p2 · 21:00. I palloni li hai tu dalla volta scorsa.",
-  },
-  "chi li aveva alla volta prima deve riportarli oggi",
-);
-assert.deepEqual(
-  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g2", "Luca"),
-  {
-    title: "Tocca a te prendere i palloni",
-    body: `A fine Evento p2 porta a casa i palloni e riportali il ${formatData("2026-02-03")}.`,
-  },
-  "l'incaricato di oggi sa quando riportarli, se c'è un evento successivo",
-);
-assert.deepEqual(
-  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-03", "g3", "Anna"),
-  { title: "Tocca a te prendere i palloni", body: "A fine Evento p3 porta a casa i palloni." },
-  "senza evento successivo il messaggio non promette una data",
-);
-assert.deepEqual(
-  messaggioPalloniOggi(turniPush, eventiPush, "2026-02-02", "g9", "Sara"),
-  { title: "CrAPP · Turno palloni", body: "Sara, controlla il turno palloni nel calendario." },
-  "chi non è coinvolto oggi riceve il messaggio generico col proprio nome",
-);
-assert.deepEqual(
-  messaggioPalloniOggi(turniPush, eventiPush, "2026-05-01", "g9", ""),
-  { title: "CrAPP · Turno palloni", body: "Controlla il calendario." },
-  "senza eventi in quella data e senza nome noto, il messaggio resta generico",
 );
 
 console.log("palloni-core: ok");

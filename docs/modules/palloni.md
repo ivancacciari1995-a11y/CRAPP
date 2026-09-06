@@ -48,10 +48,8 @@ e `avvisiPalloniEvento()` calcola i due destinatari di _quell'evento_: chi deve 
 palloni e chi deve **riportarli** (l'incaricato dell'evento precedente), con un testo diverso
 per ciascuno.
 
-Il testo va messo in coda su `promemoria_push` prima di inviare la push, perché la push parte
-"vuota" e il service worker chiede a `/api/public/push-messaggio` cosa mostrare — e quella
-route da sola sa raccontare solo la giornata corrente, quindi un avviso mandato con giorni di
-anticipo arriverebbe con il testo generico. Stesso meccanismo di `apri-sondaggio` (vedi
+Titolo e testo viaggiano cifrati dentro la push, quindi il service worker li mostra senza
+nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
 [Notifiche](notifiche.md)).
 
 ---
@@ -60,8 +58,7 @@ anticipo arriverebbe con il testo generico. Stesso meccanismo di `apri-sondaggio
 
 - **L'invio è manuale**: nessun cron manda il promemoria da solo, se l'admin non preme il
   pulsante non parte niente (DD-025). `destinatariPromemoriaPalloni()` — la versione "chi è di
-  turno oggi" — resta in `palloni-core.ts` perché la usa `push-messaggio` per il testo
-  calcolato al volo, ma nessuno scheduler la interroga.
+  turno oggi" — resta in `palloni-core.ts` ma non la chiama più nessuno.
 - Il conteggio dei turni include anche le proposte non confermate: badge e statistiche
   possono contare turni mai effettivamente convalidati da nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto

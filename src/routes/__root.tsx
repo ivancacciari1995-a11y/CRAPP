@@ -19,6 +19,7 @@ import { Toaster } from "../components/ui/sonner";
 import { TeamLogo } from "../components/crapp/ui-bits";
 import { useGiocatoreBase } from "../lib/user-store";
 import { useSessione } from "../lib/auth";
+import { mantieniWorkerPushAggiornato } from "../lib/push-client";
 
 function NotFoundComponent() {
   return (
@@ -174,6 +175,8 @@ function AppShell() {
   const { pronta, utenteId } = useSessione();
   const [mounted, setMounted] = useState(false);
   const isBenvenuto = location.pathname === "/benvenuto";
+
+  useEffect(mantieniWorkerPushAggiornato, []);
 
   // Senza sessione Google non si entra: l'identità la dà il login, non la scelta del nome
   // (DD-011). Si aspetta `pronta`, altrimenti il primo render sloggato rimbalzerebbe fuori

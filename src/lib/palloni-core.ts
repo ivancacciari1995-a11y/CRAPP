@@ -107,47 +107,12 @@ export function destinatariPromemoriaPalloni(
   return [...destinatari];
 }
 
-/** Testo del push per un giocatore: priorità a "riporta oggi", poi "tocca a te", poi generico. */
-export function messaggioPalloniOggi(
-  turni: Record<string, string>,
-  eventi: Evento[],
-  oggi: string,
-  mioId: string,
-  nome: string,
-): { title: string; body: string } {
-  for (const evento of eventiDelGiorno(eventi, oggi)) {
-    const prima = eventoPrecedente(eventi, evento.id);
-    if (prima && turni[prima.id] === mioId) {
-      return {
-        title: "Porta i palloni oggi",
-        body: `${evento.titolo} · ${evento.ora}. I palloni li hai tu dalla volta scorsa.`,
-      };
-    }
-    if (turni[evento.id] === mioId) {
-      const dopo = eventoSuccessivo(eventi, evento.id);
-      return {
-        title: "Tocca a te prendere i palloni",
-        body: dopo
-          ? `A fine ${evento.titolo} porta a casa i palloni e riportali il ${formatData(dopo.data)}.`
-          : `A fine ${evento.titolo} porta a casa i palloni.`,
-      };
-    }
-  }
-
-  return {
-    title: "CrAPP · Turno palloni",
-    body: nome ? `${nome}, controlla il turno palloni nel calendario.` : "Controlla il calendario.",
-  };
-}
-
 /**
  * Avvisi da mandare per un evento preciso, con il testo già pronto (DD-025).
  *
  * Diverso da `destinatariPromemoriaPalloni`, che guarda la giornata di oggi: qui l'admin
  * sceglie l'evento dalla sua pagina, quindi il messaggio nomina quell'evento e non "oggi".
- * Il testo viaggia in coda su `promemoria_push` perché la push parte vuota e il service
- * worker chiede a `push-messaggio` cosa mostrare — che da solo saprebbe raccontare solo
- * la giornata corrente.
+ * Il testo viaggia cifrato dentro la push, quindi il service worker lo mostra senza rete.
  */
 export function avvisiPalloniEvento(
   turni: Record<string, string>,

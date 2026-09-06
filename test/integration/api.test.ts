@@ -109,8 +109,15 @@ try {
     assert.equal(res.status, 400, "anche la cancellazione valida l'input");
   });
 
-  await prova("push-messaggio rifiuta i payload non validi", async () => {
-    assert.equal((await postJson("/api/public/push-messaggio", {})).status, 400);
+  // DD-026: il testo è nel payload; la vecchia route non deve più essere esposta.
+  await prova("push-messaggio è stata rimossa", async () => {
+    assert.equal((await postJson("/api/public/push-messaggio", {})).status, 404);
+  });
+
+  await prova("push-prova rifiuta i payload non validi senza inviare notifiche", async () => {
+    for (const body of [{}, { endpoint: "non-un-url" }, { endpoint: "x".repeat(1001) }]) {
+      assert.equal((await postJson("/api/public/push-prova", body)).status, 400);
+    }
   });
 
   // --- le route che mandano notifiche a tutti (DD-024) ------------------------
@@ -151,13 +158,15 @@ try {
 
   // --- endpoint che leggono dal database -------------------------------------
   if (haSupabase()) {
-    await prova("push-messaggio risponde con il messaggio di default", async () => {
-      const res = await postJson("/api/public/push-messaggio", {
+    await prova("push-prova segnala un dispositivo non iscritto senza inviare", async () => {
+      const res = await postJson("/api/public/push-prova", {
         endpoint: `https://push.example/test-${Date.now()}`,
       });
       assert.equal(res.status, 200);
-      const dati = (await json(res)) as { title?: string; body?: string };
-      assert.ok(dati.title && dati.body, "un endpoint sconosciuto riceve comunque un testo");
+      const dati = (await json(res)) as { nelDatabase?: boolean; stato?: number; corpo?: string };
+      assert.equal(dati.nelDatabase, false);
+      assert.equal(dati.stato, 0, "nessuna chiamata al servizio push");
+      assert.ok(dati.corpo, "spiega come riattivare le notifiche");
     });
 
     // La validazione dell'input di sollecita-presenze (400 sul corpo vuoto, 404
