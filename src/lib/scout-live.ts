@@ -6,9 +6,15 @@ import { useEventi, type Evento } from "./eventi";
 /** Minuti dopo i quali una sessione scout inattiva viene considerata libera. */
 export const SCADENZA_MINUTI = 5;
 
-export function dataOggi(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/**
+ * Data di oggi in Italia (`Europe/Rome`, con cambio ora legale/solare gestito dal database
+ * IANA dei fusi orari). Non i getter locali di `Date` — quelli seguono il fuso del processo
+ * che esegue il codice: sul client di chi è in Italia coincide, ma lato server (SSR, dev
+ * container) è spesso UTC, e `toISOString()` lo è sempre. Sbagliare qui sposta la mezzanotte:
+ * nella prima ora o due della giornata italiana, eventi già passati risulterebbero "di domani".
+ */
+export function dataOggi(adesso: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(adesso);
 }
 
 /** La partita in programma oggi, se c'è. */

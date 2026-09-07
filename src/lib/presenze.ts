@@ -77,7 +77,7 @@ export function serieConsecutiva(
   eventi: Evento[],
   presenze: MappaPresenze,
   tipo?: "partita" | "allenamento",
-  oggi: string = oggiIso(),
+  oggi: string = dataOggi(),
 ): number {
   return serieSu(
     giocatoreId,
@@ -102,7 +102,7 @@ export function serieConferme(
   giocatoreId: string,
   eventi: Evento[],
   tempi: MappaTempiRisposta,
-  oggi: string = oggiIso(),
+  oggi: string = dataOggi(),
 ): number {
   return serieSu(
     giocatoreId,
@@ -114,10 +114,6 @@ export function serieConferme(
       return risposto !== undefined && Date.parse(risposto) - Date.parse(e.creatoIl!) <= ORE_24;
     },
   );
-}
-
-function oggiIso() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /** Scorre gli eventi già passati in ordine di data applicando la regola delle serie. */

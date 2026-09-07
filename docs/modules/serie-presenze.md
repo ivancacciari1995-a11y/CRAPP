@@ -316,8 +316,14 @@ nell'ordine in cui arrivano dalla query (`.order("data")`), quindi non determini
 loro. Irrilevante finché un buco e una presenza nello stesso giorno danno lo stesso
 risultato finale, ma va sistemato se un giorno serve l'ordine esatto.
 
-**Il fuso è quello del client.** `oggi` nasce da `new Date().toISOString()`, cioè UTC: nelle
-prime ore della giornata italiana un evento di oggi può risultare "non ancora passato".
+**`oggi` è sempre in fuso Italia.** `dataOggi()` (`src/lib/scout-live.ts`) usa
+`Intl.DateTimeFormat` con `timeZone: "Europe/Rome"`, non i getter locali di `Date` né
+`toISOString()`: il cambio ora legale/solare lo gestisce il database IANA dei fusi, non un
+offset scritto a mano. È lo stesso `oggi` di `serieConsecutiva()`, `serieConferme()` e del
+conteggio presenze — prima `serieConsecutiva()`/`serieConferme()` calcolavano `oggi` con
+`toISOString()` (sempre UTC) mentre il conteggio presenze usava i getter locali di `Date`
+(corretti solo se il processo gira già in fuso italiano): nelle prime ore della giornata
+italiana potevano non essere d'accordo su cosa fosse "oggi".
 
 ---
 

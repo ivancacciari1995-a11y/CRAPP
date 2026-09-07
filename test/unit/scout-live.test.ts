@@ -23,9 +23,23 @@ const evento = (id: string, data: string, tipo: Evento["tipo"]): Evento => ({
   pagelleChiuse: false,
 });
 
-// --- dataOggi ----------------------------------------------------------------
+// --- dataOggi ------------------------------------------------------------------
 assert.match(dataOggi(), /^\d{4}-\d{2}-\d{2}$/);
-assert.equal(dataOggi(), new Date().toLocaleDateString("sv-SE"), "data locale, non UTC");
+// CET (gennaio, UTC+1): dopo le 23:00 UTC del 15, a Roma è già il 16. L'ISO in UTC
+// direbbe ancora 15: se `dataOggi()` tornasse a farlo, questo test lo scoprirebbe.
+assert.equal(
+  dataOggi(new Date("2026-01-15T23:30:00Z")),
+  "2026-01-16",
+  "CET: mezzanotte italiana precede quella UTC di un'ora",
+);
+// CEST (luglio, UTC+2): lo scarto raddoppia, la mezzanotte italiana anticipa quella UTC
+// di due ore. Se il calcolo usasse un offset fisso invece del fuso Europe/Rome, questo
+// secondo caso lo tradirebbe anche se il primo passasse per caso.
+assert.equal(
+  dataOggi(new Date("2026-07-15T22:30:00Z")),
+  "2026-07-16",
+  "CEST: il cambio ora legale porta lo scarto a due ore, non resta fisso a uno",
+);
 
 // --- partitaDiOggi -----------------------------------------------------------
 const eventi = [
