@@ -21,10 +21,10 @@ const stati: Stato[] = ["presente", "forse", "ritardo", "assente", "infortunato"
 
 export function linkPerEvento(e: Evento) {
   if (e.tipo === "partita") {
-    return { to: "/partita/$id", params: { id: e.id }, label: "Apri partita" };
+    return { to: "/partita/$id", params: { id: e.id }, label: "Dettagli" };
   }
   if (e.tipo === "allenamento") {
-    return { to: "/allenamento/$id", params: { id: e.id }, label: "Apri allenamento" };
+    return { to: "/allenamento/$id", params: { id: e.id }, label: "Dettagli" };
   }
   return undefined;
 }
