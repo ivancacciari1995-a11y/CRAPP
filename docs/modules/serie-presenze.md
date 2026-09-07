@@ -137,9 +137,10 @@ Onorato = lo stato salvato è `presente` **o** `ritardo`. Gli stati possibili so
 
 Conseguenze da conoscere prima di cambiare qualcosa:
 
-- **`infortunato` azzera la serie**, esattamente come `assente`. Coerente con il conteggio
-  presenze, ma è una scelta da rivedere se si vuole "congelare" la serie di chi è fermo per
-  infortunio.
+- **`infortunato` congela la serie**: l'evento è escluso a monte (filtrato prima di
+  `serieSu()`), quindi non conta né come presenza né come buco — la serie resta al valore
+  di prima. Diverso da `contaPresenzeGiocatore()`, che continua a non contarlo come
+  presenza (stesso criterio `presente`/`ritardo` di prima, invariato).
 - **Nessuna risposta azzera la serie.** Un evento passato per cui il giocatore non ha mai
   toccato l'app equivale a un'assenza. È voluto (la serie premia anche il rispondere), ma
   significa che eventi storici importati senza presenze schiacciano a zero le serie di tutti.
@@ -281,9 +282,10 @@ il costo diventerebbe per-render e andrebbe stabilizzata a monte.
 
 - **Cambiare i traguardi di una serie** → l'array `traguardi` in `serieDefs`. Devono restare
   crescenti (un test lo verifica) e non serve altro: progresso e messaggi si adeguano.
-- **Cambiare la regola di presenza** (per esempio non azzerare su `infortunato`) → il
-  predicato dentro `serieConsecutiva()`. Valutare se allineare anche
-  `contaPresenzeGiocatore()`, che oggi usa lo stesso criterio.
+- **Cambiare la regola di presenza** → il predicato dentro `serieConsecutiva()`.
+  `infortunato` è già escluso a monte (congela la serie, non la azzera); valutare se
+  allineare anche `contaPresenzeGiocatore()`, che oggi conta ancora `infortunato` come
+  assenza ai fini statistici.
 - **Non azzerare quando manca la risposta** → sempre in quel predicato: distinguere
   `stato === undefined` e restituire la serie invariata invece di `false`. Richiede di
   cambiare `serieSu()`, che oggi conosce solo "onorato sì/no".

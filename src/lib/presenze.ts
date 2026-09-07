@@ -68,6 +68,9 @@ export function destinatariSollecito(
  * Serie di presenze consecutive su eventi già passati, in ordine di data:
  * ogni presenza (o ritardo) vale +1, qualsiasi altra risposta — o nessuna
  * risposta — azzera la serie. Senza `tipo` conta partite e allenamenti insieme.
+ *
+ * Chi risulta infortunato non ci ha rinunciato: quell'evento è saltato, non conta
+ * né come presenza né come assenza, e la serie resta congelata al valore di prima.
  */
 export function serieConsecutiva(
   giocatoreId: string,
@@ -76,10 +79,16 @@ export function serieConsecutiva(
   tipo?: "partita" | "allenamento",
   oggi: string = oggiIso(),
 ): number {
-  return serieSu(giocatoreId, eventi, oggi, tipo, (e) => {
-    const stato = presenze[e.id]?.[giocatoreId];
-    return stato === "presente" || stato === "ritardo";
-  });
+  return serieSu(
+    giocatoreId,
+    eventi.filter((e) => presenze[e.id]?.[giocatoreId] !== "infortunato"),
+    oggi,
+    tipo,
+    (e) => {
+      const stato = presenze[e.id]?.[giocatoreId];
+      return stato === "presente" || stato === "ritardo";
+    },
+  );
 }
 
 const ORE_24 = 24 * 60 * 60 * 1000;

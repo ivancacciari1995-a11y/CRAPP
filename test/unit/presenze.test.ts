@@ -62,6 +62,28 @@ assert.equal(serieConsecutiva("g2", eventi, presenze, "allenamento", OGGI), 0);
 const conConvocati = [...eventi, ev("a6", "allenamento", "2026-08-30", ["g9"])];
 assert.equal(serieConsecutiva("g1", conConvocati, presenze, "allenamento", OGGI), 2);
 
+// L'infortunio congela la serie invece di azzerarla come farebbe un'assenza.
+const eventiInfortunio: Evento[] = [
+  ev("i1", "allenamento", "2026-08-06"),
+  ev("i2", "allenamento", "2026-08-13"),
+  ev("i3", "allenamento", "2026-08-20"),
+];
+const presenzeInfortunio: MappaPresenze = {
+  i1: { g1: "presente" },
+  i2: { g1: "infortunato" },
+  i3: { g1: "presente" },
+};
+assert.equal(
+  serieConsecutiva("g1", eventiInfortunio, presenzeInfortunio, "allenamento", OGGI),
+  2,
+  "l'infortunio è saltato: i1 e i3 restano consecutivi",
+);
+assert.equal(
+  serieConsecutiva("g1", eventiInfortunio.slice(0, 2), presenzeInfortunio, "allenamento", OGGI),
+  1,
+  "l'infortunio come ultimo evento lascia la serie congelata, non la azzera",
+);
+
 // --- conteggio presenze: numeratore e denominatore delle statistiche ----------
 // a1 presente, a2 assente, a3 ritardo, a4 presente, p1 presente: 4 su 5 passati.
 assert.equal(contaPresenzeGiocatore("g1", eventi, presenze, OGGI), 4, "il ritardo conta presente");
