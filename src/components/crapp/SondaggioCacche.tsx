@@ -7,7 +7,13 @@ import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useGiocatoreCorrente } from "@/lib/user-store";
 import { intestazioniAutenticate } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
-import { mediaPartita, sondaggioAperto, useCacche, useSalvaCacche } from "@/lib/cacche";
+import {
+  mediaPartita,
+  sondaggioAperto,
+  sondaggioTerminato,
+  useCacche,
+  useSalvaCacche,
+} from "@/lib/cacche";
 
 const opzioni = [0, 1, 2, 3, 4, 5];
 
@@ -15,9 +21,11 @@ const opzioni = [0, 1, 2, 3, 4, 5];
 export function SondaggioCacche({
   eventoId,
   dataEvento,
+  oraEvento,
 }: {
   eventoId: string;
   dataEvento: string;
+  oraEvento: string;
 }) {
   const io = useGiocatoreCorrente();
   const { righe } = useCacche();
@@ -69,14 +77,16 @@ export function SondaggioCacche({
     }
   }
 
-  if (!sondaggioAperto(dataEvento)) {
+  if (!sondaggioAperto(dataEvento, oraEvento)) {
     return (
       <Card>
         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
           💩 Sondaggio pre-partita
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Apre alle 8:00 del giorno della partita: riceverai una notifica.
+          {sondaggioTerminato(dataEvento, oraEvento)
+            ? "Sondaggio chiuso: era aperto fino al fischio d'inizio."
+            : "Apre alle 8:00 del giorno della partita: riceverai una notifica."}
         </p>
       </Card>
     );

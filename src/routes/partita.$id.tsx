@@ -197,7 +197,7 @@ function PartitaDetail() {
       </Section>
 
       <Section titolo="Sondaggio pre-partita">
-        <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} />
+        <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} oraEvento={evento.ora} />
       </Section>
 
       {match ? (

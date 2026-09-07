@@ -5,11 +5,40 @@ import { oggiISO } from "./palloni-core";
 /** Ora di apertura del sondaggio, il giorno stesso della partita. */
 export const ORA_APERTURA_SONDAGGIO = 8;
 
-/** Il sondaggio apre alle 8:00 del giorno della partita e da lì resta aperto. */
-export function sondaggioAperto(dataEvento: string, adesso = new Date()): boolean {
+/** Istante del fischio d'inizio: `oraEvento` mancante equivale a fine giornata (non chiude mai prima). */
+function inizioPartita(dataEvento: string, oraEvento: string): number {
+  return new Date(`${dataEvento}T${oraEvento || "23:59"}:00`).getTime();
+}
+
+/** Il sondaggio apre alle 8:00 del giorno della partita e chiude al fischio d'inizio. */
+export function sondaggioAperto(
+  dataEvento: string,
+  oraEvento: string,
+  adesso = new Date(),
+): boolean {
+  if (dataEvento !== oggiISO(adesso)) return false;
+  const apertura = new Date(`${dataEvento}T00:00:00`);
+  apertura.setHours(ORA_APERTURA_SONDAGGIO, 0, 0, 0);
+  return (
+    adesso.getTime() >= apertura.getTime() &&
+    adesso.getTime() < inizioPartita(dataEvento, oraEvento)
+  );
+}
+
+/**
+ * True se il fischio d'inizio è già passato (oggi o in un giorno precedente): serve a
+ * distinguere, nel messaggio mostrato quando il sondaggio è chiuso, "non ancora aperto"
+ * da "già chiuso" — altrimenti dopo la partita si continuerebbe a dire "apre alle 8:00".
+ */
+export function sondaggioTerminato(
+  dataEvento: string,
+  oraEvento: string,
+  adesso = new Date(),
+): boolean {
   const oggi = oggiISO(adesso);
-  if (dataEvento !== oggi) return dataEvento < oggi;
-  return adesso.getHours() >= ORA_APERTURA_SONDAGGIO;
+  if (dataEvento < oggi) return true;
+  if (dataEvento > oggi) return false;
+  return adesso.getTime() >= inizioPartita(dataEvento, oraEvento);
 }
 
 /** Sondaggio goliardico pre-partita: quante cacche prima del match di campionato. */

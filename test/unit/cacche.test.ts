@@ -5,6 +5,7 @@ import {
   mediaStagione,
   recordStagione,
   sondaggioAperto,
+  sondaggioTerminato,
   statisticheCacche,
   type RigaCacche,
 } from "@/lib/cacche";
@@ -54,11 +55,67 @@ assert.deepEqual(
 );
 
 // --- sondaggioAperto ---------------------------------------------------------
-const alle = (h: number, m = 0) => new Date(2026, 8, 5, h, m); // 5 settembre 2026
-assert.equal(sondaggioAperto("2026-09-05", alle(7, 59)), false, "prima delle 8 è chiuso");
-assert.equal(sondaggioAperto("2026-09-05", alle(8)), true, "alle 8 in punto apre");
-assert.equal(sondaggioAperto("2026-09-05", alle(23)), true);
-assert.equal(sondaggioAperto("2026-09-06", alle(23)), false, "partita di domani: chiuso");
-assert.equal(sondaggioAperto("2026-09-04", alle(0, 1)), true, "partita passata: resta aperto");
+// Partita del 5 settembre 2026 alle 21:00.
+const alle = (h: number, m = 0) => new Date(2026, 8, 5, h, m);
+const ORA_PARTITA = "21:00";
+
+assert.equal(
+  sondaggioAperto("2026-09-05", ORA_PARTITA, alle(7, 59)),
+  false,
+  "prima delle 8 è chiuso",
+);
+assert.equal(sondaggioAperto("2026-09-05", ORA_PARTITA, alle(8)), true, "alle 8 in punto apre");
+assert.equal(
+  sondaggioAperto("2026-09-05", ORA_PARTITA, alle(20, 59)),
+  true,
+  "un minuto prima del fischio d'inizio è ancora aperto",
+);
+assert.equal(
+  sondaggioAperto("2026-09-05", ORA_PARTITA, alle(21, 0)),
+  false,
+  "al fischio d'inizio si chiude",
+);
+assert.equal(
+  sondaggioAperto("2026-09-05", ORA_PARTITA, alle(23)),
+  false,
+  "dopo l'inizio resta chiuso per il resto della giornata",
+);
+assert.equal(
+  sondaggioAperto("2026-09-06", ORA_PARTITA, alle(23)),
+  false,
+  "partita di domani: chiuso",
+);
+assert.equal(
+  sondaggioAperto("2026-09-04", ORA_PARTITA, alle(0, 1)),
+  false,
+  "partita passata: chiuso anche nei giorni successivi",
+);
+
+// --- sondaggioTerminato: distingue "non ancora aperto" da "già chiuso" -------
+assert.equal(
+  sondaggioTerminato("2026-09-05", ORA_PARTITA, alle(7, 59)),
+  false,
+  "prima dell'apertura: non ancora aperto, non terminato",
+);
+assert.equal(
+  sondaggioTerminato("2026-09-05", ORA_PARTITA, alle(20, 59)),
+  false,
+  "in corso: non ancora terminato",
+);
+assert.equal(
+  sondaggioTerminato("2026-09-05", ORA_PARTITA, alle(21, 0)),
+  true,
+  "al fischio d'inizio: terminato",
+);
+assert.equal(
+  sondaggioTerminato("2026-09-06", ORA_PARTITA, alle(23)),
+  false,
+  "partita di domani: non ancora, non terminato",
+);
+assert.equal(
+  sondaggioTerminato("2026-09-04", ORA_PARTITA, alle(0, 1)),
+  true,
+  "partita passata: terminato",
+);
 
 console.log("cacche: ok");

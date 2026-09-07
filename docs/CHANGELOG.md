@@ -38,9 +38,9 @@ Prima versione, pre-release.
   della partita, e può usarlo chiunque sia autenticato: uno per volta, grazie al lock.
 - Votazione MVP legata all'evento CrAPP e non al referto CSI o allo Scout: si apre due ore
   dopo `data`+`ora` della partita, anche senza risultato caricato — [modules/mvp.md](modules/mvp.md).
-- Sondaggio pre-partita con apertura programmata alle 8:00 del giorno della partita e
-  pulsante «Avvisa tutti del sondaggio» per gli amministratori
-  (`POST /api/public/apri-sondaggio`); nessun cron, l'invio è manuale.
+- Sondaggio pre-partita aperto dalle 8:00 del giorno della partita fino al fischio d'inizio
+  (poi resta chiuso, anche nei giorni successivi) e pulsante «Avvisa tutti del sondaggio» per
+  gli amministratori (`POST /api/public/apri-sondaggio`); nessun cron, l'invio è manuale.
 - Turni palloni con rotazione automatica sulle partite e assegnazione manuale per gli
   allenamenti, che restano «da assegnare» finché non si sceglie (migration M10).
 - Notifiche push con il testo cifrato **dentro** la push (`aes128gcm`, RFC 8291), così
