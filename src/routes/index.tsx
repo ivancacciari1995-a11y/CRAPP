@@ -153,7 +153,7 @@ function Index() {
           <Link
             to="/classifica"
             search={{ tab: "storico" }}
-            className="inline-flex items-center text-xs font-semibold text-accent"
+            className="inline-flex items-center text-[14px] font-semibold text-accent"
           >
             Storico <ChevronRight className="h-4 w-4" />
           </Link>
@@ -212,9 +212,9 @@ function Index() {
         azione={
           <Link
             to="/squadra"
-            className="inline-flex items-center text-xs font-semibold text-accent"
+            className="inline-flex items-center text-[14px] font-semibold text-accent"
           >
-            Tutti <ChevronRight className="h-3 w-3" />
+            Tutti <ChevronRight className="h-4 w-4" />
           </Link>
         }
       >

@@ -9,7 +9,7 @@ const items = [
   { to: "/", label: "Home", icon: Home },
   { to: "/calendario", label: "Calendario", icon: CalendarDays },
   { to: "/squadra", label: "Squadra", icon: Users },
-  { to: "/classifica", label: "Classifica", icon: Trophy },
+  { to: "/classifica", label: "Campionato", icon: Trophy },
 ] as const;
 
 export function BottomNav() {
