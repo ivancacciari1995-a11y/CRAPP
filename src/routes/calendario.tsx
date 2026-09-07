@@ -9,7 +9,6 @@ import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
-import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 import {
   Drawer,
@@ -25,12 +24,12 @@ export const Route = createFileRoute("/calendario")({
       { title: "Calendario squadra — CrAPP" },
       {
         name: "description",
-        content: "Allenamenti, partite ed eventi extra del CRAP Volley con vista mensile e lista.",
+        content: "Allenamenti, partite ed eventi extra del CRAP Volley con vista mensile.",
       },
       { property: "og:title", content: "Calendario squadra — CrAPP" },
       {
         property: "og:description",
-        content: "Vista mensile e lista eventi con promemoria per la squadra.",
+        content: "Vista mensile e prossimi eventi con promemoria per la squadra.",
       },
     ],
   }),
@@ -105,7 +104,6 @@ function pad2(n: number) {
 }
 
 function Calendario() {
-  const [vista, setVista] = useState<"mese" | "lista">("mese");
   // SSR-safe: la data di oggi arriva solo dopo il mount.
   const [oggi, setOggi] = useState<{ anno: number; mese: number; giorno: number } | null>(null);
   useEffect(() => {
@@ -114,7 +112,6 @@ function Calendario() {
   }, []);
   const [giornoSelezionato, setGiornoSelezionato] = useState<number | null>(null);
   const [drawerAperto, setDrawerAperto] = useState(false);
-  const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const { eventi } = useEventi();
   const rosa = useRosa();
@@ -153,55 +150,35 @@ function Calendario() {
     <>
       <PageHeader titolo="Calendario" sottotitolo={`${mesiIT[mese]} ${anno} · Stagione 2026/27`} />
 
-      <div className="px-5 pt-4">
-        <div className="flex rounded-full bg-secondary p-1">
-          {(["mese", "lista"] as const).map((v) => (
+      <Section>
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
             <button
-              key={v}
               type="button"
-              onClick={() => setVista(v)}
-              aria-pressed={vista === v}
-              className={cn(
-                "min-h-11 flex-1 rounded-full text-sm font-bold uppercase tracking-wide transition-colors",
-                vista === v ? "bg-card shadow-card text-foreground" : "text-muted-foreground",
-              )}
+              onClick={precedente}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese precedente"
             >
-              {v === "mese" ? "Vista mese" : "Lista eventi"}
+              <ChevronLeft className="h-5 w-5" />
             </button>
-          ))}
-        </div>
-      </div>
+            <span className="font-display-sm text-xl uppercase">
+              {mesiIT[mese]} {anno}
+            </span>
+            <button
+              type="button"
+              onClick={successivo}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese successivo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
 
-      {vista === "mese" ? (
-        <Section titolo={mesiIT[mese]!}>
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={precedente}
-                className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
-                aria-label="Mese precedente"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <span className="font-display-sm text-xl uppercase">
-                {mesiIT[mese]} {anno}
-              </span>
-              <button
-                type="button"
-                onClick={successivo}
-                className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
-                aria-label="Mese successivo"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
-              {giorniIT.map((g, i) => (
-                <span key={i}>{g}</span>
-              ))}
-            </div>
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
+            {giorniIT.map((g, i) => (
+              <span key={i}>{g}</span>
+            ))}
+          </div>
             {/*
               Il mese si cambia anche con lo swipe: il punto d'arrivo si
               decide proiettando la velocità di rilascio (come la
@@ -321,7 +298,6 @@ function Calendario() {
             </div>
           </Card>
         </Section>
-      ) : null}
 
       {admin ? (
         <div className="px-5 pt-4">

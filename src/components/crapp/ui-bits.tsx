@@ -96,17 +96,19 @@ export function Section({
   children,
   indice = 0,
 }: {
-  titolo: string;
+  titolo?: string;
   azione?: ReactNode;
   children: ReactNode;
   indice?: number;
 }) {
   return (
     <Reveal as="section" indice={indice} className="px-5 py-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display-sm text-lg uppercase">{titolo}</h2>
-        {azione}
-      </div>
+      {titolo || azione ? (
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {titolo ? <h2 className="font-display-sm text-lg uppercase">{titolo}</h2> : <span />}
+          {azione}
+        </div>
+      ) : null}
       {children}
     </Reveal>
   );

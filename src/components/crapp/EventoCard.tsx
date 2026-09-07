@@ -84,6 +84,9 @@ export function EventoCard({
   const isCompleanno = evento.tipo === "compleanno";
   const passato = evento.data < dataOggi();
   const cliccabile = Boolean(linkTo);
+  /** Solo gli eventi extra-campo non hanno scheda dedicata: le note restano sulla card. */
+  const noteCard =
+    evento.tipo === "evento" ? evento.note.trim() : "";
   const stati =
     evento.tipo === "evento"
       ? // Se resta un vecchio "infortunato", mostra il bottone solo per poterlo togliere.
@@ -170,6 +173,10 @@ export function EventoCard({
             </span>
           </span>
         </div>
+
+        {noteCard ? (
+          <p className="mt-2.5 line-clamp-2 text-xs text-muted-foreground">📝 {noteCard}</p>
+        ) : null}
 
         {metaStato ? (
           <p
