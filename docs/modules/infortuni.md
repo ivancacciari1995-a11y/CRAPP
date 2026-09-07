@@ -27,6 +27,12 @@ volte compare lo stato `infortunato` nella mappa presenze già in cache (nessuna
 aggiuntiva). Lo stesso meccanismo, con `contaRitardi()`, conta i ritardi. Il risultato
 alimenta il campo `infortuni` del `Giocatore` in `useRosa()`.
 
+Un evento con data futura o odierna non viene contato, anche se la risposta è già registrata
+(l'UI permette di segnarsi infortunato o in ritardo su un evento non ancora passato): il
+conteggio filtra su `data < oggi`, come già fa `eventiContanoPresenze()` in
+[presenze.md](presenze.md), e cresce da solo con l'avanzare della data reale senza bisogno di
+altro codice.
+
 Visibile in UI solo indirettamente, tramite il [badge](badge.md) segreto "Cliente VIP
 dell'Infermeria" (sbloccato con almeno 3 infortuni): non esiste uno StatTile dedicato nel
 profilo che mostri il numero di infortuni come statistica di superficie.
