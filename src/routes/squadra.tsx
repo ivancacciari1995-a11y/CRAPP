@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Cake, ChevronDown, Crown, SlidersHorizontal, Trophy } from "lucide-react";
+import { Cake, ChevronDown, Crown, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Select, StatTile } from "@/components/crapp/ui-bits";
+import { PageHeader, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData } from "@/lib/crapp-data";
@@ -273,32 +273,19 @@ function Squadra() {
             aTuttoLarghezza: true,
             contenuto: (
               <>
-                <div className="flex min-w-0 items-center gap-2 border-b border-border bg-card px-5 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => setFiltroAperto(true)}
+                  aria-haspopup="dialog"
+                  className="flex w-full min-w-0 items-center gap-2 border-b border-border bg-card px-5 py-2.5 text-left"
+                >
                   <Trophy className="h-4 w-4 shrink-0 text-warning" aria-hidden />
                   <span className="shrink-0 text-sm text-foreground/80">Classifica per</span>
-                  <span className="min-w-0 flex-1">
-                    <Select
-                      value={criterio}
-                      onChange={(e) => setCriterio(e.target.value as Criterio)}
-                      aria-label="Criterio della classifica interna"
-                      className="h-9 rounded-lg border-border bg-background font-semibold shadow-none"
-                    >
-                      {criteri.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </Select>
+                  <span className="min-w-0 flex-1 truncate text-right text-sm font-bold">
+                    {criteri.find((c) => c.id === criterio)?.label}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setFiltroAperto(true)}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground"
-                    aria-label="Scegli criterio classifica"
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                  </button>
-                </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                </button>
 
                 <Drawer open={filtroAperto} onOpenChange={setFiltroAperto}>
                   <DrawerContent>
