@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Flame, Camera, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
+import { Flame, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
@@ -140,24 +140,14 @@ function Profilo() {
       <Reveal className="-mt-6 px-5">
         <Card>
           <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" bust={bust} />
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={onFile}
-              />
-              <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 grid h-11 w-11 place-items-center rounded-full bg-accent-grad text-accent-foreground shadow-pop"
-                aria-label="Cambia foto"
-              >
-                <Camera className="h-4 w-4" />
-              </button>
-            </div>
+            <Avatar id={g.id} fallback={g.iniziali} className="h-20 w-20 text-2xl" bust={bust} />
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onFile}
+            />
           </div>
           <div className="mt-4 flex gap-2">
             <button
@@ -181,7 +171,7 @@ function Profilo() {
                     toast.error("Non sono riuscito a rimuovere l'immagine");
                   }
                 }}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive/15 text-destructive"
                 aria-label="Rimuovi immagine"
               >
                 <Trash2 className="h-4 w-4" />

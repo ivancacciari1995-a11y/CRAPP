@@ -54,6 +54,36 @@ export function EventoCard({
   const isCompleanno = evento.tipo === "compleanno";
   const passato = evento.data < dataOggi();
 
+  function ChipPresenza({ s }: { s: Stato }) {
+    const meta = statoMeta[s];
+    const attivo = stato === s;
+    return (
+      <button
+        type="button"
+        disabled={!io || salva.isPending || passato}
+        onClick={() => {
+          if (!io) return;
+          salva.mutate({
+            eventoId: evento.id,
+            giocatoreId: io.id,
+            stato: attivo ? null : s,
+          });
+        }}
+        aria-pressed={attivo}
+        className={cn(
+          // min-h-11: sono i controlli più toccati dell'app, sotto i
+          // 44px si sbaglia bersaglio.
+          "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
+          attivo
+            ? cn(meta.className, "border-transparent shadow-card")
+            : "bg-background text-muted-foreground",
+        )}
+      >
+        {meta.label}
+      </button>
+    );
+  }
+
   if (isCompleanno) {
     return (
       <Card as="article" className="flex items-center gap-3">
@@ -96,18 +126,6 @@ export function EventoCard({
         </div>
       </div>
 
-      {linkTo && (
-        <div className="mt-2 flex justify-end">
-          <Link
-            to={linkTo.to}
-            params={linkTo.params}
-            className="inline-flex min-h-11 items-center gap-1 rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-primary-foreground transition-transform active:scale-95"
-          >
-            {linkTo.label} <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-      )}
-
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <Clock className="h-3.5 w-3.5" /> {evento.ora}
@@ -123,37 +141,22 @@ export function EventoCard({
 
       <Barra percentuale={perc} altezza="h-1.5" trackClassName="mt-3" />
 
-      {io ? (
+      {io || linkTo ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {stati.map((s) => {
-            const meta = statoMeta[s];
-            const attivo = stato === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                disabled={salva.isPending || passato}
-                onClick={() =>
-                  salva.mutate({
-                    eventoId: evento.id,
-                    giocatoreId: io.id,
-                    stato: attivo ? null : s,
-                  })
-                }
-                aria-pressed={attivo}
-                className={cn(
-                  // min-h-11: sono i controlli più toccati dell'app, sotto i
-                  // 44px si sbaglia bersaglio.
-                  "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
-                  attivo
-                    ? cn(meta.className, "border-transparent shadow-card")
-                    : "bg-background text-muted-foreground",
-                )}
+          {io ? stati.slice(0, -1).map((s) => <ChipPresenza key={s} s={s} />) : null}
+          {/* Ultima riga: ultimo chip + Apri insieme, così non nasce una terza riga. */}
+          <div className="flex w-full basis-full items-center gap-2">
+            {io ? <ChipPresenza s={stati[stati.length - 1]!} /> : null}
+            {linkTo ? (
+              <Link
+                to={linkTo.to}
+                params={linkTo.params}
+                className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-primary-foreground transition-transform active:scale-95"
               >
-                {meta.label}
-              </button>
-            );
-          })}
+                {linkTo.label} <ArrowRight className="h-3 w-3" />
+              </Link>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </Card>

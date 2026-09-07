@@ -270,7 +270,7 @@ function Squadra() {
           {
             id: "classifica-giocatori",
             label: "Classifica",
-            nascondiTitolo: true,
+            aTuttoLarghezza: true,
             contenuto: (
               <>
                 <div className="flex min-w-0 items-center gap-2 border-b border-border bg-card px-5 py-2.5">

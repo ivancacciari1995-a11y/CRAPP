@@ -7,8 +7,8 @@ export type VoceSottosezione = {
   id: string;
   label: string;
   contenuto: ReactNode;
-  /** Se true, non ripete il titolo della tab sopra il contenuto (es. Classifica già nella barra). */
-  nascondiTitolo?: boolean;
+  /** Se true, il pannello è a tutta larghezza (niente padding), es. barra filtri Classifica. */
+  aTuttoLarghezza?: boolean;
 };
 
 /** Tween breve: evita molle + exit che tengono due pannelli in DOM insieme. */
@@ -19,9 +19,9 @@ const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.
  * pannello che mostra una sola sezione alla volta, cambiabile anche con
  * swipe sul contenuto.
  *
- * `variante="sottolineatura"`: tab a testo con sottolineatura rossa e senza titolo
- * ripetuto sotto la barra (Squadra e Classifica CSI). Default `pillole`: restano le
- * pill e i titoli usati dal Profilo.
+ * `variante="sottolineatura"`: tab a testo con sottolineatura rossa (Squadra e Classifica
+ * CSI). Default `pillole`: restano le pill usate dal Profilo. Il titolo ripetuto sotto la
+ * barra non viene mai mostrato: l’etichetta è già nella tab.
  */
 export function BarraSottosezioni({
   voci,
@@ -135,11 +135,8 @@ export function BarraSottosezioni({
           initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione.current * 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={ridotto ? { duration: 0.1 } : transizioneTab}
-          className={cn("touch-pan-y", voce.nascondiTitolo ? "px-0 pt-0 pb-4" : "px-5 py-4")}
+          className={cn("touch-pan-y", voce.aTuttoLarghezza ? "px-0 pt-0 pb-4" : "px-5 py-4")}
         >
-          {voce.nascondiTitolo || sottolineatura ? null : (
-            <h2 className="mb-3 font-display-sm text-lg uppercase">{voce.label}</h2>
-          )}
           {voce.contenuto}
         </motion.div>
       </div>
