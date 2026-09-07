@@ -13,6 +13,11 @@ import {
 import { impostaGiocatore, resetGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
 
 export const Route = createFileRoute("/benvenuto")({
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const next = search["next"];
+    // Solo un percorso interno: mai un URL assoluto, per non aprire un redirect esterno.
+    return typeof next === "string" && next.startsWith("/") ? { next } : {};
+  },
   head: () => ({
     meta: [
       { title: "Benvenuto — CrAPP" },
@@ -32,6 +37,7 @@ export const Route = createFileRoute("/benvenuto")({
 
 function Benvenuto() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const giocatore = useGiocatoreCorrente();
   const { pronta, utenteId, emailUtente } = useSessione();
   const { righe, daDatabase } = useGiocatoriSquadra();
@@ -45,8 +51,8 @@ function Benvenuto() {
   const puoEntrare = !!giocatore && !!utenteId;
 
   useEffect(() => {
-    if (puoEntrare) navigate({ to: "/" });
-  }, [puoEntrare, navigate]);
+    if (puoEntrare) navigate({ to: next ?? "/" });
+  }, [puoEntrare, navigate, next]);
 
   // Chi sei lo dice lo slot collegato all'account, non quello che c'è in localStorage:
   // senza slot la scelta salvata dalla vecchia selezione libera va buttata.

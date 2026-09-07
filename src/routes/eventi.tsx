@@ -50,7 +50,7 @@ const tipi: Array<{ id: CategoriaEvento; label: string }> = [
 function GestioneEventi() {
   const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
-  const { eventi, isPending } = useEventi();
+  const { eventi, isPending, isError, error, refetch } = useEventi();
   const { righe: squadra } = useGiocatoriSquadra();
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();
@@ -275,6 +275,20 @@ function GestioneEventi() {
           <p aria-busy="true" className="text-center text-xs text-muted-foreground">
             Carico gli eventi…
           </p>
+        ) : isError ? (
+          <div className="space-y-2 rounded-3xl bg-card p-4 text-center text-sm shadow-card">
+            <p className="text-destructive">
+              Non sono riuscito a caricare gli eventi
+              {error instanceof Error ? `: ${error.message}` : ""}.
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
+            >
+              Riprova
+            </button>
+          </div>
         ) : (
           <div className="space-y-2">
             {eventi.map((e) => (

@@ -18,6 +18,7 @@ import { CelebrazioneBadge } from "../components/crapp/CelebrazioneBadge";
 import { Toaster } from "../components/ui/sonner";
 import { TeamLogo } from "../components/crapp/ui-bits";
 import { useGiocatoreBase } from "../lib/user-store";
+import { useGiocatoriSquadra } from "../lib/giocatori-squadra";
 import { useSessione } from "../lib/auth";
 import { mantieniWorkerPushAggiornato } from "../lib/push-client";
 
@@ -172,6 +173,7 @@ function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const giocatore = useGiocatoreBase();
+  const { isPending: squadraInCorso } = useGiocatoriSquadra();
   const { pronta, utenteId } = useSessione();
   const [mounted, setMounted] = useState(false);
   const isBenvenuto = location.pathname === "/benvenuto";
@@ -180,15 +182,18 @@ function AppShell() {
 
   // Senza sessione Google non si entra: l'identità la dà il login, non la scelta del nome
   // (DD-011). Si aspetta `pronta`, altrimenti il primo render sloggato rimbalzerebbe fuori
-  // chi ha già la sessione in localStorage.
+  // chi ha già la sessione in localStorage. Si aspetta anche `squadraInCorso`: finché la
+  // rosa non è arrivata, `giocatore` risulta nullo anche per chi è già collegato (la rosa
+  // di riserva usa id diversi da quelli veri), e rimbalzerebbe su /benvenuto chi stava solo
+  // ricaricando una pagina profonda come /eventi.
   useEffect(() => {
     setMounted(true);
-    if (pronta && (!giocatore || !utenteId) && !isBenvenuto) {
-      navigate({ to: "/benvenuto" });
+    if (pronta && !squadraInCorso && (!giocatore || !utenteId) && !isBenvenuto) {
+      navigate({ to: "/benvenuto", search: { next: location.pathname } });
     }
-  }, [giocatore, utenteId, pronta, isBenvenuto, navigate]);
+  }, [giocatore, utenteId, pronta, squadraInCorso, isBenvenuto, navigate, location.pathname]);
 
-  if (!mounted || !pronta) {
+  if (!mounted || !pronta || squadraInCorso) {
     return (
       <div className="grid min-h-dvh place-items-center bg-background">
         <TeamLogo className="h-16 w-16 animate-pulse" />
