@@ -74,7 +74,8 @@ assert.equal(conAllenamentoSalvato["e2"], "g5");
 const molti = Array.from({ length: giocatori.length + 2 }, (_, i) =>
   evento(`x${i}`, `2026-10-${String(i + 1).padStart(2, "0")}`, "partita"),
 );
-const rotazione = conteggioTurni(completaTurni({}, molti, rosa));
+// Tutte "passate" rispetto a questa data, altrimenti conteggioTurni le scarterebbe.
+const rotazione = conteggioTurni(completaTurni({}, molti, rosa), molti, "2026-11-01");
 const carichi = Object.values(rotazione);
 assert.equal(
   Math.max(...carichi) - Math.min(...carichi),
@@ -102,13 +103,38 @@ assert.equal(conFantasma["e1"], "gXX", "il turno storico resta com'è");
 assert.ok(conFantasma["e2"], "la partita riceve comunque una proposta");
 assert.equal(conFantasma["e3"], undefined, "l'allenamento senza salvataggio resta vuoto");
 
-// --- conteggioTurni ----------------------------------------------------------
-assert.deepEqual(conteggioTurni({ a: "g1", b: "g1", c: "g2" }), { g1: 2, g2: 1 });
-assert.deepEqual(conteggioTurni({}), {});
+// --- conteggioTurni: solo eventi già passati ----------------------------------
+const eventiConteggio: Evento[] = [
+  evento("c1", "2026-09-01", "partita"),
+  evento("c2", "2026-09-05", "partita"),
+  evento("c3", "2026-09-10", "allenamento"), // futuro rispetto a OGGI_CONTEGGIO
+];
+const OGGI_CONTEGGIO = "2026-09-08";
+assert.deepEqual(
+  conteggioTurni({ c1: "g1", c2: "g1", c3: "g2" }, eventiConteggio, OGGI_CONTEGGIO),
+  { g1: 2 },
+  "il turno di un evento futuro non è ancora contato, anche se già assegnato",
+);
+assert.deepEqual(
+  conteggioTurni({}, eventiConteggio, OGGI_CONTEGGIO),
+  {},
+  "nessun turno assegnato: conteggio vuoto",
+);
 
-// --- oggiISO -----------------------------------------------------------------
+// --- oggiISO -------------------------------------------------------------------
 assert.match(oggiISO(), /^\d{4}-\d{2}-\d{2}$/);
-assert.equal(oggiISO(), new Date().toLocaleDateString("sv-SE"), "data locale, non UTC");
+// Stesso controllo di dataOggi() in scout-live.test.ts: oggiISO() ne è un alias, il fuso
+// deve restare Europe/Rome anche passando da qui.
+assert.equal(
+  oggiISO(new Date("2026-01-15T23:30:00Z")),
+  "2026-01-16",
+  "CET: mezzanotte italiana precede quella UTC di un'ora",
+);
+assert.equal(
+  oggiISO(new Date("2026-07-15T22:30:00Z")),
+  "2026-07-16",
+  "CEST: il cambio ora legale porta lo scarto a due ore, non resta fisso a uno",
+);
 
 // --- destinatariPromemoriaPalloni --------------------------------------------
 const eventiPush: Evento[] = [

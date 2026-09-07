@@ -34,7 +34,10 @@ compaiono.
   upsert su `evento_id`.
 - Il conteggio "quante volte hai portato i palloni" mostrato nel profilo e nei badge è
   ricalcolato a runtime da `conteggioTurni()` su turni salvati **più proposte non ancora
-  confermate** (partite/eventi) — non è uno storico in tabella dedicata.
+  confermate** (partite/eventi) — non è uno storico in tabella dedicata. Conta solo gli
+  eventi già passati (`e.data < oggi`, stesso criterio delle presenze): un turno assegnato
+  in anticipo per un allenamento futuro non è ancora "portato", quindi non sale finché quel
+  giorno non arriva.
 - `TurnoPalloni.tsx` mostra/assegna il turno sulla card di un evento; `PromemoriaPalloni.tsx`
   è il banner in Home per il giocatore di turno.
 

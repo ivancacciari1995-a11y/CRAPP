@@ -1,5 +1,6 @@
 import { formatData } from "./crapp-data";
 import type { Evento } from "./eventi";
+import { dataOggi } from "./scout-live";
 
 export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: string | null };
 
@@ -60,10 +61,23 @@ export function completaTurni(
   return risultato;
 }
 
-/** Quante volte ciascun giocatore è incaricato dei palloni. */
-export function conteggioTurni(turni: Record<string, string>): Record<string, number> {
+/**
+ * Quante volte ciascun giocatore è incaricato dei palloni, solo per eventi già passati:
+ * un turno assegnato in anticipo per un allenamento futuro non è ancora "portato", quindi
+ * non deve contare finché quell'allenamento non è terminato (stesso criterio `e.data < oggi`
+ * usato per le presenze, così la conta non cambia da sola col passare della giornata).
+ */
+export function conteggioTurni(
+  turni: Record<string, string>,
+  eventi: Evento[],
+  oggi: string = dataOggi(),
+): Record<string, number> {
+  const passati = new Set(eventi.filter((e) => e.data < oggi).map((e) => e.id));
   const out: Record<string, number> = {};
-  for (const id of Object.values(turni)) out[id] = (out[id] ?? 0) + 1;
+  for (const [eventoId, giocatoreId] of Object.entries(turni)) {
+    if (!passati.has(eventoId)) continue;
+    out[giocatoreId] = (out[giocatoreId] ?? 0) + 1;
+  }
   return out;
 }
 
@@ -84,10 +98,9 @@ export function eventoSuccessivo(eventi: Evento[], eventoId: string): Evento | u
   return i >= 0 ? lista[i + 1] : undefined;
 }
 
+/** Alias di `dataOggi()`, nel fuso di Roma: qui per non toccare gli import esistenti. */
 export function oggiISO(d = new Date()): string {
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
+  return dataOggi(d);
 }
 
 /** Chi deve ricevere l'avviso push, oggi: chi porta i palloni e chi li riprende. */

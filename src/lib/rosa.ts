@@ -46,7 +46,7 @@ export function useRosa(): Giocatore[] {
   return useMemo(() => {
     const medie = mediePagelle(pagelle);
     const statCacche = statisticheCacche(cacche);
-    const palloni = conteggioTurni(turni);
+    const palloni = conteggioTurni(turni, eventi);
     const mvpVinti = mvpVintiPerGiocatore(votiMvp);
 
     return squadra
