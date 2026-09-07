@@ -19,9 +19,10 @@ const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.
  * pannello che mostra una sola sezione alla volta, cambiabile anche con
  * swipe sul contenuto.
  *
- * `variante="sottolineatura"`: tab a testo con sottolineatura rossa (Squadra e Classifica
- * CSI). Default `pillole`: restano le pill usate dal Profilo. Il titolo ripetuto sotto la
- * barra non viene mai mostrato: l’etichetta è già nella tab.
+ * `variante="sottolineatura"`: tab giustificate su tutta la larghezza, senza scroll, con
+ * pillola piena sulla tab attiva (Squadra e Classifica CSI). Default `pillole`: tab scorrevoli
+ * a larghezza naturale, usate dal Profilo. Il titolo ripetuto sotto la barra non viene mai
+ * mostrato: l’etichetta è già nella tab.
  */
 export function BarraSottosezioni({
   voci,
@@ -74,8 +75,10 @@ export function BarraSottosezioni({
           role="tablist"
           aria-label="Sottosezioni"
           className={cn(
-            "flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-            sottolineatura ? "gap-0 px-2" : "-mx-0 gap-1.5 px-5 pb-3",
+            "flex",
+            sottolineatura
+              ? "gap-1 px-2 py-1.5"
+              : "snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-0 gap-1.5 px-5 pb-3",
           )}
         >
           {voci.map((v) => {
@@ -94,17 +97,17 @@ export function BarraSottosezioni({
                   vaiA(i);
                 }}
                 className={cn(
-                  "snap-center shrink-0 grow basis-0 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
+                  "grow basis-0 touch-manipulation text-sm font-bold uppercase tracking-wide transition-colors",
                   "min-h-11",
                   sottolineatura
                     ? cn(
-                        "rounded-none border-b-2 px-3 py-3",
+                        "rounded-xl px-1 py-2.5 text-center",
                         selezionata
-                          ? "border-accent text-foreground"
-                          : "border-transparent text-muted-foreground",
+                          ? "bg-accent text-accent-foreground shadow-pop"
+                          : "text-muted-foreground",
                       )
                     : cn(
-                        "rounded-full px-3.5 py-2",
+                        "snap-center shrink-0 whitespace-nowrap rounded-full px-3.5 py-2",
                         selezionata
                           ? "bg-accent text-accent-foreground shadow-pop"
                           : "bg-secondary text-muted-foreground",
