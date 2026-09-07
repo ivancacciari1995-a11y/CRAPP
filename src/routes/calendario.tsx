@@ -142,9 +142,9 @@ function Calendario() {
     ? (eventiPerGiorno.get(giornoSelezionato) ?? [])
     : [];
 
-  // Prossimi 4 eventi da oggi in avanti (indipendenti dal mese selezionato nella griglia).
+  // Prossimi 3 eventi da oggi in avanti (indipendenti dal mese selezionato nella griglia).
   const oggiIso = oggi ? `${oggi.anno}-${pad2(oggi.mese + 1)}-${pad2(oggi.giorno)}` : null;
-  const prossimiEventi = oggiIso ? eventi.filter((e) => e.data >= oggiIso).slice(0, 4) : [];
+  const prossimiEventi = oggiIso ? eventi.filter((e) => e.data >= oggiIso).slice(0, 3) : [];
 
   return (
     <>
