@@ -53,14 +53,14 @@ export function Card({
  */
 export function LinkProfilo() {
   const g = useIo();
-  if (!g) return <TeamLogo className="h-11 w-11" />;
+  if (!g) return <TeamLogo className="h-12 w-12" />;
   return (
     <Link
       to="/profilo"
       aria-label="Il tuo profilo"
       className="premi shrink-0 rounded-2xl ring-2 ring-primary-foreground/30"
     >
-      <Avatar id={g.id} fallback={g.iniziali} className="h-11 w-11 text-lg" />
+      <Avatar id={g.id} fallback={g.iniziali} className="h-12 w-12 text-lg" />
     </Link>
   );
 }

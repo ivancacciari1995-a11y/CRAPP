@@ -2,7 +2,7 @@
 
 **Stato:** implementato (v1.0)
 **File principali:** `src/lib/presenze.ts`, `src/lib/presenze-mese.ts`, `src/components/crapp/RosaPresenze.tsx`,
-`src/routes/api/public/sollecita-presenze.ts`
+`src/components/crapp/EventoCard.tsx`, `src/routes/api/public/sollecita-presenze.ts`
 
 ---
 
@@ -24,7 +24,8 @@ attuale.
 Stati possibili (`Stato` in `src/lib/crapp-data.ts`): `presente`, `assente`, `forse`,
 `ritardo`, `infortunato`. Solo `presente` e `ritardo` contano come presenza effettiva nelle
 statistiche. L'assenza di una riga per `(evento, giocatore)` equivale a "non ha ancora
-risposto".
+risposto". Sulla card in home/calendario (`EventoCard`) lo stato `infortunato` è offerto solo
+per partite e allenamenti; sugli eventi extra-campo non è selezionabile (non pertinente).
 
 ---
 
@@ -42,6 +43,9 @@ useRispostePresenze()     → src/lib/presenze.ts   (1 query per sessione, stale
 RosaPresenze               → src/components/crapp/RosaPresenze.tsx
       ↑ montato da           (riepilogo, bottoni di risposta, gruppi per stato)
 allenamento.$id.tsx / partita.$id.tsx
+
+EventoCard                 → src/components/crapp/EventoCard.tsx
+      ↑ home / calendario    (riga compatta di stati; senza `infortunato` se tipo `evento`)
 
 --- statistiche ---
 contaPresenzeGiocatore() / totaliEventiGiocatore()  → src/lib/presenze.ts

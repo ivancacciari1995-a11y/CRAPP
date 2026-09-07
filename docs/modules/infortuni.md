@@ -38,7 +38,8 @@ profilo che mostri il numero di infortuni come statistica di superficie.
 - Nessuna durata o periodo tracciato: è solo un conteggio di eventi con quello stato, non un
   inizio/fine infortunio.
 - Il conteggio dipende dal fatto che qualcuno imposti correttamente lo stato "infortunato"
-  invece di "assente": nessuna validazione o promemoria lo garantisce.
+  invece di "assente": nessuna validazione o promemoria lo garantisce. Sulle card degli
+  eventi extra-campo (`tipo: "evento"`) l'opzione non è proposta in UI.
 - Poco visibile per valori bassi (1-2), perché emerge solo tramite un badge a soglia 3.
 - `conInfortuni()`, una funzione di merge alternativa nello stesso file, non risulta usata da
   nessuna parte del codice attuale — probabile residuo non collegato.

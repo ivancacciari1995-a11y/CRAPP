@@ -1,10 +1,19 @@
-import { MapPin, Clock, Users, Cake, ArrowRight } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Users,
+  Cake,
+  ChevronRight,
+  Check,
+  HelpCircle,
+  X,
+  Bandage,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
-import { Barra } from "@/components/motion/Barra";
 import { useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreCorrente } from "@/lib/user-store";
@@ -17,16 +26,38 @@ const tipoMeta = {
   compleanno: { label: "Compleanno", className: "bg-success text-success-foreground" },
 } as const;
 
-const stati: Stato[] = ["presente", "forse", "ritardo", "assente", "infortunato"];
+const statiSportivi: Stato[] = ["presente", "forse", "ritardo", "assente", "infortunato"];
+/** Eventi extra-campo (pizze, uscite…): l'infortunio non è una risposta pertinente. */
+const statiEventoExtra: Stato[] = ["presente", "forse", "ritardo", "assente"];
+
+/** Icone compatte per la riga unica dei controlli presenza (mockup). */
+const iconeStato: Record<Stato, typeof Check> = {
+  presente: Check,
+  forse: HelpCircle,
+  ritardo: Clock,
+  assente: X,
+  /** Cerotto singolo: leggibile a 16px e allineato all'emoji 🩹. */
+  infortunato: Bandage,
+};
 
 export function linkPerEvento(e: Evento) {
   if (e.tipo === "partita") {
-    return { to: "/partita/$id", params: { id: e.id }, label: "Dettagli" };
+    return { to: "/partita/$id" as const, params: { id: e.id }, label: "Dettaglio partita" };
   }
   if (e.tipo === "allenamento") {
-    return { to: "/allenamento/$id", params: { id: e.id }, label: "Dettagli" };
+    return {
+      to: "/allenamento/$id" as const,
+      params: { id: e.id },
+      label: "Dettaglio allenamento",
+    };
   }
   return undefined;
+}
+
+function etichettaData(iso: string) {
+  const giorno = iso.slice(8, 10);
+  const mese = formatData(iso).split(" ")[2]?.slice(0, 3)?.toUpperCase() ?? "";
+  return `${giorno} ${mese}`;
 }
 
 export function EventoCard({
@@ -50,39 +81,17 @@ export function EventoCard({
       ? { label: "Amichevole", className: "bg-accent/70 text-accent-foreground" }
       : tipoMeta[evento.tipo];
   const totale = rosa.length;
-  const perc = totale ? Math.round((presentiVeri / totale) * 100) : 0;
   const isCompleanno = evento.tipo === "compleanno";
   const passato = evento.data < dataOggi();
-
-  function ChipPresenza({ s }: { s: Stato }) {
-    const meta = statoMeta[s];
-    const attivo = stato === s;
-    return (
-      <button
-        type="button"
-        disabled={!io || salva.isPending || passato}
-        onClick={() => {
-          if (!io) return;
-          salva.mutate({
-            eventoId: evento.id,
-            giocatoreId: io.id,
-            stato: attivo ? null : s,
-          });
-        }}
-        aria-pressed={attivo}
-        className={cn(
-          // min-h-11: sono i controlli più toccati dell'app, sotto i
-          // 44px si sbaglia bersaglio.
-          "min-h-11 rounded-full border border-border px-3 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
-          attivo
-            ? cn(meta.className, "border-transparent shadow-card")
-            : "bg-background text-muted-foreground",
-        )}
-      >
-        {meta.label}
-      </button>
-    );
-  }
+  const note = evento.note.trim();
+  const cliccabile = Boolean(linkTo);
+  const stati =
+    evento.tipo === "evento"
+      ? // Se resta un vecchio "infortunato", mostra il bottone solo per poterlo togliere.
+        stato === "infortunato"
+        ? [...statiEventoExtra, "infortunato" as const]
+        : statiEventoExtra
+      : statiSportivi;
 
   if (isCompleanno) {
     return (
@@ -94,20 +103,38 @@ export function EventoCard({
           <h3 className="truncate text-sm font-bold leading-tight">{evento.titolo}</h3>
           <p className="text-xs text-muted-foreground">{evento.luogo}</p>
         </div>
-        <div className="shrink-0 rounded-2xl bg-secondary px-3 py-2 text-center">
-          <p className="font-display text-xl leading-none">{evento.data.slice(8, 10)}</p>
-          <p className="text-xs font-semibold uppercase text-muted-foreground">
-            {formatData(evento.data).split(" ")[2]?.slice(0, 3)}
-          </p>
+        <div className="shrink-0 text-right text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          {etichettaData(evento.data)}
         </div>
       </Card>
     );
   }
 
+  const sottotitoloPartita =
+    evento.tipo === "partita"
+      ? `${evento.casa ? "Casa" : "Trasferta"}${evento.campionato ? " · Campionato" : " · Amichevole"}`
+      : null;
+
   return (
-    <Card>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <Card
+      as="article"
+      className={cn(
+        "relative overflow-hidden p-0",
+        cliccabile && "transition-transform active:scale-[0.99]",
+      )}
+    >
+      {/* Link a tutta card: i controlli sopra (z-10) restano indipendenti. */}
+      {linkTo ? (
+        <Link
+          to={linkTo.to}
+          params={linkTo.params}
+          aria-label={linkTo.label}
+          className="absolute inset-0 z-0 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        />
+      ) : null}
+
+      <div className={cn("relative z-10 p-4", linkTo && "pointer-events-none")}>
+        <div className="flex items-start justify-between gap-3">
           <span
             className={cn(
               "inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide",
@@ -116,49 +143,85 @@ export function EventoCard({
           >
             {tipo.label}
           </span>
-          <h3 className="mt-2 text-base font-bold leading-tight">{evento.titolo}</h3>
+          <span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            {etichettaData(evento.data)}
+            {linkTo ? <ChevronRight className="h-4 w-4" aria-hidden /> : null}
+          </span>
         </div>
-        <div className="shrink-0 rounded-2xl bg-secondary px-3 py-2 text-center">
-          <p className="font-display text-xl leading-none">{evento.data.slice(8, 10)}</p>
-          <p className="text-xs font-semibold uppercase text-muted-foreground">
-            {formatData(evento.data).split(" ")[2]?.slice(0, 3)}
-          </p>
+
+        <h3 className="mt-2 text-base font-bold leading-tight">{evento.titolo}</h3>
+        {sottotitoloPartita ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">{sottotitoloPartita}</p>
+        ) : null}
+
+        <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>{evento.ora}</span>
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span className="truncate">{evento.luogo}</span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>
+              {presentiVeri}/{totale}
+            </span>
+          </span>
         </div>
-      </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" /> {evento.ora}
-        </span>
-        <span className="inline-flex min-w-0 items-center gap-1">
-          <MapPin className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{evento.luogo}</span>
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Users className="h-3.5 w-3.5" /> {presentiVeri}/{totale}
-        </span>
-      </div>
-
-      <Barra percentuale={perc} altezza="h-1.5" trackClassName="mt-3" />
-
-      {io || linkTo ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {io ? stati.slice(0, -1).map((s) => <ChipPresenza key={s} s={s} />) : null}
-          {/* Ultima riga: ultimo chip + Apri insieme, così non nasce una terza riga. */}
-          <div className="flex w-full basis-full items-center gap-2">
-            {io ? <ChipPresenza s={stati[stati.length - 1]!} /> : null}
-            {linkTo ? (
-              <Link
-                to={linkTo.to}
-                params={linkTo.params}
-                className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-primary-foreground transition-transform active:scale-95"
-              >
-                {linkTo.label} <ArrowRight className="h-3 w-3" />
-              </Link>
-            ) : null}
+        {io ? (
+          <div
+            className="pointer-events-auto mt-3 flex w-full gap-1"
+            role="group"
+            aria-label="La tua presenza"
+          >
+            {stati.map((s) => {
+              const meta = statoMeta[s];
+              const Icon = iconeStato[s];
+              const attivo = stato === s;
+              const mostraTesto = s === "presente" && attivo;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={salva.isPending || passato}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    salva.mutate({
+                      eventoId: evento.id,
+                      giocatoreId: io.id,
+                      stato: attivo ? null : s,
+                    });
+                  }}
+                  aria-pressed={attivo}
+                  aria-label={meta.label}
+                  title={meta.label}
+                  className={cn(
+                    "inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
+                    attivo
+                      ? cn(meta.className, "shadow-card")
+                      : "bg-secondary text-muted-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  {mostraTesto ? (
+                    <span className="truncate">{meta.label}</span>
+                  ) : (
+                    <span className="sr-only">{meta.label}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
-      ) : null}
+        ) : null}
+
+        {note ? (
+          <p className="mt-2.5 line-clamp-2 text-xs text-muted-foreground">📝 {note}</p>
+        ) : null}
+      </div>
     </Card>
   );
 }
