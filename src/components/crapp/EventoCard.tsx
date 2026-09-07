@@ -22,7 +22,7 @@ import { dataOggi } from "@/lib/scout-live";
 const tipoMeta = {
   partita: { label: "Partita", className: "bg-accent text-accent-foreground" },
   allenamento: { label: "Allenamento", className: "bg-training text-training-foreground" },
-  evento: { label: "Eventi", className: "bg-warning text-warning-foreground" },
+  evento: { label: "Evento", className: "bg-warning text-warning-foreground" },
   compleanno: { label: "Compleanno", className: "bg-success text-success-foreground" },
 } as const;
 
@@ -83,7 +83,6 @@ export function EventoCard({
   const totale = rosa.length;
   const isCompleanno = evento.tipo === "compleanno";
   const passato = evento.data < dataOggi();
-  const note = evento.note.trim();
   const cliccabile = Boolean(linkTo);
   const stati =
     evento.tipo === "evento"
@@ -114,6 +113,7 @@ export function EventoCard({
     evento.tipo === "partita"
       ? `${evento.casa ? "Casa" : "Trasferta"}${evento.campionato ? " · Campionato" : " · Amichevole"}`
       : null;
+  const metaStato = stato ? statoMeta[stato] : null;
 
   return (
     <Card
@@ -171,9 +171,22 @@ export function EventoCard({
           </span>
         </div>
 
+        {metaStato ? (
+          <p
+            className="mt-3 flex items-center gap-1.5 border-t border-border pt-2.5 text-left text-xs font-semibold text-muted-foreground"
+            aria-live="polite"
+          >
+            <span aria-hidden>{metaStato.emoji}</span>
+            <span>{metaStato.label}</span>
+          </p>
+        ) : null}
+
         {io ? (
           <div
-            className="pointer-events-auto mt-3 flex w-full gap-1"
+            className={cn(
+              "pointer-events-auto flex w-full gap-1",
+              metaStato ? "mt-2.5" : "mt-3",
+            )}
             role="group"
             aria-label="La tua presenza"
           >
@@ -181,7 +194,6 @@ export function EventoCard({
               const meta = statoMeta[s];
               const Icon = iconeStato[s];
               const attivo = stato === s;
-              const mostraTesto = s === "presente" && attivo;
               return (
                 <button
                   key={s}
@@ -200,26 +212,17 @@ export function EventoCard({
                   aria-label={meta.label}
                   title={meta.label}
                   className={cn(
-                    "inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
+                    "inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-xl px-1 transition-all active:scale-95 disabled:opacity-50",
                     attivo
                       ? cn(meta.className, "shadow-card")
                       : "bg-secondary text-muted-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  {mostraTesto ? (
-                    <span className="truncate">{meta.label}</span>
-                  ) : (
-                    <span className="sr-only">{meta.label}</span>
-                  )}
                 </button>
               );
             })}
           </div>
-        ) : null}
-
-        {note ? (
-          <p className="mt-2.5 line-clamp-2 text-xs text-muted-foreground">📝 {note}</p>
         ) : null}
       </div>
     </Card>
