@@ -105,7 +105,7 @@ export function Section({
     <Reveal as="section" indice={indice} className="px-5 py-4">
       {titolo || azione ? (
         <div className="mb-3 flex items-center justify-between gap-3">
-          {titolo ? <h2 className="font-display-sm text-lg uppercase">{titolo}</h2> : <span />}
+          {titolo ? <h2 className="font-display-sm text-[20px] uppercase">{titolo}</h2> : <span />}
           {azione}
         </div>
       ) : null}
