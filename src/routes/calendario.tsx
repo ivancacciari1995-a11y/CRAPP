@@ -162,7 +162,7 @@ function Calendario() {
               onClick={() => setVista(v)}
               aria-pressed={vista === v}
               className={cn(
-                "min-h-11 flex-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors",
+                "min-h-11 flex-1 rounded-full text-sm font-bold uppercase tracking-wide transition-colors",
                 vista === v ? "bg-card shadow-card text-foreground" : "text-muted-foreground",
               )}
             >
@@ -327,7 +327,7 @@ function Calendario() {
         <div className="px-5 pt-4">
           <Link
             to="/eventi"
-            className="premi flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+            className="premi flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[14px] font-bold uppercase text-accent-foreground shadow-pop"
           >
             <CalendarPlus className="h-4 w-4" /> Gestisci eventi
           </Link>

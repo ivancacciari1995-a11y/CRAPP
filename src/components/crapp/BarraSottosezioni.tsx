@@ -94,7 +94,7 @@ export function BarraSottosezioni({
                   vaiA(i);
                 }}
                 className={cn(
-                  "snap-center shrink-0 grow basis-0 touch-manipulation whitespace-nowrap text-xs font-bold uppercase tracking-wide transition-colors",
+                  "snap-center shrink-0 grow basis-0 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
                   "min-h-11",
                   sottolineatura
                     ? cn(
