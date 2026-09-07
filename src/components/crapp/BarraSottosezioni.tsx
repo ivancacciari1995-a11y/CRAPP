@@ -15,14 +15,13 @@ export type VoceSottosezione = {
 const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.1, 0.25, 1] };
 
 /**
- * Barra di sottosezioni in un'unica fila scorrevole (swipe orizzontale) e
- * pannello che mostra una sola sezione alla volta, cambiabile anche con
- * swipe sul contenuto.
+ * Barra di sottosezioni in un'unica fila e pannello che mostra una sola sezione
+ * alla volta, cambiabile anche con swipe sul contenuto.
  *
- * `variante="sottolineatura"`: tab giustificate su tutta la larghezza, senza scroll, con
- * pillola piena sulla tab attiva (Squadra e Classifica CSI). Default `pillole`: tab scorrevoli
- * a larghezza naturale, usate dal Profilo. Il titolo ripetuto sotto la barra non viene mai
- * mostrato: l’etichetta è già nella tab.
+ * `variante="sottolineatura"`: pillola piena sulla tab attiva (Squadra e Classifica CSI);
+ * su mobile la sola barra tab scorre in orizzontale senza allargare la pagina.
+ * Default `pillole`: tab a larghezza naturale (Profilo). Il titolo ripetuto sotto la
+ * barra non viene mai mostrato: l’etichetta è già nella tab.
  */
 export function BarraSottosezioni({
   voci,
@@ -45,9 +44,8 @@ export function BarraSottosezioni({
   const sottolineatura = variante === "sottolineatura";
 
   useEffect(() => {
-    // `auto`: lo smooth competerebbe col tween del pannello sul main thread.
     tabRefs.current[attiva]?.scrollIntoView({
-      behavior: "auto",
+      behavior: "smooth",
       inline: "center",
       block: "nearest",
     });
@@ -64,64 +62,69 @@ export function BarraSottosezioni({
   if (!voce) return null;
 
   return (
-    <div>
+    <div className="min-w-0 max-w-full">
       <div
         className={cn(
-          "border-b border-border bg-background",
+          "min-w-0 max-w-full border-b border-border bg-background",
           !sottolineatura && "bg-background/80 pt-3 backdrop-blur-md",
         )}
       >
+        {/* Solo la barra tab può scrollare in orizzontale: non allarga il layout pagina. */}
         <div
-          role="tablist"
-          aria-label="Sottosezioni"
           className={cn(
-            "flex",
-            sottolineatura
-              ? "gap-1 px-2 py-1.5"
-              : "snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-0 gap-1.5 px-5 pb-3",
+            "w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            !sottolineatura && "pb-3",
           )}
         >
-          {voci.map((v) => {
-            const selezionata = v.id === attiva;
-            return (
-              <button
-                key={v.id}
-                ref={(el) => {
-                  tabRefs.current[v.id] = el;
-                }}
-                type="button"
-                role="tab"
-                aria-selected={selezionata}
-                onClick={() => {
-                  const i = voci.findIndex((x) => x.id === v.id);
-                  vaiA(i);
-                }}
-                className={cn(
-                  "grow basis-0 touch-manipulation text-sm font-bold uppercase tracking-wide transition-colors",
-                  "min-h-11",
-                  sottolineatura
-                    ? cn(
-                        "rounded-xl px-1 py-2.5 text-center",
-                        selezionata
-                          ? "bg-accent text-accent-foreground shadow-pop"
-                          : "text-muted-foreground",
-                      )
-                    : cn(
-                        "snap-center shrink-0 whitespace-nowrap rounded-full px-3.5 py-2",
-                        selezionata
-                          ? "bg-accent text-accent-foreground shadow-pop"
-                          : "bg-secondary text-muted-foreground",
-                      ),
+          <div
+            role="tablist"
+            aria-label="Sottosezioni"
+            className={cn(
+              "flex w-max min-w-full flex-nowrap",
+              sottolineatura ? "gap-1 px-2 py-1.5" : "snap-x snap-mandatory gap-1.5 px-5",
+            )}
+          >
+            {voci.map((v) => {
+              const selezionata = v.id === attiva;
+              return (
+                <button
+                  key={v.id}
+                  ref={(el) => {
+                    tabRefs.current[v.id] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  aria-selected={selezionata}
+                  onClick={() => {
+                    const i = voci.findIndex((x) => x.id === v.id);
+                    vaiA(i);
+                  }}
+                  className={cn(
+                    "min-h-11 shrink-0 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
+                    sottolineatura
+                      ? cn(
+                          "rounded-xl px-1 py-2.5 text-center",
+                          selezionata
+                            ? "bg-accent text-accent-foreground shadow-pop"
+                            : "text-muted-foreground",
+                        )
+                      : cn(
+                          "snap-center rounded-full px-3.5 py-2",
+                          selezionata
+                            ? "bg-accent text-accent-foreground shadow-pop"
+                            : "bg-secondary text-muted-foreground",
+                        ),
                 )}
-              >
-                {v.label}
-              </button>
-            );
-          })}
+                >
+                  {v.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="relative overflow-hidden">
+      <div className="relative min-w-0 overflow-hidden">
         <motion.div
           key={voce.id}
           role="tabpanel"
