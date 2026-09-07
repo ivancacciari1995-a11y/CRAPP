@@ -9,6 +9,7 @@ import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useEventi, type Evento } from "@/lib/eventi";
+import { useRispostePresenze } from "@/lib/presenze";
 import { useIo, useObiettivi } from "@/lib/rosa";
 import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
@@ -38,10 +39,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   const giocatore = useIo();
   const { eventi } = useEventi();
+  const { presenze } = useRispostePresenze();
   const oggi = new Date().toISOString().slice(0, 10);
   const prossimi: Evento[] = eventi.filter((e) => e.data >= oggi).slice(0, 3);
   const prossimo = prossimi[0] ?? null;
-  const daConfermare = prossimi.slice(1);
+  const daConfermare = prossimi
+    .slice(1)
+    .filter((e) => !giocatore || !presenze[e.id]?.[giocatore.id]);
   const linkProssimo = prossimo ? linkPerEvento(prossimo) : null;
   const { data: csi } = useCsi();
   const noi = csi?.classifica.find((r) => isNostraSquadra(r.squadra));
