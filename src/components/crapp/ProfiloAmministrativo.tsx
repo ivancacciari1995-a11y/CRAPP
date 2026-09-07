@@ -401,10 +401,10 @@ export function CompletaProfilo({
         className="premi block rounded-3xl bg-card p-4 shadow-card"
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="font-display text-sm uppercase tracking-wide">
+          <span className="font-display text-[15px] uppercase tracking-wide">
             Completa il tuo profilo
           </span>
-          <span className="text-xs font-bold tabular-nums text-muted-foreground">{perc}%</span>
+          <span className="text-[13px] font-bold tabular-nums text-muted-foreground">{perc}%</span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
           <div
@@ -412,7 +412,7 @@ export function CompletaProfilo({
             style={{ width: `${perc}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-[13px] text-muted-foreground">
           Documento, certificato medico e foto tessera servono per il tesseramento CSI.
         </p>
       </Link>

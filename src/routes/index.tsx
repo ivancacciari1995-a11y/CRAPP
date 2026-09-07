@@ -112,7 +112,7 @@ function Index() {
         azione={
           <Link
             to="/calendario"
-            className="inline-flex items-center text-xs font-semibold text-accent"
+            className="inline-flex items-center text-[14px] font-semibold text-accent"
           >
             Calendario <ChevronRight className="h-4 w-4" />
           </Link>
