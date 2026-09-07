@@ -4,6 +4,15 @@ import { CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { formatData } from "@/lib/crapp-data";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
@@ -55,6 +64,7 @@ function GestioneEventi() {
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();
   const [bozza, setBozza] = useState<Evento | null>(null);
+  const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
   const rosa = squadra.filter((g) => g.attivo);
 
   if (!io || !admin) {
@@ -96,6 +106,8 @@ function GestioneEventi() {
       if (bozza?.id === id) setBozza(null);
     } catch {
       toast.error("Non sono riuscito a eliminare l'evento");
+    } finally {
+      setDaEliminare(null);
     }
   }
 
@@ -312,7 +324,7 @@ function GestioneEventi() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => rimuovi(e.id)}
+                  onClick={() => setDaEliminare(e)}
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
                   aria-label={`Elimina ${e.titolo}`}
                 >
@@ -323,6 +335,35 @@ function GestioneEventi() {
           </div>
         )}
       </Section>
+
+      <Drawer open={!!daEliminare} onOpenChange={(aperto) => !aperto && setDaEliminare(null)}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Eliminare questo evento?</DrawerTitle>
+            <DrawerDescription>
+              {daEliminare ? `"${daEliminare.titolo}" — l'operazione non si può annullare.` : ""}
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <button
+              type="button"
+              onClick={() => daEliminare && rimuovi(daEliminare.id)}
+              disabled={elimina.isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive py-3 text-sm font-bold uppercase text-destructive-foreground disabled:opacity-50"
+            >
+              {elimina.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Elimina
+            </button>
+            <DrawerClose asChild>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+              >
+                Annulla
+              </button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
