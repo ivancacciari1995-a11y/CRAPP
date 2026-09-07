@@ -27,10 +27,13 @@ export function BarraSottosezioni({
   voci,
   defaultId,
   variante = "pillole",
+  riempiLarghezza = false,
 }: {
   voci: VoceSottosezione[];
   defaultId?: string;
   variante?: "pillole" | "sottolineatura";
+  /** Tab a larghezza uguale che riempiono la barra (es. Campionato). */
+  riempiLarghezza?: boolean;
 }) {
   const [attiva, setAttiva] = useState(defaultId ?? voci[0]?.id ?? "");
   const direzione = useRef(0);
@@ -80,7 +83,10 @@ export function BarraSottosezioni({
             role="tablist"
             aria-label="Sottosezioni"
             className={cn(
-              "flex w-max min-w-full flex-nowrap",
+              "flex flex-nowrap",
+              riempiLarghezza
+                ? "w-full"
+                : "w-max min-w-full",
               sottolineatura ? "gap-1 px-2 py-1.5" : "snap-x snap-mandatory gap-1.5 px-5",
             )}
           >
@@ -100,7 +106,8 @@ export function BarraSottosezioni({
                     vaiA(i);
                   }}
                   className={cn(
-                    "min-h-11 shrink-0 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
+                    "min-h-11 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
+                    riempiLarghezza ? "min-w-0 flex-1" : "shrink-0",
                     sottolineatura
                       ? cn(
                           "rounded-xl px-1 py-2.5 text-center",
@@ -114,7 +121,7 @@ export function BarraSottosezioni({
                             ? "bg-accent text-accent-foreground shadow-pop"
                             : "bg-secondary text-muted-foreground",
                         ),
-                )}
+                  )}
                 >
                   {v.label}
                 </button>
