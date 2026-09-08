@@ -30,8 +30,12 @@ const evento = (id: string, data: string, tipo: Evento["tipo"]): Evento => ({
 
 const trova = (lista: ObiettivoSquadra[], id: string) => lista.find((o) => o.id === id)!;
 
+// Data di riferimento fissa: o1 (presenze del mese) ora dipende dal mese corrente,
+// quindi va iniettata esplicitamente per avere test deterministici.
+const OGGI_AGOSTO = new Date("2026-08-15T10:00:00Z");
+
 // --- contesto vuoto: nessuna divisione per zero ------------------------------
-const vuoti = obiettiviSquadra(giocatori, contestoVuoto);
+const vuoti = obiettiviSquadra(giocatori, contestoVuoto, OGGI_AGOSTO);
 assert.equal(trova(vuoti, "o1").valore, 0, "nessun evento nel mese: 0%, non NaN");
 assert.equal(trova(vuoti, "o2").valore, 0);
 assert.equal(trova(vuoti, "o12").valore, 0, "nessuna pagella: media 0");
@@ -49,25 +53,32 @@ const ctx: ContestoObiettivi = {
   presenze: tuttiPresenti,
   pagelle: [],
 };
-assert.equal(trova(obiettiviSquadra(giocatori, ctx), "o1").valore, 100, "rosa al completo = 100%");
+assert.equal(
+  trova(obiettiviSquadra(giocatori, ctx, OGGI_AGOSTO), "o1").valore,
+  100,
+  "rosa al completo = 100%",
+);
 
 const metaRosa: MappaPresenze = {
   a1: Object.fromEntries(
     giocatori.map((g, i) => [g.id, i % 2 === 0 ? ("presente" as const) : ("assente" as const)]),
   ),
 };
-const percentuale = trova(obiettiviSquadra(giocatori, { ...ctx, presenze: metaRosa }), "o1").valore;
+const percentuale = trova(
+  obiettiviSquadra(giocatori, { ...ctx, presenze: metaRosa }, OGGI_AGOSTO),
+  "o1",
+).valore;
 assert.ok(percentuale > 40 && percentuale < 60, `metà rosa presente ≈ 50%, era ${percentuale}`);
 
 // Il ritardo conta come presenza, il "forse" no.
 const conRitardo: MappaPresenze = { a1: { g1: "ritardo", g2: "forse" } };
 assert.equal(
-  trova(obiettiviSquadra(giocatori, { ...ctx, presenze: conRitardo }), "o1").valore,
+  trova(obiettiviSquadra(giocatori, { ...ctx, presenze: conRitardo }, OGGI_AGOSTO), "o1").valore,
   Math.round((1 / giocatori.length) * 100),
   "solo il ritardo conta come presente",
 );
 assert.equal(
-  trova(obiettiviSquadra(giocatori, { ...ctx, presenze: conRitardo }), "o2").valore,
+  trova(obiettiviSquadra(giocatori, { ...ctx, presenze: conRitardo }, OGGI_AGOSTO), "o2").valore,
   Math.round((2 / giocatori.length) * 100),
   "per le risposte anche il forse conta",
 );
@@ -78,7 +89,7 @@ const fuoriMese: ContestoObiettivi = {
   presenze: { s1: { g1: "presente" } },
   pagelle: [],
 };
-assert.equal(trova(obiettiviSquadra(giocatori, fuoriMese), "o1").valore, 0);
+assert.equal(trova(obiettiviSquadra(giocatori, fuoriMese, OGGI_AGOSTO), "o1").valore, 0);
 
 // I compleanni non richiedono risposta.
 const soloCompleanni: ContestoObiettivi = {
@@ -86,7 +97,68 @@ const soloCompleanni: ContestoObiettivi = {
   presenze: {},
   pagelle: [],
 };
-assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni), "o2").valore, 0);
+assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2").valore, 0);
+
+// --- o1: si azzera a ogni cambio mese, in base agli eventi a calendario ------
+{
+  // Stesso evento/presenze: "in mese" a settembre, "fuori mese" se letto da agosto.
+  const OGGI_SETTEMBRE = new Date("2026-09-05T10:00:00Z");
+  const eventoSettembre: ContestoObiettivi = {
+    eventi: [evento("s2", "2026-09-04", "allenamento")],
+    presenze: { s2: Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])) },
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, eventoSettembre, OGGI_SETTEMBRE), "o1").valore,
+    100,
+    "evento di settembre conta se oggi è settembre",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, eventoSettembre, OGGI_AGOSTO), "o1").valore,
+    0,
+    "lo stesso evento non conta se oggi è agosto",
+  );
+
+  // Titolo e scadenza seguono il mese corrente, non più una stagione fissa.
+  const o1Agosto = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_AGOSTO), "o1");
+  assert.equal(o1Agosto.titolo, "90% di presenze ad agosto", "elisione 'ad' davanti a vocale");
+  assert.equal(o1Agosto.scadenza, "2026-08-31", "scadenza = ultimo giorno del mese");
+
+  const o1Settembre = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_SETTEMBRE), "o1");
+  assert.ok(o1Settembre.titolo.includes("settembre"), "titolo o1 riflette il mese iniettato (settembre)");
+  assert.equal(o1Settembre.scadenza, "2026-09-30", "scadenza = ultimo giorno di settembre (30 gg)");
+}
+
+// --- o6: evento di squadra al mese, si azzera come o1 ------------------------
+{
+  const OGGI_SETTEMBRE = new Date("2026-09-05T10:00:00Z");
+  const pizzataSettembre: ContestoObiettivi = {
+    eventi: [evento("p1", "2026-09-12", "evento")],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, pizzataSettembre, OGGI_SETTEMBRE), "o6").valore,
+    1,
+    "l'evento sociale di settembre conta se oggi è settembre",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, pizzataSettembre, OGGI_AGOSTO), "o6").valore,
+    0,
+    "lo stesso evento non conta se oggi è agosto",
+  );
+
+  const allenamentoNelMese: ContestoObiettivi = {
+    eventi: [evento("al1", "2026-08-12", "allenamento")],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, allenamentoNelMese, OGGI_AGOSTO), "o6").valore,
+    0,
+    "un allenamento nel mese non è un evento sociale",
+  );
+}
 
 // --- somme sulla rosa --------------------------------------------------------
 const sommaPresenze = giocatori.reduce((s, g) => s + g.presenze, 0);

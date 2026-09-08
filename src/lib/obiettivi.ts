@@ -26,11 +26,32 @@ export type ContestoObiettivi = {
 
 export const contestoVuoto: ContestoObiettivi = { eventi: [], presenze: {}, pagelle: [] };
 
-const MESE = "2026-08";
+/** Mese corrente in formato "YYYY-MM" (fuso Europe/Rome), per gli obiettivi che si azzerano ogni mese. */
+function meseCorrente(oggi: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(oggi).slice(0, 7);
+}
 
-function percentualePresenzeMese(ctx: ContestoObiettivi, rosaSize: number) {
+/** "a settembre" / "ad agosto": preposizione con elisione davanti a vocale. */
+function aMese(oggi: Date): string {
+  const nome = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", month: "long" }).format(
+    oggi,
+  );
+  const preposizione = /^[aeiou]/i.test(nome) ? "ad" : "a";
+  return `${preposizione} ${nome}`;
+}
+
+/** Ultimo giorno del mese corrente, come "YYYY-MM-DD". */
+function fineMese(oggi: Date): string {
+  const mese = meseCorrente(oggi);
+  const anno = Number(mese.slice(0, 4));
+  const numeroMese = Number(mese.slice(5, 7));
+  const ultimoGiorno = new Date(Date.UTC(anno, numeroMese, 0)).getUTCDate();
+  return `${mese}-${String(ultimoGiorno).padStart(2, "0")}`;
+}
+
+function percentualePresenzeMese(ctx: ContestoObiettivi, rosaSize: number, mese: string) {
   const delMese = ctx.eventi.filter(
-    (e) => e.data.startsWith(MESE) && (e.tipo === "partita" || e.tipo === "allenamento"),
+    (e) => e.data.startsWith(mese) && (e.tipo === "partita" || e.tipo === "allenamento"),
   );
   if (delMese.length === 0 || rosaSize === 0) return 0;
   const posti = delMese.length * rosaSize;
@@ -56,19 +77,21 @@ function percentualeRisposte(ctx: ContestoObiettivi, rosaSize: number) {
 export function obiettiviSquadra(
   rosa: Giocatore[] = giocatori,
   ctx: ContestoObiettivi = contestoVuoto,
+  oggi: Date = new Date(),
 ): ObiettivoSquadra[] {
   const somma = (f: (g: Giocatore) => number) => rosa.reduce((s, g) => s + f(g), 0);
   const continui = rosa.filter((g) => g.serieAllenamenti >= 3).length;
   const vittorie = ctx.vittorie ?? 0;
+  const mese = meseCorrente(oggi);
   return [
     {
       id: "o1",
-      titolo: "90% di presenze ad agosto",
+      titolo: `90% di presenze ${aMese(oggi)}`,
       descrizione: "Media presenze su partite e allenamenti del mese",
-      valore: percentualePresenzeMese(ctx, rosa.length),
+      valore: percentualePresenzeMese(ctx, rosa.length, mese),
       target: 90,
       unita: "%",
-      scadenza: "2026-08-31",
+      scadenza: fineMese(oggi),
       emoji: "📣",
       impatto: "Ogni sì in più alza la media di tutta la squadra.",
     },
@@ -157,7 +180,7 @@ export function obiettiviSquadra(
       id: "o6",
       titolo: "1 evento di squadra al mese",
       descrizione: "Pizzate, cene e uscite fuori dal campo",
-      valore: ctx.eventi.filter((e) => e.tipo === "evento" && e.data.startsWith(MESE)).length,
+      valore: ctx.eventi.filter((e) => e.tipo === "evento" && e.data.startsWith(mese)).length,
       target: 1,
       unita: "eventi",
       emoji: "🍕",
@@ -170,8 +193,8 @@ export function progressoObiettivo(o: ObiettivoSquadra) {
   return Math.min(100, Math.round((o.valore / o.target) * 100));
 }
 
-export function obiettiviOrdinati(rosa?: Giocatore[], ctx?: ContestoObiettivi) {
-  return obiettiviSquadra(rosa, ctx).sort((a, b) => {
+export function obiettiviOrdinati(rosa?: Giocatore[], ctx?: ContestoObiettivi, oggi?: Date) {
+  return obiettiviSquadra(rosa, ctx, oggi).sort((a, b) => {
     const pa = progressoObiettivo(a);
     const pb = progressoObiettivo(b);
     const ca = pa >= 100 ? 1 : 0;
