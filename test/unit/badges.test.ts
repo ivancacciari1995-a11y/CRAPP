@@ -105,6 +105,16 @@ assert.equal(
   "5 turni su 6 per l'argento: 83%",
 );
 
+// --- presenze: soglie 5 / 15 / 30 ---------------------------------------------
+const presenzeDef = badgeDefs.find((b) => b.id === "presenze")!;
+assert.equal(gradoRaggiunto(presenzeDef, 4), null, "sotto la prima soglia nessun grado");
+assert.equal(gradoRaggiunto(presenzeDef, 5), "bronzo", "la soglia è inclusiva");
+assert.equal(gradoRaggiunto(presenzeDef, 14), "bronzo");
+assert.equal(gradoRaggiunto(presenzeDef, 15), "argento");
+assert.equal(gradoRaggiunto(presenzeDef, 29), "argento");
+assert.equal(gradoRaggiunto(presenzeDef, 30), "oro");
+assert.equal(gradoRaggiunto(presenzeDef, 999), "oro", "oltre l'oro resta oro");
+
 // --- badgeGiocatore ----------------------------------------------------------
 assert.equal(badgeGiocatore(g()).length, badgeDefs.length, "i badge normali sono sempre tutti");
 assert.ok(

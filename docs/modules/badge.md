@@ -92,7 +92,7 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | `mvp` | MVP | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra) | 1 / 3 / 5 |
 | `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
 | `palloni` | Sherpa dei palloni | quante volte hai fatto (o ti è stato proposto, vedi sopra) il turno palloni (`g.palloni`) | 3 / 6 / 10 |
-| `presenze` | Presenza fissa | totale presenze a eventi/partite in stagione (`g.presenze`) | 5 / 15 / 30 |
+| `presenze` | Presenza fissa | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`) | 5 / 15 / 30 |
 | `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti, senza saltarne uno (`g.serieAllenamenti`) | 3 / 6 / 10 |
 | `serie-conferme` | Risposta lampo | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`) | 3 / 8 / 15 |
 
@@ -151,13 +151,16 @@ categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
 - `palloni`: soglie 3/6/10 testate esplicitamente (bronzo/argento/oro, confine incluso e
   oltre l'oro resta oro, `badges.test.ts:94-104`), oltre a un caso di progresso non tondo
   (5/6 → 83%). Pipeline end-to-end sotto, come `mvp`/`pagella`.
-- `presenze`, `serie-allenamenti`, `serie-conferme`: stessa funzione di soglia già testata a
-  fondo su `mvp`/`pagella`/`palloni`, coperti dagli invarianti generali
-  (`badges.test.ts:154-159`: soglie crescenti, testi presenti, id unici) e da
-  `collezioneBadge`/`prossimoTraguardo` con valori al massimo (`:119-144`).
-- Nessun integration dedicato per questi 3: non toccano il database, le statistiche sorgente
-  (`presenze.test.ts`, ecc.) sono già coperte nei rispettivi moduli. `mvp`, `pagella` e
-  `palloni` fanno eccezione (sotto) perché la loro fonte passa da una tabella di voto/turni.
+- `presenze`: soglie 5/15/30 testate esplicitamente (confine incluso, oltre l'oro resta oro,
+  `badges.test.ts:108-116`). Pipeline end-to-end sotto, come `mvp`/`pagella`/`palloni`.
+- `serie-allenamenti`, `serie-conferme`: stessa funzione di soglia già testata a fondo sugli
+  altri badge normali, coperti dagli invarianti generali (`badges.test.ts:154-159`: soglie
+  crescenti, testi presenti, id unici) e da `collezioneBadge`/`prossimoTraguardo` con valori
+  al massimo (`:119-144`).
+- Nessun integration dedicato per questi 2: non toccano il database, le statistiche sorgente
+  (`serie.test.ts`) sono già coperte nel modulo Serie. `mvp`, `pagella`, `palloni` e
+  `presenze` fanno eccezione (sotto) perché la loro fonte passa da una tabella di voto/turni/
+  presenze, non da un contatore già calcolato altrove.
 
 **Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
 (`badges.test.ts:77-109`): `s-tiebreak` (mediaVoto 7.9 non basta, serve 8), `s-mai-forfait`
@@ -214,6 +217,25 @@ dedicata: nessun bug trovato, ma il comportamento "le proposte contano" — già
     confermato nulla; verifica anche che un evento futuro non conti, pur avendo già
     un'assegnazione.
 
+**Badge Presenza fissa — pipeline end-to-end** (analisi dedicata: nessun bug trovato; a
+differenza di MVP/pagelle/badge social, per questo badge **non serve** l'estensione RLS di
+M13 — vedi sotto):
+- Unit: `badges.test.ts:108-116` — soglie 5/15/30 (confine incluso, oltre l'oro resta oro) +
+  `presenze.test.ts`, già molto completo prima di questa sessione (`contaPresenzeGiocatore()`
+  con ritardo che conta come presenza, denominatore uguale per tutti, eventi futuri esclusi,
+  filtro sui convocati, solo partite/allenamenti).
+- Integration (`npx supabase start` richiesto):
+  - `obiettivi.test.ts` — copre già `contaPresenzeGiocatore()` end-to-end per l'obiettivo
+    "250 presenze complessive" (o3), la stessa funzione usata dal badge.
+  - `presenze-badge.test.ts` (nuovo) — end-to-end reale sul badge: scrive eventi e risposte
+    su `eventi_app`/`risposte_presenze`, rilegge via REST come fa `fetchPresenze()`/`daRiga()`
+    e verifica che `statoBadge()` attraversi le tre soglie con dati veri (incluso un ritardo
+    che conta come presenza e un'assenza che non conta). Dimostra anche che una risposta
+    scritta per un evento senza convocazione **non conta comunque**, perché
+    `contaPresenzeGiocatore()` filtra già per `convocati` lato applicazione — a differenza di
+    MVP/pagelle/badge social, qui non serve una policy RLS aggiuntiva: il filtro è nella
+    funzione pura che il badge consuma, non solo in UI.
+
 **Badge social** — nessuna delle 5 categorie ha logica *propria* nel codice: l'id è solo una
 chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
 identici per tutte (`badge-social.ts:107-158`). Testare a fondo 2-3 categorie copre l'intero
@@ -232,7 +254,7 @@ meccanismo:
 | 1 | `mvp` | normale | ✅ | ✅ (`scritture`, `permessi`, `mvp-badge`) |
 | 2 | `pagella` | normale | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
 | 3 | `palloni` | normale | ✅ | ✅ (`scritture`, `palloni-badge`) |
-| 4 | `presenze` | normale | ✅ | non necessario |
+| 4 | `presenze` | normale | ✅ | ✅ (`obiettivi`, `presenze-badge`) |
 | 5 | `serie-allenamenti` | normale | ✅ (limite noto sotto) | non necessario |
 | 6 | `serie-conferme` | normale | ✅ (limite noto sotto) | non necessario |
 | 7 | `s-tiebreak` | segreto | ✅ | non necessario |
