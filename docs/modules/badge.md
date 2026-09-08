@@ -1,6 +1,6 @@
 # Modulo — Badge
 
-**Stato:** implementato (v1.0), coerente con DD-007 e DD-008
+**Stato:** implementato, coerente con DD-007 e DD-008
 **File principali:** `src/lib/badges.ts`, `src/lib/badge-social.ts`,
 `src/components/crapp/CollezioneBadge.tsx`, `src/components/crapp/BadgeDrawer.tsx`,
 `src/components/crapp/CelebrazioneBadge.tsx`, `src/components/crapp/VotoSocial.tsx`
@@ -37,6 +37,20 @@ badge assegnati per voto dai compagni.
   database (vincolo `badge_social_no_autovoto`, migration `m12_niente_autovoto`). A
   differenza delle [Pagelle](pagelle.md), qui non c'è alcun tentativo di anonimato:
   `votante_id`/`votato_id` sono entrambi visibili.
+- **Badge MVP** (`mvp`, in `badgeDefs`): l'unico badge normale la cui fonte dato arriva da
+  un'altra tabella di voto invece che da un contatore semplice. Pipeline completa:
+  1. Ogni giocatore vota l'MVP della partita su `mvp_voti` (`mvp-voti.ts`), un voto per
+     partita/votante (`upsert` su `match_id,votante_id`), apribile solo 2 ore dopo l'inizio
+     match (`votoMvpAperto()`). Autovoto impossibile per due strade indipendenti: RLS di
+     `m11_scritture_per_ruolo` (`votante_id` legato al proprio `auth.uid()` via
+     `giocatori_squadra`) e `CHECK (votante_id <> votato_id)` a database
+     (`mvp_no_autovoto`, migration `m12_niente_autovoto`).
+  2. `vincitoriMvp()`/`mvpVintiPerGiocatore()` (`mvp-voti.ts`) contano, per ogni partita, chi
+     ha ricevuto più voti **con un vantaggio netto** sul secondo: in caso di parità nessun MVP
+     è assegnato per quella partita. Il conteggio finale per giocatore è il numero di partite
+     vinte nettamente, non il totale dei voti ricevuti.
+  3. `rosa.ts` (`useRosa()`) scrive quel numero in `Giocatore.mvp`, che `badgeDefs` legge con
+     `valore: (g) => g.mvp` e confronta con le soglie 1/3/5 (bronzo/argento/oro).
 - `CollezioneBadge.tsx` mostra sbloccati, in progresso, badge social vinti e un contatore di
   badge segreti ancora da scoprire; `BadgeDrawer.tsx` il dettaglio di un singolo badge;
   `CelebrazioneBadge.tsx` l'overlay celebrativo alla prima visualizzazione di un badge nuovo.
@@ -46,12 +60,156 @@ badge assegnati per voto dai compagni.
 
 ---
 
+## Elenco badge
+
+Riferimento completo per chi lavora sul codice. **In app i 5 badge segreti restano nascosti
+finché non sbloccati** (fanno parte della sorpresa per i giocatori): elencarli qui, con le
+condizioni esatte, è una scelta deliberata per la documentazione tecnica, non una fuga di
+informazioni verso l'interfaccia.
+
+### Badge normali (gradi bronzo/argento/oro)
+
+Tutti calcolati come `valore(g)` confrontato con tre soglie crescenti; il grado è l'ultima
+soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
+
+| id | nome | come si guadagna | soglie B/A/O |
+| --- | --- | --- | --- |
+| `mvp` | MVP | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra) | 1 / 3 / 5 |
+| `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`) | 6.5 / 7.5 / 8.5 |
+| `palloni` | Sherpa dei palloni | quante volte ti sei incaricato di portare la sacca palloni (`g.palloni`) | 3 / 6 / 10 |
+| `presenze` | Presenza fissa | totale presenze a eventi/partite in stagione (`g.presenze`) | 5 / 15 / 30 |
+| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti, senza saltarne uno (`g.serieAllenamenti`) | 3 / 6 / 10 |
+| `serie-conferme` | Risposta lampo | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`) | 3 / 8 / 15 |
+
+### Badge segreti (booleani, nascosti finché non sbloccati)
+
+Stesso motore dei normali ma con soglie `{bronzo:1, argento:1, oro:1}`: `valore(g)` è 0 o 1,
+quindi il badge è "trovato o no", mai graduato. In UI compaiono con icona lucchetto finché non
+sbloccati.
+
+| id | nome | condizione esatta |
+| --- | --- | --- |
+| `s-tiebreak` | Uomo tie-break | almeno 2 MVP **e** media pagella ≥ 8 (`g.mvp >= 2 && g.mediaVoto >= 8`) |
+| `s-mai-forfait` | Mai un forfait | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`) |
+| `s-infermeria` | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`) |
+| `s-ritardi` | Aspettate, arrivo! | almeno 5 ritardi a eventi (`g.ritardi >= 5`) |
+| `s-cacche` | Trono di ferro | almeno 3 partite di campionato con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`) |
+
+### Badge social (votati dai compagni, 5 categorie per partita)
+
+Non hanno gradi: si "vince" o non si vince una categoria in una partita. `vincitoreCategoria()`
+richiede un vantaggio netto sul secondo classificato, in parità nessun vincitore.
+`badgeSocialVinti()` conta quante partite ha vinto ciascun giocatore in ogni categoria (non i
+voti ricevuti).
+
+| id | nome | cosa premia |
+| --- | --- | --- |
+| `affidabile` | Compagno affidabile | sempre presente, sempre sul pezzo |
+| `spirito` | Miglior spirito di squadra | carica il gruppo dal primo all'ultimo punto |
+| `fairplay` | Fair play | rispetto per compagni, avversari e arbitro |
+| `meme` | Meme della partita | la scena più memorabile della partita |
+| `cuore` | Cuore del gruppo | chi tiene unita la squadra anche fuori dal campo |
+
+---
+
 ## Regole rispettate
 
 - **DD-007**: nessuna tabella `badge_sbloccati`, tutto calcolato a runtime dai dati
   esistenti.
 - **DD-008**: nessun `BadgeDef` usa dati di reparto (punti/ace/muri); solo statistiche
   raggiungibili da qualunque ruolo.
+
+---
+
+## Copertura test
+
+Verifica badge per badge (fatta rileggendo codice e test riga per riga, non solo per
+categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
+
+**Badge normali** — `badges.ts` testa la propria funzione pura (soglia → grado,
+`badges.test.ts`) sull'output di altri moduli:
+- `mvp`: soglie inclusive verificate (1→bronzo, 3→argento, 99→resta oro,
+  `badges.test.ts:44-48`), progresso a metà (`:52-56`). **Unico badge normale con integration
+  dedicato** (vedi sotto) perché la sua fonte, a differenza degli altri 5, passa da un'altra
+  tabella di voto (`mvp_voti`) invece che da un contatore già calcolato altrove.
+- `pagella`: caso critico delle soglie decimali senza arrotondamento per eccesso — 6.4 →
+  nessun grado, 6.5 → bronzo (`badges.test.ts:65-67`); un vero 6.49 non diventa "quasi
+  bronzo".
+- `palloni`, `presenze`, `serie-allenamenti`, `serie-conferme`: stessa funzione di soglia già
+  testata a fondo su `mvp`/`pagella`, coperti dagli invarianti generali
+  (`badges.test.ts:154-159`: soglie crescenti, testi presenti, id unici) e da
+  `collezioneBadge`/`prossimoTraguardo` con valori al massimo (`:119-144`).
+- Nessun integration dedicato per questi 5: non toccano il database, le statistiche sorgente
+  (`presenze.test.ts`, `palloni-core.test.ts`, ecc.) sono già coperte nei rispettivi moduli.
+
+**Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
+(`badges.test.ts:77-109`): `s-tiebreak` (mediaVoto 7.9 non basta, serve 8), `s-mai-forfait`
+(unica condizione doppia, testato che **entrambe** servano), `s-infermeria`, `s-ritardi`,
+`s-cacche`. Copertura unit completa; integration non necessario per lo stesso motivo dei
+normali (le statistiche sorgente sono testate nei rispettivi moduli).
+
+**Badge MVP — pipeline end-to-end** (aggiunta in una sessione dedicata a completare la
+copertura di questo badge):
+- Unit: `badges.test.ts` (soglie/gradi) + `mvp-voti.test.ts` (conteggio partita, vincitore con
+  vantaggio netto, parità che non assegna, apertura voto 2h dopo il fischio d'inizio).
+- Integration (`npx supabase start` richiesto):
+  - `scritture.test.ts` — semantica dell'`upsert` di `mvp_voti` (un voto per
+    partita/votante, l'ultimo sostituisce) e rifiuto dell'autovoto a database
+    (`mvp_no_autovoto`).
+  - `permessi.test.ts` — RLS di `m11`: il proprio voto MVP si registra (caso positivo), non
+    si può votare a nome di un altro (caso negativo).
+  - `mvp-badge.test.ts` — end-to-end reale: scrive voti su `mvp_voti`, rilegge via REST come
+    fa `useVotiMvp()`, calcola `mvpVintiPerGiocatore()` e verifica che `statoBadge()` assegni
+    il grado corretto (bronzo a 1-2 vittorie nette, argento a 3), incluso un pareggio che non
+    deve contare come vittoria.
+
+**Badge social** — nessuna delle 5 categorie ha logica *propria* nel codice: l'id è solo una
+chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
+identici per tutte (`badge-social.ts:107-158`). Testare a fondo 2-3 categorie copre l'intero
+meccanismo:
+- Unit (`badge-social.test.ts`): conteggio isolato per match+categoria (`:29-32`), vantaggio
+  netto/parità → nessun vincitore (`:38-41`), vittorie multi-partita (`badgeSocialVinti`, g2
+  vince in `m1` e `m2` → `{affidabile: 2}`, `:48`), zero voti → zero badge (`:51`).
+- Integration: upsert/sostituzione voto per categoria (`scritture.test.ts:170-202`), autovoto
+  rifiutato — doppia barriera UI + database (`scritture.test.ts:124-148`), RLS `m11` — un
+  giocatore firma solo il proprio voto (`permessi.test.ts:344-369`).
+
+### Riepilogo per badge
+
+| # | id | tipo | test unit | test integration |
+| - | --- | --- | --- | --- |
+| 1 | `mvp` | normale | ✅ | ✅ (`scritture`, `permessi`, `mvp-badge`) |
+| 2 | `pagella` | normale | ✅ | non necessario |
+| 3 | `palloni` | normale | ✅ | non necessario |
+| 4 | `presenze` | normale | ✅ | non necessario |
+| 5 | `serie-allenamenti` | normale | ✅ (limite noto sotto) | non necessario |
+| 6 | `serie-conferme` | normale | ✅ (limite noto sotto) | non necessario |
+| 7 | `s-tiebreak` | segreto | ✅ | non necessario |
+| 8 | `s-mai-forfait` | segreto | ✅ | non necessario |
+| 9 | `s-infermeria` | segreto | ✅ | non necessario |
+| 10 | `s-ritardi` | segreto | ✅ (parziale, manca "appena sotto") | non necessario |
+| 11 | `s-cacche` | segreto | ✅ (parziale, manca "appena sotto") | non necessario |
+| 12 | `affidabile` | social | ✅ | ✅ |
+| 13 | `spirito` | social | ✅ (meccanismo generico) | ✅ (meccanismo generico) |
+| 14 | `fairplay` | social | ✅ (meccanismo generico) | ✅ (meccanismo generico) |
+| 15 | `meme` | social | ✅ | ✅ |
+| 16 | `cuore` | social | ✅ | ✅ (autovoto) |
+
+---
+
+## Problemi noti da sistemare
+
+Trovati in audit, nessuno bloccante (nessun bug nella logica di calcolo):
+
+- **`badgeSbloccati()` morta** (`badges.ts:283-285`): duplica esattamente
+  `collezioneBadge(g).sbloccati`. Zero riferimenti fuori dalla propria definizione, né in
+  `src/` né nei test. Da rimuovere o documentare perché esiste (es. uso futuro/esterno).
+- **`categoria` senza vincolo DB** in `badge_social_voti`: la colonna è `text NOT NULL` senza
+  CHECK o FK verso i 5 id di `categorieSocial`
+  (`supabase/migrations/20260803140647_affa1c11-fa92-450f-9f00-02d87195a6d9.sql:4`). I test
+  stessi lo dimostrano scrivendo categorie inesistenti (`"sorriso"`/`"urlo"`,
+  `scritture.test.ts`). Non sfruttabile da un utente normale (l'app manda solo le 5 categorie
+  valide), stesso tipo di gap "solo applicativo, non a DB" del punto sotto sul votato/convocato.
 
 ---
 
@@ -66,7 +224,7 @@ badge assegnati per voto dai compagni.
   "ottenuto" può sparire o apparire retroattivamente.
 - La policy di M11 garantisce che il voto sia firmato con il proprio `votante_id`, ma non
   che il votato sia un giocatore convocato per quella partita: quello resta un filtro solo
-  applicativo.
+  applicativo (vale per MVP, pagelle e badge social).
 - Notifiche "nuovo badge" solo locali al dispositivo (localStorage), si ripetono cambiando
   browser o dispositivo.
 
@@ -77,3 +235,5 @@ badge assegnati per voto dai compagni.
 - Sincronizzare lo stato "visto" su Supabase invece che solo in localStorage.
 - Verificare sui dati di stagione che i tre badge legati alle serie si sblocchino davvero,
   ora che le serie sono calcolate.
+- Rimuovere `badgeSbloccati()` (codice morto) o documentarne lo scopo.
+- Aggiungere un vincolo (CHECK o FK) sulla colonna `categoria` di `badge_social_voti`.

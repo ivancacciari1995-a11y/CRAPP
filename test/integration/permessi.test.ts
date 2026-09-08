@@ -311,6 +311,18 @@ if (!locale) {
       });
       assert.ok(!falso.ok, `non si vota a nome di un altro (${falso.status})`);
 
+      const mioMvp = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          votante_id: "g1",
+          votato_id: "g5",
+          votato_nome: "Cinque",
+        }),
+      });
+      assert.equal(await righeToccate(mioMvp), 1, "il proprio voto MVP si registra");
+
       const mvp = await rest("mvp_voti", tokenGiocatore, {
         method: "POST",
         headers: { Prefer: "resolution=merge-duplicates,return=representation" },
