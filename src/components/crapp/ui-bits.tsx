@@ -25,6 +25,7 @@ export function TeamLogo({
       alt="CRAP Volley"
       width={192}
       height={192}
+      decoding="async"
       className={cn("shrink-0 rounded-2xl object-cover shadow-pop", className)}
     />
   );

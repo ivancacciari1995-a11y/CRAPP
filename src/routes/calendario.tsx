@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { molla, proietta } from "@/lib/molla";
+import { useMotoRidotto } from "@/lib/motion";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
@@ -115,7 +116,9 @@ function Calendario() {
   const admin = useIsAdmin();
   const { eventi } = useEventi();
   const rosa = useRosa();
-  const ridotto = useReducedMotion();
+  // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
+  // `prefers-reduced-motion`: disattiva anche lo swipe orizzontale tra mesi.
+  const ridotto = useMotoRidotto();
   const { anno, mese, direzione, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
   const mesePrefix = `${anno}-${pad2(mese + 1)}`;
@@ -197,7 +200,7 @@ function Calendario() {
                 <motion.div
                   key={mesePrefix}
                   custom={direzione}
-                  drag="x"
+                  drag={ridotto ? false : "x"}
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.18}
                   dragMomentum={false}

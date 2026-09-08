@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Home, Trophy, Users } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { molla } from "@/lib/molla";
+import { useMotoRidotto } from "@/lib/motion";
 
 // Quattro voci e non cinque: il profilo sta in alto a destra
 // nell'intestazione di ogni pagina, dove lo cerca chi arriva da iOS.
@@ -13,7 +14,10 @@ const items = [
 ] as const;
 
 export function BottomNav() {
-  const ridotto = useReducedMotion();
+  // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
+  // `prefers-reduced-motion`: qui disattiva sia la molla della capsula sia il
+  // vetro sfocato, i due costi maggiori ad ogni cambio di rotta.
+  const ridotto = useMotoRidotto();
 
   return (
     <nav
@@ -62,7 +66,13 @@ export function BottomNav() {
       */}
       {/* `vetro` porta con sé le proprie ombre, quindi niente `shadow-chrome`:
           sarebbero due `box-shadow` sullo stesso elemento e una vincerebbe. */}
-      <div className="vetro pointer-events-auto mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-4 rounded-full border border-white/40 p-1.5">
+      <div
+        className="vetro pointer-events-auto mx-auto grid h-[var(--altezza-nav)] max-w-md grid-cols-4 rounded-full border border-white/40 p-1.5"
+        // Su device deboli il backdrop-filter con feTurbulence/feDisplacementMap
+        // (solo Blink, cioè Android) e la molla della capsula sotto sono i due
+        // costi maggiori ad ogni cambio di rotta: `data-leggero` li disattiva.
+        {...(ridotto ? { "data-leggero": "" } : {})}
+      >
         {items.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}

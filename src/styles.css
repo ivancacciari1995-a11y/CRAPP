@@ -392,55 +392,14 @@
   }
 }
 
-/* Superfici traslucide: se l'utente chiede meno trasparenza diventano piene. */
-@media (prefers-reduced-transparency: reduce) {
-  .materiale {
-    background-color: var(--color-card);
-    backdrop-filter: none;
-  }
-}
-
-@media (prefers-contrast: more) {
-  .materiale {
-    background-color: var(--color-card);
-    backdrop-filter: none;
-    border-color: var(--color-foreground);
-  }
-}
-
 /*
- * Chrome flottante in stile Apple: la barra è un materiale traslucido sotto
- * cui il contenuto scorre, con una sfumatura al bordo al posto della linea
- * netta (scroll edge effect).
- */
-/*
- * Il materiale deve reggersi sul colore, non sul blur.
+ * Vetro della barra flottante.
  *
- * Con un fondo poco denso (era 72%) l'aspetto dipendeva quasi tutto da
- * `backdrop-filter`, ed è lì che i due motori divergono: WebKit sfoca in modo
- * molto più denso e "latteo" di Blink, e `saturate` amplifica lo scarto. Il
- * risultato era una barra che su Safari sembrava piena e su Chrome Android
- * trasparente, a parità di CSS. A 85% il colore fa il lavoro e il blur è la
- * rifinitura: resta la profondità, sparisce quasi tutta la differenza.
- *
- * `in srgb` e non `in oklab`: mescolare con `transparent` — che è nero con
- * alpha 0 — dipende da come il motore premoltiplica, e in srgb è implementato
- * in modo molto più uniforme.
- */
-@utility materiale {
-  background-color: color-mix(in srgb, var(--color-card) 85%, transparent);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-}
-
-/*
- * Vetro della barra flottante. È `materiale` spinto: si vede attraverso.
- *
- * `materiale` sta all'85% di card perché è una superficie larga quanto lo
- * schermo, dove il divario di blur fra WebKit e Blink si nota (608f2ed). Qui
- * la superficie è una pillola piccola: si può scendere al 62% e lasciare che
- * sia il blur a fare il lavoro, che è la condizione perché si legga come vetro
- * invece che come plastica bianca.
+ * Su una superficie larga quanto lo schermo un fondo all'85% di card serve a
+ * tenere allineati WebKit e Blink, che sfocano in modo diverso (608f2ed); su
+ * una pillola piccola come questa lo scarto non si legge, quindi si scende al
+ * 62% e si lascia che sia il blur a fare il lavoro, condizione perché si
+ * legga come vetro invece che come plastica bianca.
  *
  * Le tre ombre interne sono la luce sul bordo, non decorazione: filo chiaro in
  * alto (la luce che entra), filo scuro in basso (lo spessore del vetro), alone
@@ -475,6 +434,20 @@
   }
 }
 
+/*
+ * `data-leggero` lo mette `BottomNav` quando `useMotoRidotto` rileva un device
+ * debole (RAM bassa) o `prefers-reduced-motion`: la catena di filtri SVG sopra
+ * (feTurbulence + feDisplacementMap, solo Blink/Android) è il costo maggiore
+ * della barra fissa ad ogni cambio di rotta, quindi qui si torna al semplice
+ * sfondo pieno. Specificità più alta di `.vetro` da sola: vince a prescindere
+ * dall'ordine nel file.
+ */
+.vetro[data-leggero] {
+  background-color: var(--color-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* Il vetro traslucido è un vezzo: se l'utente chiede meno trasparenza sparisce. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vetro {
@@ -486,17 +459,6 @@
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .vetro {
-    background-color: var(--color-card);
-  }
-}
-
-/*
- * Chrome su Android disattiva `backdrop-filter` quando l'accelerazione
- * hardware non è disponibile: senza questo, su quei device la barra resta
- * solo semitrasparente e il contenuto si legge attraverso.
- */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .materiale {
     background-color: var(--color-card);
   }
 }

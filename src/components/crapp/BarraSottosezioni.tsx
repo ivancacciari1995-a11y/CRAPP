@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { proietta } from "@/lib/molla";
+import { useMotoRidotto } from "@/lib/motion";
 
 export type VoceSottosezione = {
   id: string;
@@ -38,7 +39,11 @@ export function BarraSottosezioni({
   const [attiva, setAttiva] = useState(defaultId ?? voci[0]?.id ?? "");
   const direzione = useRef(0);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const ridotto = useReducedMotion();
+  // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
+  // `prefers-reduced-motion`: qui disattiva sia lo swipe orizzontale sia il
+  // blur della barra tab, i due costi maggiori all'ingresso in una pagina con
+  // sottosezioni (Squadra, Campionato, Profilo).
+  const ridotto = useMotoRidotto();
   const indice = Math.max(
     0,
     voci.findIndex((v) => v.id === attiva),
@@ -69,7 +74,8 @@ export function BarraSottosezioni({
       <div
         className={cn(
           "min-w-0 max-w-full border-b border-border bg-background",
-          !sottolineatura && "bg-background/80 pt-3 backdrop-blur-md",
+          !sottolineatura &&
+            (ridotto ? "bg-background pt-3" : "bg-background/80 pt-3 backdrop-blur-md"),
         )}
       >
         {/* Solo la barra tab può scrollare in orizzontale: non allarga il layout pagina. */}
@@ -136,7 +142,9 @@ export function BarraSottosezioni({
           key={voce.id}
           role="tabpanel"
           aria-label={voce.label}
-          drag="x"
+          // Sui device deboli lo swipe orizzontale (pointer listener + hit-testing
+          // ad ogni frame) resta disattivato: si cambia tab solo toccando la barra.
+          drag={ridotto ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.12}
           dragMomentum={false}
