@@ -136,6 +136,83 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
   assert.equal(o2Settembre.scadenza, "2026-09-30", "scadenza o2 cambia con il mese iniettato");
 }
 
+// --- o1/o2: rosa vuota, filtro sui tipi di evento, aggregazione su più eventi ---
+{
+  const evetoAgostoSingolo: ContestoObiettivi = {
+    eventi: [evento("rv1", "2026-08-10", "allenamento")],
+    presenze: { rv1: { g1: "presente" } },
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra([], evetoAgostoSingolo, OGGI_AGOSTO), "o1").valore,
+    0,
+    "rosa vuota: 0%, non divide per zero (o1)",
+  );
+  assert.equal(
+    trova(obiettiviSquadra([], evetoAgostoSingolo, OGGI_AGOSTO), "o2").valore,
+    0,
+    "rosa vuota: 0%, non divide per zero (o2)",
+  );
+
+  // o1 conta solo partita+allenamento: se "evento"/"compleanno" trapelassero nel calcolo,
+  // il risultato scenderebbe dal 100% atteso (nessuno "presente" su quei due).
+  const filtriTipo: ContestoObiettivi = {
+    eventi: [
+      evento("ft-partita", "2026-08-05", "partita"),
+      evento("ft-allenamento", "2026-08-06", "allenamento"),
+      evento("ft-evento", "2026-08-07", "evento"),
+      evento("ft-compleanno", "2026-08-08", "compleanno"),
+    ],
+    presenze: {
+      "ft-partita": Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])),
+      "ft-allenamento": Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])),
+      "ft-evento": Object.fromEntries(giocatori.map((g) => [g.id, "assente" as const])),
+      "ft-compleanno": {},
+    },
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, filtriTipo, OGGI_AGOSTO), "o1").valore,
+    100,
+    "o1 conta le partite come gli allenamenti, ignora eventi sociali e compleanni",
+  );
+
+  // Aggregazione su più eventi dello stesso mese: 100% su uno, 0% sull'altro = 50% aggregato.
+  const dueEventi: ContestoObiettivi = {
+    eventi: [
+      evento("de1", "2026-08-03", "allenamento"),
+      evento("de2", "2026-08-17", "allenamento"),
+    ],
+    presenze: {
+      de1: Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])),
+      de2: Object.fromEntries(giocatori.map((g) => [g.id, "assente" as const])),
+    },
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, dueEventi, OGGI_AGOSTO), "o1").valore,
+    50,
+    "o1 aggrega su più eventi dello stesso mese, non solo sull'ultimo",
+  );
+
+  const dueEventiRisposte: ContestoObiettivi = {
+    eventi: [
+      evento("dr1", "2026-08-03", "allenamento"),
+      evento("dr2", "2026-08-17", "partita"),
+    ],
+    presenze: {
+      dr1: Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])),
+      dr2: {},
+    },
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, dueEventiRisposte, OGGI_AGOSTO), "o2").valore,
+    50,
+    "o2 aggrega le risposte su più eventi, non solo sull'ultimo",
+  );
+}
+
 // --- o6: evento di squadra al mese, si azzera come o1 ------------------------
 {
   const OGGI_SETTEMBRE = new Date("2026-09-05T10:00:00Z");
@@ -192,6 +269,31 @@ const pagelle: VotoPagella[] = [
 const conPagelle = obiettiviSquadra(giocatori, { ...contestoVuoto, pagelle });
 assert.equal(trova(conPagelle, "o12").valore, 7.5);
 assert.equal(trova(conPagelle, "o13").valore, 2, "conta i voti compilati");
+
+// La media arrotonda a una cifra decimale, non tronca: 23/3 = 7.666... -> 7.7.
+const pagelleDaArrotondare: VotoPagella[] = [
+  { match_id: "m2", votante_id: "g1", votato_id: "g2", voto: 7 },
+  { match_id: "m2", votante_id: "g2", votato_id: "g1", voto: 7 },
+  { match_id: "m2", votante_id: "g3", votato_id: "g1", voto: 9 },
+];
+assert.equal(
+  trova(obiettiviSquadra(giocatori, { ...contestoVuoto, pagelle: pagelleDaArrotondare }), "o12")
+    .valore,
+  7.7,
+  "media arrotondata a una cifra decimale (23/3 = 7.666... -> 7.7)",
+);
+
+// La media aggrega i voti di più partite insieme, non solo dell'ultima.
+const pagellePiuPartite: VotoPagella[] = [
+  { match_id: "m3", votante_id: "g1", votato_id: "g2", voto: 5 },
+  { match_id: "m4", votante_id: "g1", votato_id: "g2", voto: 9 },
+];
+assert.equal(
+  trova(obiettiviSquadra(giocatori, { ...contestoVuoto, pagelle: pagellePiuPartite }), "o12")
+    .valore,
+  7,
+  "la media aggrega i voti di più partite, non guarda solo una match_id",
+);
 
 // --- progressoObiettivo ------------------------------------------------------
 const o = (valore: number, target: number): ObiettivoSquadra => ({

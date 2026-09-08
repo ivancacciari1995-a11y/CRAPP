@@ -1,7 +1,9 @@
 /**
- * Obiettivi di squadra con scadenza/mese dinamici ("presenze del mese", "evento di squadra al
- * mese" e "tutti rispondono alle convocazioni") end-to-end contro il database locale:
- * `bun test/integration/obiettivi.test.ts`.
+ * Obiettivi di squadra end-to-end contro il database locale: `bun test/integration/obiettivi.test.ts`.
+ * Copre gli obiettivi con scadenza/mese dinamici ("presenze del mese", "evento di squadra al
+ * mese", "tutti rispondono alle convocazioni") e quelli la cui logica dipende da dati scritti
+ * su altre tabelle ("250 presenze complessive" via `contaPresenzeGiocatore()`, "media pagelle
+ * da 7.5" via `pagelle_voti`).
  *
  * I test unitari (`test/unit/obiettivi.test.ts`) verificano `obiettiviSquadra()` come funzione
  * pura, con un `ContestoObiettivi` costruito a mano. Qui invece si scrivono righe vere su
@@ -173,6 +175,103 @@ if (!locale) {
     });
 
     await prova(
+      "o1 aggrega su più eventi reali dello stesso mese, incluse le partite",
+      async () => {
+        // Isolati dal resto del database (come per o2/o7/o12): l'evento "e1" di un test
+        // precedente resta nello stesso mese e andrebbe a sporcare l'aggregazione se non
+        // filtrassimo sui soli eventi di questo blocco.
+        const allenamentoId = `${PREFISSO}-o1b-allenamento`;
+        const partitaId = `${PREFISSO}-o1b-partita`;
+        for (const [id, tipo, data] of [
+          [allenamentoId, "allenamento", `${MESE_TEST}-12`],
+          [partitaId, "partita", `${MESE_TEST}-19`],
+        ] as const) {
+          const inserito = await rest("eventi_app", {
+            method: "POST",
+            body: JSON.stringify({ id, tipo, titolo: `Test obiettivi o1 (${tipo})`, data }),
+          });
+          if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+        }
+
+        // Tutta la rosa presente all'allenamento, nessuno alla partita: 50% aggregato sui due.
+        const risposte = [
+          ...giocatori.map((g) => ({ evento_id: allenamentoId, giocatore_id: g.id, stato: "presente" })),
+          ...giocatori.map((g) => ({ evento_id: partitaId, giocatore_id: g.id, stato: "assente" })),
+        ];
+        const scritte = await rest("risposte_presenze", {
+          method: "POST",
+          body: JSON.stringify(risposte),
+        });
+        if (!scritte.ok) throw new Error(`inserimento presenze fallito: ${await scritte.text()}`);
+
+        const eventiReali = (await leggiEventi()).filter(
+          (e) => e.id === allenamentoId || e.id === partitaId,
+        );
+        const presenzeReali = {
+          ...(await leggiPresenze(allenamentoId)),
+          ...(await leggiPresenze(partitaId)),
+        };
+
+        const o1 = obiettiviSquadra(
+          giocatori,
+          { eventi: eventiReali, presenze: presenzeReali, pagelle: [] },
+          OGGI,
+        ).find((o) => o.id === "o1")!;
+        assert.equal(
+          o1.valore,
+          50,
+          "le partite contano quanto gli allenamenti: 100% + 0% su due eventi reali = 50%",
+        );
+      },
+    );
+
+    await prova("o2 aggrega le risposte su più eventi reali, non solo su uno", async () => {
+      const eventoA = `${PREFISSO}-o2b-a`;
+      const eventoB = `${PREFISSO}-o2b-b`;
+      for (const [id, data] of [
+        [eventoA, `${MESE_TEST}-02`],
+        [eventoB, `${MESE_TEST}-22`],
+      ] as const) {
+        const inserito = await rest("eventi_app", {
+          method: "POST",
+          body: JSON.stringify({
+            id,
+            tipo: "allenamento",
+            titolo: "Test obiettivi o2 aggregato",
+            data,
+          }),
+        });
+        if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+      }
+
+      // Tutti rispondono al primo evento, nessuno al secondo: 50% aggregato sui due.
+      const risposteA = giocatori.map((g) => ({
+        evento_id: eventoA,
+        giocatore_id: g.id,
+        stato: "presente",
+      }));
+      const scritte = await rest("risposte_presenze", {
+        method: "POST",
+        body: JSON.stringify(risposteA),
+      });
+      if (!scritte.ok) throw new Error(`inserimento presenze fallito: ${await scritte.text()}`);
+
+      const eventiReali = (await leggiEventi()).filter((e) => e.id === eventoA || e.id === eventoB);
+      const presenzeReali = await leggiPresenze(eventoA);
+
+      const o2 = obiettiviSquadra(
+        giocatori,
+        { eventi: eventiReali, presenze: presenzeReali, pagelle: [] },
+        OGGI,
+      ).find((o) => o.id === "o2")!;
+      assert.equal(
+        o2.valore,
+        50,
+        "risposte piene su un evento, zero sull'altro = 50% aggregato sui due",
+      );
+    });
+
+    await prova(
       "o6 legge dal database l'evento sociale del mese, azzerandosi come o1",
       async () => {
         const pizzataId = `${PREFISSO}-pizzata`;
@@ -339,9 +438,40 @@ if (!locale) {
         );
       },
     );
+
+    await prova("o12 media pagelle vere lette da pagelle_voti", async () => {
+      const matchId = `${PREFISSO}-o12-m1`;
+      const [g1, g2, g3] = giocatori;
+      // 7 + 7 + 9 = 23 -> media 7.666... arrotondata a 7.7. Vincoli reali della tabella:
+      // niente autovoto (pagelle_no_autovoto), voto 1-10 (pagelle_voto_range).
+      const voti = [
+        { match_id: matchId, votante_id: g1!.id, votato_id: g2!.id, voto: 7 },
+        { match_id: matchId, votante_id: g2!.id, votato_id: g1!.id, voto: 7 },
+        { match_id: matchId, votante_id: g3!.id, votato_id: g1!.id, voto: 9 },
+      ];
+      const inseriti = await rest("pagelle_voti", { method: "POST", body: JSON.stringify(voti) });
+      if (!inseriti.ok) throw new Error(`inserimento pagelle fallito: ${await inseriti.text()}`);
+
+      const lette = await rest(
+        `pagelle_voti?match_id=eq.${matchId}&select=match_id,votante_id,votato_id,voto`,
+      );
+      const pagelleReali = (await lette.json()) as Array<{
+        match_id: string;
+        votante_id: string;
+        votato_id: string;
+        voto: number;
+      }>;
+      assert.equal(pagelleReali.length, 3, "i tre voti sono stati scritti e riletti dal database");
+
+      const o12 = obiettiviSquadra(giocatori, { eventi: [], presenze: {}, pagelle: pagelleReali }).find(
+        (o) => o.id === "o12",
+      )!;
+      assert.equal(o12.valore, 7.7, "media dei voti reali, arrotondata a una cifra decimale");
+    });
   } finally {
     await rest(`risposte_presenze?evento_id=like.${PREFISSO}*`, { method: "DELETE" });
     await rest(`eventi_app?id=like.${PREFISSO}*`, { method: "DELETE" });
+    await rest(`pagelle_voti?match_id=like.${PREFISSO}*`, { method: "DELETE" });
     riepilogo("obiettivi");
   }
 }
