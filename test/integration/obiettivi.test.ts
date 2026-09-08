@@ -3,7 +3,7 @@
  * Copre gli obiettivi con scadenza/mese dinamici ("presenze del mese", "evento di squadra al
  * mese", "tutti rispondono alle convocazioni") e quelli la cui logica dipende da dati scritti
  * su altre tabelle ("250 presenze complessive" via `contaPresenzeGiocatore()`, "media pagelle
- * da 7.5" via `pagelle_voti`).
+ * da 7.5" e "200 pagelle compilate" via `pagelle_voti`).
  *
  * I test unitari (`test/unit/obiettivi.test.ts`) verificano `obiettiviSquadra()` come funzione
  * pura, con un `ContestoObiettivi` costruito a mano. Qui invece si scrivono righe vere su
@@ -439,7 +439,7 @@ if (!locale) {
       },
     );
 
-    await prova("o12 media pagelle vere lette da pagelle_voti", async () => {
+    await prova("o12/o13 media e conteggio pagelle vere lette da pagelle_voti", async () => {
       const matchId = `${PREFISSO}-o12-m1`;
       const [g1, g2, g3] = giocatori;
       // 7 + 7 + 9 = 23 -> media 7.666... arrotondata a 7.7. Vincoli reali della tabella:
@@ -463,10 +463,21 @@ if (!locale) {
       }>;
       assert.equal(pagelleReali.length, 3, "i tre voti sono stati scritti e riletti dal database");
 
-      const o12 = obiettiviSquadra(giocatori, { eventi: [], presenze: {}, pagelle: pagelleReali }).find(
-        (o) => o.id === "o12",
-      )!;
-      assert.equal(o12.valore, 7.7, "media dei voti reali, arrotondata a una cifra decimale");
+      const obiettivi = obiettiviSquadra(giocatori, {
+        eventi: [],
+        presenze: {},
+        pagelle: pagelleReali,
+      });
+      assert.equal(
+        obiettivi.find((o) => o.id === "o12")!.valore,
+        7.7,
+        "media dei voti reali, arrotondata a una cifra decimale",
+      );
+      assert.equal(
+        obiettivi.find((o) => o.id === "o13")!.valore,
+        3,
+        "conteggio dei voti reali scritti sul database",
+      );
     });
   } finally {
     await rest(`risposte_presenze?evento_id=like.${PREFISSO}*`, { method: "DELETE" });

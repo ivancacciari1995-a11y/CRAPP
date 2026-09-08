@@ -39,6 +39,7 @@ const vuoti = obiettiviSquadra(giocatori, contestoVuoto, OGGI_AGOSTO);
 assert.equal(trova(vuoti, "o1").valore, 0, "nessun evento nel mese: 0%, non NaN");
 assert.equal(trova(vuoti, "o2").valore, 0);
 assert.equal(trova(vuoti, "o12").valore, 0, "nessuna pagella: media 0");
+assert.equal(trova(vuoti, "o13").valore, 0, "nessuna pagella: conteggio 0");
 assert.ok(
   vuoti.every((o) => Number.isFinite(o.valore)),
   "nessun valore NaN o infinito",
@@ -293,6 +294,12 @@ assert.equal(
     .valore,
   7,
   "la media aggrega i voti di più partite, non guarda solo una match_id",
+);
+assert.equal(
+  trova(obiettiviSquadra(giocatori, { ...contestoVuoto, pagelle: pagellePiuPartite }), "o13")
+    .valore,
+  2,
+  "il conteggio somma i voti di più match_id, non solo dell'ultima",
 );
 
 // --- progressoObiettivo ------------------------------------------------------
