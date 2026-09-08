@@ -181,15 +181,41 @@ L'unica eccezione confermata è `CelebrazioneBadge.tsx`, che usa realmente le st
 complete tramite `useNotificheSmart` — montato globalmente in `__root.tsx`, quindi resta il
 costo di base più alto rimasto in giro, ma non è downgradabile: le servono davvero.
 
+## 13. [x] Nessuna rotta precaricava il proprio chunk — APPLICATA
+
+`router.tsx` non impostava `defaultPreload`, e nessun `<Link>` aveva `preload`: il chunk JS di
+una pagina (Squadra/Calendario/Campionato: 8-12KB ciascuno) iniziava a scaricarsi solo a tap
+completato, mai prima. Per quanto si ottimizzi il lavoro interno di una pagina, resta comunque
+un intervallo strutturale tra "tocco la tab" e "vedo il contenuto".
+
+Fix: i 4 link di `BottomNav.tsx` hanno ora `preload="intent"` — il chunk parte già al
+`touchstart`, prima che il tap sia completo. Scelto `intent` e non `render` (precaricamento
+immediato appena la barra compare) perché la `BottomNav` è sempre visibile: `render`
+aggiungerebbe aggressività senza un vantaggio reale rispetto a `intent`.
+
+Nota: precarica solo il **codice** della pagina, non i dati — nessuna rotta usa `loader` per
+prefetchare le query (`useEventi`, `useRispostePresenze`, …), quindi nessun costo aggiuntivo di
+letture verso Supabase (coerente con il commento "risparmio Cloud" in `router.tsx`). Se restasse
+un flash di caricamento dati visibile, il passo successivo sarebbe wireare un `loader` per
+rotta — cambiamento più strutturale, da valutare solo se necessario.
+
+**Considerato e scartato**: caricare gli eventi del calendario mese per mese invece che tutti
+insieme. I 75 eventi sono un payload piccolo (il fetch non è oggi un problema misurabile),
+"Prossimi eventi" e "Compleanni" leggono oltre il mese corrente (rispettivamente in avanti nel
+tempo e su tutto l'anno) quindi richiederebbero comunque più mesi in anticipo, e il cambio mese
+— oggi istantaneo perché filtra dati già in memoria — diventerebbe la parte più lenta invece che
+la più fluida.
+
 ## Note
 
 - `useMotoRidotto` (`lib/motion.ts`) è ora l'heuristic condiviso di "device debole" usato in
   `BottomNav.tsx`, `BarraSottosezioni.tsx` e `calendario.tsx` (punti 2, 3, 6). Se si riprende il
   punto 4 (coriandoli), conviene usare lo stesso hook invece di un check separato.
-- Applicati: 1, 2, 3, 6, 7, 8, 9, 10, 11, 12. Restano da discutere/prioritizzare: 4 (coriandoli
-  su device medi), 5 (virtualizzazione liste lunghe), e `CelebrazioneBadge.tsx` (usa
+- Applicati: 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13. Restano da discutere/prioritizzare: 4
+  (coriandoli su device medi), 5 (virtualizzazione liste lunghe), `CelebrazioneBadge.tsx` (usa
   legittimamente le statistiche complete ma è montato su ogni pagina — non downgradabile,
-  eventualmente da rivedere con un intervento diverso, es. memoizzazione più aggressiva).
+  eventualmente da rivedere con un intervento diverso, es. memoizzazione più aggressiva), e un
+  eventuale `loader` per rotta per prefetchare anche i dati (non solo il codice, punto 13).
 - Pattern ricorrente (punti 9, 10, 11): `useRosa()`/`useIo()`/`useGiocatoreCorrente()` sono
   comodi ma calcolano *tutte* le statistiche della squadra; usarli solo per identità/anagrafica
   (id, nome, nascita, iniziali) costa 5-6 hook e un `useMemo` su tutta la rosa inutilmente, e il

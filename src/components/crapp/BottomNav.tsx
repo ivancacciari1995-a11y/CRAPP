@@ -77,6 +77,10 @@ export function BottomNav() {
           <Link
             key={to}
             to={to}
+            // Il chunk della pagina parte già al tocco (touchstart), non al tap completo:
+            // le 4 rotte sono piccole (8-12KB), nessun costo aggiuntivo di query (nessuna
+            // rotta usa `loader`, quindi non prefetcha dati, solo codice).
+            preload="intent"
             activeOptions={{ exact: to === "/" }}
             activeProps={{ "aria-current": "page" }}
             // Lo stato attivo non è solo colore: è la capsula piena sotto la
