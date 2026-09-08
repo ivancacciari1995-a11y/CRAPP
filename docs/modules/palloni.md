@@ -33,11 +33,12 @@ compaiono.
 - `useAssegnaTurno()` (`palloni.ts`) conferma una proposta o riassegna manualmente, con
   upsert su `evento_id`.
 - Il conteggio "quante volte hai portato i palloni" mostrato nel profilo e nei badge è
-  ricalcolato a runtime da `conteggioTurni()` su turni salvati **più proposte non ancora
-  confermate** (partite/eventi) — non è uno storico in tabella dedicata. Conta solo gli
-  eventi già passati (`e.data < oggi`, stesso criterio delle presenze): un turno assegnato
-  in anticipo per un allenamento futuro non è ancora "portato", quindi non sale finché quel
-  giorno non arriva.
+  ricalcolato a runtime da `conteggioTurni()` sui **soli turni confermati** (`turniSalvati`
+  in `rosa.ts`) — non è uno storico in tabella dedicata, ma non include le proposte
+  automatiche di `completaTurni()` (quelle restano solo per la UI di rotazione,
+  `TurnoPalloni.tsx`/`PromemoriaPalloni.tsx`). Conta solo gli eventi già passati (`e.data <
+  oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un allenamento
+  futuro non è ancora "portato", quindi non sale finché quel giorno non arriva.
 - `TurnoPalloni.tsx` mostra/assegna il turno sulla card di un evento; `PromemoriaPalloni.tsx`
   è il banner in Home per il giocatore di turno.
 
@@ -62,8 +63,6 @@ nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
 - **L'invio è manuale**: nessun cron manda il promemoria da solo, se l'admin non preme il
   pulsante non parte niente (DD-025). `destinatariPromemoriaPalloni()` — la versione "chi è di
   turno oggi" — resta in `palloni-core.ts` ma non la chiama più nessuno.
-- Il conteggio dei turni include anche le proposte non confermate: badge e statistiche
-  possono contare turni mai effettivamente convalidati da nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
   "assente" o "infortunato" per quell'evento.
 

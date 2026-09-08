@@ -36,13 +36,12 @@ badge assegnati per voto dai compagni.
 - **Badge Sherpa dei palloni** (`palloni`, in `badgeDefs`): `g.palloni` non è un contatore
   incrementato a ogni evento, ma ricalcolato da `conteggioTurni()` (`palloni-core.ts`) su
   `Giocatore.palloni` (`rosa.ts`) — meccanismo di turni/rotazione descritto per intero in
-  [palloni.md](palloni.md), non ripetuto qui. Un punto rilevante per il badge, **non ovvio**:
-  il conteggio include anche le proposte automatiche di `completaTurni()` **non ancora
-  confermate** da nessuno (solo per partite/eventi, mai per allenamenti), non solo i turni
-  salvati esplicitamente in `turni_palloni` — un giocatore può ricevere credito per un turno
-  che non ha mai confermato di aver fatto, semplicemente perché l'algoritmo di rotazione lo ha
-  proposto per un evento ormai passato. Conta solo per eventi già trascorsi (`e.data < oggi`,
-  stesso criterio delle presenze).
+  [palloni.md](palloni.md), non ripetuto qui. `rosa.ts` passa a `conteggioTurni()` **solo i
+  turni confermati** (`turniSalvati` da `useTurniPalloni()`), non l'output di
+  `completaTurni()`: le proposte automatiche di rotazione (usate altrove, per la UI di
+  `TurnoPalloni.tsx`) non contano per il badge, che premia solo chi ha davvero confermato di
+  aver portato i palloni. Conta solo per eventi già trascorsi (`e.data < oggi`, stesso
+  criterio delle presenze).
 - **Badge Pagellone** (`pagella`, in `badgeDefs`): a differenza degli altri badge da
   contatore, richiede un numero minimo di voti (`VOTI_MINIMI_PAGELLA = 5`, `badges.ts`) prima
   che `g.mediaVoto` conti — sotto soglia `valore(g)` è forzato a `0` (badge bloccato), anche
@@ -91,7 +90,7 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | --- | --- | --- | --- |
 | `mvp` | MVP | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra) | 1 / 3 / 5 |
 | `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
-| `palloni` | Sherpa dei palloni | quante volte hai fatto (o ti è stato proposto, vedi sopra) il turno palloni (`g.palloni`) | 3 / 6 / 10 |
+| `palloni` | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano | 3 / 6 / 10 |
 | `presenze` | Presenza fissa | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`) | 5 / 15 / 30 |
 | `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì | 3 / 6 / 10 |
 | `serie-conferme` | Risposta lampo | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`) | 3 / 8 / 15 |
@@ -205,22 +204,22 @@ dopo l'analisi che ha trovato il gap "un voto solo sblocca il badge"):
     tenga il badge bloccato sotto soglia, lo sblocchi al voto minimo con il grado giusto, e
     applichi le soglie normali sopra soglia.
 
-**Badge Sherpa dei palloni — pipeline end-to-end e proposte non confermate** (analisi
-dedicata: nessun bug trovato, ma il comportamento "le proposte contano" — già in
-`palloni.md` — non era mai stato dimostrato con dati veri):
+**Badge Sherpa dei palloni — pipeline end-to-end, ora senza contare le proposte non
+confermate** (analisi dedicata: trovato e sistemato il gap "le proposte contano", che
+gonfiava il badge di turni mai confermati da nessuno — vedi "Problemi noti da sistemare"):
 - Unit: `badges.test.ts:93-104` — soglie 3/6/10 (confine incluso, oltre l'oro resta oro) +
   `palloni-core.test.ts`, già completo prima di questa sessione (`completaTurni()`,
   `conteggioTurni()`, rotazione bilanciata su un giro completo di partite, allenamenti mai
   proposti in automatico, turno di un giocatore non più in rosa che non rompe il conteggio).
 - Integration (`npx supabase start` richiesto):
   - `scritture.test.ts` — un turno resta uno per evento (l'upsert sostituisce, non aggiunge).
-  - `palloni-badge.test.ts` (nuovo) — end-to-end reale: scrive eventi e turni **solo
-    parzialmente confermati** su `eventi_app`/`turni_palloni`, rilegge via REST come fa
-    `fetchTurni()`/`daRiga()`, passa i dati per `completaTurni()` → `conteggioTurni()` fino a
-    `statoBadge()`: dimostra che un evento passato senza turno confermato riceve comunque una
-    proposta automatica che **conta per il badge di chi viene scelto**, anche se non ha mai
-    confermato nulla; verifica anche che un evento futuro non conti, pur avendo già
-    un'assegnazione.
+  - `palloni-badge.test.ts` — end-to-end reale: scrive eventi e turni **solo parzialmente
+    confermati** su `eventi_app`/`turni_palloni`, rilegge via REST come fa `fetchTurni()`/
+    `daRiga()` e passa `turniSalvati` (solo confermati, mai l'output di `completaTurni()`) a
+    `conteggioTurni()` fino a `statoBadge()`: dimostra che un evento passato senza turno
+    confermato **non conta per nessuno**, anche se un algoritmo di rotazione (usato altrove
+    per la UI) lo proporrebbe automaticamente; verifica anche che un evento futuro non conti,
+    pur avendo già una conferma.
 
 **Badge Presenza fissa — pipeline end-to-end** (analisi dedicata: nessun bug trovato; a
 differenza di MVP/pagelle/badge social, per questo badge **non serve** l'estensione RLS di
@@ -318,13 +317,18 @@ Trovati in audit, nessuno bloccante (nessun bug nella logica di calcolo):
   risposte precedenti a `m9`: su quelle righe la serie è un'approssimazione.
 - Nessuno storico dei badge sbloccati: se cambiano le soglie o i dati sorgente, un badge già
   "ottenuto" può sparire o apparire retroattivamente.
-- **Sherpa dei palloni conta anche le proposte non confermate**: `g.palloni` include i turni
-  che `completaTurni()` propone in automatico per un evento passato senza assegnazione
-  esplicita, non solo quelli confermati in `turni_palloni` — comportamento voluto (documentato
-  in [palloni.md](palloni.md)), dimostrato con dati veri in `palloni-badge.test.ts`, ma non
-  intuitivo: un giocatore può vedere avanzare il badge senza aver mai cliccato nulla.
 - Notifiche "nuovo badge" solo locali al dispositivo (localStorage), si ripetono cambiando
   browser o dispositivo.
+
+**Risolto (analisi del badge Sherpa dei palloni)**: prima `g.palloni` (`rosa.ts`) includeva
+anche i turni che `completaTurni()` propone in automatico per un evento passato senza
+assegnazione esplicita, non solo quelli confermati in `turni_palloni` — un giocatore poteva
+vedere avanzare il badge senza aver mai confermato nulla, semplicemente perché l'algoritmo di
+rotazione l'aveva proposto. Ora `rosa.ts` passa a `conteggioTurni()` solo `turniSalvati` (i
+turni confermati), non l'output di `completaTurni()`: quest'ultimo resta in uso solo per la
+UI di rotazione (`TurnoPalloni.tsx`, `PromemoriaPalloni.tsx`), mai per il conteggio del badge.
+Dimostrato con dati veri in `palloni-badge.test.ts`. [palloni.md](palloni.md) aggiornato di
+conseguenza.
 
 **Risolto (M13, `20260908120000_m13_convocati_e_pagelle_chiuse.sql`)**: prima la policy di M11
 garantiva solo che il voto fosse firmato con il proprio `votante_id`, non che il votato (né il

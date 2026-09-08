@@ -61,7 +61,7 @@ export function useRosa(): Giocatore[] {
   const voti = useVotiMvp();
   const { voti: pagelle } = usePagelle();
   const { righe: cacche } = useCacche();
-  const { turni } = useTurniPalloni();
+  const { salvati: turniSalvati } = useTurniPalloni();
   const { infortuni, ritardi } = useInfortuniERitardi();
   const { eventi } = useEventi();
   const { presenze: mappaPresenze, tempi } = useRispostePresenze();
@@ -71,7 +71,10 @@ export function useRosa(): Giocatore[] {
   return useMemo(() => {
     const medie = mediePagelle(pagelle);
     const statCacche = statisticheCacche(cacche);
-    const palloni = conteggioTurni(turni, eventi);
+    // Solo i turni confermati, non le proposte automatiche di completaTurni(): il badge deve
+    // premiare chi ha davvero portato i palloni, non chi l'algoritmo di rotazione ha
+    // scelto per un evento passato senza che nessuno confermasse nulla.
+    const palloni = conteggioTurni(turniSalvati, eventi);
     const mvpVinti = mvpVintiPerGiocatore(votiMvp);
 
     return squadra
@@ -98,7 +101,18 @@ export function useRosa(): Giocatore[] {
         infortuni: infortuni[g.id] ?? 0,
         ritardi: ritardi[g.id] ?? 0,
       }));
-  }, [squadra, votiMvp, pagelle, cacche, turni, infortuni, ritardi, eventi, mappaPresenze, tempi]);
+  }, [
+    squadra,
+    votiMvp,
+    pagelle,
+    cacche,
+    turniSalvati,
+    infortuni,
+    ritardi,
+    eventi,
+    mappaPresenze,
+    tempi,
+  ]);
 }
 
 /** Il giocatore selezionato sul dispositivo, con le statistiche complete. */
