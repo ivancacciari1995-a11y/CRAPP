@@ -93,7 +93,7 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
 | `palloni` | Sherpa dei palloni | quante volte hai fatto (o ti è stato proposto, vedi sopra) il turno palloni (`g.palloni`) | 3 / 6 / 10 |
 | `presenze` | Presenza fissa | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`) | 5 / 15 / 30 |
-| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti, senza saltarne uno (`g.serieAllenamenti`) | 3 / 6 / 10 |
+| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì | 3 / 6 / 10 |
 | `serie-conferme` | Risposta lampo | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`) | 3 / 8 / 15 |
 
 ### Badge segreti (booleani, nascosti finché non sbloccati)
@@ -153,14 +153,19 @@ categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
   (5/6 → 83%). Pipeline end-to-end sotto, come `mvp`/`pagella`.
 - `presenze`: soglie 5/15/30 testate esplicitamente (confine incluso, oltre l'oro resta oro,
   `badges.test.ts:108-116`). Pipeline end-to-end sotto, come `mvp`/`pagella`/`palloni`.
-- `serie-allenamenti`, `serie-conferme`: stessa funzione di soglia già testata a fondo sugli
-  altri badge normali, coperti dagli invarianti generali (`badges.test.ts:154-159`: soglie
-  crescenti, testi presenti, id unici) e da `collezioneBadge`/`prossimoTraguardo` con valori
-  al massimo (`:119-144`).
-- Nessun integration dedicato per questi 2: non toccano il database, le statistiche sorgente
-  (`serie.test.ts`) sono già coperte nel modulo Serie. `mvp`, `pagella`, `palloni` e
-  `presenze` fanno eccezione (sotto) perché la loro fonte passa da una tabella di voto/turni/
-  presenze, non da un contatore già calcolato altrove.
+- `serie-allenamenti`: soglie 3/6/10 testate esplicitamente (confine incluso, oltre l'oro
+  resta oro, `badges.test.ts:118-126`). Pipeline end-to-end sotto, come gli altri badge da
+  tabella.
+- `serie-conferme`: stessa funzione di soglia già testata a fondo sugli altri badge normali,
+  coperta dagli invarianti generali (`badges.test.ts:154-159`: soglie crescenti, testi
+  presenti, id unici) e da `collezioneBadge`/`prossimoTraguardo` con valori al massimo
+  (`:119-144`). Nessun integration dedicato: non tocca direttamente il database, e la sua
+  fonte (`serieConferme()`) ha comunque il limite noto sui dati precedenti a `m9` descritto
+  sotto in "Limiti noti" — un test end-to-end aggiuntivo non lo cambierebbe.
+
+`mvp`, `pagella`, `palloni`, `presenze` e `serie-allenamenti` sono le eccezioni con
+integration dedicato (sotto) perché la loro fonte passa da una tabella di voto/turni/presenze
+letta e ricalcolata dal vivo, non da un contatore già pronto altrove.
 
 **Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
 (`badges.test.ts:77-109`): `s-tiebreak` (mediaVoto 7.9 non basta, serve 8), `s-mai-forfait`
@@ -236,6 +241,24 @@ M13 — vedi sotto):
     MVP/pagelle/badge social, qui non serve una policy RLS aggiuntiva: il filtro è nella
     funzione pura che il badge consuma, non solo in UI.
 
+**Badge Sempre in palestra — pipeline end-to-end** (analisi dedicata: nessun bug trovato).
+Stessa fonte dati di `presenze` (`risposte_presenze`) ma logica diversa: non un totale, una
+**serie consecutiva** che un buco azzera e un infortunio congela. Anche qui, come per
+`presenze`, non serve nessuna estensione RLS: il filtro sui convocati è già nella funzione
+pura.
+- Unit: `badges.test.ts:118-126` — soglie 3/6/10 (confine incluso, oltre l'oro resta oro) +
+  `presenze.test.ts`, già completo prima di questa sessione su `serieConsecutiva()` (buco che
+  azzera, infortunio che congela invece di azzerare, nessuna risposta vale come buco,
+  convocati che non spezzano la serie di chi non era coinvolto).
+- Integration (`npx supabase start` richiesto):
+  - `serie-allenamenti-badge.test.ts` (nuovo) — end-to-end reale: scrive allenamenti e
+    risposte su `eventi_app`/`risposte_presenze`, rilegge via REST e verifica che
+    `statoBadge()` attraversi bronzo/argento/oro con presenze consecutive vere, che
+    un'assenza dopo 10 presenze di fila azzeri tutto (torna a nessun grado), e — separatamente
+    — che un infortunio **non** azzeri la serie ma la lasci congelata (3 presenze vere,
+    un infortunio nel mezzo saltato dal conteggio, poi ancora presente: la serie resta a 3,
+    non riparte da 1).
+
 **Badge social** — nessuna delle 5 categorie ha logica *propria* nel codice: l'id è solo una
 chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
 identici per tutte (`badge-social.ts:107-158`). Testare a fondo 2-3 categorie copre l'intero
@@ -255,7 +278,7 @@ meccanismo:
 | 2 | `pagella` | normale | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
 | 3 | `palloni` | normale | ✅ | ✅ (`scritture`, `palloni-badge`) |
 | 4 | `presenze` | normale | ✅ | ✅ (`obiettivi`, `presenze-badge`) |
-| 5 | `serie-allenamenti` | normale | ✅ (limite noto sotto) | non necessario |
+| 5 | `serie-allenamenti` | normale | ✅ | ✅ (`serie-allenamenti-badge`) |
 | 6 | `serie-conferme` | normale | ✅ (limite noto sotto) | non necessario |
 | 7 | `s-tiebreak` | segreto | ✅ | non necessario |
 | 8 | `s-mai-forfait` | segreto | ✅ | non necessario |
