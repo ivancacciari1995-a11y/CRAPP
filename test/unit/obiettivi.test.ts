@@ -127,6 +127,13 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
   const o1Settembre = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_SETTEMBRE), "o1");
   assert.ok(o1Settembre.titolo.includes("settembre"), "titolo o1 riflette il mese iniettato (settembre)");
   assert.equal(o1Settembre.scadenza, "2026-09-30", "scadenza = ultimo giorno di settembre (30 gg)");
+
+  // La scadenza di o2 ("Tutti rispondono alle convocazioni") era una data fissa
+  // ("2026-09-30"): ora segue lo stesso mese dinamico di o1.
+  const o2Agosto = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_AGOSTO), "o2");
+  assert.equal(o2Agosto.scadenza, "2026-08-31", "scadenza o2 = ultimo giorno del mese iniettato");
+  const o2Settembre = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_SETTEMBRE), "o2");
+  assert.equal(o2Settembre.scadenza, "2026-09-30", "scadenza o2 cambia con il mese iniettato");
 }
 
 // --- o6: evento di squadra al mese, si azzera come o1 ------------------------

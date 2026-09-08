@@ -59,8 +59,14 @@ smart (`notifiche-smart.ts`).
 "90% presenze del mese" e "1 evento di squadra al mese" si azzerano automaticamente a ogni
 cambio mese: il mese di riferimento è calcolato dalla data corrente (fuso Europe/Rome), non più
 una costante fissa. Per il primo, titolo ("90% di presenze ad agosto" / "a settembre" / ...) e
-scadenza (ultimo giorno del mese) seguono di conseguenza. Per i test, `obiettiviSquadra`/
-`obiettiviOrdinati` accettano un terzo parametro opzionale `oggi: Date` per iniettare una data
-deterministica. Coperti sia da unit test (`test/unit/obiettivi.test.ts`, funzione pura) sia da
-un integration test end-to-end (`test/integration/obiettivi.test.ts`, scrive/rilegge righe vere
-su `eventi_app` e `risposte_presenze` sullo stack Supabase locale).
+scadenza (ultimo giorno del mese) seguono di conseguenza.
+
+"Tutti rispondono alle convocazioni" non si azzera (aggrega su tutti gli eventi in programma,
+non solo quelli del mese corrente), ma la sua `scadenza` mostrata in interfaccia era anch'essa
+una data fissa (`"2026-09-30"`): ora è anch'essa l'ultimo giorno del mese corrente.
+
+Per i test, `obiettiviSquadra`/`obiettiviOrdinati` accettano un terzo parametro opzionale
+`oggi: Date` per iniettare una data deterministica. Coperti sia da unit test
+(`test/unit/obiettivi.test.ts`, funzione pura) sia da un integration test end-to-end
+(`test/integration/obiettivi.test.ts`, scrive/rilegge righe vere su `eventi_app` e
+`risposte_presenze` sullo stack Supabase locale).

@@ -1,6 +1,7 @@
 /**
- * Obiettivi mensili di squadra ("presenze del mese" e "evento di squadra al mese")
- * end-to-end contro il database locale: `bun test/integration/obiettivi.test.ts`.
+ * Obiettivi di squadra con scadenza/mese dinamici ("presenze del mese", "evento di squadra al
+ * mese" e "tutti rispondono alle convocazioni") end-to-end contro il database locale:
+ * `bun test/integration/obiettivi.test.ts`.
  *
  * I test unitari (`test/unit/obiettivi.test.ts`) verificano `obiettiviSquadra()` come funzione
  * pura, con un `ContestoObiettivi` costruito a mano. Qui invece si scrivono righe vere su
@@ -205,6 +206,77 @@ if (!locale) {
           0,
           "lo stesso evento non conta più il mese successivo (si azzera)",
         );
+      },
+    );
+
+    await prova(
+      "o2 legge dal database risposte reali ed esclude i compleanni, con scadenza dinamica",
+      async () => {
+        // o2 (percentualeRisposte) aggrega su TUTTI gli eventi non-compleanno, senza filtro di
+        // mese: per un'asserzione deterministica isoliamo dal risultato reale solo i due eventi
+        // di questo test, invece di dipendere dal numero di eventi già presenti nel database
+        // (seed incluso).
+        const partitaId = `${PREFISSO}-o2-partita`;
+        const compleannoId = `${PREFISSO}-o2-compleanno`;
+
+        const inseritaPartita = await rest("eventi_app", {
+          method: "POST",
+          body: JSON.stringify({
+            id: partitaId,
+            tipo: "partita",
+            titolo: "Test obiettivi o2",
+            data: `${MESE_TEST}-05`,
+          }),
+        });
+        if (!inseritaPartita.ok) {
+          throw new Error(`inserimento evento fallito: ${await inseritaPartita.text()}`);
+        }
+        const inseritoCompleanno = await rest("eventi_app", {
+          method: "POST",
+          body: JSON.stringify({
+            id: compleannoId,
+            tipo: "compleanno",
+            titolo: "Test obiettivi o2 - compleanno",
+            data: `${MESE_TEST}-06`,
+          }),
+        });
+        if (!inseritoCompleanno.ok) {
+          throw new Error(`inserimento evento fallito: ${await inseritoCompleanno.text()}`);
+        }
+
+        // Solo 12 giocatori su tutta la rosa rispondono alla partita; nessuno "risponde" al
+        // compleanno, perché non richiede risposta.
+        const rispondenti = giocatori.slice(0, 12);
+        const righe = rispondenti.map((g, i) => ({
+          evento_id: partitaId,
+          giocatore_id: g.id,
+          stato: i % 2 === 0 ? "presente" : "forse",
+        }));
+        const inseriteRisposte = await rest("risposte_presenze", {
+          method: "POST",
+          body: JSON.stringify(righe),
+        });
+        if (!inseriteRisposte.ok) {
+          throw new Error(`inserimento presenze fallito: ${await inseriteRisposte.text()}`);
+        }
+
+        const eventiReali = (await leggiEventi()).filter(
+          (e) => e.id === partitaId || e.id === compleannoId,
+        );
+        const presenzeReali = await leggiPresenze(partitaId);
+
+        const o2 = obiettiviSquadra(
+          giocatori,
+          { eventi: eventiReali, presenze: presenzeReali, pagelle: [] },
+          OGGI,
+        ).find((o) => o.id === "o2")!;
+
+        assert.equal(
+          o2.valore,
+          Math.round((12 / giocatori.length) * 100),
+          "12 risposte reali su un solo evento che le richiede (il compleanno è escluso)",
+        );
+        assert.equal(o2.scadenza, "2099-03-31", "scadenza o2 = ultimo giorno del mese iniettato");
       },
     );
   } finally {

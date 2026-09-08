@@ -102,7 +102,7 @@ export function obiettiviSquadra(
       valore: percentualeRisposte(ctx, rosa.length),
       target: 90,
       unita: "%",
-      scadenza: "2026-09-30",
+      scadenza: fineMese(oggi),
       emoji: "⚡",
       impatto: "Bastano pochi tap per far quadrare i conti a chi organizza.",
     },
