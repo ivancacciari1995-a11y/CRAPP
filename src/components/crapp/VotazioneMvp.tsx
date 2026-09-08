@@ -3,7 +3,7 @@ import { Crown, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { usePresenzeEvento } from "@/lib/presenze";
 import type { Evento } from "@/lib/eventi";
 import {
@@ -25,7 +25,8 @@ import {
  */
 export function VotazioneMvp({ evento }: { evento: Evento }) {
   const matchId = evento.id;
-  const io = useGiocatoreCorrente();
+  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const voti = useVotiMvp();
   const vota = useVotaMvp();
   const { righe: squadra } = useGiocatoriSquadra();

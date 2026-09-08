@@ -3,7 +3,7 @@ import { Check, Crown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 import {
   categorieSocial,
   conteggioCategoria,
@@ -15,7 +15,8 @@ import {
 
 /** Voto social post-partita: un compagno per categoria, veloce da mobile. */
 export function VotoSocial({ matchId }: { matchId: string }) {
-  const io = useGiocatoreCorrente();
+  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const voti = useVotiSocial();
   const vota = useVotaSocial();
   const { righe: squadra } = useGiocatoriSquadra();

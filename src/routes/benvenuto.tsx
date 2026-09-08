@@ -10,7 +10,7 @@ import {
   useCollegaGiocatore,
   useGiocatoriSquadra,
 } from "@/lib/giocatori-squadra";
-import { impostaGiocatore, resetGiocatore, useGiocatoreCorrente } from "@/lib/user-store";
+import { impostaGiocatore, resetGiocatore, useGiocatoreBase } from "@/lib/user-store";
 
 export const Route = createFileRoute("/benvenuto")({
   validateSearch: (search: Record<string, unknown>): { next?: string } => {
@@ -38,7 +38,8 @@ export const Route = createFileRoute("/benvenuto")({
 function Benvenuto() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
-  const giocatore = useGiocatoreCorrente();
+  // Solo verità (`!!giocatore`): `useGiocatoreBase` (anagrafica) basta, niente statistiche.
+  const giocatore = useGiocatoreBase();
   const { pronta, utenteId, emailUtente } = useSessione();
   const { righe, daDatabase } = useGiocatoriSquadra();
   const collega = useCollegaGiocatore();

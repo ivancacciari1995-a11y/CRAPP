@@ -7,14 +7,15 @@ import { intestazioniAutenticate } from "@/lib/auth";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useAssegnaTurno, useTurniPalloni } from "@/lib/palloni";
 import { useIsAdmin } from "@/lib/ruoli";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 
 export function TurnoPalloni({ eventoId }: { eventoId: string }) {
   const [aperto, setAperto] = useState(false);
   const [avviso, setAvviso] = useState(false);
   const { salvati, turni, isPending } = useTurniPalloni();
   const assegna = useAssegnaTurno();
-  const io = useGiocatoreCorrente();
+  // Solo `.nome` serve qui: `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const admin = useIsAdmin();
   const { righe: squadra } = useGiocatoriSquadra();
   const rosa = squadra.filter((g) => g.attivo);

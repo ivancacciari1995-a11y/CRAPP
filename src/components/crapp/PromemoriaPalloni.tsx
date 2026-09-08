@@ -3,11 +3,12 @@ import { formatData } from "@/lib/crapp-data";
 import { eventiPalloni, eventoPrecedente, eventoSuccessivo, oggiISO } from "@/lib/palloni-core";
 import { useTurniPalloni } from "@/lib/palloni";
 import { useEventi } from "@/lib/eventi";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 
 /** Avvisi per chi è di turno: prendere i palloni oggi, o riportarli oggi. */
 export function PromemoriaPalloni() {
-  const io = useGiocatoreCorrente();
+  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche. Montato in Home.
+  const io = useGiocatoreBase();
   const { turni } = useTurniPalloni();
   const { eventi } = useEventi();
   if (!io) return null;

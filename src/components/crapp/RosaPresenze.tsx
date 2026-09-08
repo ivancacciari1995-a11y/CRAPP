@@ -7,8 +7,8 @@ import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
 import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
-import { useRosa } from "@/lib/rosa";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useAnagraficaRosa } from "@/lib/rosa";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { intestazioniAutenticate } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import { dataOggi } from "@/lib/scout-live";
@@ -18,9 +18,11 @@ const ordine: Stato[] = ["presente", "ritardo", "forse", "infortunato", "assente
 export function RosaPresenze({ eventoId, data }: { eventoId: string; data: string }) {
   const { risposte, isPending } = usePresenzeEvento(eventoId);
   const salva = useSalvaPresenza();
-  const io = useGiocatoreCorrente();
+  // Solo `.id`/`.nome` servono qui: `useGiocatoreBase`/`useAnagraficaRosa` bastano,
+  // niente statistiche di squadra.
+  const io = useGiocatoreBase();
   const admin = useIsAdmin();
-  const rosa = useRosa();
+  const rosa = useAnagraficaRosa();
   const [sollecito, setSollecito] = useState(false);
   const passato = data < dataOggi();
 
@@ -169,7 +171,7 @@ function Gruppo({
 }: {
   titolo: string;
   n: number;
-  lista: Giocatore[];
+  lista: Array<Pick<Giocatore, "id" | "nome" | "ruolo" | "numero">>;
   attenzione?: boolean;
 }) {
   return (

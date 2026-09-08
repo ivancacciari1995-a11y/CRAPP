@@ -25,18 +25,26 @@ function iniziali(nome: string, cognome: string): string {
 }
 
 /**
- * Solo anagrafica (id, nome, data di nascita) dei giocatori attivi — es. per i
- * compleanni nel Calendario. A differenza di `useRosa` non legge MVP, pagelle,
- * cacche, palloni né infortuni: evita di montare quei cinque hook e il relativo
- * `useMemo` solo per una data di nascita.
+ * Solo anagrafica (id, nome, ruolo, numero, data di nascita) dei giocatori attivi — es.
+ * per i compleanni nel Calendario o le liste presenze. A differenza di `useRosa` non
+ * legge MVP, pagelle, cacche, palloni né infortuni: evita di montare quei cinque hook e
+ * il relativo `useMemo` solo per l'anagrafica.
  */
-export function useAnagraficaRosa(): Array<Pick<Giocatore, "id" | "nome" | "nascita">> {
+export function useAnagraficaRosa(): Array<
+  Pick<Giocatore, "id" | "nome" | "ruolo" | "numero" | "nascita">
+> {
   const { righe: squadra } = useGiocatoriSquadra();
   return useMemo(
     () =>
       squadra
         .filter((g) => g.attivo)
-        .map((g) => ({ id: g.id, nome: nomeCompleto(g), nascita: nascitaPerId[g.id] ?? "" })),
+        .map((g) => ({
+          id: g.id,
+          nome: nomeCompleto(g),
+          ruolo: g.ruolo,
+          numero: g.numero,
+          nascita: nascitaPerId[g.id] ?? "",
+        })),
     [squadra],
   );
 }

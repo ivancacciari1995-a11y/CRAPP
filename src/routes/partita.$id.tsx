@@ -12,7 +12,6 @@ import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
-import { useGiocatoreCorrente } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 import { VotazioneMvp } from "@/components/crapp/VotazioneMvp";
 import { VotoSocial } from "@/components/crapp/VotoSocial";
@@ -46,7 +45,6 @@ export const Route = createFileRoute("/partita/$id")({
 function PartitaDetail() {
   const { id } = Route.useParams();
   const { evento } = useEvento(id);
-  const io = useGiocatoreCorrente();
   const admin = useIsAdmin();
   const scoutMatches = useScoutMatches();
   const { data: csi } = useCsi();

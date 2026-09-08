@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, Lock, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sessioneScaduta, usePartitaDiOggi, useSessioneScout } from "@/lib/scout-live";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 
 /**
  * Accesso allo scout live: attivo solo il giorno della partita e se nessun altro lo sta usando.
@@ -17,7 +17,8 @@ export function ScoutEntry({
 }) {
   const { pronto, partita: diOggi } = usePartitaDiOggi();
   const partita = eventoId && diOggi?.id !== eventoId ? null : diOggi;
-  const io = useGiocatoreCorrente();
+  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const { data: sessione } = useSessioneScout(partita?.id ?? null);
 
   const attiva = sessione && !sessioneScaduta(sessione) ? sessione : null;

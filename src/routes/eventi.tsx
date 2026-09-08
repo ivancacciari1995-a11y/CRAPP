@@ -25,7 +25,7 @@ import {
   type CategoriaEvento,
   type Evento,
 } from "@/lib/eventi";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
 
 export const Route = createFileRoute("/eventi")({
@@ -57,7 +57,8 @@ const tipi: Array<{ id: CategoriaEvento; label: string }> = [
 ];
 
 function GestioneEventi() {
-  const io = useGiocatoreCorrente();
+  // Solo verità (`!io`, gate admin): `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const admin = useIsAdmin();
   const { eventi, isPending, isError, error, refetch } = useEventi();
   const { righe: squadra } = useGiocatoriSquadra();

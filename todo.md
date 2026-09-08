@@ -137,17 +137,64 @@ Fix: nuovo hook `useAnagraficaRosa` in `rosa.ts` — solo `useGiocatoriSquadra` 
 accetta ora `Pick<Giocatore, "id" | "nome" | "nascita">[]` invece dell'intero `Giocatore[]`,
 riflettendo che è tutto ciò che usa.
 
+## 11. [x] `EventoCard` ricalcolava la rosa intera una volta per card — APPLICATA
+
+Causa più probabile del lag "ancora presente" su Calendario dopo i punti 9-10: `EventoCard`
+([EventoCard.tsx:72](src/components/crapp/EventoCard.tsx#L72)) usava `useGiocatoreCorrente`
+(= `useIo` = `useRosa`, le 6 statistiche del punto 9) solo per leggere `io.id` — mai una
+statistica. Il problema si moltiplica perché **ogni** `EventoCard` monta il proprio hook: il
+Calendario ne renderizza diverse insieme (fino a 3 in "Prossimi eventi", altre in "Compleanni",
+altre ancora nel drawer del giorno), quindi apriva Calendario = N ricalcoli indipendenti
+dell'intera rosa con tutte le statistiche, non uno solo. Home ha lo stesso pattern (usa
+`EventoCard` per "Prossimo impegno" e "Da confermare").
+
+Fix: `EventoCard` usa ora `useGiocatoreBase` (sola anagrafica) invece di `useGiocatoreCorrente`.
+
+Nota: `useGiocatoreCorrente` è usato in altri 12 file (`PromemoriaPalloni`, `TurnoPalloni`,
+`Pagelle`, `RosaPresenze`, `VotoSocial`, `VotazioneMvp`, `ScoutEntry`, `SondaggioCacche`,
+`CelebrazioneBadge`, `partita.$id.tsx`, `eventi.tsx`, `scout.tsx`, `benvenuto.tsx`) — non
+verificati singolarmente in questo giro. Se il lag emergesse altrove, controllare prima se
+quell'uso legge davvero un campo statistico (allora serve `useIo`) o solo l'identità (allora
+`useGiocatoreBase` basta), stesso ragionamento dei punti 9-11.
+
+## 12. [x] Stesso bug in altri 12 file — APPLICATA
+
+Audit di tutti gli altri usi di `useGiocatoreCorrente` (oltre `EventoCard`, punto 11): 12 su 13
+leggevano solo `.id`/`.nome`/verità, mai una statistica — stesso identico bug, ognuno però
+montato una volta sola (non moltiplicato come in `EventoCard`).
+
+Corretti (→ `useGiocatoreBase`): `benvenuto.tsx`, `VotazioneMvp.tsx`, `SondaggioCacche.tsx`,
+`VotoSocial.tsx`, `eventi.tsx`, `PromemoriaPalloni.tsx` (Home — impatto più alto del gruppo),
+`TurnoPalloni.tsx`, `ScoutEntry.tsx`, `Pagelle.tsx`.
+
+`partita.$id.tsx:49`: `io` era dichiarato e mai più usato — rimosso del tutto (variabile morta,
+nessun downgrade necessario).
+
+Trovati due bonus con lo stesso pattern ma sull'hook `useRosa` (non `useGiocatoreCorrente`),
+sistemati nello stesso giro:
+- `scout.tsx`: sia `io` (→ `useGiocatoreBase`) sia `rosa` (→ `useAnagraficaRosa`, usava solo
+  id/nome/numero per la selezione live).
+- `RosaPresenze.tsx` (montata su partita **e** allenamento): stesso doppio fix. `useAnagraficaRosa`
+  esteso con `ruolo` e `numero` (oltre a id/nome/nascita) per coprire anche questo caso.
+
+L'unica eccezione confermata è `CelebrazioneBadge.tsx`, che usa realmente le statistiche
+complete tramite `useNotificheSmart` — montato globalmente in `__root.tsx`, quindi resta il
+costo di base più alto rimasto in giro, ma non è downgradabile: le servono davvero.
+
 ## Note
 
 - `useMotoRidotto` (`lib/motion.ts`) è ora l'heuristic condiviso di "device debole" usato in
   `BottomNav.tsx`, `BarraSottosezioni.tsx` e `calendario.tsx` (punti 2, 3, 6). Se si riprende il
   punto 4 (coriandoli), conviene usare lo stesso hook invece di un check separato.
-- Applicati: 1, 2, 3, 6, 7, 8, 9, 10. Restano da discutere/prioritizzare: 4 (coriandoli su
-  device medi), 5 (virtualizzazione liste lunghe).
-- Pattern ricorrente (punti 9, 10): `useRosa()` è comodo ma calcola *tutte* le statistiche della
-  squadra; usarlo solo per identità/anagrafica (id, nome, nascita, iniziali) costa 5-6 hook e un
-  `useMemo` su tutta la rosa inutilmente. Se in futuro emerge un altro caso simile, riusare
-  `useAnagraficaRosa` (o `useGiocatoreBase` per il singolo giocatore) invece di `useRosa`/`useIo`.
+- Applicati: 1, 2, 3, 6, 7, 8, 9, 10, 11, 12. Restano da discutere/prioritizzare: 4 (coriandoli
+  su device medi), 5 (virtualizzazione liste lunghe), e `CelebrazioneBadge.tsx` (usa
+  legittimamente le statistiche complete ma è montato su ogni pagina — non downgradabile,
+  eventualmente da rivedere con un intervento diverso, es. memoizzazione più aggressiva).
+- Pattern ricorrente (punti 9, 10, 11): `useRosa()`/`useIo()`/`useGiocatoreCorrente()` sono
+  comodi ma calcolano *tutte* le statistiche della squadra; usarli solo per identità/anagrafica
+  (id, nome, nascita, iniziali) costa 5-6 hook e un `useMemo` su tutta la rosa inutilmente, e il
+  costo si moltiplica per ogni componente che lo monta (punto 11). Per la sola identità:
+  `useGiocatoreBase` (singolo giocatore) o `useAnagraficaRosa` (tutta la rosa).
 - Se il lag persistesse ancora dopo questi fix, il prossimo passo è profilare un device Android
   reale (Chrome DevTools remoto o `chrome://inspect`) invece di continuare a ipotizzare: a
   questo punto le cause "ovvie" lette dal codice sono coperte, e senza un trace reale si rischia

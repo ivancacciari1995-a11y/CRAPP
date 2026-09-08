@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
-import { useRosa } from "@/lib/rosa";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useAnagraficaRosa } from "@/lib/rosa";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { usePresenzeEvento } from "@/lib/presenze";
 import {
   statoIniziale,
@@ -81,7 +81,8 @@ function Blocco({
 
 function Scout() {
   const { pronto, partita } = usePartitaDiOggi();
-  const io = useGiocatoreCorrente();
+  // Solo `.id`/`.nome` servono qui: `useGiocatoreBase` basta, niente statistiche.
+  const io = useGiocatoreBase();
   const sessione = useSessioneScout(partita?.id ?? null);
   const statoSalvato = useStatoScout(partita?.id ?? null);
   const apri = useApriSessioneScout();
@@ -204,7 +205,8 @@ function ScoutBoard({
   const cancella = useCancellaStatoScout();
   const salvaMatch = useSalvaScoutMatch();
   const { risposte } = usePresenzeEvento(partita.id);
-  const rosa = useRosa();
+  // Solo id/nome/numero servono (selezione e display): niente statistiche di squadra.
+  const rosa = useAnagraficaRosa();
   const finito = useRef(false);
 
   /** In campo solo chi ha confermato la presenza (anche in ritardo). */
