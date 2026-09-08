@@ -26,10 +26,13 @@ badge assegnati per voto dai compagni.
 ## Implementazione
 
 - `badgeDefs`/`badgeSegreti` (`badges.ts`) definiscono ogni badge con una funzione
-  `valore(g)` e soglie bronzo/argento/oro. Le fonti dato sono solo statistiche indipendenti
-  dal ruolo in campo: MVP, media pagelle, turni palloni, presenze, serie, infortuni,
-  ritardi, cacche — **mai** punti/ace/muri dello Scout Live, coerentemente con DD-008.
-- I badge segreti restano nascosti (icona lucchetto) finché non sbloccati.
+  `valore(g)` e tre soglie bronzo/argento/oro (elenco completo con fonte e soglie di ognuno in
+  "Elenco badge" sotto). Il grado è calcolato da `gradoRaggiunto()`/`statoBadge()`: soglie
+  inclusive, vince l'ultima raggiunta o superata. Per la maggior parte dei badge il valore è
+  già pronto: `Giocatore` arriva da `useRosa()` con presenze, palloni, serie, infortuni,
+  ritardi, cacche e media pagelle già calcolati da altri moduli — `badges.ts` si limita a
+  confrontarli con le soglie. Fanno eccezione, con logica propria descritta sotto, l'MVP e i
+  badge social.
 - **Badge social** (`badge-social.ts`, tabella `badge_social_voti`): 5 categorie fisse per
   partita ("Compagno affidabile", "Miglior spirito di squadra", "Fair play", "Meme della
   partita", "Cuore del gruppo"), votabili una volta a testa per categoria/partita
@@ -37,20 +40,14 @@ badge assegnati per voto dai compagni.
   database (vincolo `badge_social_no_autovoto`, migration `m12_niente_autovoto`). A
   differenza delle [Pagelle](pagelle.md), qui non c'è alcun tentativo di anonimato:
   `votante_id`/`votato_id` sono entrambi visibili.
-- **Badge MVP** (`mvp`, in `badgeDefs`): l'unico badge normale la cui fonte dato arriva da
-  un'altra tabella di voto invece che da un contatore semplice. Pipeline completa:
-  1. Ogni giocatore vota l'MVP della partita su `mvp_voti` (`mvp-voti.ts`), un voto per
-     partita/votante (`upsert` su `match_id,votante_id`), apribile solo 2 ore dopo l'inizio
-     match (`votoMvpAperto()`). Autovoto impossibile per due strade indipendenti: RLS di
-     `m11_scritture_per_ruolo` (`votante_id` legato al proprio `auth.uid()` via
-     `giocatori_squadra`) e `CHECK (votante_id <> votato_id)` a database
-     (`mvp_no_autovoto`, migration `m12_niente_autovoto`).
-  2. `vincitoriMvp()`/`mvpVintiPerGiocatore()` (`mvp-voti.ts`) contano, per ogni partita, chi
-     ha ricevuto più voti **con un vantaggio netto** sul secondo: in caso di parità nessun MVP
-     è assegnato per quella partita. Il conteggio finale per giocatore è il numero di partite
-     vinte nettamente, non il totale dei voti ricevuti.
-  3. `rosa.ts` (`useRosa()`) scrive quel numero in `Giocatore.mvp`, che `badgeDefs` legge con
-     `valore: (g) => g.mvp` e confronta con le soglie 1/3/5 (bronzo/argento/oro).
+- **Badge MVP** (`mvp`, in `badgeDefs`): l'unico badge normale la cui fonte non è un contatore
+  già pronto ma il risultato della votazione MVP tra compagni — meccanismo di voto (chi vota
+  chi, apertura, autovoto, RLS) descritto per intero in [mvp.md](mvp.md), non ripetuto qui.
+  Quello che serve per capire il badge: `mvpVintiPerGiocatore()` (`mvp-voti.ts`) conta, per
+  ogni giocatore, quante partite ha vinto con un **vantaggio netto** sul secondo (non il
+  totale dei voti ricevuti; in caso di parità la partita non conta per nessuno). `rosa.ts`
+  (`useRosa()`) scrive quel numero in `Giocatore.mvp`, che `badgeDefs` legge con
+  `valore: (g) => g.mvp` e confronta con le soglie 1/3/5 (bronzo/argento/oro).
 - `CollezioneBadge.tsx` mostra sbloccati, in progresso, badge social vinti e un contatore di
   badge segreti ancora da scoprire; `BadgeDrawer.tsx` il dettaglio di un singolo badge;
   `CelebrazioneBadge.tsx` l'overlay celebrativo alla prima visualizzazione di un badge nuovo.
