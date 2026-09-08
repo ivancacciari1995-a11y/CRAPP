@@ -99,4 +99,14 @@ assert.equal(
   1,
 );
 
+// Uno stesso giocatore infortunato in un evento e in ritardo in un altro: i due conteggi
+// restano indipendenti, nessuno "ruba" all'altro.
+const misto: MappaPresenze = {
+  e1: { g4: "infortunato" },
+  e2: { g4: "ritardo" },
+  e3: { g4: "infortunato" },
+};
+assert.deepEqual(contaInfortuni(misto, eventi, OGGI), { g4: 2 });
+assert.deepEqual(contaRitardi(misto, eventi, OGGI), { g4: 1 });
+
 console.log("infortuni: ok");

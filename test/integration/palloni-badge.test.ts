@@ -117,8 +117,23 @@ if (!locale) {
           [`${PREFISSO}-m7`, "2020-01-07", "pv1"],
         ] as const;
 
-        for (const [id, data] of eventi) await creaEvento(id, data);
-        for (const [id, , giocatore] of eventi) if (giocatore) await confermaTurno(id, giocatore);
+        for (const [id, data] of eventi.slice(0, 3)) await creaEvento(id, data);
+        for (const [id, , giocatore] of eventi.slice(0, 3))
+          if (giocatore) await confermaTurno(id, giocatore);
+
+        const eventiA3 = await leggiEventi();
+        const salvatiA3 = await leggiTurniSalvati();
+        const conteggioA3 = conteggioTurni(salvatiA3, eventiA3, OGGI);
+        assert.equal(conteggioA3["pv1"], 3, "3 turni confermati: soglia bronzo appena raggiunta");
+        assert.equal(
+          statoBadge(palloniDef, giocatoreAzzerato(conteggioA3["pv1"]!)).grado,
+          "bronzo",
+          "3 turni: bronzo, non oltre (soglia argento è 6)",
+        );
+
+        for (const [id, data] of eventi.slice(3)) await creaEvento(id, data);
+        for (const [id, , giocatore] of eventi.slice(3))
+          if (giocatore) await confermaTurno(id, giocatore);
 
         const eventiLetti = await leggiEventi();
         assert.equal(eventiLetti.length, 7, "tutti gli eventi scritti si rileggono");

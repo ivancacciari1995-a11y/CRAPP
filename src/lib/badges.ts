@@ -136,7 +136,9 @@ export const badgeSegreti: BadgeDef[] = [
     icon: Ghost,
     segreto: true,
     soglie: { bronzo: 1, argento: 1, oro: 1 },
-    valore: (g) => (g.mvp >= 2 && g.mediaVoto >= 8 ? 1 : 0),
+    // Stessa soglia minima di voti del badge Pagellone: sotto VOTI_MINIMI_PAGELLA la media
+    // non è statisticamente significativa, non deve poter sbloccare nemmeno questo segreto.
+    valore: (g) => (g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8 ? 1 : 0),
     celebrazione: "Nei momenti caldi ci sei sempre.",
   },
   {
@@ -184,7 +186,7 @@ export const badgeSegreti: BadgeDef[] = [
     id: "s-cacche",
     nome: "Trono di ferro",
     descrizione:
-      "Almeno 3 partite di campionato affrontate con 3 o più cacche pre-gara. Il bagno del PalaCRAP porta il tuo nome 🚽😂",
+      "Almeno 3 partite affrontate con 3 o più cacche pre-gara (campionato o amichevole, qui non si fanno sconti). Il bagno del PalaCRAP porta il tuo nome 🚽😂",
     unita: "partite da record",
     icon: Toilet,
     segreto: true,

@@ -99,15 +99,18 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 
 Stesso motore dei normali ma con soglie `{bronzo:1, argento:1, oro:1}`: `valore(g)` è 0 o 1,
 quindi il badge è "trovato o no", mai graduato. In UI compaiono con icona lucchetto finché non
-sbloccati.
+sbloccati. Attenzione se si tocca `gradoRaggiunto()`: con le tre soglie tutte uguali a 1, il
+grado effettivo che risulta una volta sbloccato è sempre **`"oro"`** (l'ultimo che il ciclo
+`for` sovrascrive), mai `"bronzo"` — l'unica cosa che conta davvero per questi badge è
+`grado !== null`, non il suo valore, ed è così che li legge `badgeSegretiSbloccati()`.
 
-| id              | nome                        | condizione esatta                                                                                            |
-| --------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `s-tiebreak`    | Uomo tie-break              | almeno 2 MVP **e** media pagella ≥ 8 (`g.mvp >= 2 && g.mediaVoto >= 8`)                                      |
-| `s-mai-forfait` | Mai un forfait              | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`) |
-| `s-infermeria`  | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`)                                                  |
-| `s-ritardi`     | Aspettate, arrivo!          | almeno 5 ritardi a eventi (`g.ritardi >= 5`)                                                                 |
-| `s-cacche`      | Trono di ferro              | almeno 3 partite di campionato con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`)                      |
+| id              | nome                        | condizione esatta                                                                                                                                            |
+| --------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `s-tiebreak`    | Uomo tie-break              | almeno 2 MVP **e** media pagella ≥ 8, sopra la soglia minima di voti di Pagellone (`g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8`) |
+| `s-mai-forfait` | Mai un forfait              | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`)                                                 |
+| `s-infermeria`  | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`)                                                                                                  |
+| `s-ritardi`     | Aspettate, arrivo!          | almeno 5 ritardi a eventi (`g.ritardi >= 5`)                                                                                                                 |
+| `s-cacche`      | Trono di ferro              | almeno 3 partite (campionato o amichevole) con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`)                                                          |
 
 ### Badge social (votati dai compagni, 5 categorie per partita)
 
@@ -138,7 +141,12 @@ voti ricevuti).
 ## Copertura test
 
 Verifica badge per badge (fatta rileggendo codice e test riga per riga, non solo per
-categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
+categoria). Due bug trovati in una sessione di audit dedicata su tutti i 16 badge (dettagli
+nelle sezioni sotto e in "Problemi noti"): `s-tiebreak` non applicava la soglia minima di voti
+di Pagellone (**corretto**), `s-cacche` prometteva "partite di campionato" senza che il codice
+lo verificasse mai (**la descrizione è stata corretta**, il comportamento — qualunque partita
+conta — era già quello voluto). Tutti e 16 i badge hanno ora copertura unit **e** integration
+end-to-end completa.
 
 **Badge normali** — `badges.ts` testa la propria funzione pura (soglia → grado,
 `badges.test.ts`) sull'output di altri moduli:
@@ -166,11 +174,14 @@ eccezioni con integration dedicato (sotto) perché la loro fonte passa da una ta
 voto/turni/presenze
 letta e ricalcolata dal vivo, non da un contatore già pronto altrove.
 
-**Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
-(`badges.test.ts:77-109`): `s-tiebreak` (mediaVoto 7.9 non basta, serve 8), `s-mai-forfait`
-(unica condizione doppia, testato che **entrambe** servano), `s-infermeria`, `s-ritardi`,
-`s-cacche`. Copertura unit completa; integration non necessario per lo stesso motivo dei
-normali (le statistiche sorgente sono testate nei rispettivi moduli).
+**Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto:
+`s-tiebreak` (mvp:1 non basta, mediaVoto 7.9 non basta, sotto `VOTI_MINIMI_PAGELLA` voti non
+basta nemmeno con media alta — vedi il bug fix sotto), `s-mai-forfait` (ogni soglia isolata al
+confine, non solo "entrambe servono"), `s-infermeria` (2 infortuni non bastano), `s-ritardi` (4
+ritardi non bastano — gap colmato in questa sessione), `s-cacche` (2 cacche non bastano).
+Copertura unit completa **e** integration dedicato per tutti e 5 (aggiunto in questa sessione,
+vedi sotto): i dati sorgente hanno già i propri test di integrazione nei rispettivi moduli, ma
+nessuno prima arrivava fino a `statoBadge()` sul segreto stesso con dati scritti a database.
 
 **Badge MVP — pipeline end-to-end** (aggiunta in una sessione dedicata a completare la
 copertura di questo badge):
@@ -285,6 +296,63 @@ database, non possono garantire.
     24h azzeri tutto anche dopo 15 conferme di fila, e — separatamente — che partite e
     allenamenti si sommino nella stessa serie senza bisogno di un filtro per tipo.
 
+**Badge Cliente VIP dell'Infermeria e Aspettate, arrivo! — pipeline end-to-end** (analisi
+dedicata: nessun bug trovato). Stessa fonte (`contaInfortuni()`/`contaRitardi()` in
+`src/lib/infortuni.ts`, entrambe sopra la stessa `contaStato()` privata) e stessa struttura di
+`serie-allenamenti`/`serie-conferme`, ma senza serie: un contatore semplice di eventi passati.
+
+- Unit: `badges.test.ts` (soglie 3 e 5, confine appena sotto) + `infortuni.test.ts`, esteso in
+  questa sessione con un giocatore che ha **sia** un infortunio **sia** un ritardo (su eventi
+  diversi): i due conteggi restano indipendenti, nessuno "ruba" voci all'altro.
+- Integration (`npx supabase start` richiesto):
+  - `s-infermeria-badge.test.ts` / `s-ritardi-badge.test.ts` (nuovi) — end-to-end reali: scrivono
+    eventi e risposte "infortunato"/"ritardo" su `eventi_app`/`risposte_presenze`, rileggono via
+    REST e verificano che il segreto resti bloccato appena sotto soglia e si sblocchi
+    esattamente al confine (3 infortuni, 5 ritardi).
+
+**Badge Trono di ferro — pipeline end-to-end, descrizione corretta** (analisi dedicata: trovato
+un disallineamento fra descrizione e codice, **risolto aggiornando il testo**, non la logica —
+vedi "Problemi noti" più sotto per il perché). `statisticheCacche()` (`src/lib/cacche.ts`) non
+ha mai distinto partite di campionato da amichevoli: contava (e conta ancora) qualunque partita
+con 3+ cacche dichiarate. La vecchia descrizione del badge prometteva "partite di campionato",
+cosa che il codice non ha mai verificato — corretta in "partite (campionato o amichevole)".
+
+- Unit: `badges.test.ts` (soglia 3, confine appena sotto — gap colmato in questa sessione) +
+  `cacche.test.ts` (già completo su `giornateTop`).
+- Integration (`npx supabase start` richiesto):
+  - `s-cacche-badge.test.ts` (nuovo) — end-to-end reale: scrive 2 giornate da record su partite
+    di campionato e una su un'amichevole, dimostrando con dati veri che l'amichevole conta
+    esattamente come le altre — pin del comportamento attuale, così chi in futuro reintroduce un
+    filtro sul campionato deve accorgersene qui, non scoprirlo in produzione.
+
+**Badge Uomo tie-break — pipeline end-to-end, bug corretto** (analisi dedicata: trovato e
+sistemato il gap "un voto pagella solo sblocca il segreto insieme a 2 MVP"). Il segreto usa
+`g.mediaVoto`, lo stesso campo del badge normale `pagella` — che però lo azzera sotto
+`VOTI_MINIMI_PAGELLA` (5) voti ricevuti, proprio per evitare che un singolo voto sblocchi/tolga
+il badge senza significatività statistica. `s-tiebreak` non applicava lo stesso filtro: ora sì
+(`g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8`).
+
+- Unit: `badges.test.ts` — sotto la soglia minima di voti il segreto resta bloccato anche con
+  media 8 e 2 MVP; un solo MVP non basta (isolato dal resto).
+- Integration (`npx supabase start` richiesto):
+  - `s-tiebreak-badge.test.ts` (nuovo) — end-to-end reale: scrive voti MVP e pagella veri,
+    dimostra che un solo voto pagella (media alta, 2 MVP) NON sblocca il segreto, e che il quinto
+    voto lo sblocca — il fix verificato con la stessa pipeline `mvp_voti`/`pagelle_voti` → REST →
+    `mvpVintiPerGiocatore()`/`mediePagelle()` → `statoBadge()` che userebbe l'app.
+
+**Badge Mai un forfait — pipeline end-to-end** (analisi dedicata: nessun bug trovato). Unico
+segreto a combinare due statistiche indipendenti (`serieConferme()` e
+`contaPresenzeGiocatore()`), entrambe già testate a fondo nei rispettivi moduli.
+
+- Unit: `badges.test.ts`, esteso in questa sessione con ogni soglia isolata al confine
+  (`serieConferme` appena sotto con `presenze` abbondanti, e viceversa), non solo "insieme non
+  bastano".
+- Integration (`npx supabase start` richiesto):
+  - `s-mai-forfait-badge.test.ts` (nuovo) — end-to-end reale: scrive eventi con `creato_il` e
+    risposte con `risposto_il` veri, verifica che il segreto resti bloccato a 9/9 e si sblocchi a
+    15/15, e che una risposta lenta azzeri la serie di conferme **senza** azzerare le presenze
+    già accumulate (le due statistiche restano indipendenti anche a database).
+
 **Badge social** — nessuna delle 5 categorie ha logica _propria_ nel codice: l'id è solo una
 chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
 identici per tutte (`badge-social.ts:107-158`). Testare a fondo 2-3 categorie copre l'intero
@@ -292,37 +360,43 @@ meccanismo:
 
 - Unit (`badge-social.test.ts`): conteggio isolato per match+categoria (`:29-32`), vantaggio
   netto/parità → nessun vincitore (`:38-41`), vittorie multi-partita (`badgeSocialVinti`, g2
-  vince in `m1` e `m2` → `{affidabile: 2}`, `:48`), zero voti → zero badge (`:51`).
+  vince in `m1` e `m2` → `{affidabile: 2}`, `:48`), zero voti → zero badge (`:51`). Estesi in
+  questa sessione: un voto totale solo basta a vincere, una parità a 3 candidati (i primi due
+  pari, il terzo staccato) resta senza vincitore, categorie diverse nella stessa partita non si
+  mischiano in `badgeSocialVinti()`.
 - Integration: upsert/sostituzione voto per categoria (`scritture.test.ts:170-202`), autovoto
   rifiutato — doppia barriera UI + database (`scritture.test.ts:124-148`), RLS `m11` — un
   giocatore firma solo il proprio voto (`permessi.test.ts:344-369`).
+  - `badge-social.test.ts` (nuovo, in `test/integration/`) — end-to-end reale sulle **5
+    categorie effettive** di `categorieSocial` (non più solo 2-3, e non più le categorie
+    inventate di `scritture.test.ts`): scrive voti veri su `badge_social_voti`, dimostra che
+    tutte e 5 si contano e si vincono allo stesso modo, e che una parità su una categoria non
+    tocca il conteggio delle altre 4 nella stessa partita.
 
 ### Riepilogo per badge
 
-| #   | id                  | tipo    | test unit                           | test integration                              |
-| --- | ------------------- | ------- | ----------------------------------- | --------------------------------------------- |
-| 1   | `mvp`               | normale | ✅                                  | ✅ (`scritture`, `permessi`, `mvp-badge`)     |
-| 2   | `pagella`           | normale | ✅ (incl. soglia minima voti)       | ✅ (`scritture`, `permessi`, `pagella-badge`) |
-| 3   | `palloni`           | normale | ✅                                  | ✅ (`scritture`, `palloni-badge`)             |
-| 4   | `presenze`          | normale | ✅                                  | ✅ (`obiettivi`, `presenze-badge`)            |
-| 5   | `serie-allenamenti` | normale | ✅                                  | ✅ (`serie-allenamenti-badge`)                |
-| 6   | `serie-conferme`    | normale | ✅ (limite noto sotto)              | ✅ (`serie-conferme-badge`)                   |
-| 7   | `s-tiebreak`        | segreto | ✅                                  | non necessario                                |
-| 8   | `s-mai-forfait`     | segreto | ✅                                  | non necessario                                |
-| 9   | `s-infermeria`      | segreto | ✅                                  | non necessario                                |
-| 10  | `s-ritardi`         | segreto | ✅ (parziale, manca "appena sotto") | non necessario                                |
-| 11  | `s-cacche`          | segreto | ✅ (parziale, manca "appena sotto") | non necessario                                |
-| 12  | `affidabile`        | social  | ✅                                  | ✅                                            |
-| 13  | `spirito`           | social  | ✅ (meccanismo generico)            | ✅ (meccanismo generico)                      |
-| 14  | `fairplay`          | social  | ✅ (meccanismo generico)            | ✅ (meccanismo generico)                      |
-| 15  | `meme`              | social  | ✅                                  | ✅                                            |
-| 16  | `cuore`             | social  | ✅                                  | ✅ (autovoto)                                 |
+| #   | id                  | tipo    | test unit                             | test integration                              |
+| --- | ------------------- | ------- | ------------------------------------- | --------------------------------------------- |
+| 1   | `mvp`               | normale | ✅                                    | ✅ (`scritture`, `permessi`, `mvp-badge`)     |
+| 2   | `pagella`           | normale | ✅ (incl. soglia minima voti)         | ✅ (`scritture`, `permessi`, `pagella-badge`) |
+| 3   | `palloni`           | normale | ✅                                    | ✅ (`scritture`, `palloni-badge`)             |
+| 4   | `presenze`          | normale | ✅                                    | ✅ (`obiettivi`, `presenze-badge`)            |
+| 5   | `serie-allenamenti` | normale | ✅                                    | ✅ (`serie-allenamenti-badge`)                |
+| 6   | `serie-conferme`    | normale | ✅ (limite noto sotto)                | ✅ (`serie-conferme-badge`)                   |
+| 7   | `s-tiebreak`        | segreto | ✅ (bug corretto, vedi sotto)         | ✅ (`s-tiebreak-badge`)                       |
+| 8   | `s-mai-forfait`     | segreto | ✅                                    | ✅ (`s-mai-forfait-badge`)                    |
+| 9   | `s-infermeria`      | segreto | ✅                                    | ✅ (`s-infermeria-badge`)                     |
+| 10  | `s-ritardi`         | segreto | ✅                                    | ✅ (`s-ritardi-badge`)                        |
+| 11  | `s-cacche`          | segreto | ✅ (descrizione corretta, vedi sotto) | ✅ (`s-cacche-badge`)                         |
+| 12  | `affidabile`        | social  | ✅                                    | ✅ (`scritture`, `permessi`, `badge-social`)  |
+| 13  | `spirito`           | social  | ✅ (meccanismo generico)              | ✅ (meccanismo generico, `badge-social`)      |
+| 14  | `fairplay`          | social  | ✅ (meccanismo generico)              | ✅ (meccanismo generico, `badge-social`)      |
+| 15  | `meme`              | social  | ✅                                    | ✅ (`badge-social`)                           |
+| 16  | `cuore`             | social  | ✅                                    | ✅ (autovoto, `badge-social`)                 |
 
 ---
 
 ## Problemi noti da sistemare
-
-Trovati in audit, nessuno bloccante (nessun bug nella logica di calcolo):
 
 - **`badgeSbloccati()` morta** (`badges.ts:283-285`): duplica esattamente
   `collezioneBadge(g).sbloccati`. Zero riferimenti fuori dalla propria definizione, né in
@@ -333,6 +407,12 @@ Trovati in audit, nessuno bloccante (nessun bug nella logica di calcolo):
   stessi lo dimostrano scrivendo categorie inesistenti (`"sorriso"`/`"urlo"`,
   `scritture.test.ts`). Non sfruttabile da un utente normale (l'app manda solo le 5 categorie
   valide), stesso tipo di gap "solo applicativo, non a DB" del punto sotto sul votato/convocato.
+- **`conteggioTurni()` non filtra per tipo evento** (`palloni-core.ts:70-82`), a differenza di
+  `eventiPalloni()` che scarta i compleanni. Un turno registrato per errore su un evento fuori
+  dal dominio "richiede i palloni" conterebbe comunque per il badge Sherpa dei palloni. Rischio
+  teorico basso (l'UI non offre questa combinazione), comportamento pinnato da un test dedicato
+  in `palloni-core.test.ts` così che un domani, se serve stringere, non lo si scopra rompendo un
+  test esistente ma leggendo perché quel test lo dimostrava apposta.
 
 ---
 
@@ -358,6 +438,16 @@ UI di rotazione (`TurnoPalloni.tsx`, `PromemoriaPalloni.tsx`), mai per il conteg
 Dimostrato con dati veri in `palloni-badge.test.ts`. [palloni.md](palloni.md) aggiornato di
 conseguenza.
 
+**Risolto (audit completo dei 16 badge)**: `s-tiebreak` (`badges.ts:139`) usava `g.mediaVoto`
+senza applicare `VOTI_MINIMI_PAGELLA`, a differenza del badge normale `pagella` che usa lo
+stesso campo — un giocatore con un solo voto pagella altissimo e 2 MVP poteva sbloccare il
+segreto senza che la media fosse statisticamente significativa. Ora `s-tiebreak` richiede anche
+`g.votiPagella >= VOTI_MINIMI_PAGELLA`, dimostrato con dati reali in `s-tiebreak-badge.test.ts`.
+Il badge `s-cacche` prometteva invece "partite di **campionato**" nella descrizione senza che
+nessuna funzione della pipeline lo verificasse mai (`statisticheCacche()` conta qualunque
+partita) — qui si è scelto di correggere la descrizione, non il codice: il comportamento
+"qualunque partita conta" resta quello voluto, pinnato in `s-cacche-badge.test.ts`.
+
 **Risolto (M13, `20260908120000_m13_convocati_e_pagelle_chiuse.sql`)**: prima la policy di M11
 garantiva solo che il voto fosse firmato con il proprio `votante_id`, non che il votato (né il
 votante) fossero convocati per quella partita — filtro solo applicativo, aggirabile scrivendo
@@ -377,3 +467,5 @@ ancora correggere un voto anche fuori convocazione o dopo la chiusura.
   ora che le serie sono calcolate.
 - Rimuovere `badgeSbloccati()` (codice morto) o documentarne lo scopo.
 - Aggiungere un vincolo (CHECK o FK) sulla colonna `categoria` di `badge_social_voti`.
+- Se un domani serve restringere `conteggioTurni()` per tipo evento (vedi "Problemi noti"),
+  aggiornare anche il test che oggi ne pinna il comportamento permissivo.

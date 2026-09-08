@@ -37,7 +37,7 @@ compaiono.
   in `rosa.ts`) — non è uno storico in tabella dedicata, ma non include le proposte
   automatiche di `completaTurni()` (quelle restano solo per la UI di rotazione,
   `TurnoPalloni.tsx`/`PromemoriaPalloni.tsx`). Conta solo gli eventi già passati (`e.data <
-  oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un allenamento
+oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un allenamento
   futuro non è ancora "portato", quindi non sale finché quel giorno non arriva.
 - `TurnoPalloni.tsx` mostra/assegna il turno sulla card di un evento; `PromemoriaPalloni.tsx`
   è il banner in Home per il giocatore di turno.
@@ -65,6 +65,11 @@ nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
   turno oggi" — resta in `palloni-core.ts` ma non la chiama più nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
   "assente" o "infortunato" per quell'evento.
+- **`conteggioTurni()` non filtra per tipo evento** (a differenza di `eventiPalloni()`, che
+  scarta i compleanni): guarda solo `e.data < oggi`. Un turno registrato per errore su un
+  evento fuori dal dominio "richiede i palloni" conterebbe comunque per il badge Sherpa dei
+  palloni (`badge.md` § Problemi noti). Rischio basso — l'UI non offre questa combinazione — ma
+  il comportamento attuale è pinnato da un test dedicato in `palloni-core.test.ts`.
 
 ---
 

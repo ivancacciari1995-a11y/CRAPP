@@ -121,6 +121,18 @@ assert.deepEqual(
   "nessun turno assegnato: conteggio vuoto",
 );
 
+// A differenza di `eventiPalloni()` (che scarta i compleanni), `conteggioTurni()` non filtra
+// per tipo: guarda solo `turni` ed `e.data < oggi`. Un turno registrato per errore su un
+// evento che il resto del modulo tratterebbe come "non richiede palloni" conterebbe comunque
+// per il badge. Comportamento attuale documentato (non l'UI non offre questa combinazione),
+// non una correzione: se cambia, questo test deve fallire e ricordarlo.
+const conCompleanno: Evento[] = [evento("cb1", "2026-09-01", "compleanno")];
+assert.deepEqual(
+  conteggioTurni({ cb1: "g1" }, conCompleanno, OGGI_CONTEGGIO),
+  { g1: 1 },
+  "conteggioTurni() non esclude i compleanni come fa eventiPalloni(): nessun filtro per tipo",
+);
+
 // --- oggiISO -------------------------------------------------------------------
 assert.match(oggiISO(), /^\d{4}-\d{2}-\d{2}$/);
 // Stesso controllo di dataOggi() in scout-live.test.ts: oggiISO() ne è un alias, il fuso

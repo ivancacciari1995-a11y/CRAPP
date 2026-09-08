@@ -40,6 +40,27 @@ assert.equal(vincitoreCategoria(voti, "m1", "cuore"), null, "nessun voto, nessun
 const pari = [v("m3", "meme", "g1", "g2", "Bruno"), v("m3", "meme", "g2", "g5", "Anna")];
 assert.equal(vincitoreCategoria(pari, "m3", "meme"), null, "parità: nessun vincitore");
 
+// Un solo voto totale: vince comunque, non serve concorrenza per avere un vantaggio netto.
+const votoSingolo = [v("m4", "cuore", "g1", "g9", "Zoe")];
+assert.equal(
+  vincitoreCategoria(votoSingolo, "m4", "cuore")?.nome,
+  "Zoe",
+  "un voto solo basta se non c'è nessun altro candidato",
+);
+
+// Tre candidati: i primi due pari in testa, il terzo staccato. Il pareggio conta comunque,
+// non basta che qualcun altro sia sotto per assegnare la categoria.
+const triplaPari = [
+  v("m5", "spirito", "g1", "g8", "Uno"),
+  v("m5", "spirito", "g2", "g7", "Due"),
+  v("m5", "spirito", "g3", "g6", "Tre"),
+];
+assert.equal(
+  vincitoreCategoria(triplaPari, "m5", "spirito"),
+  null,
+  "primo e secondo pari: nessun vincitore anche con un terzo staccato",
+);
+
 // --- mioVotoSocial -----------------------------------------------------------
 assert.equal(mioVotoSocial(voti, "m1", "affidabile", "g1")?.votato_id, "g2");
 assert.equal(mioVotoSocial(voti, "m1", "meme", "g3"), null, "non ho votato questa categoria");
@@ -50,6 +71,19 @@ assert.deepEqual(badgeSocialVinti(voti, "g5"), { meme: 1 });
 assert.deepEqual(badgeSocialVinti(voti, "g9"), {}, "chi non vince non ha badge");
 assert.deepEqual(badgeSocialVinti(pari, "g2"), {}, "una parità non assegna badge");
 assert.deepEqual(badgeSocialVinti([], "g2"), {});
+
+// Categorie e partite diverse non si mischiano: g2 vince "affidabile" in m1/m2 (già sopra) e
+// "fairplay" in m2, un'altra categoria nella stessa partita — i due conteggi restano separati.
+const conAltraCategoria: VotoSocial[] = [
+  ...voti,
+  v("m2", "fairplay", "g3", "g2", "Bruno"),
+  v("m2", "fairplay", "g4", "g2", "Bruno"),
+];
+assert.deepEqual(
+  badgeSocialVinti(conAltraCategoria, "g2"),
+  { affidabile: 2, fairplay: 1 },
+  "vittorie in categorie diverse, anche nella stessa partita, si contano separate",
+);
 
 // --- invarianti sulle categorie ----------------------------------------------
 assert.equal(

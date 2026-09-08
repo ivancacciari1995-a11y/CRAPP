@@ -90,6 +90,27 @@ assert.equal(
   "sopra la soglia minima, valgono le normali soglie di grado",
 );
 
+// Confini argento/oro, non solo bronzo: stesso arrotondamento per difetto.
+assert.equal(gradoRaggiunto(pagella, 7.4), "bronzo");
+assert.equal(gradoRaggiunto(pagella, 7.5), "argento");
+assert.equal(gradoRaggiunto(pagella, 8.4), "argento");
+assert.equal(gradoRaggiunto(pagella, 8.5), "oro");
+
+// Progresso con soglia decimale: valore/prossimaSoglia, non arrotondato per eccesso.
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 7, votiPagella: 5 })).progresso,
+  93,
+  "7/7.5 = 93.3%, arrotondato a 93",
+);
+
+// Sotto la soglia minima di voti il valore è forzato a 0: anche il progresso torna a 0%,
+// non alla percentuale che la media reale avrebbe suggerito.
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 10, votiPagella: 1 })).progresso,
+  0,
+  "valore azzerato dal gate: progresso azzerato anch'esso, non ingannevole",
+);
+
 // --- palloni: soglie 3 / 6 / 10 -----------------------------------------------
 const palloniDef = badgeDefs.find((b) => b.id === "palloni")!;
 assert.equal(gradoRaggiunto(palloniDef, 2), null, "sotto la prima soglia nessun grado");
@@ -147,11 +168,21 @@ const nessunSegreto = g({ mvp: 2, mediaVoto: 7.9 });
 assert.equal(badgeSegretiSbloccati(nessunSegreto).length, 0, "serve media 8, non 7.9");
 assert.equal(segretiNascosti(nessunSegreto), badgeSegreti.length);
 
-const tiebreak = badgeSegretiSbloccati(g({ mvp: 2, mediaVoto: 8 }));
+const tiebreak = badgeSegretiSbloccati(g({ mvp: 2, mediaVoto: 8, votiPagella: 5 }));
 assert.deepEqual(
   tiebreak.map((b) => b.def.id),
   ["s-tiebreak"],
   "sblocca solo il segreto il cui requisito è soddisfatto",
+);
+assert.equal(
+  badgeSegretiSbloccati(g({ mvp: 2, mediaVoto: 8, votiPagella: 4 })).length,
+  0,
+  "come Pagellone: sotto la soglia minima di voti la media non conta, nemmeno qui",
+);
+assert.equal(
+  badgeSegretiSbloccati(g({ mvp: 1, mediaVoto: 8, votiPagella: 5 })).length,
+  0,
+  "un solo MVP non basta",
 );
 
 assert.deepEqual(
@@ -163,10 +194,12 @@ assert.deepEqual(
   badgeSegretiSbloccati(g({ ritardi: 5 })).map((b) => b.def.id),
   ["s-ritardi"],
 );
+assert.equal(badgeSegretiSbloccati(g({ ritardi: 4 })).length, 0, "4 ritardi non bastano");
 assert.deepEqual(
   badgeSegretiSbloccati(g({ cacche: 3 })).map((b) => b.def.id),
   ["s-cacche"],
 );
+assert.equal(badgeSegretiSbloccati(g({ cacche: 2 })).length, 0, "2 cacche non bastano");
 assert.deepEqual(
   badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 15 })).map((b) => b.def.id),
   ["s-mai-forfait"],
@@ -175,6 +208,27 @@ assert.equal(
   badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 14 })).length,
   0,
   "servono entrambe le condizioni",
+);
+// Confini isolati: ogni soglia testata da sola, con l'altra abbondantemente sopra.
+assert.equal(
+  badgeSegretiSbloccati(g({ serieConferme: 9, presenze: 30 })).length,
+  0,
+  "serieConferme appena sotto soglia, presenze abbondanti: non basta",
+);
+assert.deepEqual(
+  badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 30 })).map((b) => b.def.id),
+  ["s-mai-forfait"],
+  "serieConferme esattamente al confine, presenze abbondanti: sblocca",
+);
+assert.equal(
+  badgeSegretiSbloccati(g({ serieConferme: 30, presenze: 14 })).length,
+  0,
+  "presenze appena sotto soglia, serieConferme abbondante: non basta",
+);
+assert.deepEqual(
+  badgeSegretiSbloccati(g({ serieConferme: 30, presenze: 15 })).map((b) => b.def.id),
+  ["s-mai-forfait"],
+  "presenze esattamente al confine, serieConferme abbondante: sblocca",
 );
 
 // --- collezioneBadge ---------------------------------------------------------

@@ -52,6 +52,20 @@ assert.deepEqual(
   "un solo votante basta se non c'è concorrenza",
 );
 
+// Tre candidati: i primi due pari in testa, un terzo staccato. Deve restare senza MVP,
+// non basta che il terzo sia sotto: conta solo il confronto fra il primo e il secondo.
+const triplaPari = [
+  v("m6", "g1", "g9", "Zeno"),
+  v("m6", "g2", "g8", "Anna"),
+  v("m6", "g3", "g7", "Bea"),
+];
+assert.deepEqual(vincitoriMvp(triplaPari), {}, "primo e secondo pari: nessun MVP anche a 3 vie");
+assert.deepEqual(
+  mvpVintiPerGiocatore(triplaPari),
+  {},
+  "stessa parità: nessuna vittoria netta da contare",
+);
+
 // --- mioVoto -----------------------------------------------------------------
 assert.equal(mioVoto(partita, "m1", "g1")?.votato_nome, "Bruno");
 assert.equal(mioVoto(partita, "m1", "g9"), null, "chi non ha votato non ha voto");
