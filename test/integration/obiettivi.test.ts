@@ -23,7 +23,7 @@
 import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
 import { obiettiviSquadra } from "@/lib/obiettivi";
-import { contaPresenzeGiocatore, type MappaPresenze } from "@/lib/presenze";
+import { contaPresenzeGiocatore, serieConsecutiva, type MappaPresenze } from "@/lib/presenze";
 import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
 
@@ -479,6 +479,70 @@ if (!locale) {
         "conteggio dei voti reali scritti sul database",
       );
     });
+
+    await prova(
+      "o11 conta chi ha almeno 3 allenamenti consecutivi, calcolati da eventi/risposte reali",
+      async () => {
+        // o11 non calcola nulla da `ctx`: legge `g.serieAllenamenti`, un campo già calcolato a
+        // monte da `serieConsecutiva()` (la stessa funzione pura usata da `useRosa()` in
+        // produzione). Qui si esercita l'intera catena DB -> serieConsecutiva -> o11.
+        const OGGI_STR = "2098-01-20";
+        const eventi = [
+          [`${PREFISSO}-o11-a1`, "2098-01-05"],
+          [`${PREFISSO}-o11-a2`, "2098-01-08"],
+          [`${PREFISSO}-o11-a3`, "2098-01-11"],
+        ] as const;
+        for (const [id, data] of eventi) {
+          const inserito = await rest("eventi_app", {
+            method: "POST",
+            body: JSON.stringify({ id, tipo: "allenamento", titolo: "Test obiettivi o11", data }),
+          });
+          if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+        }
+
+        const [g1, g2, g3] = giocatori;
+        // g1: presente ai tre allenamenti -> serie 3 (conta). g2: presente, presente, assente
+        // -> la serie si azzera all'ultimo (non conta). g3: assente, assente, presente -> serie
+        // 1 (non basta).
+        const stati: Record<string, [string, string, string]> = {
+          [g1!.id]: ["presente", "presente", "presente"],
+          [g2!.id]: ["presente", "presente", "assente"],
+          [g3!.id]: ["assente", "assente", "presente"],
+        };
+        const righe = Object.entries(stati).flatMap(([giocatoreId, statiPerEvento]) =>
+          eventi.map(([eventoId], i) => ({
+            evento_id: eventoId,
+            giocatore_id: giocatoreId,
+            stato: statiPerEvento[i],
+          })),
+        );
+        const inserite = await rest("risposte_presenze", {
+          method: "POST",
+          body: JSON.stringify(righe),
+        });
+        if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
+
+        const eventiReali = (await leggiEventi()).filter((e) =>
+          eventi.some(([id]) => id === e.id),
+        );
+        const presenzeReali: MappaPresenze = {};
+        for (const [id] of eventi) Object.assign(presenzeReali, await leggiPresenze(id));
+
+        const rosaConSerieReali = [g1!, g2!, g3!].map((g) => ({
+          ...g,
+          serieAllenamenti: serieConsecutiva(g.id, eventiReali, presenzeReali, "allenamento", OGGI_STR),
+        }));
+
+        const o11 = obiettiviSquadra(rosaConSerieReali, { eventi: [], presenze: {}, pagelle: [] }).find(
+          (o) => o.id === "o11",
+        )!;
+        assert.equal(
+          o11.valore,
+          1,
+          "solo g1 (presente ai tre allenamenti) resta in serie, calcolato dal database",
+        );
+      },
+    );
   } finally {
     await rest(`risposte_presenze?evento_id=like.${PREFISSO}*`, { method: "DELETE" });
     await rest(`eventi_app?id=like.${PREFISSO}*`, { method: "DELETE" });

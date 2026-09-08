@@ -302,6 +302,29 @@ assert.equal(
   "il conteggio somma i voti di più match_id, non solo dell'ultima",
 );
 
+// --- o11: continuità di squadra (giocatori con serieAllenamenti >= 3) --------
+{
+  assert.equal(
+    trova(obiettiviSquadra([], contestoVuoto), "o11").valore,
+    0,
+    "rosa vuota: nessuno può essere in serie",
+  );
+
+  // Target 12 su una rosa di 17: il minimo per schierare due sestetti (6vs6), non un
+  // valore arbitrario — vedi docs/modules/obiettivi-squadra.md.
+  assert.equal(trova(vuoti, "o11").target, 12, "il target resta 12: minimo per un 6vs6");
+
+  // Il confine è >= 3, non > 3: 2 non basta, 3 sì.
+  const rosaConfine = giocatori
+    .slice(0, 3)
+    .map((g, i) => ({ ...g, serieAllenamenti: [2, 3, 10][i]! }));
+  assert.equal(
+    trova(obiettiviSquadra(rosaConfine, contestoVuoto), "o11").valore,
+    2,
+    "conta solo chi ha almeno 3 allenamenti consecutivi (2 non basta, 3 sì)",
+  );
+}
+
 // --- progressoObiettivo ------------------------------------------------------
 const o = (valore: number, target: number): ObiettivoSquadra => ({
   id: "x",

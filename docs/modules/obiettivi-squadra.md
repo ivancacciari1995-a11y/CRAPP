@@ -31,7 +31,7 @@ serie).
 | 250 presenze complessive           | somma presenze di tutta la rosa                 | 250    | aggregato da `useRosa()`                       |
 | Media pagelle da 7.5               | media di squadra                                | 7.5    | `pagelle_voti`                                 |
 | 200 pagelle compilate              | conteggio voti                                  | 200    | `pagelle_voti`                                 |
-| Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi        | 12     | `serieAllenamenti`                             |
+| Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi        | 12 (min. per un 6vs6) | `serieAllenamenti`             |
 | 1 / 5 / 10 vittorie in campionato  | partite vinte da dati CSI ufficiali             | 1/5/10 | modulo [Collegamento CSI](collegamento-csi.md) |
 | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente (dinamico) | 1      | `eventi_app`                              |
 
@@ -43,14 +43,11 @@ smart (`notifiche-smart.ts`).
 
 ## Limiti noti
 
-- "Continuità di squadra" dipende da `serieAllenamenti` (vedi
-  [Serie di presenze](serie-presenze.md)), calcolato sui dati reali: un evento passato senza
-  risposta vale come assenza e azzera la serie, quindi l'obiettivo misura anche quanto la
-  squadra risponde alle convocazioni, non solo la presenza.
 - Le vittorie di campionato dipendono dal parsing HTML del portale CSI: se quel parsing si
   rompe, questi tre obiettivi restano a 0% anche a fronte di vittorie reali.
 - I target (250 presenze, 200 pagelle, ecc.) sono costanti fisse, da rivedere manualmente a
-  ogni stagione.
+  ogni stagione — con l'eccezione di "Continuità di squadra" (vedi sotto), il cui target ha un
+  significato specifico e non va scalato come gli altri.
 
 ---
 
@@ -70,3 +67,22 @@ Per i test, `obiettiviSquadra`/`obiettiviOrdinati` accettano un terzo parametro 
 (`test/unit/obiettivi.test.ts`, funzione pura) sia da un integration test end-to-end
 (`test/integration/obiettivi.test.ts`, scrive/rilegge righe vere su `eventi_app` e
 `risposte_presenze` sullo stack Supabase locale).
+
+---
+
+## Continuità di squadra — il target 12 è il minimo per un 6vs6
+
+Il target di 12 giocatori con almeno 3 allenamenti consecutivi **non è arbitrario**: è il numero
+minimo di giocatori per schierare due sestetti (6 contro 6) in allenamento. A differenza degli
+altri target fissi (250 presenze, 200 pagelle...), non va scalato in proporzione alla rosa se
+questa cambia dimensione — resta 12 finché l'obiettivo è "riuscire ad allenarsi in modo
+completo", indipendentemente da quanti giocatori ci sono in rosa oltre quel minimo.
+
+Dipende da `serieAllenamenti` (vedi [Serie di presenze](serie-presenze.md)), calcolato sui dati
+reali: un evento passato senza risposta vale come assenza e azzera la serie, quindi l'obiettivo
+misura anche quanto la squadra risponde alle convocazioni, non solo la presenza fisica.
+
+Coperto da unit test (rosa vuota, il confine ≥3 — 2 non basta, 3 sì — e il target fisso a 12) e
+da un integration test end-to-end che scrive tre allenamenti e presenze reali sul database
+locale, calcola `serieConsecutiva()` (la stessa funzione pura usata da `useRosa()` in
+produzione) sui dati riletti, e verifica che solo chi è rimasto in serie venga contato.
