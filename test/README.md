@@ -102,6 +102,12 @@ Due cose scoperte scrivendo questi test, utili a chi ne aggiunge:
   I test che richiedono `SUPABASE_SERVICE_ROLE_KEY` si saltano da soli se manca.
 - Il check del parsing CSI può girare contro il portale reale:
   `CSI_LIVE=1 bun test/unit/csi-core.test.ts`.
+- I 5 test di `integration/api.test.ts` che leggono il CSI reale (classifica, partite,
+  cache, obiettivi o3/o4/o5) sondano `/api/public/csi` prima di partire: se il portale non
+  risponde (in manutenzione lato loro, vedi
+  [docs/modules/collegamento-csi.md](../docs/modules/collegamento-csi.md) § Limiti noti) si
+  saltano da soli invece di far fallire la suite, e tornano a girare da soli quando il
+  portale risponde di nuovo.
 
 ## Limite noto
 

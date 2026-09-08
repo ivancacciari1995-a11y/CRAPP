@@ -118,6 +118,20 @@ useCsi()                 → src/lib/csi.ts (React Query, staleTime 6h)
    cambiano solo se cambia il dominio o serve autenticazione, nel qual caso va toccata anche
    `src/routes/api/public/csi.ts`); va poi aggiornato anche `test/unit/csi-core.test.ts` con
    fixture nel nuovo formato.
+6. **Il portale può essere del tutto irraggiungibile, non solo cambiare formato.** Scenario
+   diverso dal punto 5 (lì il JSON è valido ma non riconosciuto, qui la risposta non è
+   nemmeno JSON): l'8 settembre 2026 `getEventsByTeamId.php` ha risposto con `200` ma un
+   errore SQL del loro backend in chiaro al posto del JSON
+   (`Query non valida (getProjectTeams): Table 'uqc2os2x_livescore.seasons' doesn't exist`,
+   verificato con `curl` diretto sul loro dominio). `leggiCsi()` (`src/routes/api/public/
+   csi.ts`) intercetta l'eccezione di `JSON.parse` nel `try/catch` della route e risponde
+   `503 "CSI non raggiungibile"` (o serve la cache se ce n'è una) — nessun crash, ma nessun
+   dato nuovo finché il portale non torna. **Effetto sulla suite test**: i 5 test di
+   `test/integration/api.test.ts` che leggono il CSI reale sondano `/api/public/csi` una
+   volta prima di partire; se risponde con errore li salta (`salta()`, non `prova()`) invece
+   di farli fallire, loggando il motivo — la suite resta verde durante un'indisponibilità
+   temporanea del portale, senza che quei 5 test vengano cancellati o disattivati in modo
+   permanente: tornano a girare da soli non appena il CSI risponde di nuovo con `200`.
 
 ---
 
