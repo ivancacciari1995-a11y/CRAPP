@@ -176,6 +176,15 @@ assert.equal(
   "rosa vuota: nessuna presenza",
 );
 
+// Valori noti e indipendenti dai dati reali della rosa: non solo la stessa formula
+// ricalcolata sugli stessi dati, ma una somma verificabile a mente (5 + 10 + 15 = 30).
+const rosaControllata = giocatori.slice(0, 3).map((g, i) => ({ ...g, presenze: [5, 10, 15][i]! }));
+assert.equal(
+  trova(obiettiviSquadra(rosaControllata, contestoVuoto), "o7").valore,
+  30,
+  "somma di presenze note, indipendente dal roster reale",
+);
+
 const pagelle: VotoPagella[] = [
   { match_id: "m1", votante_id: "g1", votato_id: "g2", voto: 7 },
   { match_id: "m1", votante_id: "g2", votato_id: "g1", voto: 8 },
