@@ -126,7 +126,10 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
   assert.equal(o1Agosto.scadenza, "2026-08-31", "scadenza = ultimo giorno del mese");
 
   const o1Settembre = trova(obiettiviSquadra(giocatori, contestoVuoto, OGGI_SETTEMBRE), "o1");
-  assert.ok(o1Settembre.titolo.includes("settembre"), "titolo o1 riflette il mese iniettato (settembre)");
+  assert.ok(
+    o1Settembre.titolo.includes("settembre"),
+    "titolo o1 riflette il mese iniettato (settembre)",
+  );
   assert.equal(o1Settembre.scadenza, "2026-09-30", "scadenza = ultimo giorno di settembre (30 gg)");
 
   // La scadenza di o2 ("Tutti rispondono alle convocazioni") era una data fissa
@@ -197,10 +200,7 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
   );
 
   const dueEventiRisposte: ContestoObiettivi = {
-    eventi: [
-      evento("dr1", "2026-08-03", "allenamento"),
-      evento("dr2", "2026-08-17", "partita"),
-    ],
+    eventi: [evento("dr1", "2026-08-03", "allenamento"), evento("dr2", "2026-08-17", "partita")],
     presenze: {
       dr1: Object.fromEntries(giocatori.map((g) => [g.id, "presente" as const])),
       dr2: {},

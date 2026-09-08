@@ -88,8 +88,7 @@ export function EventoCard({
   const passato = evento.data < dataOggi();
   const cliccabile = Boolean(linkTo);
   /** Solo gli eventi extra-campo non hanno scheda dedicata: le note restano sulla card. */
-  const noteCard =
-    evento.tipo === "evento" ? evento.note.trim() : "";
+  const noteCard = evento.tipo === "evento" ? evento.note.trim() : "";
   const stati =
     evento.tipo === "evento"
       ? // Se resta un vecchio "infortunato", mostra il bottone solo per poterlo togliere.
@@ -193,10 +192,7 @@ export function EventoCard({
 
         {io ? (
           <div
-            className={cn(
-              "pointer-events-auto flex w-full gap-1",
-              metaStato ? "mt-2.5" : "mt-3",
-            )}
+            className={cn("pointer-events-auto flex w-full gap-1", metaStato ? "mt-2.5" : "mt-3")}
             role="group"
             aria-label="La tua presenza"
           >

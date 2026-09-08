@@ -96,7 +96,10 @@ if (!locale) {
         giocatore_id: g.id,
         stato: presenti.includes(g.id) ? "presente" : "assente",
       }));
-      const inseritePresenze = await rest("risposte_presenze", { method: "POST", body: JSON.stringify(righe) });
+      const inseritePresenze = await rest("risposte_presenze", {
+        method: "POST",
+        body: JSON.stringify(righe),
+      });
       if (!inseritePresenze.ok) {
         throw new Error(`inserimento presenze fallito: ${await inseritePresenze.text()}`);
       }
@@ -195,7 +198,11 @@ if (!locale) {
 
         // Tutta la rosa presente all'allenamento, nessuno alla partita: 50% aggregato sui due.
         const risposte = [
-          ...giocatori.map((g) => ({ evento_id: allenamentoId, giocatore_id: g.id, stato: "presente" })),
+          ...giocatori.map((g) => ({
+            evento_id: allenamentoId,
+            giocatore_id: g.id,
+            stato: "presente",
+          })),
           ...giocatori.map((g) => ({ evento_id: partitaId, giocatore_id: g.id, stato: "assente" })),
         ];
         const scritte = await rest("risposte_presenze", {
@@ -379,65 +386,68 @@ if (!locale) {
       },
     );
 
-    await prova(
-      "o7 somma presenze calcolate da eventi/risposte reali del database",
-      async () => {
-        // o7 non calcola nulla da `ctx`: somma `g.presenze`, un campo già calcolato a monte da
-        // `contaPresenzeGiocatore()` (che in produzione alimenta `useRosa()`). Qui si esercita
-        // la stessa funzione pura sui dati appena scritti, per verificare l'intera catena
-        // DB -> contaPresenzeGiocatore -> o7, non solo la somma finale.
-        const allenamentoId = `${PREFISSO}-o7-allenamento`;
-        const partitaId = `${PREFISSO}-o7-partita`;
-        const OGGI_STR = "2099-01-20";
+    await prova("o7 somma presenze calcolate da eventi/risposte reali del database", async () => {
+      // o7 non calcola nulla da `ctx`: somma `g.presenze`, un campo già calcolato a monte da
+      // `contaPresenzeGiocatore()` (che in produzione alimenta `useRosa()`). Qui si esercita
+      // la stessa funzione pura sui dati appena scritti, per verificare l'intera catena
+      // DB -> contaPresenzeGiocatore -> o7, non solo la somma finale.
+      const allenamentoId = `${PREFISSO}-o7-allenamento`;
+      const partitaId = `${PREFISSO}-o7-partita`;
+      const OGGI_STR = "2099-01-20";
 
-        for (const [id, tipo, data] of [
-          [allenamentoId, "allenamento", "2099-01-05"],
-          [partitaId, "partita", "2099-01-08"],
-        ] as const) {
-          const inserito = await rest("eventi_app", {
-            method: "POST",
-            body: JSON.stringify({ id, tipo, titolo: `Test obiettivi o7 (${tipo})`, data }),
-          });
-          if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
-        }
+      for (const [id, tipo, data] of [
+        [allenamentoId, "allenamento", "2099-01-05"],
+        [partitaId, "partita", "2099-01-08"],
+      ] as const) {
+        const inserito = await rest("eventi_app", {
+          method: "POST",
+          body: JSON.stringify({ id, tipo, titolo: `Test obiettivi o7 (${tipo})`, data }),
+        });
+        if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+      }
 
-        // g1: presente ai due eventi (2 presenze). g2: presente e in ritardo (2 presenze,
-        // il ritardo conta). g3: assente a entrambi (0 presenze).
-        const [g1, g2, g3] = giocatori;
-        const righe = [
-          { evento_id: allenamentoId, giocatore_id: g1!.id, stato: "presente" },
-          { evento_id: partitaId, giocatore_id: g1!.id, stato: "presente" },
-          { evento_id: allenamentoId, giocatore_id: g2!.id, stato: "presente" },
-          { evento_id: partitaId, giocatore_id: g2!.id, stato: "ritardo" },
-          { evento_id: allenamentoId, giocatore_id: g3!.id, stato: "assente" },
-          { evento_id: partitaId, giocatore_id: g3!.id, stato: "assente" },
-        ];
-        const inserite = await rest("risposte_presenze", { method: "POST", body: JSON.stringify(righe) });
-        if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
+      // g1: presente ai due eventi (2 presenze). g2: presente e in ritardo (2 presenze,
+      // il ritardo conta). g3: assente a entrambi (0 presenze).
+      const [g1, g2, g3] = giocatori;
+      const righe = [
+        { evento_id: allenamentoId, giocatore_id: g1!.id, stato: "presente" },
+        { evento_id: partitaId, giocatore_id: g1!.id, stato: "presente" },
+        { evento_id: allenamentoId, giocatore_id: g2!.id, stato: "presente" },
+        { evento_id: partitaId, giocatore_id: g2!.id, stato: "ritardo" },
+        { evento_id: allenamentoId, giocatore_id: g3!.id, stato: "assente" },
+        { evento_id: partitaId, giocatore_id: g3!.id, stato: "assente" },
+      ];
+      const inserite = await rest("risposte_presenze", {
+        method: "POST",
+        body: JSON.stringify(righe),
+      });
+      if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
 
-        const eventiReali = (await leggiEventi()).filter(
-          (e) => e.id === allenamentoId || e.id === partitaId,
-        );
-        const presenzeReali = {
-          ...(await leggiPresenze(allenamentoId)),
-          ...(await leggiPresenze(partitaId)),
-        };
+      const eventiReali = (await leggiEventi()).filter(
+        (e) => e.id === allenamentoId || e.id === partitaId,
+      );
+      const presenzeReali = {
+        ...(await leggiPresenze(allenamentoId)),
+        ...(await leggiPresenze(partitaId)),
+      };
 
-        const rosaConPresenzeReali = [g1!, g2!, g3!].map((g) => ({
-          ...g,
-          presenze: contaPresenzeGiocatore(g.id, eventiReali, presenzeReali, OGGI_STR),
-        }));
+      const rosaConPresenzeReali = [g1!, g2!, g3!].map((g) => ({
+        ...g,
+        presenze: contaPresenzeGiocatore(g.id, eventiReali, presenzeReali, OGGI_STR),
+      }));
 
-        const o7 = obiettiviSquadra(rosaConPresenzeReali, { eventi: [], presenze: {}, pagelle: [] })
-          .find((o) => o.id === "o7")!;
+      const o7 = obiettiviSquadra(rosaConPresenzeReali, {
+        eventi: [],
+        presenze: {},
+        pagelle: [],
+      }).find((o) => o.id === "o7")!;
 
-        assert.equal(
-          o7.valore,
-          4,
-          "g1 (2) + g2 (2, il ritardo conta) + g3 (0) = 4, calcolate dal database",
-        );
-      },
-    );
+      assert.equal(
+        o7.valore,
+        4,
+        "g1 (2) + g2 (2, il ritardo conta) + g3 (0) = 4, calcolate dal database",
+      );
+    });
 
     await prova("o12/o13 media e conteggio pagelle vere lette da pagelle_voti", async () => {
       const matchId = `${PREFISSO}-o12-m1`;
@@ -522,20 +532,26 @@ if (!locale) {
         });
         if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
 
-        const eventiReali = (await leggiEventi()).filter((e) =>
-          eventi.some(([id]) => id === e.id),
-        );
+        const eventiReali = (await leggiEventi()).filter((e) => eventi.some(([id]) => id === e.id));
         const presenzeReali: MappaPresenze = {};
         for (const [id] of eventi) Object.assign(presenzeReali, await leggiPresenze(id));
 
         const rosaConSerieReali = [g1!, g2!, g3!].map((g) => ({
           ...g,
-          serieAllenamenti: serieConsecutiva(g.id, eventiReali, presenzeReali, "allenamento", OGGI_STR),
+          serieAllenamenti: serieConsecutiva(
+            g.id,
+            eventiReali,
+            presenzeReali,
+            "allenamento",
+            OGGI_STR,
+          ),
         }));
 
-        const o11 = obiettiviSquadra(rosaConSerieReali, { eventi: [], presenze: {}, pagelle: [] }).find(
-          (o) => o.id === "o11",
-        )!;
+        const o11 = obiettiviSquadra(rosaConSerieReali, {
+          eventi: [],
+          presenze: {},
+          pagelle: [],
+        }).find((o) => o.id === "o11")!;
         assert.equal(
           o11.valore,
           1,

@@ -90,9 +90,7 @@ export function BarraSottosezioni({
             aria-label="Sottosezioni"
             className={cn(
               "flex flex-nowrap",
-              riempiLarghezza
-                ? "w-full"
-                : "w-max min-w-full",
+              riempiLarghezza ? "w-full" : "w-max min-w-full",
               sottolineatura ? "gap-1 px-2 py-1.5" : "snap-x snap-mandatory gap-1.5 px-5",
             )}
           >

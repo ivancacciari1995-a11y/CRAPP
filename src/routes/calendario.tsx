@@ -182,7 +182,7 @@ function Calendario() {
               <span key={i}>{g}</span>
             ))}
           </div>
-            {/*
+          {/*
               Il mese si cambia anche con lo swipe: il punto d'arrivo si
               decide proiettando la velocità di rilascio (come la
               decelerazione dello scroll iOS), non dalla posizione del dito.
@@ -195,112 +195,112 @@ function Calendario() {
               riga e sulle colonne di bordo. Il padding sta dentro il riquadro
               di ritaglio, i margini negativi rimettono la griglia dov'era.
             */}
-            <div className="relative -mx-1 mt-1 overflow-hidden p-1">
-              <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
-                <motion.div
-                  key={mesePrefix}
-                  custom={direzione}
-                  drag={ridotto ? false : "x"}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.18}
-                  dragMomentum={false}
-                  onDragEnd={(_, info) => {
-                    const arrivo = info.offset.x + proietta(info.velocity.x);
-                    if (arrivo < -60) successivo();
-                    else if (arrivo > 60) precedente();
-                  }}
-                  initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * 48 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * -48 }}
-                  transition={ridotto ? { duration: 0.2 } : molla.foglio}
-                  className="grid touch-pan-y grid-cols-7 gap-1"
-                >
-                  {Array.from({ length: offsetLunedi }).map((_, i) => (
-                    <span key={`v${i}`} />
-                  ))}
-                  {Array.from({ length: giorni }).map((_, i) => {
-                    const giorno = i + 1;
-                    const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
-                    const haEventi = eventiGiorno.length > 0;
-                    // Attenzione: si conta per **tipo**, non per numero di
-                    // eventi. Due partite nello stesso giorno restano una cella
-                    // rossa piena; si divide solo se i tipi sono diversi.
-                    const tipiGiorno = Array.from(new Set(eventiGiorno.map((e) => e.tipo)));
-                    // Più tipi: la cella si divide in bande a taglio netto (gli
-                    // stop sono duplicati apposta, non è una sfumatura), una per
-                    // tipo, in diagonale.
-                    const sfondo =
-                      tipiGiorno.length > 1
-                        ? `linear-gradient(135deg, ${tipiGiorno
-                            .map((t, idx) => {
-                              const da = (idx / tipiGiorno.length) * 100;
-                              const a = ((idx + 1) / tipiGiorno.length) * 100;
-                              return `${coloreTipo[t]} ${da}%, ${coloreTipo[t]} ${a}%`;
-                            })
-                            .join(", ")})`
-                        : undefined;
-                    const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
-                    const isOggi =
-                      !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
-                    const Cella = haEventi ? "button" : "div";
-                    return (
-                      <Cella
-                        key={giorno}
-                        type={haEventi ? "button" : undefined}
-                        onClick={haEventi ? () => apriGiorno(giorno) : undefined}
-                        style={sfondo ? { backgroundImage: sfondo } : undefined}
-                        className={cn(
-                          "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
-                          tipo === "partita" && "bg-accent text-accent-foreground",
-                          tipo === "allenamento" && "bg-training text-training-foreground",
-                          tipo === "evento" && "bg-warning text-warning-foreground",
-                          tipo === "compleanno" && "bg-success text-success-foreground",
-                          !tipo && !haEventi && "text-muted-foreground",
-                          !tipo && haEventi && "text-foreground",
-                          haEventi && "cursor-pointer transition-transform active:scale-90",
-                          isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
-                        )}
-                        aria-label={
-                          haEventi
-                            ? `${giorno} ${mesiIT[mese]}: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}`
-                            : undefined
-                        }
-                        aria-current={isOggi ? "date" : undefined}
-                      >
-                        {/*
+          <div className="relative -mx-1 mt-1 overflow-hidden p-1">
+            <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
+              <motion.div
+                key={mesePrefix}
+                custom={direzione}
+                drag={ridotto ? false : "x"}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                dragMomentum={false}
+                onDragEnd={(_, info) => {
+                  const arrivo = info.offset.x + proietta(info.velocity.x);
+                  if (arrivo < -60) successivo();
+                  else if (arrivo > 60) precedente();
+                }}
+                initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * 48 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * -48 }}
+                transition={ridotto ? { duration: 0.2 } : molla.foglio}
+                className="grid touch-pan-y grid-cols-7 gap-1"
+              >
+                {Array.from({ length: offsetLunedi }).map((_, i) => (
+                  <span key={`v${i}`} />
+                ))}
+                {Array.from({ length: giorni }).map((_, i) => {
+                  const giorno = i + 1;
+                  const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
+                  const haEventi = eventiGiorno.length > 0;
+                  // Attenzione: si conta per **tipo**, non per numero di
+                  // eventi. Due partite nello stesso giorno restano una cella
+                  // rossa piena; si divide solo se i tipi sono diversi.
+                  const tipiGiorno = Array.from(new Set(eventiGiorno.map((e) => e.tipo)));
+                  // Più tipi: la cella si divide in bande a taglio netto (gli
+                  // stop sono duplicati apposta, non è una sfumatura), una per
+                  // tipo, in diagonale.
+                  const sfondo =
+                    tipiGiorno.length > 1
+                      ? `linear-gradient(135deg, ${tipiGiorno
+                          .map((t, idx) => {
+                            const da = (idx / tipiGiorno.length) * 100;
+                            const a = ((idx + 1) / tipiGiorno.length) * 100;
+                            return `${coloreTipo[t]} ${da}%, ${coloreTipo[t]} ${a}%`;
+                          })
+                          .join(", ")})`
+                      : undefined;
+                  const tipo = tipiGiorno.length === 1 ? tipiGiorno[0] : undefined;
+                  const isOggi =
+                    !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+                  const Cella = haEventi ? "button" : "div";
+                  return (
+                    <Cella
+                      key={giorno}
+                      type={haEventi ? "button" : undefined}
+                      onClick={haEventi ? () => apriGiorno(giorno) : undefined}
+                      style={sfondo ? { backgroundImage: sfondo } : undefined}
+                      className={cn(
+                        "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
+                        tipo === "partita" && "bg-accent text-accent-foreground",
+                        tipo === "allenamento" && "bg-training text-training-foreground",
+                        tipo === "evento" && "bg-warning text-warning-foreground",
+                        tipo === "compleanno" && "bg-success text-success-foreground",
+                        !tipo && !haEventi && "text-muted-foreground",
+                        !tipo && haEventi && "text-foreground",
+                        haEventi && "cursor-pointer transition-transform active:scale-90",
+                        isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                      )}
+                      aria-label={
+                        haEventi
+                          ? `${giorno} ${mesiIT[mese]}: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}`
+                          : undefined
+                      }
+                      aria-current={isOggi ? "date" : undefined}
+                    >
+                      {/*
                           Sulle celle divise il numero sta direttamente sulle
                           bande, staccato dal fondo da un alone bianco: è la
                           resa scelta, il colore deve restare pieno e visibile
                           fino al bordo.
                         */}
-                        <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                          {giorno}
-                        </span>
-                      </Cella>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Scorri a destra o sinistra per cambiare mese.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <i className="h-2.5 w-2.5 rounded-full bg-accent" /> Partita
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <i className="h-2.5 w-2.5 rounded-full bg-training" /> Allenamento
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <i className="h-2.5 w-2.5 rounded-full bg-warning" /> Eventi
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <i className="h-2.5 w-2.5 rounded-full bg-success" /> Compleanni
-              </span>
-            </div>
-          </Card>
-        </Section>
+                      <span className="relative drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                        {giorno}
+                      </span>
+                    </Cella>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Scorri a destra o sinistra per cambiare mese.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <i className="h-2.5 w-2.5 rounded-full bg-accent" /> Partita
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <i className="h-2.5 w-2.5 rounded-full bg-training" /> Allenamento
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <i className="h-2.5 w-2.5 rounded-full bg-warning" /> Eventi
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <i className="h-2.5 w-2.5 rounded-full bg-success" /> Compleanni
+            </span>
+          </div>
+        </Card>
+      </Section>
 
       {admin ? (
         <div className="px-5 pt-4">
