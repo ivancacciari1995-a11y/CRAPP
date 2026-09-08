@@ -90,6 +90,21 @@ assert.equal(
   "sopra la soglia minima, valgono le normali soglie di grado",
 );
 
+// --- palloni: soglie 3 / 6 / 10 -----------------------------------------------
+const palloniDef = badgeDefs.find((b) => b.id === "palloni")!;
+assert.equal(gradoRaggiunto(palloniDef, 2), null, "sotto la prima soglia nessun grado");
+assert.equal(gradoRaggiunto(palloniDef, 3), "bronzo", "la soglia è inclusiva");
+assert.equal(gradoRaggiunto(palloniDef, 5), "bronzo");
+assert.equal(gradoRaggiunto(palloniDef, 6), "argento");
+assert.equal(gradoRaggiunto(palloniDef, 9), "argento");
+assert.equal(gradoRaggiunto(palloniDef, 10), "oro");
+assert.equal(gradoRaggiunto(palloniDef, 99), "oro", "oltre l'oro resta oro");
+assert.equal(
+  statoBadge(palloniDef, g({ palloni: 5 })).progresso,
+  83,
+  "5 turni su 6 per l'argento: 83%",
+);
+
 // --- badgeGiocatore ----------------------------------------------------------
 assert.equal(badgeGiocatore(g()).length, badgeDefs.length, "i badge normali sono sempre tutti");
 assert.ok(
