@@ -170,7 +170,7 @@ export function obiettiviSquadra(
       id: "o5",
       titolo: "10 vittorie in campionato",
       descrizione: "Obiettivo stagionale per il podio",
-      valore: vittorie,
+      valore: Math.min(vittorie, 10),
       target: 10,
       unita: "vittorie",
       emoji: "🏆",

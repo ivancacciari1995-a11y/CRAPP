@@ -4,7 +4,9 @@
  * Nessun test scrive sul database: solo letture e validazioni.
  */
 import assert from "node:assert/strict";
-import { isNostraSquadra, type DatiCsi } from "@/lib/csi-core";
+import { giocatori } from "@/lib/crapp-data";
+import { isNostraSquadra, partiteGiocate, type DatiCsi } from "@/lib/csi-core";
+import { obiettiviSquadra } from "@/lib/obiettivi";
 import { avviaServer, haSupabase, json } from "../helpers/server";
 import { prova, riepilogo, salta } from "../helpers/prova";
 
@@ -57,6 +59,32 @@ try {
       else assert.equal(p.parziali.length, 0, `${p.id}: gara futura senza parziali`);
     }
   });
+
+  await prova(
+    "le vittorie in campionato lette dal CSI reale alimentano o3/o4/o5 in modo coerente",
+    () => {
+      // Stessa logica di useObiettivi() in src/lib/rosa.ts: partite giocate e vinte.
+      const vittorieReali = partiteGiocate(csi?.partite ?? []).filter(
+        (p) => (p.setNostri ?? 0) > (p.setLoro ?? 0),
+      ).length;
+
+      const obiettivi = obiettiviSquadra(giocatori, {
+        eventi: [],
+        presenze: {},
+        pagelle: [],
+        vittorie: vittorieReali,
+      });
+      const o3 = obiettivi.find((o) => o.id === "o3")!;
+      const o4 = obiettivi.find((o) => o.id === "o4")!;
+      const o5 = obiettivi.find((o) => o.id === "o5")!;
+
+      assert.deepEqual([o3.target, o4.target, o5.target], [1, 5, 10], "target fissi 1/5/10");
+      assert.equal(o3.valore, Math.min(vittorieReali, 1), "prima vittoria, cappata a 1");
+      assert.equal(o4.valore, Math.min(vittorieReali, 5), "5 vittorie, cappata a 5");
+      assert.equal(o5.valore, Math.min(vittorieReali, 10), "10 vittorie, cappata a 10");
+      assert.ok(o3.valore <= o4.valore && o4.valore <= o5.valore, "progressione o3 ≤ o4 ≤ o5");
+    },
+  );
 
   await prova("la seconda chiamata arriva dalla cache del server", async () => {
     const t0 = Date.now();

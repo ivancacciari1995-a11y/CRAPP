@@ -325,6 +325,59 @@ assert.equal(
   );
 }
 
+// --- o3/o4/o5: vittorie in campionato (1/5/10), tutte cappate al target -------
+{
+  const conVittorie = (n: number) => obiettiviSquadra(giocatori, { ...contestoVuoto, vittorie: n });
+
+  // Senza dato CSI (undefined) o a zero vittorie: tutti fermi a 0, nessun NaN.
+  for (const senzaVittorie of [contestoVuoto, { ...contestoVuoto, vittorie: 0 }]) {
+    const obiettivi = obiettiviSquadra(giocatori, senzaVittorie);
+    assert.equal(trova(obiettivi, "o3").valore, 0);
+    assert.equal(trova(obiettivi, "o4").valore, 0);
+    assert.equal(trova(obiettivi, "o5").valore, 0);
+  }
+
+  // I target restano fissi: 1, 5, 10.
+  assert.deepEqual(
+    [trova(vuoti, "o3").target, trova(vuoti, "o4").target, trova(vuoti, "o5").target],
+    [1, 5, 10],
+  );
+
+  // Progressione realistica: con 1 vittoria tutti e tre valgono 1 (o3 già al target,
+  // o4/o5 solo all'inizio).
+  assert.deepEqual(
+    [1, 2, 3].map((n) => trova(conVittorie(1), `o${n + 2}`).valore),
+    [1, 1, 1],
+    "1 vittoria: o3 al target, o4/o5 ancora lontani ma valgono 1",
+  );
+  const conCinque = conVittorie(5);
+  assert.deepEqual(
+    [trova(conCinque, "o3").valore, trova(conCinque, "o4").valore, trova(conCinque, "o5").valore],
+    [1, 5, 5],
+    "5 vittorie: o3 e o4 al target, o5 a metà",
+  );
+  const conDieci = conVittorie(10);
+  assert.deepEqual(
+    [trova(conDieci, "o3").valore, trova(conDieci, "o4").valore, trova(conDieci, "o5").valore],
+    [1, 5, 10],
+    "10 vittorie: tutti e tre al target",
+  );
+
+  // Oltre il target: o3 e o4 restavano già cappati con Math.min, o5 no (bug fixato:
+  // valore = vittorie invece di Math.min(vittorie, 10), incoerente con gli altri due e
+  // mostrato senza cap in squadra.tsx/index.tsx come "15/10 vittorie").
+  const conQuindici = conVittorie(15);
+  assert.deepEqual(
+    [
+      trova(conQuindici, "o3").valore,
+      trova(conQuindici, "o4").valore,
+      trova(conQuindici, "o5").valore,
+    ],
+    [1, 5, 10],
+    "oltre il target tutti e tre restano cappati, o5 incluso",
+  );
+}
+
 // --- progressoObiettivo ------------------------------------------------------
 const o = (valore: number, target: number): ObiettivoSquadra => ({
   id: "x",
