@@ -2,8 +2,9 @@ import { useId, useState, type ComponentPropsWithoutRef, type ReactNode } from "
 import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { statoMeta, type Stato } from "@/lib/crapp-data";
-import { useIo } from "@/lib/rosa";
+import { inizialiDa, statoMeta, type Stato } from "@/lib/crapp-data";
+import { nomeCompleto } from "@/lib/giocatori-squadra";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Numero } from "@/components/motion/Numero";
@@ -51,9 +52,14 @@ export function Card({
  * Accesso al profilo in alto a destra: la BottomNav ha quattro voci e questa è
  * l'unica porta verso `/profilo`. Sulla pagina del profilo si passa `azione` a
  * `PageHeader` per rimetterci il logo — sarebbe un link a sé stessa.
+ *
+ * Usa `useGiocatoreBase` (sola anagrafica) e non `useIo`: qui serve solo id e
+ * iniziali, mentre `useIo` calcola l'intera rosa con statistiche (MVP, pagelle,
+ * cacche, palloni, infortuni). Essendo in un componente montato su quasi ogni
+ * pagina, quei moduli finirebbero nel bundle condiviso di tutte le rotte.
  */
 export function LinkProfilo() {
-  const g = useIo();
+  const g = useGiocatoreBase();
   if (!g) return <TeamLogo className="h-12 w-12" />;
   return (
     <Link
@@ -61,7 +67,7 @@ export function LinkProfilo() {
       aria-label="Il tuo profilo"
       className="premi shrink-0 rounded-2xl ring-2 ring-primary-foreground/30"
     >
-      <Avatar id={g.id} fallback={g.iniziali} className="h-12 w-12 text-lg" />
+      <Avatar id={g.id} fallback={inizialiDa(nomeCompleto(g))} className="h-12 w-12 text-lg" />
     </Link>
   );
 }

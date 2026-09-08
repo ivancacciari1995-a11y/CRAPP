@@ -73,7 +73,8 @@ const rosaCSI: Rosa[] = [
   { nome: "Giada Valbonesi", nascita: "1994-05-20", ruolo: "Opposto", numero: 10 },
 ];
 
-function inizialiDa(nome: string) {
+/** Iniziali da un nome completo (max 2 lettere), es. per il fallback di `Avatar`. */
+export function inizialiDa(nome: string) {
   return nome
     .split(" ")
     .map((p) => p[0] ?? "")

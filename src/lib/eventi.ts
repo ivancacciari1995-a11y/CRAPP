@@ -162,8 +162,18 @@ export function useEliminaEvento() {
   });
 }
 
-/** Compleanni della rosa, come eventi di calendario dell'anno indicato. */
-export function compleanniEventi(rosa: Giocatore[], anno = new Date().getFullYear()): Evento[] {
+/**
+ * Compleanni della rosa, come eventi di calendario dell'anno indicato.
+ *
+ * Prende solo i tre campi che usa (non l'intero `Giocatore`): il Calendario li
+ * legge da un'anagrafica leggera per non tirarsi dietro tutte le statistiche
+ * (MVP, pagelle, cacche, palloni, infortuni) di `useRosa` solo per le date di
+ * nascita.
+ */
+export function compleanniEventi(
+  rosa: Array<Pick<Giocatore, "id" | "nome" | "nascita">>,
+  anno = new Date().getFullYear(),
+): Evento[] {
   return rosa
     .filter((g) => g.nascita)
     .map((g) => {
