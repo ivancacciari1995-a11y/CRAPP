@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, RefreshCw } from "lucide-react";
+import { AlertTriangle, ChevronRight, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatData } from "@/lib/crapp-data";
 import { PageHeader } from "@/components/crapp/ui-bits";
@@ -85,11 +85,24 @@ function Classifica() {
   const contenutoClassifica = useMemo(
     () => (
       <>
-        <div className="mb-3 flex items-center gap-2 rounded-2xl bg-secondary px-3 py-2 text-xs text-muted-foreground">
-          <RefreshCw className="h-3.5 w-3.5 text-accent" />
-          {csi
-            ? `Dati CSI aggiornati ${formatAggiornamento(csi.aggiornato)}`
-            : "Dati CSI in arrivo"}
+        <div
+          className={cn(
+            "mb-3 flex items-center gap-2 rounded-2xl px-3 py-2 text-xs",
+            csi?.formatoSospetto
+              ? "bg-warning/15 text-warning"
+              : "bg-secondary text-muted-foreground",
+          )}
+        >
+          {csi?.formatoSospetto ? (
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" aria-hidden />
+          ) : (
+            <RefreshCw className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+          )}
+          {csi?.formatoSospetto
+            ? "Il portale CSI potrebbe aver cambiato formato: dati da verificare."
+            : csi
+              ? `Dati CSI aggiornati ${formatAggiornamento(csi.aggiornato)}`
+              : "Dati CSI in arrivo"}
         </div>
         <div className="overflow-hidden rounded-3xl bg-card shadow-card">
           <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-xs font-bold uppercase text-muted-foreground">

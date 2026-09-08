@@ -7,6 +7,7 @@ import {
   isNostraSquadra,
   parseClassifica,
   partiteDaEventi,
+  partiteFormatoSospetto,
   partiteGiocate,
   urlClassifica,
   urlPartite,
@@ -95,6 +96,34 @@ assert.deepEqual(trasferta.parziali[0], [21, 25], "anche i parziali");
 
 assert.equal(partiteGiocate(partite).length, 2);
 assert.deepEqual(partiteDaEventi("non è un array"), [], "risposta inattesa: nessun crash");
+
+// --- partiteFormatoSospetto: distingue "nessuna gara ancora" da "formato rotto" -------------
+assert.equal(
+  partiteFormatoSospetto(eventi, partite),
+  false,
+  "eventi grezzi presenti e riconosciuti: nessun sospetto",
+);
+assert.equal(
+  partiteFormatoSospetto([], []),
+  false,
+  "nessun evento grezzo: probabilmente solo una stagione senza gare, non un formato rotto",
+);
+assert.equal(
+  partiteFormatoSospetto("non è un array", []),
+  true,
+  "la risposta non è più un array: il formato è cambiato",
+);
+const eventiSenzaCampiRiconosciuti = [
+  { id: 1, quando: "2025-11-12", squadraCasa: "C.R.A.P. Volley", squadraOspite: "AMCM" },
+];
+assert.equal(
+  partiteFormatoSospetto(
+    eventiSenzaCampiRiconosciuti,
+    partiteDaEventi(eventiSenzaCampiRiconosciuti),
+  ),
+  true,
+  "eventi presenti ma con campi rinominati: nessuno riconosciuto, sospetto fondato",
+);
 
 if (process.env["CSI_LIVE"]) {
   const [html, json] = await Promise.all([

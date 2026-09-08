@@ -43,8 +43,10 @@ smart (`notifiche-smart.ts`).
 
 ## Limiti noti
 
-- Le vittorie di campionato dipendono dal parsing HTML del portale CSI: se quel parsing si
-  rompe, questi tre obiettivi restano a 0% anche a fronte di vittorie reali.
+- Le vittorie di campionato dipendono dal **JSON** delle partite del portale CSI (non dalla
+  classifica HTML): se quel parsing si rompe, questi tre obiettivi restano a 0% anche a fronte
+  di vittorie reali, **senza segnalazione d'errore** — vedi il dettaglio in
+  [Collegamento CSI § Limiti noti](collegamento-csi.md#limiti-noti).
 - I target (250 presenze, 200 pagelle, ecc.) sono costanti fisse, da rivedere manualmente a
   ogni stagione — con l'eccezione di "Continuità di squadra" (vedi sotto), il cui target ha un
   significato specifico e non va scalato come gli altri.

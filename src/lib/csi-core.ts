@@ -39,6 +39,8 @@ export type DatiCsi = {
   partite: PartitaCsi[];
   girone: string;
   aggiornato: string;
+  /** true se il formato delle partite sembra cambiato (vedi `partiteFormatoSospetto`). */
+  formatoSospetto: boolean;
 };
 
 /** "C.R.A.P. Volley" e "CRAP Volley" devono confrontarsi uguali. */
@@ -160,6 +162,20 @@ export function partiteDaEventi(eventi: unknown): PartitaCsi[] {
 /** Solo le gare già giocate, dalla più recente. */
 export function partiteGiocate(partite: PartitaCsi[]): PartitaCsi[] {
   return partite.filter((p) => p.setNostri !== null && p.setLoro !== null);
+}
+
+/**
+ * True se il formato di `getEventsByTeamId.php` sembra cambiato: `partiteDaEventi()` fallisce
+ * in modo silenzioso (nessun array o campi non riconosciuti), quindi un array vuoto da solo non
+ * distingue "il portale CSI ha cambiato formato" da "la squadra non ha ancora gare in
+ * programma". Qui invece si confronta con la risposta grezza: se contiene eventi ma nessuno è
+ * stato riconosciuto come nostra partita, è quasi certamente un problema di parsing, non una
+ * stagione senza gare. Usata da `/api/public/csi` per loggare il caso invece di lasciarlo
+ * silenzioso — vedi "Limiti noti" in docs/modules/collegamento-csi.md.
+ */
+export function partiteFormatoSospetto(eventiGrezzi: unknown, partite: PartitaCsi[]): boolean {
+  if (!Array.isArray(eventiGrezzi)) return true;
+  return eventiGrezzi.length > 0 && partite.length === 0;
 }
 
 /** Converte una gara CSI già giocata nella forma comune usata nelle liste risultati. */

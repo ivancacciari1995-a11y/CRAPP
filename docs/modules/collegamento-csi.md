@@ -90,6 +90,34 @@ useCsi()                 → src/lib/csi.ts (React Query, staleTime 6h)
    istanze. Sufficiente per una squadra; se serve di più, spostare i dati in una tabella
    Supabase riempita da un job cron (stesso pattern di `promemoria-palloni`).
 4. **I risultati includono anche la Coppa**, non solo il girone di campionato.
+5. **Le partite si leggono da JSON, con parsing fragile su campi testuali.** `result` e
+   `partials` in `getEventsByTeamId.php` sono stringhe libere tipo `"3-1"`, lette con
+   un'espressione regolare (`punteggio()`/`parziali()` in `csi-core.ts`). Se il portale CSI
+   cambiasse formato (es. `"3:1"`, o un punteggio come oggetto invece che stringa), la regex
+   non troverebbe corrispondenza e la partita risulterebbe "non ancora giocata"
+   (`setNostri`/`setLoro` a `null`) — silenziosamente, senza errori. Se invece la risposta
+   cambiasse forma radicalmente (non più un array), `partiteDaEventi()` torna `[]`.
+   **Conseguenza sugli obiettivi di squadra**: le "vittorie in campionato" (`obiettivi.ts`,
+   obiettivi o3/o4/o5) dipendono da `partiteGiocate(csi.partite)` — se il parsing delle partite
+   si rompe così, questi tre obiettivi restano bloccati a 0% anche a fronte di vittorie reali.
+   **Il fallback della route non se ne accorgerebbe da solo**: `/api/public/csi` lancia un
+   errore solo se *sia* la classifica *sia* le partite sono vuote insieme
+   (`classifica.length === 0 && partite.length === 0`); se si rompe solo il parsing delle
+   partite mentre la classifica HTML continua a funzionare, la route risponde comunque `200`
+   con `partite: []`. Per questo `leggiCsi()` confronta il JSON grezzo con il risultato di
+   `partiteDaEventi()` tramite `partiteFormatoSospetto()` (`csi-core.ts`): se ci sono eventi
+   grezzi ma nessuno è stato riconosciuto come nostra partita, logga un `console.error` —
+   distingue così un vero "formato cambiato" da un legittimo "nessuna gara ancora in
+   programma" (dove gli eventi grezzi stessi sono vuoti). Il flag `formatoSospetto` viaggia
+   anche nella risposta JSON (`DatiCsi.formatoSospetto`) fino a `/classifica`
+   (`src/routes/classifica.tsx`), dove mostra un badge discreto ("Il portale CSI potrebbe aver
+   cambiato formato: dati da verificare.") al posto della normale riga "Dati CSI aggiornati
+   alle...": un log server passa inosservato per settimane, un badge visibile a chi apre la
+   pagina campionato molto meno. Il fix, quando succede, è isolato a
+   `partiteDaEventi()`/`punteggio()`/`parziali()` in `csi-core.ts` (gli endpoint stessi
+   cambiano solo se cambia il dominio o serve autenticazione, nel qual caso va toccata anche
+   `src/routes/api/public/csi.ts`); va poi aggiornato anche `test/unit/csi-core.test.ts` con
+   fixture nel nuovo formato.
 
 ---
 

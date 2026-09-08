@@ -3,6 +3,7 @@ import {
   CSI_GIRONE,
   parseClassifica,
   partiteDaEventi,
+  partiteFormatoSospetto,
   urlClassifica,
   urlPartite,
   type DatiCsi,
@@ -29,11 +30,29 @@ async function scarica(url: string): Promise<string> {
 async function leggiCsi(): Promise<DatiCsi> {
   const [html, json] = await Promise.all([scarica(urlClassifica()), scarica(urlPartite())]);
   const classifica = parseClassifica(html);
-  const partite = partiteDaEventi(JSON.parse(json));
+  const eventiGrezzi = JSON.parse(json);
+  const partite = partiteDaEventi(eventiGrezzi);
   if (classifica.length === 0 && partite.length === 0) {
     throw new Error("CSI: risposta senza classifica né partite");
   }
-  return { classifica, partite, girone: CSI_GIRONE, aggiornato: new Date().toISOString() };
+  // La classifica basta a evitare l'errore sopra, ma se solo le partite si rompono (formato di
+  // getEventsByTeamId.php cambiato) la route tornerebbe comunque 200 senza che nessuno se ne
+  // accorga: le vittorie degli obiettivi di squadra resterebbero ferme a 0% in silenzio. Oltre
+  // al log server, il flag arriva fino a `/classifica` (badge discreto) perché qualcuno se ne
+  // accorga anche senza guardare i log.
+  const formatoSospetto = partiteFormatoSospetto(eventiGrezzi, partite);
+  if (formatoSospetto) {
+    console.error(
+      "csi: il formato di getEventsByTeamId.php sembra cambiato, nessuna partita riconosciuta",
+    );
+  }
+  return {
+    classifica,
+    partite,
+    girone: CSI_GIRONE,
+    aggiornato: new Date().toISOString(),
+    formatoSospetto,
+  };
 }
 
 export const Route = createFileRoute("/api/public/csi")({
