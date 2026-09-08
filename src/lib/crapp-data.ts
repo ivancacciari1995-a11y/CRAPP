@@ -37,6 +37,8 @@ export type Giocatore = {
   mvp: number;
   /** Media delle pagelle ricevute dai compagni (1-10). */
   mediaVoto: number;
+  /** Quante pagelle ha ricevuto: sotto la soglia minima il badge Pagellone resta bloccato. */
+  votiPagella: number;
   /** Quante volte ha portato i palloni. */
   palloni: number;
   /** Partite di campionato con almeno 3 cacche dichiarate. */
@@ -105,6 +107,7 @@ export const giocatori: Giocatore[] = rosaCSI
     serieConferme: 0,
     mvp: 0,
     mediaVoto: 0,
+    votiPagella: 0,
     infortuni: 0,
     ritardi: 0,
     palloni: 0,

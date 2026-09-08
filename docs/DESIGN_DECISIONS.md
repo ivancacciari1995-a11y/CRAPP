@@ -42,6 +42,7 @@ Serve a rispondere a domande del tipo:
 | [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
 | [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
 | [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
+| [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
 
 **In valutazione**
 
@@ -970,3 +971,56 @@ prima di inviare.
 **Riesame**  
 Se servisse mandare payload più grandi del limite del protocollo, o se un servizio push
 smettesse di accettare corpi cifrati (nessuno lo fa: è lo standard).
+
+### DD-027 — Chi vota deve essere convocato, non solo autenticato come sé stesso
+
+**Stato:** accettata · **Data:** 8 settembre 2026
+
+**Contesto**  
+Un audit del modulo Badge (`docs/modules/badge.md`) ha trovato due filtri rimasti solo
+applicativi dopo DD-023: la policy di M11 garantisce che `votante_id` sia lo slot collegato
+all'account di chi scrive, ma non controlla che **votante e votato fossero convocati**
+all'evento — un utente che scrive direttamente su PostgREST (bypassando l'interfaccia) poteva
+votare o essere votato in una partita a cui non aveva partecipato, gonfiando `mediaVoto`,
+`mvp` o un badge social a piacere. Allo stesso modo, `eventi_app.pagelle_chiuse` nascondeva
+solo i bottoni in UI: un voto pagella "fuori tempo" restava tecnicamente possibile.
+
+**Decisione**  
+La policy "Ognuno gestisce i propri voti ..." di `pagelle_voti`, `mvp_voti` e
+`badge_social_voti` (M11) guadagna un controllo aggiuntivo tramite la funzione
+`evento_permette_voto()` (migration `m13_convocati_e_pagelle_chiuse`): verifica che sia
+`votante_id` sia `votato_id` compaiano in `eventi_app.convocati` per quel `match_id`
+(`convocati` vuoto = tutta la rosa, la stessa convenzione di `convocatiEvento()` in
+`eventi.ts`), e — solo per le pagelle — che `pagelle_chiuse` sia falso. Le policy admin
+restano invariate e permissive: un amministratore deve poter correggere un voto anche fuori
+convocazione o dopo la chiusura.
+
+Il controllo si ferma alla **convocazione**, non alla **presenza reale**: per l'MVP, ad
+esempio, l'interfaccia limita già il voto ai soli presenti/in ritardo
+(`usePresenzeEvento`), un filtro più stretto che resta solo applicativo — un convocato ma
+assente passa ancora a livello database. Stringere fino a quel punto avrebbe richiesto
+leggere `risposte_presenze` dentro la policy, un salto di complessità non giustificato
+dall'audit che ha originato questa decisione.
+
+**Alternative scartate**
+
+- Un trigger `BEFORE INSERT/UPDATE` invece di RLS → si applicherebbe anche alla service key
+  e agli admin, bloccando correzioni legittime fuori convocazione; la RLS, applicata solo
+  alla policy non-admin, li esclude naturalmente.
+- Controllare anche la presenza reale (`risposte_presenze`), non solo la convocazione →
+  scope maggiore del gap trovato in audit, e specifico dell'MVP (pagelle e badge social non
+  hanno un concetto di "presente" distinto da "convocato" nell'interfaccia attuale).
+
+**Conseguenze**
+
+- Un evento senza `convocati` esplicito (lista vuota, il caso più comune oggi) non cambia
+  comportamento: tutta la rosa resta votabile, come prima.
+- I test di `test/integration/permessi.test.ts` sono la definizione eseguibile anche di
+  questa parte della tabella dei permessi (voti non convocati rifiutati, `pagelle_chiuse`
+  rifiutata a database, controlli positivi che provano che un voto legittimo passa ancora).
+- Resta un gap conosciuto e documentato (non quello risolto qui): che il votante fosse
+  davvero presente, non solo convocato, per MVP/pagelle/badge social.
+
+**Riesame**  
+Se un giorno servisse bloccare anche il voto di un convocato-ma-assente a livello database,
+non solo in UI.

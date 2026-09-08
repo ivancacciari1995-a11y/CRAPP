@@ -48,9 +48,15 @@ restano nel database ma non vengono più letti da nessuna schermata).
 - Nessuna scadenza o chiusura della votazione: una volta aperta resta aperta indefinitamente.
 - Il voto è legato a chi lo scrive: da `m11_scritture_per_ruolo` la policy impone che
   `votante_id` sia lo slot collegato all'account (DD-023). Su chi viene votato l'unico
-  vincolo è che non sia il votante stesso (`mvp_no_autovoto`): che votante e votato fossero
-  presenti a quella partita, e che siano passate due ore dall'inizio, restano filtri solo
-  applicativi — chi scrive su PostgREST li aggira.
+  vincolo diretto è che non sia il votante stesso (`mvp_no_autovoto`).
+  Da `m13_convocati_e_pagelle_chiuse` la stessa policy verifica anche che **sia il votante sia
+  il votato** siano tra i **convocati** dell'evento (`evento_permette_voto()`, convocati vuoto
+  = tutta la rosa): prima era un filtro solo applicativo, ora un giocatore non convocato non
+  può più votare né essere votato scrivendo direttamente su PostgREST. Restano invece solo
+  applicativi, non controllati da nessuna policy: che votante e votato fossero **presenti**
+  (non solo convocati: `presente`/`ritardo` in `usePresenzeEvento`, un controllo più stretto
+  della sola convocazione) a quella partita, e le due ore d'attesa dall'inizio evento
+  (`votoMvpAperto()`) — un amministratore, o chiunque scriva su PostgREST, passa comunque.
 - In caso di parità, nessun MVP viene assegnato per quella partita.
 
 ---

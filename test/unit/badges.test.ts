@@ -25,6 +25,7 @@ function g(valori: Partial<Giocatore> = {}): Giocatore {
     presenze: 0,
     mvp: 0,
     mediaVoto: 0,
+    votiPagella: 0,
     palloni: 0,
     cacche: 0,
     cacchePartita: 0,
@@ -65,6 +66,29 @@ assert.equal(alMassimo.progresso, 100, "raggiunto l'oro il progresso è pieno");
 const pagella = badgeDefs.find((b) => b.id === "pagella")!;
 assert.equal(gradoRaggiunto(pagella, 6.4), null);
 assert.equal(gradoRaggiunto(pagella, 6.5), "bronzo");
+
+// Sotto i voti minimi il badge resta bloccato anche con una media altissima: un voto solo
+// non deve poter sbloccare/sfilare Pagellone.
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 10, votiPagella: 1 })).grado,
+  null,
+  "1 voto su 10: non basta, sotto la soglia minima",
+);
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 10, votiPagella: 4 })).grado,
+  null,
+  "4 voti: ancora sotto la soglia minima (5)",
+);
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 10, votiPagella: 5 })).grado,
+  "oro",
+  "5 voti: la soglia minima è raggiunta, la media conta",
+);
+assert.equal(
+  statoBadge(pagella, g({ mediaVoto: 6.5, votiPagella: 5 })).grado,
+  "bronzo",
+  "sopra la soglia minima, valgono le normali soglie di grado",
+);
 
 // --- badgeGiocatore ----------------------------------------------------------
 assert.equal(badgeGiocatore(g()).length, badgeDefs.length, "i badge normali sono sempre tutti");
@@ -116,7 +140,9 @@ assert.equal(vuota.sbloccati.length, 0);
 assert.equal(vuota.inProgresso.length, badgeDefs.length);
 assert.equal(vuota.nascosti, badgeSegreti.length);
 
-const piena = collezioneBadge(g({ mvp: 5, mediaVoto: 8, presenze: 30, infortuni: 3 }));
+const piena = collezioneBadge(
+  g({ mvp: 5, mediaVoto: 8, votiPagella: 5, presenze: 30, infortuni: 3 }),
+);
 assert.equal(
   piena.ottenuti,
   piena.sbloccati.length + piena.segreti.length,
@@ -133,6 +159,7 @@ assert.equal(
     g({
       mvp: 5,
       mediaVoto: 10,
+      votiPagella: 5,
       palloni: 10,
       presenze: 30,
       serieAllenamenti: 10,

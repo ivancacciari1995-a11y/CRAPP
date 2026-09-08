@@ -29,9 +29,13 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
 - `useVotaPagella()` fa un upsert su `(match_id, votante_id, votato_id)`: si può votare più
   volte, l'ultimo voto sovrascrive il precedente.
 - `mediePagelle()` calcola la media aritmetica (arrotondata a un decimale) per giocatore su
-  tutti i voti della stagione; `pagellePartita()` la calcola per singola partita;
-  `mediaSquadra()` su tutti i voti di tutti — mostrata come StatTile in `squadra.tsx`.
-- `useRosa()` inietta la media stagionale nel campo `mediaVoto` di ogni giocatore.
+  **tutti i voti mai ricevuti** — l'app non ha un concetto di stagione/reset, quindi non è
+  "la media di questa stagione" ma lo storico completo; `pagellePartita()` la calcola per
+  singola partita; `mediaSquadra()` su tutti i voti di tutti — mostrata come StatTile in
+  `squadra.tsx`.
+- `useRosa()` inietta questa media storica nel campo `mediaVoto` di ogni giocatore, insieme al
+  numero di voti ricevuti (`votiPagella`) — usato dal badge Pagellone (vedi
+  [badge.md](badge.md)) per richiedere un minimo di voti prima che la media conti.
 
 ---
 
@@ -39,25 +43,27 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
 
 - Anti auto-voto imposto anche a livello database (constraint, non solo filtro UI).
 - L'admin può marcare un evento come `pagelleChiuse` (`eventi.ts`), che nasconde i bottoni di
-  voto in UI.
+  voto in UI **e**, da M13, rifiuta anche a database un voto scritto dopo la chiusura (RLS
+  `evento_permette_voto()`, `pagelle_voti`).
+- Da M13 anche il votante e il votato devono essere convocati all'evento: verificato a
+  database, non solo in UI (stessa RLS di sopra).
 
 ---
 
 ## Limiti noti
 
-- **`pagelleChiuse` è solo un flag UI**: nessuna policy RLS lo controlla, quindi un voto
-  "fuori tempo" resta tecnicamente possibile bypassando l'interfaccia.
 - **L'anonimato è solo applicativo, non tecnico**: la riga salvata contiene sia `votante_id`
   sia `votato_id`, leggibili da chiunque sia autenticato (policy SELECT aperta). La UI non
   mostra mai il votante, ma il dato non è né aggregato né mascherato lato server.
-- Nessun controllo a livello database che il votante sia realmente un convocato della
-  partita: solo filtro applicativo.
-- La media non richiede un numero minimo di voti: con un solo voto ricevuto, la media
-  coincide con quel voto.
+- La media mostrata nel profilo non richiede un numero minimo di voti: con un solo voto
+  ricevuto, la media coincide con quel voto. Il badge Pagellone (`badge.md`) applica invece un
+  minimo di voti prima di considerarla — la StatTile del profilo no.
+- Le due regole di M13 (convocazione, `pagelle_chiuse`) valgono solo per la policy "Ognuno
+  gestisce i propri voti pagella": un amministratore può ancora correggere un voto fuori
+  convocazione o dopo la chiusura, di proposito (deve poter sistemare un errore).
 
 ---
 
 ## Evoluzioni possibili
 
 - Una RPC o vista che nasconda `votante_id` per un anonimato garantito anche lato dati.
-- Far rispettare `pagelleChiuse` anche via RLS.

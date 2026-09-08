@@ -38,6 +38,9 @@ Prima versione, pre-release.
   della partita, e può usarlo chiunque sia autenticato: uno per volta, grazie al lock.
 - Votazione MVP legata all'evento CrAPP e non al referto CSI o allo Scout: si apre due ore
   dopo `data`+`ora` della partita, anche senza risultato caricato — [modules/mvp.md](modules/mvp.md).
+- Badge Pagellone: la media pagelle conta per il badge solo con almeno `VOTI_MINIMI_PAGELLA`
+  (5) voti ricevuti — prima un singolo voto poteva sbloccarlo o farlo sparire senza nessuna
+  significatività statistica — [modules/badge.md](modules/badge.md).
 - Sondaggio pre-partita aperto dalle 8:00 del giorno della partita fino al fischio d'inizio
   (poi resta chiuso, anche nei giorni successivi) e pulsante «Avvisa tutti del sondaggio» per
   gli amministratori (`POST /api/public/apri-sondaggio`); nessun cron, l'invio è manuale.
@@ -79,6 +82,10 @@ Prima versione, pre-release.
   `pagelle_voti`.
 - Al voto MVP partecipano solo i presenti (o in ritardo) di quell'evento; il filtro è
   applicativo, non RLS ([modules/mvp.md](modules/mvp.md)).
+- Migration `m13_convocati_e_pagelle_chiuse` (DD-027): la policy di M11 su `pagelle_voti`,
+  `mvp_voti` e `badge_social_voti` verifica ora anche che votante e votato siano tra i
+  convocati dell'evento, e per le sole pagelle che `pagelle_chiuse` sia falso — prima erano
+  filtri solo applicativi, aggirabili scrivendo direttamente su PostgREST.
 - La suite copre i rifiuti `401` di `richiediAdmin` (DD-024), i permessi di
   `badge_social_voti` e le deroghe admin di M11, e verifica che un ripensamento non riscriva
   `risposto_il` (trigger di `m9`).

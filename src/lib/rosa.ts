@@ -91,6 +91,7 @@ export function useRosa(): Giocatore[] {
         serieConferme: serieConferme(g.id, eventi, tempi),
         mvp: mvpVinti[g.id] ?? 0,
         mediaVoto: medie[g.id]?.media ?? 0,
+        votiPagella: medie[g.id]?.voti ?? 0,
         palloni: palloni[g.id] ?? 0,
         cacche: statCacche[g.id]?.giornateTop ?? 0,
         cacchePartita: statCacche[g.id]?.media ?? 0,

@@ -60,7 +60,10 @@ function arrotonda(n: number) {
   return Math.round(n * 10) / 10;
 }
 
-/** Media stagionale di ciascun giocatore: giocatoreId -> media e numero di voti. */
+/**
+ * Media storica di ciascun giocatore su tutti i voti mai ricevuti (l'app non ha un concetto
+ * di stagione/reset): giocatoreId -> media e numero di voti.
+ */
 export function mediePagelle(voti: VotoPagella[]): Record<string, MediaPagella> {
   const somma: Record<string, { tot: number; n: number }> = {};
   for (const v of voti) {

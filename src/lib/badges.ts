@@ -58,6 +58,12 @@ export type BadgeDef = {
   notificaPush?: string;
 };
 
+/**
+ * Voti minimi perché la media pagelle conti per il badge Pagellone: sotto soglia una singola
+ * pagella potrebbe sbloccarlo (o farlo sparire) senza significatività statistica.
+ */
+export const VOTI_MINIMI_PAGELLA = 5;
+
 export const badgeDefs: BadgeDef[] = [
   {
     id: "mvp",
@@ -77,7 +83,7 @@ export const badgeDefs: BadgeDef[] = [
     unita: "di media voto",
     icon: ClipboardCheck,
     soglie: { bronzo: 6.5, argento: 7.5, oro: 8.5 },
-    valore: (g) => g.mediaVoto,
+    valore: (g) => (g.votiPagella >= VOTI_MINIMI_PAGELLA ? g.mediaVoto : 0),
   },
   {
     id: "palloni",

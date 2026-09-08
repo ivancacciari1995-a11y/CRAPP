@@ -31,8 +31,16 @@ badge assegnati per voto dai compagni.
   inclusive, vince l'ultima raggiunta o superata. Per la maggior parte dei badge il valore è
   già pronto: `Giocatore` arriva da `useRosa()` con presenze, palloni, serie, infortuni,
   ritardi, cacche e media pagelle già calcolati da altri moduli — `badges.ts` si limita a
-  confrontarli con le soglie. Fanno eccezione, con logica propria descritta sotto, l'MVP e i
-  badge social.
+  confrontarli con le soglie. Fanno eccezione, con logica propria descritta sotto, il
+  Pagellone, l'MVP e i badge social.
+- **Badge Pagellone** (`pagella`, in `badgeDefs`): a differenza degli altri badge da
+  contatore, richiede un numero minimo di voti (`VOTI_MINIMI_PAGELLA = 5`, `badges.ts`) prima
+  che `g.mediaVoto` conti — sotto soglia `valore(g)` è forzato a `0` (badge bloccato), anche
+  con una media altissima. Aggiunto perché senza minimo un singolo voto poteva
+  sbloccare/far sparire il badge senza nessuna significatività statistica (vedi
+  [pagelle.md](pagelle.md) per la pipeline voto → media, qui non ripetuta). Il numero di voti
+  ricevuti arriva in `Giocatore.votiPagella` (`rosa.ts`), popolato insieme a `mediaVoto` dalla
+  stessa `mediePagelle()`.
 - **Badge social** (`badge-social.ts`, tabella `badge_social_voti`): 5 categorie fisse per
   partita ("Compagno affidabile", "Miglior spirito di squadra", "Fair play", "Meme della
   partita", "Cuore del gruppo"), votabili una volta a testa per categoria/partita
@@ -72,7 +80,7 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | id | nome | come si guadagna | soglie B/A/O |
 | --- | --- | --- | --- |
 | `mvp` | MVP | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra) | 1 / 3 / 5 |
-| `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`) | 6.5 / 7.5 / 8.5 |
+| `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
 | `palloni` | Sherpa dei palloni | quante volte ti sei incaricato di portare la sacca palloni (`g.palloni`) | 3 / 6 / 10 |
 | `presenze` | Presenza fissa | totale presenze a eventi/partite in stagione (`g.presenze`) | 5 / 15 / 30 |
 | `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti, senza saltarne uno (`g.serieAllenamenti`) | 3 / 6 / 10 |
@@ -126,18 +134,17 @@ categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
 **Badge normali** — `badges.ts` testa la propria funzione pura (soglia → grado,
 `badges.test.ts`) sull'output di altri moduli:
 - `mvp`: soglie inclusive verificate (1→bronzo, 3→argento, 99→resta oro,
-  `badges.test.ts:44-48`), progresso a metà (`:52-56`). **Unico badge normale con integration
-  dedicato** (vedi sotto) perché la sua fonte, a differenza degli altri 5, passa da un'altra
-  tabella di voto (`mvp_voti`) invece che da un contatore già calcolato altrove.
+  `badges.test.ts:44-48`), progresso a metà (`:52-56`).
 - `pagella`: caso critico delle soglie decimali senza arrotondamento per eccesso — 6.4 →
   nessun grado, 6.5 → bronzo (`badges.test.ts:65-67`); un vero 6.49 non diventa "quasi
-  bronzo".
+  bronzo". Più la soglia minima di voti (vedi sotto).
 - `palloni`, `presenze`, `serie-allenamenti`, `serie-conferme`: stessa funzione di soglia già
   testata a fondo su `mvp`/`pagella`, coperti dagli invarianti generali
   (`badges.test.ts:154-159`: soglie crescenti, testi presenti, id unici) e da
   `collezioneBadge`/`prossimoTraguardo` con valori al massimo (`:119-144`).
-- Nessun integration dedicato per questi 5: non toccano il database, le statistiche sorgente
+- Nessun integration dedicato per questi 4: non toccano il database, le statistiche sorgente
   (`presenze.test.ts`, `palloni-core.test.ts`, ecc.) sono già coperte nei rispettivi moduli.
+  `mvp` e `pagella` fanno eccezione (sotto) perché la loro fonte passa da una tabella di voto.
 
 **Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
 (`badges.test.ts:77-109`): `s-tiebreak` (mediaVoto 7.9 non basta, serve 8), `s-mai-forfait`
@@ -154,11 +161,28 @@ copertura di questo badge):
     partita/votante, l'ultimo sostituisce) e rifiuto dell'autovoto a database
     (`mvp_no_autovoto`).
   - `permessi.test.ts` — RLS di `m11`: il proprio voto MVP si registra (caso positivo), non
-    si può votare a nome di un altro (caso negativo).
+    si può votare a nome di un altro (caso negativo); RLS di `m13` (sotto): un votante o un
+    votato non convocati vengono rifiutati.
   - `mvp-badge.test.ts` — end-to-end reale: scrive voti su `mvp_voti`, rilegge via REST come
     fa `useVotiMvp()`, calcola `mvpVintiPerGiocatore()` e verifica che `statoBadge()` assegni
     il grado corretto (bronzo a 1-2 vittorie nette, argento a 3), incluso un pareggio che non
     deve contare come vittoria.
+
+**Badge Pagellone — pipeline end-to-end e soglia minima di voti** (stessa sessione di sopra,
+dopo l'analisi che ha trovato il gap "un voto solo sblocca il badge"):
+- Unit: `badges.test.ts:69-88` — sotto `VOTI_MINIMI_PAGELLA` (5) il badge resta bloccato anche
+  con `mediaVoto: 10`; esattamente a 5 la media torna a contare; sopra soglia valgono le
+  normali soglie di grado (`mediaVoto: 6.5` con 5 voti → bronzo, non oro).
+- Integration (`npx supabase start` richiesto):
+  - `scritture.test.ts` — semantica dell'`upsert` di `pagelle_voti` e rifiuto dell'autovoto
+    (`pagelle_no_autovoto`), già presente prima di questa sessione.
+  - `permessi.test.ts` — RLS di `m13`: un votante o un votato non convocati vengono rifiutati
+    (per tutte e tre le tabelle di voto, non solo le pagelle), e un voto pagella dopo
+    `pagelle_chiuse` viene rifiutato anche a database, non solo nascosto in UI.
+  - `pagella-badge.test.ts` (nuovo) — end-to-end reale: scrive voti su `pagelle_voti`, rilegge
+    via REST come fa `usePagelle()`, calcola `mediePagelle()` e verifica che `statoBadge()`
+    tenga il badge bloccato sotto soglia, lo sblocchi al voto minimo con il grado giusto, e
+    applichi le soglie normali sopra soglia.
 
 **Badge social** — nessuna delle 5 categorie ha logica *propria* nel codice: l'id è solo una
 chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
@@ -176,7 +200,7 @@ meccanismo:
 | # | id | tipo | test unit | test integration |
 | - | --- | --- | --- | --- |
 | 1 | `mvp` | normale | ✅ | ✅ (`scritture`, `permessi`, `mvp-badge`) |
-| 2 | `pagella` | normale | ✅ | non necessario |
+| 2 | `pagella` | normale | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
 | 3 | `palloni` | normale | ✅ | non necessario |
 | 4 | `presenze` | normale | ✅ | non necessario |
 | 5 | `serie-allenamenti` | normale | ✅ (limite noto sotto) | non necessario |
@@ -219,11 +243,18 @@ Trovati in audit, nessuno bloccante (nessun bug nella logica di calcolo):
   risposte precedenti a `m9`: su quelle righe la serie è un'approssimazione.
 - Nessuno storico dei badge sbloccati: se cambiano le soglie o i dati sorgente, un badge già
   "ottenuto" può sparire o apparire retroattivamente.
-- La policy di M11 garantisce che il voto sia firmato con il proprio `votante_id`, ma non
-  che il votato sia un giocatore convocato per quella partita: quello resta un filtro solo
-  applicativo (vale per MVP, pagelle e badge social).
 - Notifiche "nuovo badge" solo locali al dispositivo (localStorage), si ripetono cambiando
   browser o dispositivo.
+
+**Risolto (M13, `20260908120000_m13_convocati_e_pagelle_chiuse.sql`)**: prima la policy di M11
+garantiva solo che il voto fosse firmato con il proprio `votante_id`, non che il votato (né il
+votante) fossero convocati per quella partita — filtro solo applicativo, aggirabile scrivendo
+direttamente su PostgREST. Ora `evento_permette_voto()` lo verifica anche a database per
+`pagelle_voti`, `mvp_voti` e `badge_social_voti` (convocati vuoto = tutta la rosa, stessa
+convenzione di `convocatiEvento()`), e per le sole pagelle verifica anche che
+`eventi_app.pagelle_chiuse` sia falso — prima un voto "fuori tempo" restava tecnicamente
+possibile bypassando l'interfaccia. Le policy admin restano permissive: un amministratore può
+ancora correggere un voto anche fuori convocazione o dopo la chiusura.
 
 ---
 

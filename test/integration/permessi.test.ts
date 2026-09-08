@@ -406,6 +406,142 @@ if (!locale) {
       assert.equal(await righeToccate(pagella), 1, "e per cancellare il voto di un altro");
     });
 
+    // M13: le tabelle di voto controllano anche a database chi può votare chi, non solo
+    // chi firma il voto. Prima di M13 un convocato poteva votare/essere votato in un
+    // evento a cui non aveva partecipato, e un voto pagella restava possibile anche a
+    // `pagelle_chiuse` — entrambi filtri solo applicativi (segnalati in `badge.md`).
+    // Nota: `tokenAdmin` non va usato per queste prove, la policy admin di M11 non ha il
+    // controllo sui convocati (l'admin corregge anche dati fuori convocazione di
+    // proposito) e farebbe passare tutto a prescindere, senza provare niente sulla nuova
+    // policy. Si usa solo `tokenGiocatore` (g1), un votante non-admin vero.
+    const EVENTO_SENZA_G1 = `${PREFISSO}-evento-senza-g1`;
+    const EVENTO_CON_G1 = `${PREFISSO}-evento-con-g1`;
+    const EVENTO_CHIUSO = `${PREFISSO}-evento-chiuso`;
+
+    await prova("un votante non convocato non può votare", async () => {
+      const creato = await rest("eventi_app", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: EVENTO_SENZA_G1,
+          tipo: "partita",
+          titolo: "Partita senza g1 tra i convocati",
+          data: "2026-01-02",
+          ora: "20:00",
+          luogo: "Palestra",
+          convocati: ["g2", "g5"],
+        }),
+      });
+      assert.equal(await righeToccate(creato), 1, "l'evento con convocati si crea");
+
+      const votanteEscluso = await rest("pagelle_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_SENZA_G1,
+          votante_id: "g1",
+          votato_id: "g2",
+          voto: 7,
+        }),
+      });
+      assert.ok(!votanteEscluso.ok, `g1 non era convocato, non vota (${votanteEscluso.status})`);
+    });
+
+    await prova("un votante convocato non può votare chi non lo era", async () => {
+      const creato = await rest("eventi_app", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: EVENTO_CON_G1,
+          tipo: "partita",
+          titolo: "Partita con g1 convocato, g2 no",
+          data: "2026-01-02",
+          ora: "20:00",
+          luogo: "Palestra",
+          convocati: ["g1", "g5"],
+        }),
+      });
+      assert.equal(await righeToccate(creato), 1, "l'evento con convocati si crea");
+
+      const votatoEscluso = await rest("badge_social_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_CON_G1,
+          categoria: "cuore",
+          votante_id: "g1",
+          votato_id: "g2",
+          votato_nome: "Due",
+        }),
+      });
+      assert.ok(
+        !votatoEscluso.ok,
+        `g2 non era convocato, non è votabile (${votatoEscluso.status})`,
+      );
+
+      // Controllo positivo sullo stesso evento: g1 è convocato e vota g5, anche lui
+      // convocato — senza questo, il test sopra potrebbe fallire per un altro motivo
+      // (es. un evento inesistente) e sembrare comunque corretto.
+      const votoValido = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_CON_G1,
+          votante_id: "g1",
+          votato_id: "g5",
+          votato_nome: "Cinque",
+        }),
+      });
+      assert.equal(await righeToccate(votoValido), 1, "votante e votato convocati: il voto passa");
+    });
+
+    await prova("pagelle_chiuse blocca anche a database, non solo in UI", async () => {
+      const creato = await rest("eventi_app", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          id: EVENTO_CHIUSO,
+          tipo: "partita",
+          titolo: "Partita con pagelle chiuse",
+          data: "2026-01-03",
+          ora: "20:00",
+          luogo: "Palestra",
+          pagelle_chiuse: true,
+        }),
+      });
+      assert.equal(await righeToccate(creato), 1, "l'evento con pagelle chiuse si crea");
+
+      const pagellaFuoriTempo = await rest("pagelle_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_CHIUSO,
+          votante_id: "g1",
+          votato_id: "g5",
+          voto: 7,
+        }),
+      });
+      assert.ok(
+        !pagellaFuoriTempo.ok,
+        `pagelle chiuse: voto rifiutato (${pagellaFuoriTempo.status})`,
+      );
+
+      // Il flag riguarda solo le pagelle: MVP e badge social non hanno un concetto di
+      // "chiusura" (mvp.md lo segnala esplicitamente come limite noto), quindi restano
+      // votabili sullo stesso evento.
+      const mvpAncoraAperto = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_CHIUSO,
+          votante_id: "g1",
+          votato_id: "g5",
+          votato_nome: "Cinque",
+        }),
+      });
+      assert.equal(await righeToccate(mvpAncoraAperto), 1, "l'MVP non ha un flag di chiusura");
+    });
+
     // Il terzo gruppo di DD-023: tabelle lasciate aperte **di proposito**, perché
     // nell'interfaccia non hanno nessun gate — il turno palloni se lo passa chiunque, e lo
     // Scout Live lo apre chiunque, con il solo lock di sessione a tenere l'ordine.
