@@ -5,7 +5,8 @@
 `src/components/crapp/SerieCard.tsx`
 **Migration collegata:** `m9_risposte_presenze_risposto_il`
 **Test:** `test/unit/serie.test.ts`, `test/unit/presenze.test.ts`,
-`test/integration/scritture.test.ts` (il trigger che congela `risposto_il`)
+`test/integration/scritture.test.ts` (il trigger che congela `risposto_il`),
+`test/integration/serie-allenamenti-badge.test.ts`, `test/integration/serie-conferme-badge.test.ts`
 
 ---
 

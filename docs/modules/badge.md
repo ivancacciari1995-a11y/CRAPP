@@ -86,14 +86,14 @@ informazioni verso l'interfaccia.
 Tutti calcolati come `valore(g)` confrontato con tre soglie crescenti; il grado è l'ultima
 soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 
-| id | nome | come si guadagna | soglie B/A/O |
-| --- | --- | --- | --- |
-| `mvp` | MVP | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra) | 1 / 3 / 5 |
-| `pagella` | Pagellone | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
-| `palloni` | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano | 3 / 6 / 10 |
-| `presenze` | Presenza fissa | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`) | 5 / 15 / 30 |
-| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì | 3 / 6 / 10 |
-| `serie-conferme` | Risposta lampo | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`) | 3 / 8 / 15 |
+| id                  | nome               | come si guadagna                                                                                                                     | soglie B/A/O    |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| `mvp`               | MVP                | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra)                                                     | 1 / 3 / 5       |
+| `pagella`           | Pagellone          | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
+| `palloni`           | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano               | 3 / 6 / 10      |
+| `presenze`          | Presenza fissa     | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`)                     | 5 / 15 / 30     |
+| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì                            | 3 / 6 / 10      |
+| `serie-conferme`    | Risposta lampo     | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`)                                               | 3 / 8 / 15      |
 
 ### Badge segreti (booleani, nascosti finché non sbloccati)
 
@@ -101,13 +101,13 @@ Stesso motore dei normali ma con soglie `{bronzo:1, argento:1, oro:1}`: `valore(
 quindi il badge è "trovato o no", mai graduato. In UI compaiono con icona lucchetto finché non
 sbloccati.
 
-| id | nome | condizione esatta |
-| --- | --- | --- |
-| `s-tiebreak` | Uomo tie-break | almeno 2 MVP **e** media pagella ≥ 8 (`g.mvp >= 2 && g.mediaVoto >= 8`) |
-| `s-mai-forfait` | Mai un forfait | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`) |
-| `s-infermeria` | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`) |
-| `s-ritardi` | Aspettate, arrivo! | almeno 5 ritardi a eventi (`g.ritardi >= 5`) |
-| `s-cacche` | Trono di ferro | almeno 3 partite di campionato con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`) |
+| id              | nome                        | condizione esatta                                                                                            |
+| --------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `s-tiebreak`    | Uomo tie-break              | almeno 2 MVP **e** media pagella ≥ 8 (`g.mvp >= 2 && g.mediaVoto >= 8`)                                      |
+| `s-mai-forfait` | Mai un forfait              | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`) |
+| `s-infermeria`  | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`)                                                  |
+| `s-ritardi`     | Aspettate, arrivo!          | almeno 5 ritardi a eventi (`g.ritardi >= 5`)                                                                 |
+| `s-cacche`      | Trono di ferro              | almeno 3 partite di campionato con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`)                      |
 
 ### Badge social (votati dai compagni, 5 categorie per partita)
 
@@ -116,13 +116,13 @@ richiede un vantaggio netto sul secondo classificato, in parità nessun vincitor
 `badgeSocialVinti()` conta quante partite ha vinto ciascun giocatore in ogni categoria (non i
 voti ricevuti).
 
-| id | nome | cosa premia |
-| --- | --- | --- |
-| `affidabile` | Compagno affidabile | sempre presente, sempre sul pezzo |
-| `spirito` | Miglior spirito di squadra | carica il gruppo dal primo all'ultimo punto |
-| `fairplay` | Fair play | rispetto per compagni, avversari e arbitro |
-| `meme` | Meme della partita | la scena più memorabile della partita |
-| `cuore` | Cuore del gruppo | chi tiene unita la squadra anche fuori dal campo |
+| id           | nome                       | cosa premia                                      |
+| ------------ | -------------------------- | ------------------------------------------------ |
+| `affidabile` | Compagno affidabile        | sempre presente, sempre sul pezzo                |
+| `spirito`    | Miglior spirito di squadra | carica il gruppo dal primo all'ultimo punto      |
+| `fairplay`   | Fair play                  | rispetto per compagni, avversari e arbitro       |
+| `meme`       | Meme della partita         | la scena più memorabile della partita            |
+| `cuore`      | Cuore del gruppo           | chi tiene unita la squadra anche fuori dal campo |
 
 ---
 
@@ -142,6 +142,7 @@ categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
 
 **Badge normali** — `badges.ts` testa la propria funzione pura (soglia → grado,
 `badges.test.ts`) sull'output di altri moduli:
+
 - `mvp`: soglie inclusive verificate (1→bronzo, 3→argento, 99→resta oro,
   `badges.test.ts:44-48`), progresso a metà (`:52-56`).
 - `pagella`: caso critico delle soglie decimali senza arrotondamento per eccesso — 6.4 →
@@ -155,15 +156,14 @@ categoria): nessun bug trovato nella logica di calcolo di nessuno dei 16 badge.
 - `serie-allenamenti`: soglie 3/6/10 testate esplicitamente (confine incluso, oltre l'oro
   resta oro, `badges.test.ts:118-126`). Pipeline end-to-end sotto, come gli altri badge da
   tabella.
-- `serie-conferme`: stessa funzione di soglia già testata a fondo sugli altri badge normali,
-  coperta dagli invarianti generali (`badges.test.ts:154-159`: soglie crescenti, testi
-  presenti, id unici) e da `collezioneBadge`/`prossimoTraguardo` con valori al massimo
-  (`:119-144`). Nessun integration dedicato: non tocca direttamente il database, e la sua
-  fonte (`serieConferme()`) ha comunque il limite noto sui dati precedenti a `m9` descritto
-  sotto in "Limiti noti" — un test end-to-end aggiuntivo non lo cambierebbe.
+- `serie-conferme`: soglie 3/8/15 testate esplicitamente (confine incluso, oltre l'oro resta
+  oro, `badges.test.ts:128-136`), oltre agli invarianti generali e a
+  `collezioneBadge`/`prossimoTraguardo` con valori al massimo. Pipeline end-to-end sotto, come
+  gli altri badge da tabella.
 
-`mvp`, `pagella`, `palloni`, `presenze` e `serie-allenamenti` sono le eccezioni con
-integration dedicato (sotto) perché la loro fonte passa da una tabella di voto/turni/presenze
+`mvp`, `pagella`, `palloni`, `presenze`, `serie-allenamenti` e `serie-conferme` sono le
+eccezioni con integration dedicato (sotto) perché la loro fonte passa da una tabella di
+voto/turni/presenze
 letta e ricalcolata dal vivo, non da un contatore già pronto altrove.
 
 **Badge segreti** — ognuno testato con la propria condizione esatta e il confine appena sotto
@@ -174,6 +174,7 @@ normali (le statistiche sorgente sono testate nei rispettivi moduli).
 
 **Badge MVP — pipeline end-to-end** (aggiunta in una sessione dedicata a completare la
 copertura di questo badge):
+
 - Unit: `badges.test.ts` (soglie/gradi) + `mvp-voti.test.ts` (conteggio partita, vincitore con
   vantaggio netto, parità che non assegna, apertura voto 2h dopo il fischio d'inizio).
 - Integration (`npx supabase start` richiesto):
@@ -190,6 +191,7 @@ copertura di questo badge):
 
 **Badge Pagellone — pipeline end-to-end e soglia minima di voti** (stessa sessione di sopra,
 dopo l'analisi che ha trovato il gap "un voto solo sblocca il badge"):
+
 - Unit: `badges.test.ts:69-88` — sotto `VOTI_MINIMI_PAGELLA` (5) il badge resta bloccato anche
   con `mediaVoto: 10`; esattamente a 5 la media torna a contare; sopra soglia valgono le
   normali soglie di grado (`mediaVoto: 6.5` con 5 voti → bronzo, non oro).
@@ -207,6 +209,7 @@ dopo l'analisi che ha trovato il gap "un voto solo sblocca il badge"):
 **Badge Sherpa dei palloni — pipeline end-to-end, ora senza contare le proposte non
 confermate** (analisi dedicata: trovato e sistemato il gap "le proposte contano", che
 gonfiava il badge di turni mai confermati da nessuno — vedi "Problemi noti da sistemare"):
+
 - Unit: `badges.test.ts:93-104` — soglie 3/6/10 (confine incluso, oltre l'oro resta oro) +
   `palloni-core.test.ts`, già completo prima di questa sessione (`completaTurni()`,
   `conteggioTurni()`, rotazione bilanciata su un giro completo di partite, allenamenti mai
@@ -224,6 +227,7 @@ gonfiava il badge di turni mai confermati da nessuno — vedi "Problemi noti da 
 **Badge Presenza fissa — pipeline end-to-end** (analisi dedicata: nessun bug trovato; a
 differenza di MVP/pagelle/badge social, per questo badge **non serve** l'estensione RLS di
 M13 — vedi sotto):
+
 - Unit: `badges.test.ts:108-116` — soglie 5/15/30 (confine incluso, oltre l'oro resta oro) +
   `presenze.test.ts`, già molto completo prima di questa sessione (`contaPresenzeGiocatore()`
   con ritardo che conta come presenza, denominatore uguale per tutti, eventi futuri esclusi,
@@ -245,6 +249,7 @@ Stessa fonte dati di `presenze` (`risposte_presenze`) ma logica diversa: non un 
 **serie consecutiva** che un buco azzera e un infortunio congela. Anche qui, come per
 `presenze`, non serve nessuna estensione RLS: il filtro sui convocati è già nella funzione
 pura.
+
 - Unit: `badges.test.ts:118-126` — soglie 3/6/10 (confine incluso, oltre l'oro resta oro) +
   `presenze.test.ts`, già completo prima di questa sessione su `serieConsecutiva()` (buco che
   azzera, infortunio che congela invece di azzerare, nessuna risposta vale come buco,
@@ -258,10 +263,33 @@ pura.
     un infortunio nel mezzo saltato dal conteggio, poi ancora presente: la serie resta a 3,
     non riparte da 1).
 
-**Badge social** — nessuna delle 5 categorie ha logica *propria* nel codice: l'id è solo una
+**Badge Risposta lampo — pipeline end-to-end** (analisi dedicata: nessun bug trovato nella
+logica di calcolo; l'unico limite è quello già noto e documentato sui dati pre-`m9`, vedi
+"Limiti noti"). Il badge dipende da `serieConferme()`, che passa da due colonne facili da
+confondere fra loro (`creato_il`/`risposto_il`, vedi [serie-presenze.md](serie-presenze.md)):
+un integration test aggiunto per verificare che la mappatura verso `creatoIl`/`tempi` regga con
+dati reali, non solo con timestamp scelti a mano — cosa che i test unitari, che non toccano il
+database, non possono garantire.
+
+- Unit: `badges.test.ts:128-136` — soglie 3/8/15 (confine incluso, oltre l'oro resta oro) +
+  `presenze.test.ts`, esteso in questa sessione su `serieConferme()`: oltre al buco che azzera
+  e all'evento senza `creatoIl` che viene saltato (già presenti), ora anche un evento convocato
+  solo per un altro giocatore che non spezza la serie, partite e allenamenti sommati nella
+  stessa serie, il confronto inclusivo esattamente a 24h (dentro conta, un secondo oltre
+  azzera), e un evento futuro che non entra ancora nel calcolo.
+- Integration (`npx supabase start` richiesto):
+  - `serie-conferme-badge.test.ts` (nuovo) — end-to-end reale: scrive eventi con `creato_il`
+    esplicito e risposte con `risposto_il` esplicito su `eventi_app`/`risposte_presenze`,
+    rilegge via REST come fa `daRiga()`/`fetchPresenze()` e verifica che `statoBadge()`
+    attraversi bronzo/argento/oro con conferme rapide vere, che una risposta arrivata oltre le
+    24h azzeri tutto anche dopo 15 conferme di fila, e — separatamente — che partite e
+    allenamenti si sommino nella stessa serie senza bisogno di un filtro per tipo.
+
+**Badge social** — nessuna delle 5 categorie ha logica _propria_ nel codice: l'id è solo una
 chiave di raggruppamento, `conteggioCategoria`/`vincitoreCategoria`/`badgeSocialVinti` sono
 identici per tutte (`badge-social.ts:107-158`). Testare a fondo 2-3 categorie copre l'intero
 meccanismo:
+
 - Unit (`badge-social.test.ts`): conteggio isolato per match+categoria (`:29-32`), vantaggio
   netto/parità → nessun vincitore (`:38-41`), vittorie multi-partita (`badgeSocialVinti`, g2
   vince in `m1` e `m2` → `{affidabile: 2}`, `:48`), zero voti → zero badge (`:51`).
@@ -271,24 +299,24 @@ meccanismo:
 
 ### Riepilogo per badge
 
-| # | id | tipo | test unit | test integration |
-| - | --- | --- | --- | --- |
-| 1 | `mvp` | normale | ✅ | ✅ (`scritture`, `permessi`, `mvp-badge`) |
-| 2 | `pagella` | normale | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
-| 3 | `palloni` | normale | ✅ | ✅ (`scritture`, `palloni-badge`) |
-| 4 | `presenze` | normale | ✅ | ✅ (`obiettivi`, `presenze-badge`) |
-| 5 | `serie-allenamenti` | normale | ✅ | ✅ (`serie-allenamenti-badge`) |
-| 6 | `serie-conferme` | normale | ✅ (limite noto sotto) | non necessario |
-| 7 | `s-tiebreak` | segreto | ✅ | non necessario |
-| 8 | `s-mai-forfait` | segreto | ✅ | non necessario |
-| 9 | `s-infermeria` | segreto | ✅ | non necessario |
-| 10 | `s-ritardi` | segreto | ✅ (parziale, manca "appena sotto") | non necessario |
-| 11 | `s-cacche` | segreto | ✅ (parziale, manca "appena sotto") | non necessario |
-| 12 | `affidabile` | social | ✅ | ✅ |
-| 13 | `spirito` | social | ✅ (meccanismo generico) | ✅ (meccanismo generico) |
-| 14 | `fairplay` | social | ✅ (meccanismo generico) | ✅ (meccanismo generico) |
-| 15 | `meme` | social | ✅ | ✅ |
-| 16 | `cuore` | social | ✅ | ✅ (autovoto) |
+| #   | id                  | tipo    | test unit                           | test integration                              |
+| --- | ------------------- | ------- | ----------------------------------- | --------------------------------------------- |
+| 1   | `mvp`               | normale | ✅                                  | ✅ (`scritture`, `permessi`, `mvp-badge`)     |
+| 2   | `pagella`           | normale | ✅ (incl. soglia minima voti)       | ✅ (`scritture`, `permessi`, `pagella-badge`) |
+| 3   | `palloni`           | normale | ✅                                  | ✅ (`scritture`, `palloni-badge`)             |
+| 4   | `presenze`          | normale | ✅                                  | ✅ (`obiettivi`, `presenze-badge`)            |
+| 5   | `serie-allenamenti` | normale | ✅                                  | ✅ (`serie-allenamenti-badge`)                |
+| 6   | `serie-conferme`    | normale | ✅ (limite noto sotto)              | ✅ (`serie-conferme-badge`)                   |
+| 7   | `s-tiebreak`        | segreto | ✅                                  | non necessario                                |
+| 8   | `s-mai-forfait`     | segreto | ✅                                  | non necessario                                |
+| 9   | `s-infermeria`      | segreto | ✅                                  | non necessario                                |
+| 10  | `s-ritardi`         | segreto | ✅ (parziale, manca "appena sotto") | non necessario                                |
+| 11  | `s-cacche`          | segreto | ✅ (parziale, manca "appena sotto") | non necessario                                |
+| 12  | `affidabile`        | social  | ✅                                  | ✅                                            |
+| 13  | `spirito`           | social  | ✅ (meccanismo generico)            | ✅ (meccanismo generico)                      |
+| 14  | `fairplay`          | social  | ✅ (meccanismo generico)            | ✅ (meccanismo generico)                      |
+| 15  | `meme`              | social  | ✅                                  | ✅                                            |
+| 16  | `cuore`             | social  | ✅                                  | ✅ (autovoto)                                 |
 
 ---
 

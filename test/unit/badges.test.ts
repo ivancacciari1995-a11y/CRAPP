@@ -125,6 +125,16 @@ assert.equal(gradoRaggiunto(serieAllenamentiDef, 9), "argento");
 assert.equal(gradoRaggiunto(serieAllenamentiDef, 10), "oro");
 assert.equal(gradoRaggiunto(serieAllenamentiDef, 50), "oro", "oltre l'oro resta oro");
 
+// --- serie-conferme: soglie 3 / 8 / 15 ----------------------------------------
+const serieConfermeDef = badgeDefs.find((b) => b.id === "serie-conferme")!;
+assert.equal(gradoRaggiunto(serieConfermeDef, 2), null, "sotto la prima soglia nessun grado");
+assert.equal(gradoRaggiunto(serieConfermeDef, 3), "bronzo", "la soglia è inclusiva");
+assert.equal(gradoRaggiunto(serieConfermeDef, 7), "bronzo");
+assert.equal(gradoRaggiunto(serieConfermeDef, 8), "argento");
+assert.equal(gradoRaggiunto(serieConfermeDef, 14), "argento");
+assert.equal(gradoRaggiunto(serieConfermeDef, 15), "oro");
+assert.equal(gradoRaggiunto(serieConfermeDef, 50), "oro", "oltre l'oro resta oro");
+
 // --- badgeGiocatore ----------------------------------------------------------
 assert.equal(badgeGiocatore(g()).length, badgeDefs.length, "i badge normali sono sempre tutti");
 assert.ok(

@@ -176,6 +176,54 @@ assert.equal(
 );
 assert.equal(serieConferme("g2", conConvocazione, tempi, OGGI), 0, "chi non risponde è a zero");
 
+// Chi non è convocato non spezza la serie conferme di nessun altro (stesso filtro condiviso
+// con `serieConsecutiva`, vedi sopra).
+const c6Ristretto: Evento = {
+  ...convocati("c6", "2026-08-08", "2026-08-03T10:00:00Z"),
+  convocati: ["g9"],
+};
+assert.equal(
+  serieConferme("g1", [conConvocazione[0]!, c6Ristretto], tempi, OGGI),
+  1,
+  "un evento convocato solo per un altro giocatore resta fuori, la serie di g1 non ne risente",
+);
+
+// Le conferme contano partite e allenamenti insieme: nessuna versione per tipo.
+const mistiTipo: Evento[] = [
+  convocati("m1", "2026-08-06", "2026-08-01T10:00:00Z"),
+  { ...convocati("m2", "2026-08-13", "2026-08-08T10:00:00Z"), tipo: "partita" },
+];
+const tempiMisti: MappaTempiRisposta = {
+  m1: { g1: "2026-08-01T11:00:00Z" }, // un'ora dopo
+  m2: { g1: "2026-08-08T11:00:00Z" }, // un'ora dopo, ma è una partita
+};
+assert.equal(
+  serieConferme("g1", mistiTipo, tempiMisti, OGGI),
+  2,
+  "partite e allenamenti si sommano nella stessa serie",
+);
+
+// Il confronto con le 24h è inclusivo: esattamente al bordo conta, un secondo oltre azzera.
+const bordo: Evento[] = [convocati("b1", "2026-08-06", "2026-08-01T10:00:00Z")];
+assert.equal(
+  serieConferme("g1", bordo, { b1: { g1: "2026-08-02T10:00:00Z" } }, OGGI),
+  1,
+  "esattamente 24h dopo: il confronto è <=, quindi conta",
+);
+assert.equal(
+  serieConferme("g1", bordo, { b1: { g1: "2026-08-02T10:00:01Z" } }, OGGI),
+  0,
+  "un secondo oltre le 24h azzera",
+);
+
+// Un evento futuro non conta ancora, anche con una risposta rapidissima già registrata.
+const futuro: Evento[] = [convocati("f1", "2026-09-10", "2026-09-05T10:00:00Z")];
+assert.equal(
+  serieConferme("g1", futuro, { f1: { g1: "2026-09-05T10:05:00Z" } }, OGGI),
+  0,
+  "l'evento di domani non è ancora passato, non entra nel calcolo",
+);
+
 // --- cache locale dopo una risposta: il cronometro non riparte ----------------
 // Stessa regola del database: `risposto_il` è la PRIMA risposta e un trigger la congela.
 // Qui la cache deve imitarla, altrimenti la serie "Conferme 24h" mente fino al refresh.
