@@ -51,7 +51,7 @@ export function Card({
 /**
  * Accesso al profilo in alto a destra: la BottomNav ha quattro voci e questa è
  * l'unica porta verso `/profilo`. Sulla pagina del profilo si passa `azione` a
- * `PageHeader` per rimetterci il logo — sarebbe un link a sé stessa.
+ * `PageHeader` con il logo che porta alla home.
  *
  * Usa `useGiocatoreBase` (sola anagrafica) e non `useIo`: qui serve solo id e
  * iniziali, mentre `useIo` calcola l'intera rosa con statistiche (MVP, pagelle,

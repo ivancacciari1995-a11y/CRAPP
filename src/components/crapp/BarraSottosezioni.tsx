@@ -21,8 +21,9 @@ const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.
  *
  * `variante="sottolineatura"`: pillola piena sulla tab attiva (Squadra e Classifica CSI);
  * su mobile la sola barra tab scorre in orizzontale senza allargare la pagina.
- * Default `pillole`: tab a larghezza naturale (Profilo). Il titolo ripetuto sotto la
- * barra non viene mai mostrato: l’etichetta è già nella tab.
+ * Default `pillole`: tab a larghezza uguale (basata sulla etichetta più lunga); se non
+ * entrano nella viewport la barra scorre in orizzontale (Profilo). Il titolo ripetuto sotto
+ * la barra non viene mai mostrato: l’etichetta è già nella tab.
  */
 export function BarraSottosezioni({
   voci,
@@ -33,7 +34,7 @@ export function BarraSottosezioni({
   voci: VoceSottosezione[];
   defaultId?: string;
   variante?: "pillole" | "sottolineatura";
-  /** Tab a larghezza uguale che riempiono la barra (es. Campionato). */
+  /** Tab a larghezza uguale che riempiono la barra (es. Campionato, Squadra). */
   riempiLarghezza?: boolean;
 }) {
   const [attiva, setAttiva] = useState(defaultId ?? voci[0]?.id ?? "");
@@ -89,9 +90,13 @@ export function BarraSottosezioni({
             role="tablist"
             aria-label="Sottosezioni"
             className={cn(
-              "flex flex-nowrap",
-              riempiLarghezza ? "w-full" : "w-max min-w-full",
-              sottolineatura ? "gap-1 px-2 py-1.5" : "snap-x snap-mandatory gap-1.5 px-5",
+              riempiLarghezza
+                ? "flex w-full flex-nowrap"
+                : sottolineatura
+                  ? "flex w-max min-w-full flex-nowrap"
+                  : // Pillole: colonne uguali alla voce più lunga; overflow → scroll sul wrapper.
+                    "grid w-max min-w-full grid-flow-col auto-cols-[1fr]",
+              sottolineatura ? "gap-1 px-2 py-1.5" : "gap-1.5 px-5",
             )}
           >
             {voci.map((v) => {
@@ -111,7 +116,11 @@ export function BarraSottosezioni({
                   }}
                   className={cn(
                     "min-h-11 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
-                    riempiLarghezza ? "min-w-0 flex-1" : "shrink-0",
+                    riempiLarghezza
+                      ? "min-w-0 flex-1"
+                      : sottolineatura
+                        ? "shrink-0"
+                        : "w-full",
                     sottolineatura
                       ? cn(
                           "rounded-xl px-1 py-2.5 text-center",
@@ -120,7 +129,7 @@ export function BarraSottosezioni({
                             : "text-muted-foreground",
                         )
                       : cn(
-                          "snap-center rounded-full px-3.5 py-2",
+                          "rounded-full px-3.5 py-2 text-center",
                           selezionata
                             ? "bg-accent text-accent-foreground shadow-pop"
                             : "bg-secondary text-muted-foreground",

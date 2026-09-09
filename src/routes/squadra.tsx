@@ -241,7 +241,7 @@ function Squadra() {
           <StatTile valore={team.muri} label="Muri squadra" />
         </div>
 
-        <div>
+        <div className="border-t border-border pt-4">
           <button
             type="button"
             onClick={() => setFiltroAperto(true)}
@@ -287,7 +287,7 @@ function Squadra() {
               <div key={g.id} className="rounded-2xl bg-card p-3 shadow-card">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary font-display text-base">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary font-display text-lg">
                       {i + 1}
                     </span>
                     <div className="min-w-0">

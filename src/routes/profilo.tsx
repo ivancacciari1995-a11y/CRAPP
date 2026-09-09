@@ -130,11 +130,15 @@ function Profilo() {
 
   return (
     <>
-      {/* Qui il link al profilo sarebbe un link a sé stessa: torna il logo. */}
+      {/* Sul profilo il logo torna in home al posto del link al profilo. */}
       <PageHeader
         titolo={g.nome}
         sottotitolo={`#${g.numero} · ${g.ruolo}`}
-        azione={<TeamLogo src="/logo-nerorosso.svg" className="h-14 w-14" />}
+        azione={
+          <Link to="/" aria-label="Vai alla home" className="premi shrink-0 rounded-2xl">
+            <TeamLogo src="/logo-nerorosso.svg" className="h-14 w-14" />
+          </Link>
+        }
       />
 
       <Reveal className="-mt-6 px-5">
@@ -225,7 +229,7 @@ function Profilo() {
           },
           {
             id: "documenti",
-            label: "Documenti",
+            label: "Docs",
             contenuto: <ProfiloAmministrativo giocatoreId={g.id} conTendina={false} />,
           },
           {
