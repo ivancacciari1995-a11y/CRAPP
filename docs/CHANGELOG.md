@@ -86,6 +86,9 @@ Prima versione, pre-release.
 - Bonificate una tantum le righe orfane lasciate da cancellazioni precedenti a M14 (migration
   `m15_bonifica_dati_evento_orfani`), senza toccare i vecchi voti MVP/pagelle/badge social
   legati a id Scout o CSI, che restano dati storici legittimi (DD-029).
+- La bonifica sopra è ora anche una funzione richiamabile, `bonifica_dati_evento_orfani()`
+  (migration `m16_funzione_bonifica_dati_evento_orfani`, riservata al service role), coperta
+  da test di integrazione invece che verificata solo a mano (DD-029).
 
 ### Sicurezza
 

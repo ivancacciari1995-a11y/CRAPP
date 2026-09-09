@@ -1142,6 +1142,16 @@ migration non li tocca. Verificato manualmente sul database locale prima di appl
 di test su id Scout è sopravvissuto alla bonifica, un voto di test su id evento CrAPP orfano è
 stato rimosso.
 
+**Aggiornamento (9 settembre 2026)** — la verifica manuale di M15 non lasciava nessuna rete di
+sicurezza automatica per il futuro, a differenza del resto del progetto (DD-020). Migration
+`m16_funzione_bonifica_dati_evento_orfani` rende lo stesso corpo una funzione
+`bonifica_dati_evento_orfani()` (riservata al `service_role`, non richiamabile dall'app),
+coperta da `test/integration/bonifica-evento.test.ts`: inserisce una riga orfana e una storica
+su id Scout/CSI, richiama la funzione via RPC e verifica che tocchi solo la prima. Non serve
+richiamarla di nuovo ora (M15 ha già ripulito lo storico): resta pronta come intervento di
+manutenzione se in futuro il trigger di M14 smettesse di funzionare o emergesse un altro batch
+di orfani.
+
 **Riesame**  
 Se una nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va
 aggiornata a mano, non c'è un meccanismo che lo forzi).
