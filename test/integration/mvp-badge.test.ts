@@ -127,10 +127,17 @@ if (!locale) {
         const badgeVg2 = statoBadge(mvpDef, giocatoreAzzerato(vinti["vg2"] ?? 0));
         assert.equal(badgeVg2.grado, null, "zero vittorie nette: nessun badge sbloccato");
 
-        // Una terza vittoria netta porta vg1 da bronzo ad argento (soglia 3).
+        // Una terza vittoria netta porta vg1 da bronzo ad argento (soglia 3). Due voti,
+        // non uno solo: sotto il quorum minimo (VOTI_MINIMI_MVP) nessuna vittoria conterebbe.
         await upsert({
           match_id: `${PREFISSO}-m4`,
           votante_id: "va",
+          votato_id: "vg1",
+          votato_nome: "Uno",
+        });
+        await upsert({
+          match_id: `${PREFISSO}-m4`,
+          votante_id: "vb",
           votato_id: "vg1",
           votato_nome: "Uno",
         });

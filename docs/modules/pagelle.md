@@ -36,8 +36,12 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
 - `useRosa()` inietta questa media storica nel campo `mediaVoto` di ogni giocatore, insieme al
   numero di voti ricevuti (`votiPagella`) — usato dal badge Pagellone (vedi
   [badge.md](badge.md)) per richiedere un minimo di voti prima che la media conti, e mostrato
-  come StatTile nel profilo e in home (sezione «Colpo d'occhio», `index.tsx`): senza voti
-  ricevuti la media vale `0` e la StatTile mostra `—` invece del numero.
+  come StatTile nel profilo e in home (sezione «Colpo d'occhio», `index.tsx`).
+- La StatTile **home** applica la stessa soglia del badge Pagellone (DD-028) tramite la
+  funzione pura `mediaVotoColpoDOcchio()`: sotto `VOTI_MINIMI_PAGELLA` voti ricevuti mostra
+  `—` invece della media, non solo quando i voti sono zero. È stata estratta come funzione
+  testabile (coerente con DD-020) invece di restare una condizione inline nella route. Le
+  StatTile di **profilo** e **squadra** non applicano questa soglia (vedi "Limiti noti").
 
 ---
 
@@ -57,9 +61,10 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
 - **L'anonimato è solo applicativo, non tecnico**: la riga salvata contiene sia `votante_id`
   sia `votato_id`, leggibili da chiunque sia autenticato (policy SELECT aperta). La UI non
   mostra mai il votante, ma il dato non è né aggregato né mascherato lato server.
-- La media mostrata nel profilo non richiede un numero minimo di voti: con un solo voto
-  ricevuto, la media coincide con quel voto. Il badge Pagellone (`badge.md`) applica invece un
-  minimo di voti prima di considerarla — la StatTile del profilo no.
+- La media mostrata nel **profilo** e in **squadra** non richiede un numero minimo di voti:
+  con un solo voto ricevuto, la media coincide con quel voto. Il badge Pagellone (`badge.md`)
+  e la StatTile **home** (DD-028) applicano invece la stessa soglia minima prima di
+  considerarla — profilo e squadra no.
 - Le due regole di M13 (convocazione, `pagelle_chiuse`) valgono solo per la policy "Ognuno
   gestisce i propri voti pagella": un amministratore può ancora correggere un voto fuori
   convocazione o dopo la chiusura, di proposito (deve poter sistemare un errore).

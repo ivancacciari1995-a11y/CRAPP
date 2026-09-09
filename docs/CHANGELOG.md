@@ -74,6 +74,12 @@ Prima versione, pre-release.
   di Statistiche; la tab «Classifica» è stata rimossa dalla barra delle sottosezioni.
 - Tolto l'hint statico "+2 questo mese" dalla StatTile Presenze in home (sezione «Colpo
   d'occhio»): mostrava un testo fisso, non un dato calcolato.
+- La StatTile Media voto in home applica ora la stessa soglia minima di voti del badge
+  Pagellone (`VOTI_MINIMI_PAGELLA`): sotto soglia mostra `—` invece di una media poco
+  significativa (DD-028).
+- L'MVP di una partita richiede ora un quorum minimo di 2 voti totali (`VOTI_MINIMI_MVP`)
+  oltre al margine netto già richiesto: un solo voto non assegna più la vittoria (DD-028).
+  Alcuni conteggi `mvp` già mostrati possono scendere per effetto della nuova regola.
 
 ### Sicurezza
 

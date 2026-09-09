@@ -43,6 +43,7 @@ Serve a rispondere a domande del tipo:
 | [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
 | [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
 | [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
+| [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)         | Soglia minima Media voto e MVP        |
 
 **In valutazione**
 
@@ -1024,3 +1025,54 @@ dall'audit che ha originato questa decisione.
 **Riesame**  
 Se un giorno servisse bloccare anche il voto di un convocato-ma-assente a livello database,
 non solo in UI.
+
+### DD-028 — Soglia minima di campione per Media voto e MVP in home
+
+**Data:** 9 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Un audit della sezione «Colpo d'occhio» in home (`index.tsx`, StatTile Presenze/Media
+voto/MVP) ha trovato che due delle tre statistiche non avevano nessun minimo campionario:
+`mediePagelle()` calcola una media aritmetica pura, così un giocatore con un solo voto da 10
+mostrava "10" in home, più alto di un titolare con 40 voti e media 7.2 — lo stesso problema
+che il badge Pagellone già risolve con `VOTI_MINIMI_PAGELLA` (badge.md), ma applicato solo al
+badge, non alla StatTile home. Allo stesso modo `mvpVintiPerGiocatore()`/`vincitoriMvp()`
+assegnavano un MVP di partita anche con un solo voto totale: bastava che un solo giocatore
+votasse perché il votato "vincesse" nettamente, senza nessun quorum di partecipazione.
+
+**Decisione**
+
+- **Media voto** in home usa la stessa soglia del badge Pagellone: sotto `VOTI_MINIMI_PAGELLA`
+  (5) voti ricevuti, la StatTile mostra `—` invece della media, tramite la funzione pura
+  `mediaVotoColpoDOcchio()` (`pagelle.ts`), estratta dalla route per restare testabile (DD-020).
+  La funzione `mediePagelle()` non cambia: il filtro resta lato chiamante, come già faceva il
+  badge.
+- **MVP**: `conteggioPartita`'s aggregazione, tramite `vincitoriMvp()` e
+  `mvpVintiPerGiocatore()`, richiede ora un quorum minimo di voti totali sulla partita
+  (`VOTI_MINIMI_MVP = 2`, `mvp-voti.ts`) prima di assegnare un vincitore, oltre alla regola già
+  esistente del margine netto tra primo e secondo. Un solo voto non basta più a incoronare
+  nessuno, nemmeno in assenza di concorrenza.
+
+**Alternative scartate**
+
+- Alzare la soglia MVP oltre 2 (es. metà dei convocati) → serve conoscere i convocati
+  dell'evento dentro una funzione che oggi lavora solo sui voti; complessità non giustificata
+  per il gap trovato in audit.
+- Lasciare l'MVP senza quorum e limitarsi al fix della Media voto → il problema di fondo
+  (un numero esiguo di voti che decide una statistica mostrata come solida) resterebbe aperto
+  per l'MVP.
+
+**Conseguenze**
+
+- Alcuni MVP di partita già assegnati con un solo voto totale non contano più nel conteggio
+  `mvp` del giocatore: è una modifica retroattiva al dato mostrato, non solo al calcolo futuro,
+  perché `mvpVintiPerGiocatore()` deriva sempre il conteggio dai voti grezzi, senza storico
+  persistito a parte.
+- `mediePagelle()` resta invariata: chi la chiama altrove (profilo, squadra) senza applicare la
+  soglia continua a mostrare la media grezza — non tocca questa decisione, resta il limite già
+  noto in [pagelle.md](modules/pagelle.md).
+
+**Riesame**  
+Se la squadra segnala che il quorum di 2 voti per l'MVP è troppo permissivo o troppo severo, o
+se si vuole applicare la stessa soglia di Media voto anche alle StatTile di profilo e squadra.

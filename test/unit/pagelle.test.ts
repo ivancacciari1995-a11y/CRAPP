@@ -2,11 +2,13 @@
 import assert from "node:assert/strict";
 import {
   mediaSquadra,
+  mediaVotoColpoDOcchio,
   mediePagelle,
   mieiVoti,
   pagellePartita,
   type VotoPagella,
 } from "@/lib/pagelle";
+import { VOTI_MINIMI_PAGELLA } from "@/lib/badges";
 
 const voto = (
   match_id: string,
@@ -60,5 +62,18 @@ assert.deepEqual(mieiVoti(voti, "m1", "g99"), {}, "chi non ha votato non ha voti
 // --- mediaSquadra ------------------------------------------------------------
 assert.equal(mediaSquadra(voti), 6.8, "(8+7+6+6)/4 = 6.75 → 6.8");
 assert.equal(mediaSquadra([]), 0, "nessun voto: media zero, non NaN");
+
+// --- mediaVotoColpoDOcchio: soglia minima per la StatTile home (DD-028) ------
+assert.equal(
+  mediaVotoColpoDOcchio({ mediaVoto: 10, votiPagella: VOTI_MINIMI_PAGELLA - 1 }),
+  "—",
+  "sotto soglia: nascosta anche con media altissima",
+);
+assert.equal(
+  mediaVotoColpoDOcchio({ mediaVoto: 7.5, votiPagella: VOTI_MINIMI_PAGELLA }),
+  7.5,
+  "esattamente in soglia: la media conta",
+);
+assert.equal(mediaVotoColpoDOcchio({ mediaVoto: 0, votiPagella: 0 }), "—", "nessun voto ricevuto");
 
 console.log("pagelle: ok");

@@ -89,8 +89,9 @@ if (!locale) {
     await prova(
       "sotto la soglia minima di voti pagella, 2 MVP e media alta non bastano",
       async () => {
-        // "tb1" vince nettamente m1 e m2 (2 MVP), e riceve un solo voto pagella da 9 (media
-        // alta ma su un campione troppo piccolo): il segreto deve restare bloccato.
+        // "tb1" vince nettamente m1 e m2 (2 MVP, due voti a testa per rispettare il quorum
+        // minimo), e riceve un solo voto pagella da 9 (media alta ma su un campione troppo
+        // piccolo): il segreto deve restare bloccato.
         await votaMvp({
           match_id: `${PREFISSO}-m1`,
           votante_id: "va",
@@ -98,8 +99,20 @@ if (!locale) {
           votato_nome: "Uno",
         });
         await votaMvp({
+          match_id: `${PREFISSO}-m1`,
+          votante_id: "vf",
+          votato_id: "tb1",
+          votato_nome: "Uno",
+        });
+        await votaMvp({
           match_id: `${PREFISSO}-m2`,
           votante_id: "va",
+          votato_id: "tb1",
+          votato_nome: "Uno",
+        });
+        await votaMvp({
+          match_id: `${PREFISSO}-m2`,
+          votante_id: "vf",
           votato_id: "tb1",
           votato_nome: "Uno",
         });

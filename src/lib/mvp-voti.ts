@@ -60,6 +60,9 @@ export function useVotaMvp() {
 
 export type ConteggioMvp = { id: string; nome: string; voti: number };
 
+/** Voti minimi in una partita perché l'MVP possa essere assegnato (un solo voto non decide). */
+export const VOTI_MINIMI_MVP = 2;
+
 /** Conteggio voti di una partita, dal più votato. */
 export function conteggioPartita(voti: VotoMvp[], matchId: string): ConteggioMvp[] {
   const map = new Map<string, ConteggioMvp>();
@@ -83,8 +86,13 @@ export function vincitoriMvp(voti: VotoMvp[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [matchId] of perMatch) {
     const top = conteggioPartita(voti, matchId);
-    // In caso di parità nessun MVP assegnato finché il voto non si sblocca.
-    if (top.length > 0 && (top.length === 1 || top[0]!.voti > top[1]!.voti)) {
+    const totaleVoti = top.reduce((s, c) => s + c.voti, 0);
+    // In caso di parità, o sotto il quorum minimo, nessun MVP assegnato.
+    if (
+      totaleVoti >= VOTI_MINIMI_MVP &&
+      top.length > 0 &&
+      (top.length === 1 || top[0]!.voti > top[1]!.voti)
+    ) {
       out[matchId] = top[0]!.nome;
     }
   }
@@ -95,13 +103,22 @@ export function mioVoto(voti: VotoMvp[], matchId: string, votanteId: string) {
   return voti.find((v) => v.match_id === matchId && v.votante_id === votanteId) ?? null;
 }
 
-/** MVP vinti per giocatore, contando una vittoria per partita votata. */
+/**
+ * MVP vinti per giocatore, contando una vittoria per partita votata (una partita in pareggio
+ * al vertice, o sotto il quorum minimo di voti, non assegna vittorie a nessuno). Senza voti
+ * restituisce una mappa vuota.
+ */
 export function mvpVintiPerGiocatore(voti: VotoMvp[]): Record<string, number> {
   const out: Record<string, number> = {};
   const matchIds = new Set(voti.map((v) => v.match_id));
   for (const matchId of matchIds) {
     const top = conteggioPartita(voti, matchId);
-    if (top.length > 0 && (top.length === 1 || top[0]!.voti > top[1]!.voti)) {
+    const totaleVoti = top.reduce((s, c) => s + c.voti, 0);
+    if (
+      totaleVoti >= VOTI_MINIMI_MVP &&
+      top.length > 0 &&
+      (top.length === 1 || top[0]!.voti > top[1]!.voti)
+    ) {
       const id = top[0]!.id;
       out[id] = (out[id] ?? 0) + 1;
     }

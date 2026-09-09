@@ -23,7 +23,7 @@ function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string, oggi = da
   );
 }
 
-/** Presenze effettive (presente o in ritardo) su eventi CrAPP. */
+/** Presenze effettive (presente o in ritardo) su eventi CrAPP. Senza eventi rilevanti restituisce 0. */
 export function contaPresenzeGiocatore(
   giocatoreId: string,
   eventi: Evento[],

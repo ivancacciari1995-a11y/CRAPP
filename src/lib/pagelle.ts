@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { VOTI_MINIMI_PAGELLA } from "./badges";
 
 /** Voto anonimo da 1 a 10 dato a un compagno per una partita. */
 export type VotoPagella = {
@@ -62,7 +63,8 @@ function arrotonda(n: number) {
 
 /**
  * Media storica di ciascun giocatore su tutti i voti mai ricevuti (l'app non ha un concetto
- * di stagione/reset): giocatoreId -> media e numero di voti.
+ * di stagione/reset): giocatoreId -> media e numero di voti. Chi non ha ancora ricevuto voti
+ * non compare nella mappa (nessuna divisione per zero): sta al chiamante gestire il fallback.
  */
 export function mediePagelle(voti: VotoPagella[]): Record<string, MediaPagella> {
   const somma: Record<string, { tot: number; n: number }> = {};
@@ -91,6 +93,15 @@ export function mieiVoti(voti: VotoPagella[], matchId: string, votanteId: string
     if (v.match_id === matchId && v.votante_id === votanteId) out[v.votato_id] = v.voto;
   }
   return out;
+}
+
+/**
+ * Media voto da mostrare nella StatTile home (sezione «Colpo d'occhio», DD-028): sotto
+ * `VOTI_MINIMI_PAGELLA` voti ricevuti, `—` invece della media grezza — stessa soglia del
+ * badge Pagellone, non applicata invece dalle StatTile di profilo e squadra.
+ */
+export function mediaVotoColpoDOcchio(g: { mediaVoto: number; votiPagella: number }): number | "—" {
+  return g.votiPagella >= VOTI_MINIMI_PAGELLA ? g.mediaVoto : "—";
 }
 
 /** Media pagelle di tutta la squadra su tutte le partite. */

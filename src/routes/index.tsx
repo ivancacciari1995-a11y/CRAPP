@@ -15,6 +15,7 @@ import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { useScoutMatches } from "@/lib/scout-store";
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
+import { mediaVotoColpoDOcchio } from "@/lib/pagelle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -238,8 +239,8 @@ function Index() {
 
       <Section titolo="Colpo d'occhio" indice={6}>
         <div className="grid grid-cols-3 gap-2">
-          <StatTile valore={giocatore.presenze} label="Presenze" hint="+2 questo mese" />
-          <StatTile valore={giocatore.mediaVoto || "—"} label="Media voto" />
+          <StatTile valore={giocatore.presenze} label="Presenze" />
+          <StatTile valore={mediaVotoColpoDOcchio(giocatore)} label="Media voto" />
           <StatTile valore={giocatore.mvp} label="MVP" />
         </div>
       </Section>

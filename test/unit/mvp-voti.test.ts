@@ -6,6 +6,7 @@ import {
   mvpVintiPerGiocatore,
   vincitoriMvp,
   votoMvpAperto,
+  VOTI_MINIMI_MVP,
   type VotoMvp,
 } from "@/lib/mvp-voti";
 
@@ -27,6 +28,7 @@ const partita = [
   v("m1", "g3", "g2", "Bruno"),
   v("m1", "g4", "g5", "Anna"),
   v("m2", "g1", "g5", "Anna"),
+  v("m2", "g3", "g5", "Anna"),
 ];
 
 assert.deepEqual(conteggioPartita(partita, "m1"), [
@@ -46,10 +48,18 @@ assert.deepEqual(
 assert.deepEqual(vincitoriMvp(partita), { m1: "Bruno", m2: "Anna" });
 assert.deepEqual(vincitoriMvp(pari), {}, "due voti pari: MVP non assegnato");
 assert.deepEqual(vincitoriMvp([]), {});
+
+// --- vincitoriMvp: quorum minimo di voti -------------------------------------
+assert.equal(VOTI_MINIMI_MVP, 2, "un solo voto non deve mai bastare da solo");
 assert.deepEqual(
   vincitoriMvp([v("m4", "g1", "g2", "Solo")]),
+  {},
+  "un solo votante, senza concorrenza: sotto quorum, nessun MVP",
+);
+assert.deepEqual(
+  vincitoriMvp([v("m4", "g1", "g2", "Solo"), v("m4", "g3", "g2", "Solo")]),
   { m4: "Solo" },
-  "un solo votante basta se non c'è concorrenza",
+  "due voti allo stesso candidato: quorum raggiunto",
 );
 
 // Tre candidati: i primi due pari in testa, un terzo staccato. Deve restare senza MVP,
@@ -83,9 +93,14 @@ assert.deepEqual(
   "la parità non assegna",
 );
 assert.deepEqual(
-  mvpVintiPerGiocatore([...partita, v("m5", "g1", "g2", "Bruno")]),
+  mvpVintiPerGiocatore([...partita, v("m5", "g1", "g2", "Bruno"), v("m5", "g3", "g2", "Bruno")]),
   { g2: 2, g5: 1 },
   "i titoli si sommano su partite diverse",
+);
+assert.deepEqual(
+  mvpVintiPerGiocatore([...partita, v("m5", "g1", "g2", "Bruno")]),
+  { g2: 1, g5: 1 },
+  "m5 ha un solo voto: sotto quorum, non conta",
 );
 assert.deepEqual(mvpVintiPerGiocatore([]), {});
 

@@ -37,6 +37,9 @@ restano nel database ma non vengono più letti da nessuna schermata).
   direttamente su PostgREST, come già faceva `pagelle_no_autovoto` per le pagelle.
 - `conteggioPartita()`/`vincitoriMvp()` richiedono un margine netto: in caso di parità,
   nessun vincitore viene assegnato per quella partita finché non arrivano altri voti.
+- `vincitoriMvp()`/`mvpVintiPerGiocatore()` richiedono anche un quorum minimo di voti totali
+  sulla partita (`VOTI_MINIMI_MVP = 2`, `mvp-voti.ts`, DD-028): un solo voto non basta a
+  incoronare nessuno, nemmeno senza concorrenza.
 - `mvpVintiPerGiocatore()` conta una vittoria per ogni partita "vinta" con margine netto; il
   risultato alimenta il campo `mvp` del `Giocatore` in `useRosa()`, mostrato come StatTile
   nel profilo e in home.
@@ -57,7 +60,8 @@ restano nel database ma non vengono più letti da nessuna schermata).
   (non solo convocati: `presente`/`ritardo` in `usePresenzeEvento`, un controllo più stretto
   della sola convocazione) a quella partita, e le due ore d'attesa dall'inizio evento
   (`votoMvpAperto()`) — un amministratore, o chiunque scriva su PostgREST, passa comunque.
-- In caso di parità, nessun MVP viene assegnato per quella partita.
+- In caso di parità, o sotto il quorum minimo di voti, nessun MVP viene assegnato per quella
+  partita.
 
 ---
 
