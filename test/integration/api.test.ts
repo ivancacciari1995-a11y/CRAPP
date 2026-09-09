@@ -50,6 +50,7 @@ try {
     assert.match(res.headers.get("content-type") ?? "", /application\/json/);
     csi = (await json(res)) as DatiCsi;
     assert.ok(Array.isArray(csi.classifica) && csi.classifica.length > 0);
+    assert.ok(Array.isArray(csi.classificaCoppa));
     assert.ok(Array.isArray(csi.partite) && csi.partite.length > 0);
     assert.equal(csi.girone, "Girone B");
     assert.ok(!Number.isNaN(Date.parse(csi.aggiornato)), "timestamp valido");
@@ -66,6 +67,12 @@ try {
       [...posizioni].sort((a, b) => a - b),
       "ordinata per posizione",
     );
+  });
+
+  await provaCsi("la classifica di Coppa, se presente, contiene la nostra squadra", () => {
+    if ((csi?.classificaCoppa.length ?? 0) === 0) return; // fase a gironi finita, pagina cambiata
+    const noi = csi?.classificaCoppa.find((r) => isNostraSquadra(r.squadra));
+    assert.ok(noi, "C.R.A.P. Volley presente nel girone di Coppa");
   });
 
   await provaCsi("ogni partita è coerente con il formato dell'app", () => {

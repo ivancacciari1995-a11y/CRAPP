@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  CSI_COPPA_PROJECT_ID,
   CSI_GIRONE,
   parseClassifica,
   partiteDaEventi,
@@ -28,8 +29,15 @@ async function scarica(url: string): Promise<string> {
 }
 
 async function leggiCsi(): Promise<DatiCsi> {
-  const [html, json] = await Promise.all([scarica(urlClassifica()), scarica(urlPartite())]);
+  const [html, htmlCoppa, json] = await Promise.all([
+    scarica(urlClassifica()),
+    // Non blocca la risposta se fallisce: la Coppa è un dato supplementare, non critico
+    // come classifica/partite del girone (vedi il controllo sotto).
+    scarica(urlClassifica(CSI_COPPA_PROJECT_ID)).catch(() => ""),
+    scarica(urlPartite()),
+  ]);
   const classifica = parseClassifica(html);
+  const classificaCoppa = parseClassifica(htmlCoppa);
   const eventiGrezzi = JSON.parse(json);
   const partite = partiteDaEventi(eventiGrezzi);
   if (classifica.length === 0 && partite.length === 0) {
@@ -48,6 +56,7 @@ async function leggiCsi(): Promise<DatiCsi> {
   }
   return {
     classifica,
+    classificaCoppa,
     partite,
     girone: CSI_GIRONE,
     aggiornato: new Date().toISOString(),

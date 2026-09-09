@@ -4,6 +4,7 @@
  */
 import assert from "node:assert/strict";
 import {
+  CSI_COPPA_PROJECT_ID,
   isNostraSquadra,
   parseClassifica,
   partiteDaEventi,
@@ -47,6 +48,20 @@ assert.deepEqual(righe[1], {
 });
 assert.equal(righe[0]!.squadra, "Paolo Poggi Volley & C.", "decodifica le entità HTML");
 assert.deepEqual(parseClassifica("<p>pagina cambiata</p>"), [], "portale cambiato: nessun crash");
+
+// La Coppa ha un girone più piccolo (poche squadre) ma la stessa struttura di tabella del
+// campionato: `parseClassifica()` funziona invariata, non serve un parser dedicato.
+const htmlCoppa = `
+<table class="ranking">
+  <tr><th>Pos</th><th>Squadra</th></tr>
+  <tr><td>1</td><td><a href="team_details.php?team_id=2">Set in the City</a></td>
+      <td><b>7</b></td><td>3</td><td>2</td><td>1</td><td>0</td><td>0</td><td>8</td><td>4</td></tr>
+  <tr><td>2</td><td><a href="team_details.php?team_id=3359">C.R.A.P. Volley</a></td>
+      <td><b>6</b></td><td>3</td><td>2</td><td>1</td><td>0</td><td>0</td><td>8</td><td>5</td></tr>
+</table>`;
+const righeCoppa = parseClassifica(htmlCoppa);
+assert.equal(righeCoppa.length, 2, "girone di Coppa più piccolo del campionato: ok comunque");
+assert.equal(righeCoppa[1]!.squadra, "C.R.A.P. Volley");
 
 assert.ok(isNostraSquadra("CRAP Volley") && isNostraSquadra("C.R.A.P. Volley "));
 assert.ok(!isNostraSquadra("CRAP Volley B"));
@@ -126,14 +141,20 @@ assert.equal(
 );
 
 if (process.env["CSI_LIVE"]) {
-  const [html, json] = await Promise.all([
+  const [html, htmlCoppa, json] = await Promise.all([
     fetch(urlClassifica()).then((r) => r.text()),
+    fetch(urlClassifica(CSI_COPPA_PROJECT_ID)).then((r) => r.text()),
     fetch(urlPartite()).then((r) => r.json()),
   ]);
   const live = parseClassifica(html);
   const nostra = live.find((r) => isNostraSquadra(r.squadra));
   assert.ok(nostra, "la nostra squadra è in classifica");
   assert.ok(live.length >= 8 && nostra.giocate > 0);
+  const liveCoppa = parseClassifica(htmlCoppa);
+  assert.ok(
+    liveCoppa.some((r) => isNostraSquadra(r.squadra)),
+    "la nostra squadra è nel girone di Coppa",
+  );
   const livePartite = partiteDaEventi(json);
   assert.ok(livePartite.length > 0 && partiteGiocate(livePartite).length > 0);
   console.log(`live: ${live.length} squadre, ${livePartite.length} partite, noi ${nostra.pos}°`);

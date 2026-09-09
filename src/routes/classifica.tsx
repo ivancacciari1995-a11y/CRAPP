@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ChevronRight, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatData } from "@/lib/crapp-data";
+import { formatData, type RigaClassifica } from "@/lib/crapp-data";
 import { PageHeader } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { useScoutMatches } from "@/lib/scout-store";
@@ -37,6 +37,44 @@ export const Route = createFileRoute("/classifica")({
   component: Classifica,
 });
 
+function TabellaClassifica({ righe, vuoto }: { righe: RigaClassifica[]; vuoto: string }) {
+  return (
+    <div className="overflow-hidden rounded-3xl bg-card shadow-card">
+      <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-xs font-bold uppercase text-muted-foreground">
+        <span>#</span>
+        <span>Squadra</span>
+        <span className="text-center">G</span>
+        <span className="text-center">Set</span>
+        <span className="text-center">Pt</span>
+      </div>
+      {righe.length === 0 ? (
+        <p className="px-3 py-4 text-center text-xs text-muted-foreground">{vuoto}</p>
+      ) : (
+        righe.map((r) => {
+          const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
+          return (
+            <div
+              key={r.pos}
+              className={cn(
+                "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-sm last:border-0",
+                noi && "bg-accent/10",
+              )}
+            >
+              <span className={cn("font-display text-base", noi && "text-accent")}>{r.pos}</span>
+              <span className={cn("truncate", noi ? "font-bold" : "font-medium")}>{r.squadra}</span>
+              <span className="text-center text-xs text-muted-foreground">{r.giocate}</span>
+              <span className="text-center text-xs tabular-nums text-muted-foreground">
+                {r.setFatti}:{r.setSubiti}
+              </span>
+              <span className="text-center font-bold tabular-nums">{r.punti}</span>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 function formatAggiornamento(iso: string) {
   const d = new Date(iso);
   const oggi = new Date().toDateString() === d.toDateString();
@@ -52,6 +90,7 @@ function Classifica() {
   const { eventi } = useEventi();
 
   const classifica = useMemo(() => csi?.classifica ?? [], [csi]);
+  const classificaCoppa = useMemo(() => csi?.classificaCoppa ?? [], [csi]);
 
   const mvpPerMatch = useMemo(() => vincitoriMvp(votiMvp.data ?? []), [votiMvp.data]);
   const eventoIdPerData = useMemo(
@@ -104,48 +143,17 @@ function Classifica() {
               ? `Dati CSI aggiornati ${formatAggiornamento(csi.aggiornato)}`
               : "Dati CSI in arrivo"}
         </div>
-        <div className="overflow-hidden rounded-3xl bg-card shadow-card">
-          <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-xs font-bold uppercase text-muted-foreground">
-            <span>#</span>
-            <span>Squadra</span>
-            <span className="text-center">G</span>
-            <span className="text-center">Set</span>
-            <span className="text-center">Pt</span>
-          </div>
-          {classifica.length === 0 ? (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
-              Classifica non ancora disponibile.
-            </p>
-          ) : (
-            classifica.map((r) => {
-              const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
-              return (
-                <div
-                  key={r.pos}
-                  className={cn(
-                    "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-sm last:border-0",
-                    noi && "bg-accent/10",
-                  )}
-                >
-                  <span className={cn("font-display text-base", noi && "text-accent")}>
-                    {r.pos}
-                  </span>
-                  <span className={cn("truncate", noi ? "font-bold" : "font-medium")}>
-                    {r.squadra}
-                  </span>
-                  <span className="text-center text-xs text-muted-foreground">{r.giocate}</span>
-                  <span className="text-center text-xs tabular-nums text-muted-foreground">
-                    {r.setFatti}:{r.setSubiti}
-                  </span>
-                  <span className="text-center font-bold tabular-nums">{r.punti}</span>
-                </div>
-              );
-            })
-          )}
-        </div>
+        {classificaCoppa.length > 0 ? (
+          <>
+            <h3 className="mb-2 px-1 text-sm font-bold text-foreground">Coppa</h3>
+            <TabellaClassifica righe={classificaCoppa} vuoto="Classifica non disponibile." />
+            <h3 className="mb-2 mt-4 px-1 text-sm font-bold text-foreground">Girone</h3>
+          </>
+        ) : null}
+        <TabellaClassifica righe={classifica} vuoto="Classifica non ancora disponibile." />
       </>
     ),
-    [csi, classifica],
+    [csi, classifica, classificaCoppa],
   );
 
   const contenutoStorico = useMemo(
