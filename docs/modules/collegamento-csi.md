@@ -154,7 +154,8 @@ CSI (portale)
 useCsi()                     → src/lib/csi.ts (React Query, staleTime 6h)
       ↓
 /classifica                  → src/routes/classifica.tsx (tab "Classifica": Coppa sopra, Girone
-                                sotto; tab "Storico partite": ogni gara cliccabile)
+                                sotto; tab "Storico partite": ogni squadra col proprio logo,
+                                chevron di dettaglio sulle gare cliccabili)
 
 CSI (portale, 3 endpoint)
       ↓  fetch server-side on-demand, cache per-partita 6 ore

@@ -12,6 +12,12 @@ all'indietro.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- **Storico partite** — ogni scheda mostra il logo accanto al nome di entrambe le squadre
+  (CRAP e avversario), risultato e parziali in ordine casa–ospite (verde/rosso restano
+  vittoria/sconfitta CRAP) e un chevron a destra per chiarire che la riga apre il dettaglio.
+
 ## [0.9.0] - 2026-09-09
 
 Prima versione pre-release: lo sviluppo precedente non era versionato a parte, quindi

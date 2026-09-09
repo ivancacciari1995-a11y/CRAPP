@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ChevronRight, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatData, type RigaClassifica } from "@/lib/crapp-data";
-import { PageHeader } from "@/components/crapp/ui-bits";
+import { PageHeader, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
@@ -11,6 +11,43 @@ import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-co
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 import { useEventi } from "@/lib/eventi";
 import { LogoSquadra } from "@/components/crapp/DettaglioCsi";
+
+const LOGO_NOI = "/logo-nerorosso.svg";
+const NOME_NOI = "CRAP Volley";
+
+/** Logo CRAP o avversario; cerchio con iniziali se il CSI non ha l'immagine. */
+function LogoPartita({
+  nostro,
+  logoAvversario,
+  avversario,
+}: {
+  nostro: boolean;
+  logoAvversario: string;
+  avversario: string;
+}) {
+  if (nostro) {
+    return (
+      <TeamLogo src={LOGO_NOI} className="h-8 w-8 rounded-lg shadow-none" />
+    );
+  }
+  if (logoAvversario) {
+    return <LogoSquadra src={logoAvversario} alt={avversario} className="h-8 w-8" />;
+  }
+  const iniziali = avversario
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+  return (
+    <span
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary text-[10px] font-bold text-muted-foreground"
+      aria-hidden
+    >
+      {iniziali || "?"}
+    </span>
+  );
+}
 
 const TAB_CLASSIFICA = ["classifica", "storico"] as const;
 type TabClassifica = (typeof TAB_CLASSIFICA)[number];
@@ -169,60 +206,96 @@ function Classifica() {
           {tuttiMatch.map((m) => {
             const vinta = m.setNostri > m.setLoro;
             const eventoId = eventoIdPerData.get(m.data);
+            const cliccabile = Boolean(eventoId) || !m.scout;
+            const casa = {
+              nome: m.casa ? NOME_NOI : m.avversario,
+              nostro: m.casa,
+            };
+            const trasferta = {
+              nome: m.casa ? m.avversario : NOME_NOI,
+              nostro: !m.casa,
+            };
+            // Badge e parziali in ordine casa–ospite; il colore resta sulla vittoria CRAP.
+            const setCasa = m.casa ? m.setNostri : m.setLoro;
+            const setOspite = m.casa ? m.setLoro : m.setNostri;
             const contenuto = (
               <>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <LogoSquadra src={m.logoAvversario} alt={m.avversario} className="h-8 w-8" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold">
-                        {m.casa ? "CRAP Volley" : m.avversario} vs{" "}
-                        {m.casa ? m.avversario : "CRAP Volley"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatData(m.data)} · MVP {m.mvp || "da votare"}
-                        {m.scout ? " · scoutata" : ""}
-                      </p>
+                <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <LogoPartita
+                        nostro={casa.nostro}
+                        logoAvversario={m.logoAvversario}
+                        avversario={m.avversario}
+                      />
+                      <p className="truncate text-sm font-bold">{casa.nome}</p>
                     </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <LogoPartita
+                        nostro={trasferta.nostro}
+                        logoAvversario={m.logoAvversario}
+                        avversario={m.avversario}
+                      />
+                      <p className="truncate text-sm font-bold">{trasferta.nome}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatData(m.data)} · MVP {m.mvp || "da votare"}
+                      {m.scout ? " · scoutata" : ""}
+                    </p>
                   </div>
                   <span
                     className={cn(
-                      "rounded-xl px-2.5 py-1 font-display text-lg",
+                      "shrink-0 rounded-xl px-2.5 py-1 font-display text-xl",
                       vinta
                         ? "bg-success text-success-foreground"
                         : "bg-destructive text-destructive-foreground",
                     )}
                   >
-                    {m.setNostri}-{m.setLoro}
+                    {setCasa}-{setOspite}
                   </span>
+                  {cliccabile ? (
+                    <ChevronRight
+                      className="h-5 w-5 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                  ) : null}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {m.parziali.map((p, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
-                        p[0] > p[1] ? "bg-secondary" : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {p[0]}-{p[1]}
-                    </span>
-                  ))}
+                  {m.parziali.map((p, i) => {
+                    const puntiCasa = m.casa ? p[0] : p[1];
+                    const puntiOspite = m.casa ? p[1] : p[0];
+                    const setVintoDaNoi = p[0] > p[1];
+                    return (
+                      <span
+                        key={i}
+                        className={cn(
+                          "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
+                          setVintoDaNoi
+                            ? "bg-secondary"
+                            : "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {puntiCasa}-{puntiOspite}
+                      </span>
+                    );
+                  })}
                   {eventoId && !m.mvp ? (
                     <span className="ml-auto inline-flex items-center gap-0.5 text-xs font-bold uppercase text-accent">
-                      Vota MVP <ChevronRight className="h-3.5 w-3.5" />
+                      Vota MVP <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                     </span>
                   ) : null}
                 </div>
               </>
             );
+            const aria = `${casa.nome} vs ${trasferta.nome}: dettaglio partita`;
             if (eventoId) {
               return (
                 <Link
                   key={m.id}
                   to="/partita/$id"
                   params={{ id: eventoId }}
-                  className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
+                  aria-label={aria}
+                  className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
                 >
                   {contenuto}
                 </Link>
@@ -240,7 +313,8 @@ function Classifica() {
                 key={m.id}
                 to="/partita-csi/$id"
                 params={{ id: m.id }}
-                className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
+                aria-label={aria}
+                className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
               >
                 {contenuto}
               </Link>
