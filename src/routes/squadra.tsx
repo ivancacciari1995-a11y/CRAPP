@@ -440,7 +440,7 @@ function Squadra() {
         riempiLarghezza
         voci={[
           { id: "rosa", label: "Rosa", contenuto: contenutoRosa },
-          { id: "stats", label: "Statistiche", contenuto: contenutoStats },
+          { id: "stats", label: "Stats", contenuto: contenutoStats },
           { id: "obiettivi", label: "Obiettivi", contenuto: contenutoObiettivi },
           { id: "badge", label: "Badge", contenuto: contenutoBadge },
         ]}
