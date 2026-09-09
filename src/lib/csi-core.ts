@@ -25,12 +25,23 @@ export const urlClassifica = (projectId = CSI_PROJECT_ID) =>
   `${CSI_BASE}/components/project-sheets.php?project_id=${projectId}`;
 export const urlPartite = (teamId = CSI_TEAM_ID) =>
   `${CSI_BASE}/assets/json/getEventsByTeamId.php?team_id=${teamId}`;
+/** Info generali della gara (giornata, pubblico ammesso). */
+export const urlPartitaInfo = (matchId: string) =>
+  `${CSI_BASE}/components/match-main.php?match_id=${matchId}`;
+/** Formazioni titolari/panchina/staff di entrambe le squadre. */
+export const urlPartitaFormazioni = (matchId: string) =>
+  `${CSI_BASE}/components/match-players.php?match_id=${matchId}`;
+/** Storico scontri diretti e probabilità di vittoria calcolata dal CSI. */
+export const urlPartitaPrecedenti = (matchId: string) =>
+  `${CSI_BASE}/components/match-stats.php?match_id=${matchId}`;
 
 export type PartitaCsi = {
   id: string;
   data: string;
   ora: string;
   avversario: string;
+  /** URL del logo avversario sul portale CSI, vuoto se non presente. */
+  logoAvversario: string;
   casa: boolean;
   /** null finché la gara non è stata giocata. */
   setNostri: number | null;
@@ -38,6 +49,49 @@ export type PartitaCsi = {
   parziali: Array<[number, number]>;
   campo: string;
   competizione: string;
+  /** Es. "Girone B". */
+  girone: string;
+  /** Es. "5/XEB". */
+  numeroGara: string;
+  arbitro: string;
+  /** Referto ufficiale su livescore.csibologna.it. */
+  link: string;
+};
+
+export type GiocatoreFormazione = { numero: string; nome: string; ruolo: string };
+export type StaffFormazione = { nome: string; ruolo: string };
+export type FormazioneSquadra = {
+  squadra: string;
+  titolari: GiocatoreFormazione[];
+  panchina: GiocatoreFormazione[];
+  staff: StaffFormazione[];
+};
+
+export type PrecedentiCsi = {
+  totale: number;
+  vinteNoi: number;
+  vinteAvversario: number;
+  casaNoi: number;
+  casaAvversario: number;
+  fuoriNoi: number;
+  fuoriAvversario: number;
+  /** Percentuale 0-100, null se il CSI non la pubblica (es. sport senza storico). */
+  probabilitaNoi: number | null;
+  probabilitaAvversario: number | null;
+};
+
+export type DettaglioPartitaCsi = {
+  /** Es. "2ª Giornata", vuoto se non trovata (fase a eliminazione, coppa...). */
+  giornata: string;
+  /**
+   * Testo libero del CSI sotto l'impianto: a volte "Pubblico non ammesso", a volte il nome
+   * della palestra o altro — non ha un formato fisso, va mostrato così com'è. Vuoto se assente.
+   */
+  nota: string;
+  /** null se il referto non ha ancora le formazioni (partita non ancora giocata/schierata). */
+  formazioni: { noi: FormazioneSquadra; avversario: FormazioneSquadra } | null;
+  /** null solo se il formato non è riconosciuto; con 0 precedenti i campi restano a 0. */
+  precedenti: PrecedentiCsi | null;
 };
 
 export type DatiCsi = {
@@ -117,11 +171,17 @@ type EventoCsi = {
   id?: number | string;
   start?: string;
   team1?: string;
+  team1_logo?: string;
   team2?: string;
+  team2_logo?: string;
   result?: string;
   partials?: string;
   field?: string;
   project?: string;
+  group?: string;
+  match_number?: string;
+  referees?: string;
+  link?: string;
 };
 
 function punteggio(result: string | undefined): [number, number] | null {
@@ -156,12 +216,17 @@ export function partiteDaEventi(eventi: unknown): PartitaCsi[] {
       data: dataIso,
       ora: (oraIso ?? "").slice(0, 5),
       avversario: casa ? team2 : team1,
+      logoAvversario: (casa ? evento.team2_logo : evento.team1_logo)?.trim() ?? "",
       casa,
       setNostri: set ? (casa ? set[0] : set[1]) : null,
       setLoro: set ? (casa ? set[1] : set[0]) : null,
       parziali: casa ? tutti : tutti.map(([a, b]) => [b, a] as [number, number]),
       campo: testo(evento.field ?? ""),
       competizione: testo(evento.project ?? ""),
+      girone: testo(evento.group ?? ""),
+      numeroGara: testo(evento.match_number ?? ""),
+      arbitro: testo(evento.referees ?? ""),
+      link: evento.link?.trim() ?? "",
     });
   }
   return partite.sort((a, b) => b.data.localeCompare(a.data));
@@ -192,9 +257,145 @@ export function matchDaPartitaCsi(p: PartitaCsi) {
     id: p.id,
     data: p.data,
     avversario: p.avversario,
+    logoAvversario: p.logoAvversario,
     casa: p.casa,
     setNostri: p.setNostri ?? 0,
     setLoro: p.setLoro ?? 0,
     parziali: p.parziali,
+    campo: p.campo,
+    girone: p.girone,
+    numeroGara: p.numeroGara,
+    arbitro: p.arbitro,
+    link: p.link,
+  };
+}
+
+/** Estrae giornata e nota libera (pubblico ammesso, dettagli impianto...) da `match-main.php`. */
+export function parseInfoPartita(html: string): { giornata: string; nota: string } {
+  const giornataM = /(\d+)\s*<sup>a<\/sup>\s*Giornata/.exec(html);
+  const notaM = /<div class="text-start"><span>([^<]*)<\/span><\/div>/.exec(html);
+  return {
+    giornata: giornataM ? `${giornataM[1]}ª Giornata` : "",
+    nota: notaM ? testo(notaM[1] ?? "") : "",
+  };
+}
+
+/**
+ * Una squadra dentro `match-players.php`: una `<ul class="list-group">` di `<li>`, in
+ * ordine titolari → divisore "A DISPOSIZIONE" → panchina → divisore "STAFF" → staff. I
+ * membri dello staff hanno la stessa struttura dei giocatori ma senza numero di maglia.
+ */
+function parseBloccoSquadraFormazione(blocco: string): FormazioneSquadra | null {
+  const nomeM = /team_details\.php\?team_id=\d*"[^>]*>([^<]+)<\/a>/.exec(blocco);
+  const squadra = nomeM ? testo(nomeM[1] ?? "") : "";
+  if (!squadra) return null;
+
+  const titolari: GiocatoreFormazione[] = [];
+  const panchina: GiocatoreFormazione[] = [];
+  const staff: StaffFormazione[] = [];
+  let sezione: "titolari" | "panchina" | "staff" = "titolari";
+  for (const voce of blocco.match(/<li class="list-group-item[\s\S]*?<\/li>/gi) ?? []) {
+    if (/A DISPOSIZIONE/.test(voce)) {
+      sezione = "panchina";
+      continue;
+    }
+    if (/STAFF/.test(voce)) {
+      sezione = "staff";
+      continue;
+    }
+    const nomePersonaM = /person_details\.php\?id=\d+">([^<]+)<\/a>/.exec(voce);
+    if (!nomePersonaM) continue;
+    const nome = testo(nomePersonaM[1] ?? "");
+    const ruoloM = /<div class="small">([^<]*)<\/div>/.exec(voce);
+    const ruolo = ruoloM ? testo(ruoloM[1] ?? "") : "";
+    if (sezione === "staff") {
+      staff.push({ nome, ruolo });
+      continue;
+    }
+    const numeroM = /shrink-8"[^>]*>(\d+)</.exec(voce);
+    const giocatore = { numero: numeroM?.[1] ?? "", nome, ruolo };
+    (sezione === "titolari" ? titolari : panchina).push(giocatore);
+  }
+  return { squadra, titolari, panchina, staff };
+}
+
+/**
+ * Formazioni di entrambe le squadre da `match-players.php`. Il markup non distingue
+ * esplicitamente casa/ospite, ma le racchiude in due blocchi separati dal commento
+ * `<!-- SQUADRA OSPITE -->`; qui si riconosce la nostra tramite `isNostraSquadra()`
+ * invece di assumere un ordine fisso.
+ */
+export function parseFormazioni(
+  html: string,
+): { noi: FormazioneSquadra; avversario: FormazioneSquadra } | null {
+  const idx = html.indexOf("SQUADRA OSPITE");
+  if (idx === -1) return null;
+  const primo = parseBloccoSquadraFormazione(html.slice(0, idx));
+  const secondo = parseBloccoSquadraFormazione(html.slice(idx));
+  if (!primo || !secondo) return null;
+  const noi = isNostraSquadra(primo.squadra)
+    ? primo
+    : isNostraSquadra(secondo.squadra)
+      ? secondo
+      : null;
+  if (!noi) return null;
+  return { noi, avversario: noi === primo ? secondo : primo };
+}
+
+/**
+ * Storico scontri diretti e probabilità di vittoria da `match-stats.php`. Il blocco di
+ * riepilogo (non la lista partita-per-partita nel modal, meno affidabile da interpretare)
+ * riporta i numeri nell'ordine squadra-casa/squadra-ospite di *questa* gara: qui si
+ * riconosce quale delle due siamo noi tramite `isNostraSquadra()`, come in
+ * `parseFormazioni()`. Con "0 precedenti" il CSI omette del tutto le righe
+ * vittorie/in-casa/fuori (restano a 0) ma la probabilità resta comunque presente.
+ */
+export function parsePrecedenti(html: string): PrecedentiCsi | null {
+  const idxCasa = html.indexOf("Squadra casa");
+  const idxOspite = html.indexOf("Squadra ospite");
+  if (idxCasa === -1 || idxOspite === -1) return null;
+  const nomeCasaM = /team_details\.php\?team_id=\d+"[^>]*>([^<]+)<\/a>/.exec(
+    html.slice(idxCasa, idxOspite),
+  );
+  const nomeOspiteM = /team_details\.php\?team_id=\d+"[^>]*>([^<]+)<\/a>/.exec(
+    html.slice(idxOspite),
+  );
+  const nomeCasa = nomeCasaM ? testo(nomeCasaM[1] ?? "") : "";
+  const nomeOspite = nomeOspiteM ? testo(nomeOspiteM[1] ?? "") : "";
+  const noiECasa = isNostraSquadra(nomeCasa);
+  if (!noiECasa && !isNostraSquadra(nomeOspite)) return null;
+
+  const totaleM = /Precedenti:<\/span>\s*<b><a[^>]*>(\d+)<\/a><\/b>/.exec(html);
+  const vittorieM =
+    /<div><b>(\d+)<\/b><\/div>\s*<div[^>]*>vittorie<\/div>\s*<div><b>(\d+)<\/b><\/div>/.exec(html);
+  const inCasaM =
+    /<div><b>(\d+)<\/b><\/div>\s*<div>in casa<\/div>\s*<div><b>(\d+)<\/b><\/div>/.exec(html);
+  const fuoriM = /<div><b>(\d+)<\/b><\/div>\s*<div>fuori<\/div>\s*<div><b>(\d+)<\/b><\/div>/.exec(
+    html,
+  );
+  // Le due barre "progress-bar" appaiono nell'ordine casa/ospite: il colore (verde/rosso)
+  // segue chi è favorito, non la posizione, quindi qui si usa l'ordine nel markup e non la
+  // classe CSS per capire quale percentuale è "nostra".
+  const percentuali = [...html.matchAll(/progress-bar[\s\S]*?width:\s*([\d.]+)%/g)].map((m) =>
+    Number(m[1]),
+  );
+  const [probCasa, probOspite] = percentuali;
+
+  // I due gruppi di ogni regex sono nell'ordine squadra-casa/squadra-ospite di questa gara:
+  // `casaIndice`/`ospiteIndice` scelgono quale dei due è "noi" in base a `noiECasa`.
+  const casaIndice = noiECasa ? 1 : 2;
+  const ospiteIndice = noiECasa ? 2 : 1;
+  const numero = (m: RegExpExecArray | null, indice: 1 | 2) => (m ? Number(m[indice]) : 0);
+
+  return {
+    totale: totaleM ? Number(totaleM[1]) : 0,
+    vinteNoi: numero(vittorieM, casaIndice),
+    vinteAvversario: numero(vittorieM, ospiteIndice),
+    casaNoi: numero(inCasaM, casaIndice),
+    casaAvversario: numero(inCasaM, ospiteIndice),
+    fuoriNoi: numero(fuoriM, casaIndice),
+    fuoriAvversario: numero(fuoriM, ospiteIndice),
+    probabilitaNoi: (noiECasa ? probCasa : probOspite) ?? null,
+    probabilitaAvversario: (noiECasa ? probOspite : probCasa) ?? null,
   };
 }

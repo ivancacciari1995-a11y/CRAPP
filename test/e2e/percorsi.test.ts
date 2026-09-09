@@ -70,11 +70,25 @@ try {
     const html = await pagina("/classifica");
     assert.match(titolo(html), /Classifica campionato/);
     assert.doesNotMatch(html, /CSI Milano/, "nessun residuo dei dati demo nel guscio");
+
+    // Una gara giocata deve avere un dettaglio "solo CSI" raggiungibile, con il suo
+    // endpoint per-partita servito (formazioni/precedenti): vedi partita-csi.$id.tsx.
+    const giocata = csi.partite.find((p) => p.setNostri !== null);
+    if (giocata) {
+      const htmlPartita = await pagina(`/partita-csi/${giocata.id}`);
+      assert.match(titolo(htmlPartita), /Dettaglio partita/);
+      const dettaglio = await fetch(url(`/api/public/csi-partita/${giocata.id}`));
+      assert.equal(dettaglio.status, 200, "l'endpoint per-partita risponde");
+    }
   });
 
   // --- 4. Dettaglio di un evento --------------------------------------------
   await prova("le pagine di dettaglio reggono un id inesistente", async () => {
-    for (const percorso of ["/partita/non-esiste", "/allenamento/non-esiste"]) {
+    for (const percorso of [
+      "/partita/non-esiste",
+      "/allenamento/non-esiste",
+      "/partita-csi/non-esiste",
+    ]) {
       const res = await fetch(url(percorso));
       assert.ok(res.status < 500, `${percorso}: nessun errore server (era ${res.status})`);
     }

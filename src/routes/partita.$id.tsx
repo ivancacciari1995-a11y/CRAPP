@@ -7,6 +7,7 @@ import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
 import { useCsi } from "@/lib/csi";
 import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
+import { DettaglioCsiEsteso, LogoSquadra, MetaPartitaCsi } from "@/components/crapp/DettaglioCsi";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
@@ -72,10 +73,16 @@ function PartitaDetail() {
         id: scout.id,
         data: scout.data,
         avversario: scout.avversario,
+        logoAvversario: "",
         casa: scout.casa,
         setNostri: scout.setNostri,
         setLoro: scout.setLoro,
         parziali: scout.parziali,
+        campo: "",
+        girone: "",
+        numeroGara: "",
+        arbitro: "",
+        link: "",
       }
     : csiMatch
       ? matchDaPartitaCsi(csiMatch)
@@ -105,6 +112,9 @@ function PartitaDetail() {
             >
               {casa ? <Swords className="h-6 w-6" /> : <Trophy className="h-6 w-6" />}
             </div>
+            {match?.logoAvversario ? (
+              <LogoSquadra src={match.logoAvversario} alt={avversario} className="h-10 w-10" />
+            ) : null}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                 {casa ? "In casa" : "Fuori casa"}
@@ -133,6 +143,15 @@ function PartitaDetail() {
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocati.length}
           </div>
+
+          {csiMatch ? (
+            <MetaPartitaCsi
+              girone={csiMatch.girone}
+              numeroGara={csiMatch.numeroGara}
+              arbitro={csiMatch.arbitro}
+              link={csiMatch.link}
+            />
+          ) : null}
 
           <TurnoPalloni eventoId={evento.id} />
         </div>
@@ -168,6 +187,12 @@ function PartitaDetail() {
               ))}
             </div>
           </div>
+        </Section>
+      ) : null}
+
+      {csiMatch ? (
+        <Section titolo="Formazioni e scontri diretti">
+          <DettaglioCsiEsteso matchId={csiMatch.id} avversario={avversario} />
         </Section>
       ) : null}
 

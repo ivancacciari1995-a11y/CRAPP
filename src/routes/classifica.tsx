@@ -10,6 +10,7 @@ import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 import { useEventi } from "@/lib/eventi";
+import { LogoSquadra } from "@/components/crapp/DettaglioCsi";
 
 const TAB_CLASSIFICA = ["classifica", "storico"] as const;
 type TabClassifica = (typeof TAB_CLASSIFICA)[number];
@@ -110,6 +111,7 @@ function Classifica() {
           id: m.id,
           data: m.data,
           avversario: m.avversario,
+          logoAvversario: "",
           casa: m.casa,
           setNostri: m.setNostri,
           setLoro: m.setLoro,
@@ -170,15 +172,18 @@ function Classifica() {
             const contenuto = (
               <>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">
-                      {m.casa ? "CRAP Volley" : m.avversario} vs{" "}
-                      {m.casa ? m.avversario : "CRAP Volley"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatData(m.data)} · MVP {m.mvp || "da votare"}
-                      {m.scout ? " · scoutata" : ""}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <LogoSquadra src={m.logoAvversario} alt={m.avversario} className="h-8 w-8" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">
+                        {m.casa ? "CRAP Volley" : m.avversario} vs{" "}
+                        {m.casa ? m.avversario : "CRAP Volley"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatData(m.data)} · MVP {m.mvp || "da votare"}
+                        {m.scout ? " · scoutata" : ""}
+                      </p>
+                    </div>
                   </div>
                   <span
                     className={cn(
@@ -211,19 +216,34 @@ function Classifica() {
                 </div>
               </>
             );
-            return eventoId ? (
+            if (eventoId) {
+              return (
+                <Link
+                  key={m.id}
+                  to="/partita/$id"
+                  params={{ id: eventoId }}
+                  className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
+                >
+                  {contenuto}
+                </Link>
+              );
+            }
+            // Senza evento CrAPP collegato (nessuna creazione automatica dal calendario
+            // CSI, vedi "Evoluzioni possibili"): le gare scoutate localmente non hanno un
+            // corrispettivo sul portale da mostrare, quelle CSI sì.
+            return m.scout ? (
+              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
+                {contenuto}
+              </article>
+            ) : (
               <Link
                 key={m.id}
-                to="/partita/$id"
-                params={{ id: eventoId }}
+                to="/partita-csi/$id"
+                params={{ id: m.id }}
                 className="premi block rounded-3xl bg-card p-4 shadow-card active:scale-[0.99]"
               >
                 {contenuto}
               </Link>
-            ) : (
-              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
-                {contenuto}
-              </article>
             );
           })}
         </div>

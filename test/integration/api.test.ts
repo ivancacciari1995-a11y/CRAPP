@@ -5,7 +5,12 @@
  */
 import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
-import { isNostraSquadra, partiteGiocate, type DatiCsi } from "@/lib/csi-core";
+import {
+  isNostraSquadra,
+  partiteGiocate,
+  type DatiCsi,
+  type DettaglioPartitaCsi,
+} from "@/lib/csi-core";
 import { obiettiviSquadra } from "@/lib/obiettivi";
 import { avviaServer, haSupabase, json } from "../helpers/server";
 import { prova, riepilogo, salta } from "../helpers/prova";
@@ -118,6 +123,45 @@ try {
     assert.equal(secondo.aggiornato, csi?.aggiornato, "stesso timestamp: nessuna nuova fetch");
     assert.ok(Date.now() - t0 < 2_000, "risposta immediata");
   });
+
+  await provaCsi(
+    "GET /api/public/csi-partita/$id restituisce formazioni e precedenti",
+    async () => {
+      const primaGiocata = partiteGiocate(csi?.partite ?? [])[0];
+      assert.ok(primaGiocata, "serve almeno una gara giocata per testare il dettaglio");
+      const res = await fetch(url(`/api/public/csi-partita/${primaGiocata.id}`));
+      assert.equal(res.status, 200);
+      const dettaglio = (await json(res)) as DettaglioPartitaCsi;
+      // formazioni/precedenti possono essere null se il portale non li pubblica per questa
+      // gara (es. referto non compilato): qui si verifica solo che, quando presenti, siano
+      // coerenti — non che ci siano sempre, vedi parseFormazioni()/parsePrecedenti().
+      if (dettaglio.formazioni) {
+        assert.ok(isNostraSquadra(dettaglio.formazioni.noi.squadra));
+        assert.ok(dettaglio.formazioni.noi.titolari.length > 0, "almeno un titolare");
+      }
+      if (dettaglio.precedenti) {
+        assert.ok(dettaglio.precedenti.totale >= 0);
+      }
+
+      const t0 = Date.now();
+      const secondo = await fetch(url(`/api/public/csi-partita/${primaGiocata.id}`));
+      assert.equal(secondo.status, 200);
+      assert.ok(Date.now() - t0 < 2_000, "seconda chiamata dalla cache: risposta immediata");
+    },
+  );
+
+  await provaCsi(
+    "GET /api/public/csi-partita/$id con un id davvero inesistente risponde 503, non rompe",
+    async () => {
+      // Un match_id inventato fa rispondere 500 a match-stats.php lato CSI (verificato a
+      // mano con curl): non è "gara senza formazioni ancora pubblicate" (quello risponde
+      // 200 con markup vuoto, gestito da parseFormazioni()/parsePrecedenti() → null), è un
+      // vero errore a monte. La route lo tratta come /api/public/csi tratta un CSI giù:
+      // 503 pulito, non un crash o un 200 con dati inventati.
+      const res = await fetch(url("/api/public/csi-partita/999999999"));
+      assert.equal(res.status, 503);
+    },
+  );
 
   // --- GET /api/public/push-config -------------------------------------------
   await prova("GET /api/public/push-config espone solo la chiave pubblica", async () => {

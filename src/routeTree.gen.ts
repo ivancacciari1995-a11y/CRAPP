@@ -19,6 +19,7 @@ import { Route as ProfiloRouteImport } from './routes/profilo'
 import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SquadraRouteImport } from './routes/squadra'
 import { Route as AllenamentoIdRouteImport } from './routes/allenamento.$id'
+import { Route as PartitaCsiIdRouteImport } from './routes/partita-csi.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
 import { Route as ApiPublicApriSondaggioRouteImport } from './routes/api/public/apri-sondaggio'
 import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
@@ -26,6 +27,7 @@ import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/pub
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
 import { Route as ApiPublicPushSubscribeRouteImport } from './routes/api/public/push-subscribe'
 import { Route as ApiPublicSollecitaPresenzeRouteImport } from './routes/api/public/sollecita-presenze'
+import { Route as ApiPublicCsiPartitaIdRouteImport } from './routes/api/public/csi-partita.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,6 +79,11 @@ const AllenamentoIdRoute = AllenamentoIdRouteImport.update({
   path: '/allenamento/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartitaCsiIdRoute = PartitaCsiIdRouteImport.update({
+  id: '/partita-csi/$id',
+  path: '/partita-csi/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartitaIdRoute = PartitaIdRouteImport.update({
   id: '/partita/$id',
   path: '/partita/$id',
@@ -114,6 +121,11 @@ const ApiPublicSollecitaPresenzeRoute =
     path: '/api/public/sollecita-presenze',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCsiPartitaIdRoute = ApiPublicCsiPartitaIdRouteImport.update({
+  id: '/api/public/csi-partita/$id',
+  path: '/api/public/csi-partita/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
@@ -133,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
+  '/api/public/csi-partita/$id': typeof ApiPublicCsiPartitaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -145,6 +159,7 @@ export interface FileRoutesByTo {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
@@ -152,6 +167,7 @@ export interface FileRoutesByTo {
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
+  '/api/public/csi-partita/$id': typeof ApiPublicCsiPartitaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -165,6 +181,7 @@ export interface FileRoutesById {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
@@ -172,6 +189,7 @@ export interface FileRoutesById {
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
   '/api/public/push-subscribe': typeof ApiPublicPushSubscribeRoute
   '/api/public/sollecita-presenze': typeof ApiPublicSollecitaPresenzeRoute
+  '/api/public/csi-partita/$id': typeof ApiPublicCsiPartitaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -186,6 +204,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
@@ -193,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/public/push-config'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
+    | '/api/public/csi-partita/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -205,6 +225,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
@@ -212,6 +233,7 @@ export interface FileRouteTypes {
     | '/api/public/push-config'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
+    | '/api/public/csi-partita/$id'
   id:
     | '__root__'
     | '/'
@@ -224,6 +246,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
@@ -231,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/public/push-config'
     | '/api/public/push-subscribe'
     | '/api/public/sollecita-presenze'
+    | '/api/public/csi-partita/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -244,6 +268,7 @@ export interface RootRouteChildren {
   ScoutRoute: typeof ScoutRoute
   SquadraRoute: typeof SquadraRoute
   AllenamentoIdRoute: typeof AllenamentoIdRoute
+  PartitaCsiIdRoute: typeof PartitaCsiIdRoute
   PartitaIdRoute: typeof PartitaIdRoute
   ApiPublicApriSondaggioRoute: typeof ApiPublicApriSondaggioRoute
   ApiPublicCsiRoute: typeof ApiPublicCsiRoute
@@ -251,6 +276,7 @@ export interface RootRouteChildren {
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
   ApiPublicPushSubscribeRoute: typeof ApiPublicPushSubscribeRoute
   ApiPublicSollecitaPresenzeRoute: typeof ApiPublicSollecitaPresenzeRoute
+  ApiPublicCsiPartitaIdRoute: typeof ApiPublicCsiPartitaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -325,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AllenamentoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partita-csi/$id': {
+      id: '/partita-csi/$id'
+      path: '/partita-csi/$id'
+      fullPath: '/partita-csi/$id'
+      preLoaderRoute: typeof PartitaCsiIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/partita/$id': {
       id: '/partita/$id'
       path: '/partita/$id'
@@ -374,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSollecitaPresenzeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/csi-partita/$id': {
+      id: '/api/public/csi-partita/$id'
+      path: '/api/public/csi-partita/$id'
+      fullPath: '/api/public/csi-partita/$id'
+      preLoaderRoute: typeof ApiPublicCsiPartitaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -388,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScoutRoute: ScoutRoute,
   SquadraRoute: SquadraRoute,
   AllenamentoIdRoute: AllenamentoIdRoute,
+  PartitaCsiIdRoute: PartitaCsiIdRoute,
   PartitaIdRoute: PartitaIdRoute,
   ApiPublicApriSondaggioRoute: ApiPublicApriSondaggioRoute,
   ApiPublicCsiRoute: ApiPublicCsiRoute,
@@ -395,6 +436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,
   ApiPublicPushSubscribeRoute: ApiPublicPushSubscribeRoute,
   ApiPublicSollecitaPresenzeRoute: ApiPublicSollecitaPresenzeRoute,
+  ApiPublicCsiPartitaIdRoute: ApiPublicCsiPartitaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
