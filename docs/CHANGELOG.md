@@ -82,8 +82,10 @@ Prima versione, pre-release.
   Alcuni conteggi `mvp` già mostrati possono scendere per effetto della nuova regola.
 - Cancellare un evento pulisce ora a cascata, tramite trigger database, tutte le tabelle
   collegate (presenze, pagelle, MVP, badge social, turni palloni, scout) invece di lasciarle
-  come righe orfane (migration `m14_pulizia_dati_evento_cancellato`, DD-029). Le righe orfane
-  generate da cancellazioni precedenti a questa migration non vengono bonificate.
+  come righe orfane (migration `m14_pulizia_dati_evento_cancellato`, DD-029).
+- Bonificate una tantum le righe orfane lasciate da cancellazioni precedenti a M14 (migration
+  `m15_bonifica_dati_evento_orfani`), senza toccare i vecchi voti MVP/pagelle/badge social
+  legati a id Scout o CSI, che restano dati storici legittimi (DD-029).
 
 ### Sicurezza
 

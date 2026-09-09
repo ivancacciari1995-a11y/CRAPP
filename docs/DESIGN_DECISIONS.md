@@ -1130,7 +1130,18 @@ PostgREST, non solo chi passa dal bottone dell'app.
   scrive una riga in ciascuna delle otto tabelle, cancella l'evento e verifica che spariscano
   tutte.
 
+**Aggiornamento (9 settembre 2026, stesso giorno)** — la bonifica dello storico prevista sopra
+come "riesame" è stata fatta subito dopo, migration `m15_bonifica_dati_evento_orfani`: righe
+orfane in `risposte_presenze`, `cacche_partita`, `turni_palloni`, `scout_sessioni`,
+`scout_live`, `scout_partite` identificate confrontando `evento_id` con `eventi_app`. Per
+`mvp_voti`/`pagelle_voti`/`badge_social_voti` il confronto si applica **solo** ai `match_id`
+nel formato id evento CrAPP (`^e[0-9a-z]+$`, quello di `nuovoIdEvento()`): i vecchi voti su id
+Scout (prefisso `s` + timestamp decimale) o CSI (numerico o `data-squadra-squadra`) non sono
+orfani, sono dati storici legittimi mai collegati a un evento CrAPP (vedi contesto sopra), e la
+migration non li tocca. Verificato manualmente sul database locale prima di applicarla: un voto
+di test su id Scout è sopravvissuto alla bonifica, un voto di test su id evento CrAPP orfano è
+stato rimosso.
+
 **Riesame**  
-Se in futuro si vuole bonificare anche lo storico di righe orfane già esistenti, o se una
-nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va aggiornata
-a mano, non c'è un meccanismo che lo forzi).
+Se una nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va
+aggiornata a mano, non c'è un meccanismo che lo forzi).
