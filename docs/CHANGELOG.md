@@ -68,6 +68,11 @@ Prima versione, pre-release.
 - Infrastruttura di sviluppo: migrazione da Lovable a sviluppo locale, repository GitHub
   indipendente, deploy automatico su Vercel.
 
+### Modificato
+
+- In Squadra la classifica interna (filtro «Classifica per» + elenco) è sotto i 6 riquadri
+  di Statistiche; la tab «Classifica» è stata rimossa dalla barra delle sottosezioni.
+
 ### Sicurezza
 
 - Migration `m4_solo_autenticati`: tolto al ruolo `anon` l'accesso alle tabelle dell'app

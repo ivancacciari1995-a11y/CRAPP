@@ -104,8 +104,7 @@ function Squadra() {
     : 0;
 
   // Ogni tab è memoizzata: aprire/chiudere una card giocatore (stato `aperto`)
-  // non deve ricalcolare badge, classifica e obiettivi delle altre sezioni,
-  // che restano fuori schermo finché l'utente non cambia tab.
+  // non deve ricalcolare badge e obiettivi delle altre sezioni.
   const contenutoRosa = useMemo(
     () => (
       <div className="space-y-2">
@@ -232,94 +231,93 @@ function Squadra() {
 
   const contenutoStats = useMemo(
     () => (
-      <div className="grid grid-cols-3 gap-2">
-        <StatTile valore={`${mediaPresenze}%`} label="Media presenze" />
-        <StatTile valore={matchGiocati} label="Match giocati" />
-        <StatTile valore={mediaSquadra(pagelle) || "—"} label="Media pagelle" />
-        <StatTile valore={team.punti} label="Punti squadra" />
-        <StatTile valore={team.ace} label="Ace squadra" />
-        <StatTile valore={team.muri} label="Muri squadra" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-2">
+          <StatTile valore={`${mediaPresenze}%`} label="Media presenze" />
+          <StatTile valore={matchGiocati} label="Match giocati" />
+          <StatTile valore={mediaSquadra(pagelle) || "—"} label="Media pagelle" />
+          <StatTile valore={team.punti} label="Punti squadra" />
+          <StatTile valore={team.ace} label="Ace squadra" />
+          <StatTile valore={team.muri} label="Muri squadra" />
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setFiltroAperto(true)}
+            aria-haspopup="dialog"
+            className="flex w-full min-w-0 items-center gap-2 rounded-2xl bg-card px-3 py-2.5 text-left shadow-card"
+          >
+            <Trophy className="h-5 w-5 shrink-0 text-warning" aria-hidden />
+            <span className="shrink-0 text-[14px] text-foreground/80">Classifica per</span>
+            <span className="min-w-0 flex-1 truncate text-right text-[14px] font-bold">
+              {criteri.find((c) => c.id === criterio)?.label}
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          </button>
+
+          <Drawer open={filtroAperto} onOpenChange={setFiltroAperto}>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Classifica per</DrawerTitle>
+              </DrawerHeader>
+              <div className="flex flex-col gap-1 px-4 pb-6">
+                {criteri.map((c) => (
+                  <DrawerClose key={c.id} asChild>
+                    <button
+                      type="button"
+                      onClick={() => setCriterio(c.id)}
+                      className={cn(
+                        "flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-bold",
+                        criterio === c.id
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-secondary text-foreground",
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  </DrawerClose>
+                ))}
+              </div>
+            </DrawerContent>
+          </Drawer>
+
+          <div className="mt-3 space-y-2">
+            {ordinati.map((g, i) => (
+              <div key={g.id} className="rounded-2xl bg-card p-3 shadow-card">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary font-display text-base">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">
+                        {g.nome}
+                        {i === 0 ? (
+                          <Crown className="ml-1 inline h-3.5 w-3.5 text-warning" />
+                        ) : null}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        #{g.numero} · {g.ruolo} · {g.streak} presenze consecutive
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-display text-xl tabular-nums">
+                    {valore(g, criterio) || "—"}
+                  </span>
+                </div>
+                <Barra
+                  percentuale={Math.max(6, (valore(g, criterio) / max) * 100)}
+                  altezza="h-1.5"
+                  trackClassName="mt-2"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     ),
-    [mediaPresenze, matchGiocati, pagelle, team],
-  );
-
-  const contenutoClassifica = useMemo(
-    () => (
-      <>
-        <button
-          type="button"
-          onClick={() => setFiltroAperto(true)}
-          aria-haspopup="dialog"
-          className="flex w-full min-w-0 items-center gap-2 border-b border-border bg-card px-5 py-2.5 text-left"
-        >
-          <Trophy className="h-4 w-4 shrink-0 text-warning" aria-hidden />
-          <span className="shrink-0 text-sm text-foreground/80">Classifica per</span>
-          <span className="min-w-0 flex-1 truncate text-right text-sm font-bold">
-            {criteri.find((c) => c.id === criterio)?.label}
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-        </button>
-
-        <Drawer open={filtroAperto} onOpenChange={setFiltroAperto}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Classifica per</DrawerTitle>
-            </DrawerHeader>
-            <div className="flex flex-col gap-1 px-4 pb-6">
-              {criteri.map((c) => (
-                <DrawerClose key={c.id} asChild>
-                  <button
-                    type="button"
-                    onClick={() => setCriterio(c.id)}
-                    className={cn(
-                      "flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-bold",
-                      criterio === c.id
-                        ? "bg-accent text-accent-foreground"
-                        : "bg-secondary text-foreground",
-                    )}
-                  >
-                    {c.label}
-                  </button>
-                </DrawerClose>
-              ))}
-            </div>
-          </DrawerContent>
-        </Drawer>
-
-        <div className="space-y-2 px-5 pt-3">
-          {ordinati.map((g, i) => (
-            <div key={g.id} className="rounded-2xl bg-card p-3 shadow-card">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary font-display text-base">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">
-                      {g.nome}
-                      {i === 0 ? <Crown className="ml-1 inline h-3.5 w-3.5 text-warning" /> : null}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      #{g.numero} · {g.ruolo} · {g.streak} presenze consecutive
-                    </p>
-                  </div>
-                </div>
-                <span className="font-display text-xl tabular-nums">
-                  {valore(g, criterio) || "—"}
-                </span>
-              </div>
-              <Barra
-                percentuale={Math.max(6, (valore(g, criterio) / max) * 100)}
-                altezza="h-1.5"
-                trackClassName="mt-2"
-              />
-            </div>
-          ))}
-        </div>
-      </>
-    ),
-    [filtroAperto, criterio, ordinati, max],
+    [mediaPresenze, matchGiocati, pagelle, team, filtroAperto, criterio, ordinati, max],
   );
 
   const contenutoObiettivi = useMemo(
@@ -439,15 +437,10 @@ function Squadra() {
       <BarraSottosezioni
         defaultId="rosa"
         variante="sottolineatura"
+        riempiLarghezza
         voci={[
           { id: "rosa", label: "Rosa", contenuto: contenutoRosa },
           { id: "stats", label: "Statistiche", contenuto: contenutoStats },
-          {
-            id: "classifica-giocatori",
-            label: "Classifica",
-            aTuttoLarghezza: true,
-            contenuto: contenutoClassifica,
-          },
           { id: "obiettivi", label: "Obiettivi", contenuto: contenutoObiettivi },
           { id: "badge", label: "Badge", contenuto: contenutoBadge },
         ]}
