@@ -5,11 +5,16 @@
  * di M14 (DD-029); M16 ha reso permanente la stessa logica come funzione RPC, così resta
  * richiamabile e testabile invece che verificata a mano una volta sola.
  *
- * Il punto delicato: per `mvp_voti`/`pagelle_voti`/`badge_social_voti` la funzione deve
- * cancellare solo i `match_id` nel formato id evento CrAPP ("e" + timestamp base36) senza
- * corrispondenza in `eventi_app` — mai i vecchi voti storici su id Scout ("s" + timestamp) o
- * CSI (numerico), che sono dati legittimi mai collegati a un evento CrAPP (`docs/modules/mvp.md`).
- * Questo test copre esattamente quella distinzione.
+ * Copre tutte e nove le istruzioni dentro la funzione, non solo un sottoinsieme: le sei
+ * tabelle che usano `evento_id` (`risposte_presenze`, `cacche_partita`, `turni_palloni`,
+ * `scout_sessioni`, `scout_live`, `scout_partite`) e le tre che usano `match_id`
+ * (`mvp_voti`, `pagelle_voti`, `badge_social_voti`).
+ *
+ * Il punto delicato è sulle tre tabelle `match_id`: la funzione deve cancellare solo i
+ * `match_id` nel formato id evento CrAPP ("e" + timestamp base36) senza corrispondenza in
+ * `eventi_app` — mai i vecchi voti storici su id Scout ("s" + timestamp) o CSI (numerico),
+ * che sono dati legittimi mai collegati a un evento CrAPP (`docs/modules/mvp.md`). Questo
+ * test verifica la distinzione su tutte e tre, non solo su due delle tre.
  *
  * Gira solo sullo stack locale (`npx supabase start`): usa id con il prefisso
  * `test-bonifica-evento`, che nessun dato vero può avere.
@@ -32,7 +37,17 @@ if (!locale) {
   // verrebbe mai filtrato dalla funzione, quindi non testerebbe la regola che conta.
   const ORFANO = `etestbonificaevento${Date.now().toString(36)}`;
   const STORICO_SCOUT = `s${Date.now()}`; // formato id Scout storico: va preservato
-  const STORICO_CSI = "42"; // formato id CSI storico (numerico): va preservato
+  const STORICO_CSI = `${Date.now()}`; // formato id CSI storico (numerico): va preservato
+
+  const TABELLE_EVENTO_ID = [
+    "risposte_presenze",
+    "cacche_partita",
+    "turni_palloni",
+    "scout_sessioni",
+    "scout_live",
+    "scout_partite",
+  ];
+  const TABELLE_MATCH_ID = ["mvp_voti", "pagelle_voti", "badge_social_voti"];
 
   const rest = (percorso: string, init?: RequestInit) =>
     fetch(`${URL_BASE}/rest/v1/${percorso}`, {
@@ -59,51 +74,60 @@ if (!locale) {
   }
 
   async function pulisci() {
-    await rest(`risposte_presenze?evento_id=eq.${ORFANO}`, { method: "DELETE" });
-    await rest(`mvp_voti?match_id=eq.${ORFANO}`, { method: "DELETE" });
-    await rest(`mvp_voti?match_id=eq.${STORICO_SCOUT}`, { method: "DELETE" });
-    await rest(`pagelle_voti?match_id=eq.${ORFANO}`, { method: "DELETE" });
-    await rest(`pagelle_voti?match_id=eq.${STORICO_CSI}&votante_id=eq.${PREFISSO}-va`, {
-      method: "DELETE",
-    });
+    for (const t of TABELLE_EVENTO_ID) {
+      await rest(`${t}?evento_id=eq.${ORFANO}`, { method: "DELETE" });
+    }
+    for (const t of TABELLE_MATCH_ID) {
+      await rest(`${t}?match_id=eq.${ORFANO}`, { method: "DELETE" });
+      await rest(`${t}?match_id=eq.${STORICO_SCOUT}`, { method: "DELETE" });
+      await rest(`${t}?match_id=eq.${STORICO_CSI}`, { method: "DELETE" });
+    }
   }
 
   try {
     await prova(
       "bonifica_dati_evento_orfani() rimuove solo gli orfani veri, non lo storico Scout/CSI",
       async () => {
-        // Riga orfana: id in formato evento CrAPP, nessun evento corrispondente.
+        // Una riga orfana per ciascuna delle sei tabelle evento_id.
         await inserisci("risposte_presenze", {
           evento_id: ORFANO,
           giocatore_id: `${PREFISSO}-g1`,
           stato: "presente",
         });
-        await inserisci("mvp_voti", {
-          match_id: ORFANO,
-          votante_id: `${PREFISSO}-va`,
-          votato_id: `${PREFISSO}-vb`,
-          votato_nome: "Orfano",
+        await inserisci("cacche_partita", {
+          evento_id: ORFANO,
+          giocatore_id: `${PREFISSO}-g1`,
+          quantita: 1,
         });
-        await inserisci("pagelle_voti", {
-          match_id: ORFANO,
-          votante_id: `${PREFISSO}-va`,
-          votato_id: `${PREFISSO}-vb`,
-          voto: 6,
+        await inserisci("turni_palloni", { evento_id: ORFANO, giocatore_id: `${PREFISSO}-g1` });
+        await inserisci("scout_sessioni", {
+          evento_id: ORFANO,
+          giocatore_id: `${PREFISSO}-g1`,
+          giocatore_nome: "Uno",
+        });
+        await inserisci("scout_live", { evento_id: ORFANO, stato: {} });
+        await inserisci("scout_partite", {
+          id: `${ORFANO}-scout`,
+          evento_id: ORFANO,
+          data: "2026-09-01",
+          avversario: "Test",
+          set_nostri: 3,
+          set_loro: 0,
         });
 
-        // Voti storici legittimi su id Scout/CSI: nessun evento CrAPP li ha mai referenziati.
-        await inserisci("mvp_voti", {
-          match_id: STORICO_SCOUT,
-          votante_id: `${PREFISSO}-va`,
-          votato_id: `${PREFISSO}-vb`,
-          votato_nome: "Storico",
-        });
-        await inserisci("pagelle_voti", {
-          match_id: STORICO_CSI,
-          votante_id: `${PREFISSO}-va`,
-          votato_id: `${PREFISSO}-vb`,
-          voto: 8,
-        });
+        // Una riga orfana + due storiche (Scout, CSI) per ciascuna delle tre tabelle match_id.
+        for (const t of TABELLE_MATCH_ID) {
+          const base = { votante_id: `${PREFISSO}-va`, votato_id: `${PREFISSO}-vb` };
+          const extra =
+            t === "pagelle_voti"
+              ? { voto: 7 }
+              : t === "badge_social_voti"
+                ? { categoria: "top", votato_nome: "Test" }
+                : { votato_nome: "Test" };
+          await inserisci(t, { match_id: ORFANO, ...base, ...extra });
+          await inserisci(t, { match_id: STORICO_SCOUT, ...base, ...extra });
+          await inserisci(t, { match_id: STORICO_CSI, ...base, ...extra });
+        }
 
         const res = await fetch(`${URL_BASE}/rest/v1/rpc/bonifica_dati_evento_orfani`, {
           method: "POST",
@@ -117,31 +141,22 @@ if (!locale) {
         if (!res.ok)
           throw new Error(`rpc bonifica_dati_evento_orfani: ${res.status} ${await res.text()}`);
 
-        assert.equal(
-          await esiste("risposte_presenze", `evento_id=eq.${ORFANO}`),
-          false,
-          "riga orfana rimossa",
-        );
-        assert.equal(
-          await esiste("mvp_voti", `match_id=eq.${ORFANO}`),
-          false,
-          "voto MVP orfano rimosso",
-        );
-        assert.equal(
-          await esiste("pagelle_voti", `match_id=eq.${ORFANO}`),
-          false,
-          "voto pagella orfano rimosso",
-        );
-        assert.equal(
-          await esiste("mvp_voti", `match_id=eq.${STORICO_SCOUT}`),
-          true,
-          "voto MVP storico su id Scout preservato",
-        );
-        assert.equal(
-          await esiste("pagelle_voti", `match_id=eq.${STORICO_CSI}`),
-          true,
-          "voto pagella storico su id CSI preservato",
-        );
+        for (const t of TABELLE_EVENTO_ID) {
+          assert.equal(await esiste(t, `evento_id=eq.${ORFANO}`), false, `${t}: orfano rimosso`);
+        }
+        for (const t of TABELLE_MATCH_ID) {
+          assert.equal(await esiste(t, `match_id=eq.${ORFANO}`), false, `${t}: orfano rimosso`);
+          assert.equal(
+            await esiste(t, `match_id=eq.${STORICO_SCOUT}`),
+            true,
+            `${t}: storico Scout preservato`,
+          );
+          assert.equal(
+            await esiste(t, `match_id=eq.${STORICO_CSI}`),
+            true,
+            `${t}: storico CSI preservato`,
+          );
+        }
       },
     );
   } finally {
