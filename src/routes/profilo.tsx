@@ -188,6 +188,7 @@ function Profilo() {
       <BarraSottosezioni
         key={tabIniziale}
         defaultId={tabIniziale}
+        riempiLarghezza
         voci={[
           {
             id: "stagione",

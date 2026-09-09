@@ -129,7 +129,8 @@ export function BarraSottosezioni({
                             : "text-muted-foreground",
                         )
                       : cn(
-                          "rounded-full px-3.5 py-2 text-center",
+                          "rounded-full py-2 text-center",
+                          riempiLarghezza ? "px-2" : "px-3.5",
                           selezionata
                             ? "bg-accent text-accent-foreground shadow-pop"
                             : "bg-secondary text-muted-foreground",
