@@ -21,6 +21,14 @@ Nessuna tabella dedicata: ogni obiettivo è una funzione pura in `obiettivi.ts`
 `pagelle_voti`, i risultati ufficiali CSI, le serie di presenza). `obiettiviOrdinati()` li
 ordina mettendo i completati in coda e gli altri per progresso decrescente.
 
+Non c'è nessuno stato da tenere sincronizzato quando un evento viene cancellato: gli obiettivi
+sono ricalcolati da zero a ogni render partendo dall'elenco eventi corrente, quindi un evento
+sparito da `eventi_app` smette semplicemente di contare, senza bisogno di nessuna pulizia
+esplicita. Il problema che *sembrava* riguardare gli obiettivi era in realtà nelle tabelle
+collegate a un evento (presenze, pagelle, MVP, ecc.), che restavano orfane a database dopo la
+cancellazione: risolto a livello database con un trigger (migration
+`m14_pulizia_dati_evento_cancellato`, DD-029), non nel modulo Obiettivi.
+
 `obiettiviSquadra(rosa, ctx, oggi)` accetta un terzo parametro opzionale `oggi: Date` (default
 `new Date()`) per iniettare una data deterministica nei test — usato dai due obiettivi con mese
 corrente dinamico (vedi sotto).

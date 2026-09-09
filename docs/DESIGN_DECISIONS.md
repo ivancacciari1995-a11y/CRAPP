@@ -44,6 +44,7 @@ Serve a rispondere a domande del tipo:
 | [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
 | [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
 | [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)         | Soglia minima Media voto e MVP        |
+| [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)        | Pulizia a cascata evento cancellato   |
 
 **In valutazione**
 
@@ -1076,3 +1077,60 @@ votasse perché il votato "vincesse" nettamente, senza nessun quorum di partecip
 **Riesame**  
 Se la squadra segnala che il quorum di 2 voti per l'MVP è troppo permissivo o troppo severo, o
 se si vuole applicare la stessa soglia di Media voto anche alle StatTile di profilo e squadra.
+
+### DD-029 — Cancellare un evento pulisce a cascata i dati collegati
+
+**Data:** 9 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Un audit del modulo Obiettivi ha verificato che gli obiettivi in sé non hanno bisogno di
+nessuna pulizia quando un evento viene cancellato: sono ricalcolati a runtime sull'elenco
+eventi corrente (`obiettivi.ts`), quindi un evento sparito da `eventi_app` semplicemente
+smette di contare. Il problema è un livello sotto: `useEliminaEvento()`
+(`src/lib/eventi.ts`) cancella solo la riga in `eventi_app`. Nessuna delle otto tabelle
+collegate (`risposte_presenze`, `cacche_partita`, `mvp_voti`, `pagelle_voti`,
+`badge_social_voti`, `turni_palloni`, `scout_sessioni`, `scout_live`, `scout_partite`) ha mai
+avuto una foreign key verso `eventi_app(id)`: le loro righe restavano orfane a database.
+
+Oggi è innocuo per le statistiche, perché nessun calcolo legge quelle tabelle se non partendo
+dall'elenco eventi corrente. Ma è un rischio latente: un id evento futuro identico a uno
+passato (generato come `"e" + timestamp`, collisione improbabile ma non impossibile)
+erediterebbe dati vecchi non suoi; e un calcolo futuro che iterasse direttamente una di quelle
+tabelle, invece di partire da `eventi_app`, conterebbe anche le righe orfane.
+
+**Decisione**  
+Migration `m14_pulizia_dati_evento_cancellato`: un trigger `AFTER DELETE ON eventi_app`
+cancella a cascata le righe corrispondenti (`evento_id`/`match_id = id evento cancellato`)
+nelle otto tabelle collegate, tramite una funzione `SECURITY DEFINER`. Agisce a database, non
+in `useEliminaEvento()`: protegge anche chi cancella un evento scrivendo direttamente su
+PostgREST, non solo chi passa dal bottone dell'app.
+
+**Alternative scartate**
+
+- Foreign key con `ON DELETE CASCADE` verso `eventi_app(id)` → non applicabile subito:
+  `mvp.md` documenta che storicamente `match_id` in `mvp_voti`/`pagelle_voti`/
+  `badge_social_voti` a volte conteneva l'id di una sessione Scout o di una partita CSI, non
+  l'id evento CrAPP. Un vincolo FK avrebbe rifiutato la migration alla prima riga storica
+  disallineata; il trigger non valida i dati esistenti, solo le cancellazioni da qui in avanti.
+- Cancellazione manuale nelle otto tabelle dentro `useEliminaEvento()` → fragile: va tenuta
+  aggiornata a mano ogni volta che un nuovo modulo aggiunge una tabella con `evento_id`, e non
+  protegge chi scrive/cancella direttamente su PostgREST.
+- Bonificare anche le righe orfane già esistenti nella stessa migration → rimandato: tocca dati
+  reali già scritti, è un intervento più delicato che merita una migration a sé, non urgente
+  perché quelle righe sono già invisibili a ogni calcolo attuale.
+
+**Conseguenze**
+
+- Da questa migration in poi, cancellare un evento (da qualunque punto, app o REST diretto)
+  ripulisce automaticamente tutte le tabelle collegate.
+- Le righe orfane generate da cancellazioni **precedenti** a questa migration restano nel
+  database: il trigger previene il problema da qui in avanti, non ripulisce lo storico.
+- `test/integration/pulizia-evento.test.ts` è la definizione eseguibile del comportamento:
+  scrive una riga in ciascuna delle otto tabelle, cancella l'evento e verifica che spariscano
+  tutte.
+
+**Riesame**  
+Se in futuro si vuole bonificare anche lo storico di righe orfane già esistenti, o se una
+nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va aggiornata
+a mano, non c'è un meccanismo che lo forzi).

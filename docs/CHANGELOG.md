@@ -80,6 +80,10 @@ Prima versione, pre-release.
 - L'MVP di una partita richiede ora un quorum minimo di 2 voti totali (`VOTI_MINIMI_MVP`)
   oltre al margine netto già richiesto: un solo voto non assegna più la vittoria (DD-028).
   Alcuni conteggi `mvp` già mostrati possono scendere per effetto della nuova regola.
+- Cancellare un evento pulisce ora a cascata, tramite trigger database, tutte le tabelle
+  collegate (presenze, pagelle, MVP, badge social, turni palloni, scout) invece di lasciarle
+  come righe orfane (migration `m14_pulizia_dati_evento_cancellato`, DD-029). Le righe orfane
+  generate da cancellazioni precedenti a questa migration non vengono bonificate.
 
 ### Sicurezza
 
