@@ -39,6 +39,11 @@ compaiono.
   `TurnoPalloni.tsx`/`PromemoriaPalloni.tsx`). Conta solo gli eventi già passati (`e.data <
 oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un allenamento
   futuro non è ancora "portato", quindi non sale finché quel giorno non arriva.
+- `serieConsecutivaPalloni()` (`palloni-core.ts`) calcola le volte **consecutive** in cui il
+  giocatore ha portato i palloni (`Giocatore.seriePalloni` in `rosa.ts`), mostrate nel
+  sottotitolo della classifica interna di Squadra quando si ordina per Palloni. Stesso
+  criterio "solo eventi già passati" di `conteggioTurni()`; un evento passato senza turno
+  confermato non spezza la serie di nessuno (viene saltato, non conta come "non portati").
 - `TurnoPalloni.tsx` mostra/assegna il turno sulla card di un evento; `PromemoriaPalloni.tsx`
   è il banner in Home per il giocatore di turno.
 

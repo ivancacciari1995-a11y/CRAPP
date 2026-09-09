@@ -12,6 +12,7 @@ import {
   eventoPrecedente,
   eventoSuccessivo,
   oggiISO,
+  serieConsecutivaPalloni,
 } from "@/lib/palloni-core";
 
 const rosa = giocatori.map((g) => ({ id: g.id, nome: g.nome }));
@@ -211,6 +212,57 @@ assert.deepEqual(
   avvisiPalloniEvento({}, eventiPush, "p2"),
   [],
   "senza turni assegnati non c'è nessuno da avvisare",
+);
+
+// --- serieConsecutivaPalloni: volte consecutive in cui li ha portati lui -----
+const eventiSerie: Evento[] = [
+  evento("s1", "2026-04-01", "partita"),
+  evento("s2", "2026-04-02", "partita"),
+  evento("s3", "2026-04-03", "partita"),
+  evento("s4", "2026-04-04", "partita"),
+  evento("s5", "2026-04-05", "partita"), // futuro rispetto a OGGI_SERIE
+];
+const OGGI_SERIE = "2026-04-05";
+
+assert.equal(
+  serieConsecutivaPalloni(
+    "g1",
+    { s1: "g1", s2: "g1", s3: "g2", s4: "g1" },
+    eventiSerie,
+    OGGI_SERIE,
+  ),
+  1,
+  "un turno di un altro giocatore azzera la serie: conta solo l'ultimo tratto consecutivo",
+);
+assert.equal(
+  serieConsecutivaPalloni(
+    "g2",
+    { s1: "g1", s2: "g1", s3: "g2", s4: "g1" },
+    eventiSerie,
+    OGGI_SERIE,
+  ),
+  0,
+  "l'ultimo evento passato non è suo: serie a zero anche se ne ha uno nel mezzo",
+);
+assert.equal(
+  serieConsecutivaPalloni("g1", { s1: "g1", s2: "g1", s3: "g1" }, eventiSerie, OGGI_SERIE),
+  3,
+  "tre volte di fila fino all'ultimo evento passato",
+);
+assert.equal(
+  serieConsecutivaPalloni("g1", { s1: "g1", s2: "g1", s4: "g1" }, eventiSerie, OGGI_SERIE),
+  3,
+  "s3 senza turno confermato non spezza la serie: viene saltato, non conta contro nessuno",
+);
+assert.equal(
+  serieConsecutivaPalloni("g1", { s1: "g1", s5: "g1" }, eventiSerie, OGGI_SERIE),
+  1,
+  "il turno dell'evento futuro (s5) non è ancora contato",
+);
+assert.equal(
+  serieConsecutivaPalloni("g1", {}, eventiSerie, OGGI_SERIE),
+  0,
+  "nessun turno assegnato: nessuna serie",
 );
 
 console.log("palloni-core: ok");

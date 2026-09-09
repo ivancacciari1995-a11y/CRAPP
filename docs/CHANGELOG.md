@@ -90,6 +90,19 @@ Prima versione, pre-release.
   (migration `m16_funzione_bonifica_dati_evento_orfani`, riservata al service role), coperta
   da test di integrazione invece che verificata solo a mano (DD-029).
 
+### Corretto
+
+- Classifica interna di Squadra: a parità di valore (es. stesse presenze) i giocatori
+  condividono ora la stessa posizione invece di essere numerati in sequenza (`classificaRank`
+  in `src/lib/rosa.ts`); la corona di primo posto va a tutti i pari merito in testa, non solo
+  al primo dell'elenco.
+- Il sottotitolo di ogni riga della classifica interna di Squadra mostrava sempre le
+  "presenze consecutive" anche ordinando per Media voto, MVP, Palloni o Cacche, un dato
+  scollegato dal criterio scelto: ora segue il criterio selezionato (`dettaglioClassifica` in
+  `src/lib/rosa.ts`). Per Palloni mostra le volte consecutive in cui il giocatore li ha
+  portati (nuovo campo `Giocatore.seriePalloni`, calcolato da `serieConsecutivaPalloni` in
+  `src/lib/palloni-core.ts`), non più le presenze.
+
 ### Sicurezza
 
 - Migration `m4_solo_autenticati`: tolto al ruolo `anon` l'accesso alle tabelle dell'app

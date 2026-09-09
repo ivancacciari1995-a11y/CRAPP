@@ -4,7 +4,7 @@ import { nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
 import { mvpVintiPerGiocatore, useVotiMvp } from "./mvp-voti";
 import { mediePagelle, usePagelle } from "./pagelle";
 import { statisticheCacche, useCacche } from "./cacche";
-import { conteggioTurni } from "./palloni-core";
+import { conteggioTurni, serieConsecutivaPalloni } from "./palloni-core";
 import { useTurniPalloni } from "./palloni";
 import { useInfortuniERitardi } from "./infortuni";
 import { useGiocatoreId } from "./user-store";
@@ -96,6 +96,7 @@ export function useRosa(): Giocatore[] {
         mediaVoto: medie[g.id]?.media ?? 0,
         votiPagella: medie[g.id]?.voti ?? 0,
         palloni: palloni[g.id] ?? 0,
+        seriePalloni: serieConsecutivaPalloni(g.id, turniSalvati, eventi),
         cacche: statCacche[g.id]?.giornateTop ?? 0,
         cacchePartita: statCacche[g.id]?.media ?? 0,
         infortuni: infortuni[g.id] ?? 0,
@@ -113,6 +114,55 @@ export function useRosa(): Giocatore[] {
     mappaPresenze,
     tempi,
   ]);
+}
+
+/** Criteri di ordinamento della classifica interna di Squadra. */
+export type CriterioClassifica = "presenze" | "mediaVoto" | "mvp" | "palloni" | "cacchePartita";
+
+/**
+ * Dettaglio mostrato sotto il nome nella classifica interna, coerente col criterio
+ * selezionato: mostrare sempre le "presenze consecutive" aveva senso solo per Presenze,
+ * per gli altri criteri era un dato fuorviante perché scollegato dal valore in classifica.
+ */
+export function dettaglioClassifica(
+  g: {
+    streak: number;
+    votiPagella: number;
+    totaliEventi: number;
+    cacche: number;
+    seriePalloni: number;
+  },
+  criterio: CriterioClassifica,
+): string {
+  switch (criterio) {
+    case "mediaVoto":
+      return `${g.votiPagella} voti pagella`;
+    case "mvp":
+      return `${g.totaliEventi} partite giocate`;
+    case "cacchePartita":
+      return `${g.cacche} giornate top`;
+    case "palloni":
+      return `${g.seriePalloni} volte consecutive`;
+    default:
+      return `${g.streak} presenze consecutive`;
+  }
+}
+
+/**
+ * Posizione in classifica ("dense rank"): a parità di valore i giocatori condividono la
+ * stessa posizione e il numero successivo non salta (1, 1, 2 — non 1, 1, 3). `valori` deve
+ * essere già ordinato in modo decrescente, coerente con l'ordine visualizzato.
+ */
+export function classificaRank(valori: number[]): number[] {
+  const rank: number[] = [];
+  for (let i = 0; i < valori.length; i++) {
+    if (i > 0 && valori[i] === valori[i - 1]) {
+      rank.push(rank[i - 1] ?? 1);
+    } else {
+      rank.push((rank[i - 1] ?? 0) + 1);
+    }
+  }
+  return rank;
 }
 
 /** Il giocatore selezionato sul dispositivo, con le statistiche complete. */

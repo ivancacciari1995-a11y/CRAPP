@@ -7,7 +7,13 @@ import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
-import { useRosa, useObiettivi } from "@/lib/rosa";
+import {
+  useRosa,
+  useObiettivi,
+  classificaRank,
+  dettaglioClassifica,
+  type CriterioClassifica,
+} from "@/lib/rosa";
 import { usePresenzeUltimoMeseTutti } from "@/lib/presenze-mese";
 import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
@@ -70,7 +76,7 @@ const criteri = [
   { id: "cacchePartita", label: "Cacche" },
 ] as const;
 
-type Criterio = (typeof criteri)[number]["id"];
+type Criterio = CriterioClassifica;
 
 function valore(
   g: { presenze: number; mediaVoto: number; mvp: number; palloni: number; cacchePartita: number },
@@ -95,6 +101,7 @@ function Squadra() {
       )
     : 0;
   const ordinati = [...rosa].sort((a, b) => valore(b, criterio) - valore(a, criterio));
+  const rank = classificaRank(ordinati.map((g) => valore(g, criterio)));
   const max = ordinati[0] ? valore(ordinati[0], criterio) || 1 : 1;
   const { data: csi } = useCsi();
   const matchGiocati = csi ? partiteGiocate(csi.partite).length : scoutMatches.length;
@@ -288,17 +295,17 @@ function Squadra() {
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary font-display text-lg">
-                      {i + 1}
+                      {rank[i]}
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">
                         {g.nome}
-                        {i === 0 ? (
+                        {rank[i] === 1 ? (
                           <Crown className="ml-1 inline h-3.5 w-3.5 text-warning" />
                         ) : null}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        #{g.numero} · {g.ruolo} · {g.streak} presenze consecutive
+                        #{g.numero} · {g.ruolo} · {dettaglioClassifica(g, criterio)}
                       </p>
                     </div>
                   </div>
@@ -317,7 +324,7 @@ function Squadra() {
         </div>
       </div>
     ),
-    [mediaPresenze, matchGiocati, pagelle, team, filtroAperto, criterio, ordinati, max],
+    [mediaPresenze, matchGiocati, pagelle, team, filtroAperto, criterio, ordinati, rank, max],
   );
 
   const contenutoObiettivi = useMemo(

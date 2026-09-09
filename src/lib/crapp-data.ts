@@ -41,6 +41,8 @@ export type Giocatore = {
   votiPagella: number;
   /** Quante volte ha portato i palloni. */
   palloni: number;
+  /** Volte consecutive (fino a oggi) in cui ha portato i palloni. */
+  seriePalloni: number;
   /** Partite di campionato con almeno 3 cacche dichiarate. */
   cacche: number;
   /** Media di cacche dichiarate per partita. */
@@ -111,6 +113,7 @@ export const giocatori: Giocatore[] = rosaCSI
     infortuni: 0,
     ritardi: 0,
     palloni: 0,
+    seriePalloni: 0,
     cacche: 0,
     cacchePartita: 0,
   }))

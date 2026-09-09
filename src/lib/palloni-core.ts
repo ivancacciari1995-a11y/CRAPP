@@ -1,6 +1,7 @@
 import { formatData } from "./crapp-data";
 import type { Evento } from "./eventi";
 import { dataOggi } from "./scout-live";
+import { aggiornaSerie } from "./serie";
 
 export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: string | null };
 
@@ -79,6 +80,23 @@ export function conteggioTurni(
     out[giocatoreId] = (out[giocatoreId] ?? 0) + 1;
   }
   return out;
+}
+
+/**
+ * Volte consecutive in cui il giocatore ha portato i palloni, contando solo eventi già
+ * passati (stesso criterio `e.data < oggi` di `conteggioTurni`): un evento passato senza
+ * turno confermato non spezza la serie di nessuno, perché non dice ancora chi ha portato
+ * i palloni quella volta.
+ */
+export function serieConsecutivaPalloni(
+  giocatoreId: string,
+  turni: Record<string, string>,
+  eventi: Evento[],
+  oggi: string = dataOggi(),
+): number {
+  return eventiPalloni(eventi)
+    .filter((e) => e.data < oggi && turni[e.id])
+    .reduce((serie, e) => aggiornaSerie(serie, turni[e.id] === giocatoreId), 0);
 }
 
 export function eventiDelGiorno(eventi: Evento[], isoData: string): Evento[] {
