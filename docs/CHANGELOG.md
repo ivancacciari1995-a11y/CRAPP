@@ -1,128 +1,58 @@
 # Changelog
 
-Tutte le modifiche significative del progetto, dalla più recente. Il formato segue
-[Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e la numerazione
-[Semantic Versioning](https://semver.org/lang/it/): il numero di versione è quello di
-`package.json`.
+Le modifiche rilevanti di CrAPP sono documentate qui, in ordine di rilascio. Il formato
+segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/): ogni versione ha una data
+e le voci sono divise per categoria (Aggiunto, Modificato, Sicurezza...). L'elenco
+completo delle funzionalità, fatte e previste, sta in [ROADMAP.md](ROADMAP.md); qui si
+registra solo _quando_ una voce è stata rilasciata e con quale versione.
 
-L'elenco delle funzionalità disponibili e previste non si ripete qui: sta in
-[ROADMAP.md](ROADMAP.md), che elenca il _cosa_ senza numeri di versione — quelli stanno solo
-qui.
+Le versioni sono sempre a tre cifre (`x.y.z`, mai `x.y`). Il progetto è pre-1.0 (`0.y.z`):
+finché resta sotto `1.0.0` un aumento di `y` può includere anche cambi non compatibili
+all'indietro.
 
-## [Non rilasciato] — 0.9.0
+## [Non rilasciato]
 
-Prima versione, pre-release.
+## [0.9.0] - 2026-09-09
+
+Prima versione pre-release: lo sviluppo precedente non era versionato a parte, quindi
+questa release riunisce tutto ciò che l'app fa oggi in produzione.
 
 ### Aggiunto
 
-- Login con Google tramite Supabase Auth e collegamento automatico dell'account al proprio
-  giocatore confrontando l'email (DD-011, DD-018; migration `m5_email_giocatori_squadra`):
-  senza sessione non si entra in nessuna schermata.
-- Dashboard amministratore `/admin`: stato dei profili, download di documento, certificato e
-  foto tessera, export CSV per il tesseramento, aggiunta e disattivazione dei giocatori
-  (la riga non viene mai eliminata, così presenze, voti e badge restano agganciati al suo id).
-- Profilo giocatore: dati anagrafici, documento, certificato medico e foto tessera con le
-  relative scadenze (migration `m2_profili_giocatore`, bucket privato), divisi nelle tab
-  Stagione, Documenti e Opzioni — [modules/profilo-giocatore.md](modules/profilo-giocatore.md).
-- Tracciamento del tesseramento CSI: numero e data di tessera in `giocatori_squadra`, badge e
-  contatore in dashboard (migration `m8_tesseramento_csi`).
-- Foto profilo condivise tra dispositivi tramite il bucket pubblico `avatar-giocatori`
-  (migration `m6_avatar_giocatori`).
-- Serie di presenze calcolate sui dati reali (`serieConsecutiva()`), con la colonna
-  `risposto_il` che congela l'istante della **prima** risposta tramite trigger (migration
-  `m9_risposte_presenze_risposto_il`): sblocca la serie "Conferme 24h" e i badge "Risposta
-  lampo" e "Mai un forfait" — [modules/serie-presenze.md](modules/serie-presenze.md).
-- Scout Live sincronizzato tra dispositivi: il blocco "chi sta scoutando" passa dalla tabella
-  `scout_sessioni` e le partite concluse vengono archiviate in `scout_partite` (migration
-  `m7_scout_partite`). Si apre dalla sezione «Scout live» di `/partita/$id`, solo il giorno
-  della partita, e può usarlo chiunque sia autenticato: uno per volta, grazie al lock.
-- Votazione MVP legata all'evento CrAPP e non al referto CSI o allo Scout: si apre due ore
-  dopo `data`+`ora` della partita, anche senza risultato caricato — [modules/mvp.md](modules/mvp.md).
-- Badge Pagellone: la media pagelle conta per il badge solo con almeno `VOTI_MINIMI_PAGELLA`
-  (5) voti ricevuti — prima un singolo voto poteva sbloccarlo o farlo sparire senza nessuna
-  significatività statistica — [modules/badge.md](modules/badge.md).
-- Sondaggio pre-partita aperto dalle 8:00 del giorno della partita fino al fischio d'inizio
-  (poi resta chiuso, anche nei giorni successivi) e pulsante «Avvisa tutti del sondaggio» per
-  gli amministratori (`POST /api/public/apri-sondaggio`); nessun cron, l'invio è manuale.
-- Turni palloni con rotazione automatica sulle partite e assegnazione manuale per gli
-  allenamenti, che restano «da assegnare» finché non si sceglie (migration M10).
-- Notifiche push con il testo cifrato **dentro** la push (`aes128gcm`, RFC 8291), così
-  arrivano anche ad app chiusa e a schermo bloccato (DD-026).
-- Collegamento CSI: classifica e risultati ufficiali letti dal portale Livescore CSI Bologna
-  (stagione 2025/26, Open Misto Eccellenza, Girone B) —
-  [modules/collegamento-csi.md](modules/collegamento-csi.md).
-- Note dell'evento visibili in `/allenamento/$id` e `/partita/$id`, con gli a capo mantenuti.
-- «Segnala un bug» e «Suggerisci una nuova funzionalità» in `/profilo`: due link che aprono
-  una issue GitHub sul template giusto, senza tabelle né schermate di gestione.
-- Interfaccia accessibile: contrasto dei token colore sopra 4.5:1, `viewport-fit=cover` e
-  `theme-color` coerenti con un'app chiara, `lang="it"`, `:focus-visible` globale, tocchi da
-  44px, `aria-current`/`aria-pressed`/`aria-controls`/`aria-busy`, niente testo sotto i 12px.
-- Movimento con molle interrompibili di `motion` al posto delle `@keyframes` a durata fissa,
-  swipe fra i mesi del calendario e barre di progresso che misurano l'avanzamento tra un
-  traguardo e il successivo (DD-021).
-- Suite di test in `test/` (unit, integration, end-to-end) eseguita con bun e senza nuove
-  dipendenze: `npm run test` e `npm run test:all`.
-- Convenzioni interne: primitive condivise (`Card`, `Campo`, `classiInput` in `ui-bits`),
-  cache aggiornata con `setQueryData` invece di rileggere il database dopo ogni scrittura, e
-  logica pura estratta in `src/lib/` con i suoi test.
-- Infrastruttura di sviluppo: migrazione da Lovable a sviluppo locale, repository GitHub
-  indipendente, deploy automatico su Vercel.
-
-### Modificato
-
-- In Squadra la classifica interna (filtro «Classifica per» + elenco) è sotto i 6 riquadri
-  di Statistiche; la tab «Classifica» è stata rimossa dalla barra delle sottosezioni.
-- Tolto l'hint statico "+2 questo mese" dalla StatTile Presenze in home (sezione «Colpo
-  d'occhio»): mostrava un testo fisso, non un dato calcolato.
-- La StatTile Media voto in home applica ora la stessa soglia minima di voti del badge
-  Pagellone (`VOTI_MINIMI_PAGELLA`): sotto soglia mostra `—` invece di una media poco
-  significativa (DD-028).
-- L'MVP di una partita richiede ora un quorum minimo di 2 voti totali (`VOTI_MINIMI_MVP`)
-  oltre al margine netto già richiesto: un solo voto non assegna più la vittoria (DD-028).
-  Alcuni conteggi `mvp` già mostrati possono scendere per effetto della nuova regola.
-- Cancellare un evento pulisce ora a cascata, tramite trigger database, tutte le tabelle
-  collegate (presenze, pagelle, MVP, badge social, turni palloni, scout) invece di lasciarle
-  come righe orfane (migration `m14_pulizia_dati_evento_cancellato`, DD-029).
-- Bonificate una tantum le righe orfane lasciate da cancellazioni precedenti a M14 (migration
-  `m15_bonifica_dati_evento_orfani`), senza toccare i vecchi voti MVP/pagelle/badge social
-  legati a id Scout o CSI, che restano dati storici legittimi (DD-029).
-- La bonifica sopra è ora anche una funzione richiamabile, `bonifica_dati_evento_orfani()`
-  (migration `m16_funzione_bonifica_dati_evento_orfani`, riservata al service role), coperta
-  da test di integrazione invece che verificata solo a mano (DD-029).
-
-### Corretto
-
-- Classifica interna di Squadra: a parità di valore (es. stesse presenze) i giocatori
-  condividono ora la stessa posizione invece di essere numerati in sequenza (`classificaRank`
-  in `src/lib/rosa.ts`); la corona di primo posto va a tutti i pari merito in testa, non solo
-  al primo dell'elenco.
-- Il sottotitolo di ogni riga della classifica interna di Squadra mostrava sempre le
-  "presenze consecutive" anche ordinando per Media voto, MVP, Palloni o Cacche, un dato
-  scollegato dal criterio scelto: ora segue il criterio selezionato (`dettaglioClassifica` in
-  `src/lib/rosa.ts`). Per Palloni mostra le volte consecutive in cui il giocatore li ha
-  portati (nuovo campo `Giocatore.seriePalloni`, calcolato da `serieConsecutivaPalloni` in
-  `src/lib/palloni-core.ts`), non più le presenze. Per MVP mostra le partite giocate — solo
-  partite, non più allenamenti compresi (nuovo campo `Giocatore.partiteGiocate`, da
-  `contaPartiteGiocate()` in `src/lib/presenze.ts`).
+- **Gestione squadra** — rosa dei giocatori con ruoli e dati anagrafici di base.
+- **Profilo Giocatore** — dati personali e amministrativi, documento d'identità,
+  certificato medico (caricamento, scadenza, stato, download) e foto tessera in
+  un'unica schermata, sia lato giocatore sia lato amministratore; lo storico dei
+  certificati resta un'estensione futura.
+- **Gestione tesseramenti CSI** — raccolta dei dati richiesti dal CSI, tracciamento di chi
+  è già tesserato (numero e data tessera) ed export CSV per il tesseramento.
+- **Calendario** — eventi di allenamento e partita, con schermata di dettaglio dedicata.
+- **Presenze** — conferma o rifiuto della partecipazione a un evento, visibile a tutta la
+  squadra al posto di chat e fogli condivisi.
+- **Serie di presenze** — tre serie (presenze, conferme, allenamenti) calcolate sui dati
+  reali della rosa.
+- **Scout Live** — un solo referente alla volta registra in tempo reale le azioni di gioco
+  durante la partita.
+- **Badge** — gamification con gradi bronzo/argento/oro, badge segreti e badge social
+  votati tra compagni.
+- **Pagelle** — voto tra compagni (1-10) a fine partita, con media personale e di squadra.
+- **Votazione MVP** — elezione del migliore in campo della partita tramite voto tra
+  compagni, un voto a testa.
+- **Obiettivi di squadra** — traguardi collettivi che avanzano con presenze, risposte alle
+  convocazioni, pagelle e risultati di campionato.
+- **Turno palloni** — rotazione condivisa e promemoria di chi porta e riporta i palloni ad
+  allenamenti e partite.
+- **Notifiche push** — promemoria intelligenti su un unico opt-in per dispositivo.
+- **Dashboard amministratore** — vista aggregata su tesseramenti, certificati, presenze e
+  dati della rosa, con download CSV.
+- **Collegamento CSI** — classifica di campionato e Coppa, storico partite e dettaglio di
+  ogni gara (formazioni, storico scontri diretti, probabilità di vittoria calcolata dal
+  CSI) letti in tempo reale dal portale ufficiale Livescore CSI Bologna, senza inserimento
+  manuale da parte degli amministratori.
+- **Infortuni** — conteggio degli eventi saltati per infortunio, riusando lo stato di
+  presenza già registrato per le convocazioni.
 
 ### Sicurezza
 
-- Migration `m4_solo_autenticati`: tolto al ruolo `anon` l'accesso alle tabelle dell'app
-  (applicata in produzione il 03/09/2026).
-- I permessi di amministrazione arrivano solo da `user_roles` (`src/lib/ruoli.ts`): senza,
-  basterebbe scegliere il nome giusto per amministrare.
-- Migration `m11_scritture_per_ruolo`: ogni voto è firmato con lo slot collegato all'account
-  (DD-023); il collegamento account → giocatore non è modificabile dal giocatore stesso
-  (DD-016).
-- Migration `m12_niente_autovoto`: i vincoli `mvp_no_autovoto` e `badge_social_no_autovoto`
-  rifiutano l'auto-voto anche a chi scrive direttamente su PostgREST, come già faceva
-  `pagelle_voti`.
-- Al voto MVP partecipano solo i presenti (o in ritardo) di quell'evento; il filtro è
-  applicativo, non RLS ([modules/mvp.md](modules/mvp.md)).
-- Migration `m13_convocati_e_pagelle_chiuse` (DD-027): la policy di M11 su `pagelle_voti`,
-  `mvp_voti` e `badge_social_voti` verifica ora anche che votante e votato siano tra i
-  convocati dell'evento, e per le sole pagelle che `pagelle_chiuse` sia falso — prima erano
-  filtri solo applicativi, aggirabili scrivendo direttamente su PostgREST.
-- La suite copre i rifiuti `401` di `richiediAdmin` (DD-024), i permessi di
-  `badge_social_voti` e le deroghe admin di M11, e verifica che un ripensamento non riscriva
-  `risposto_il` (trigger di `m9`).
+- Autenticazione tramite Google via Supabase Auth, unico metodo di accesso; permessi
+  differenziati per ruolo (giocatore/amministratore) su tabelle e route.

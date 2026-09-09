@@ -6,7 +6,7 @@ il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata e con q
 
 ## Fatto
 
-Tutto quello che è in `main` e finirà nella prima release.
+Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`).
 
 - [x] Gestione squadra
 - [x] Calendario
@@ -16,17 +16,23 @@ Tutto quello che è in `main` e finirà nella prima release.
 - [x] Badge
 - [x] Badge social
 - [x] Pagelle
+- [x] Votazione MVP
 - [x] Obiettivi di squadra
+- [x] Turno palloni
+- [x] Infortuni — conteggio eventi saltati, in forma minima
 - [x] Notifiche Push (promemoria intelligenti)
 - [x] Dashboard amministratore
 - [x] Download CSV dati
-- [x] Certificati medici — caricamento, scadenza, stato e download; lo storico dei
-      certificati resta un'estensione futura
+- [x] Profilo Giocatore — dati personali, documento d'identità, certificato medico
+      (caricamento, scadenza, stato, download) e foto tessera; lo storico dei certificati
+      resta un'estensione futura
 - [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
       tesserato (numero e data di tessera)
 - [x] Collegamento CSI (stagione 2025/26)
-- [x] Classifica automatica
+- [x] Classifica automatica (campionato e Coppa)
 - [x] Risultati campionato
+- [x] Dettaglio partita — formazioni, storico scontri diretti e probabilità di vittoria
+      calcolata dal CSI
 
 ## Prossimo
 

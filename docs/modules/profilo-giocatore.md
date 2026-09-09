@@ -1,5 +1,11 @@
 # Modulo — Profilo Giocatore
 
+**Stato:** implementato
+**File principali:** `src/lib/profili.ts`, `src/lib/profili-core.ts`, `src/routes/profilo.tsx`,
+`src/routes/admin.tsx`
+
+---
+
 ## Obiettivo
 
 Il modulo "Profilo Giocatore" raccoglie tutte le informazioni personali, amministrative e documentali di ciascun membro della squadra.

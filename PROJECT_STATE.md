@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 06/09/2026
+Ultimo aggiornamento: 09/09/2026
 
 ## Stato generale
 
@@ -10,7 +10,9 @@ Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
 amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
-reali (M9).
+reali (M9). Prima versione pre-release rilasciata (0.9.0, vedi `docs/CHANGELOG.md`). Cancellare
+un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane da
+cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
 ---
 
@@ -21,7 +23,8 @@ reali (M9).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 23 migration in `supabase/migrations/`, fino a `m12_niente_autovoto`
+- 27 migration in `supabase/migrations/`, fino a `m16_funzione_bonifica_dati_evento_orfani`
+  (09/09/2026)
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -36,8 +39,9 @@ reali (M9).
 
 ## Database
 
-- Schema v1.0 e migration da M1 a M12 applicate al nuovo Supabase (`m12_niente_autovoto`
-  in produzione dal 06/09/2026, verificata con `npx supabase migration list`)
+- Schema v1.0 e migration da M1 a M16 applicate al nuovo Supabase
+  (`m16_funzione_bonifica_dati_evento_orfani` in produzione dal 09/09/2026, verificata con
+  `npx supabase migration list`)
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza
@@ -61,6 +65,19 @@ reali (M9).
   scoutate concluse, e collegamento della tabella `scout_sessioni` (già presente nello
   schema ma mai usata) al blocco condiviso dello Scout Live — prima entrambi vivevano solo
   in `localStorage`, quindi visibili a un solo dispositivo
+- Migration `m13_convocati_e_pagelle_chiuse`: le RLS di `mvp_voti`/`pagelle_voti`/
+  `badge_social_voti` richiedono che votante e votato siano convocati all'evento (e per le
+  pagelle anche `pagelle_chiuse = false`)
+- Migration `m14_pulizia_dati_evento_cancellato` (DD-029): cancellare un evento pulisce a
+  cascata, tramite trigger, tutte le tabelle collegate (`risposte_presenze`,
+  `cacche_partita`, `mvp_voti`, `pagelle_voti`, `badge_social_voti`, `turni_palloni`,
+  `scout_sessioni`, `scout_live`, `scout_partite`)
+- Migration `m15_bonifica_dati_evento_orfani`: bonifica una tantum delle righe orfane da
+  cancellazioni di eventi precedenti a M14, senza toccare i vecchi voti MVP/pagelle/badge
+  social legati a id Scout o CSI
+- Migration `m16_funzione_bonifica_dati_evento_orfani`: la stessa logica di bonifica di M15
+  resta richiamabile come funzione `bonifica_dati_evento_orfani()` (riservata al service
+  role), se mai servisse di nuovo
 
 ---
 
@@ -68,13 +85,18 @@ reali (M9).
 
 - Squadra
 - Presenze
-- Badge
+- Badge (incluso badge social)
 - Scout Live (blocco e archivio partite sincronizzati tra dispositivi, migration `m7_scout_partite`)
 - Pagelle
 - MVP
+- Obiettivi di squadra
+- Turno palloni (specifica in `docs/modules/palloni.md`)
+- Infortuni, in forma minima (specifica in `docs/modules/infortuni.md`)
 - Notifiche
 - Profilo Giocatore (specifica in `docs/modules/profilo-giocatore.md`)
 - Serie di presenze (specifica in `docs/modules/serie-presenze.md`)
+- Collegamento CSI: classifica campionato e Coppa, storico e dettaglio partita — formazioni,
+  scontri diretti (specifica in `docs/modules/collegamento-csi.md`)
 
 ---
 
