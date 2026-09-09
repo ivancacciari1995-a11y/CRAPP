@@ -1,6 +1,6 @@
 # Modulo — Votazione MVP
 
-**Stato:** implementato (v1.0)
+**Stato:** implementato
 **File principali:** `src/lib/mvp-voti.ts`, `src/components/crapp/VotazioneMvp.tsx`
 
 ---

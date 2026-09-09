@@ -1,6 +1,6 @@
 # Modulo — Palloni
 
-**Stato:** implementato (v1.0)
+**Stato:** implementato
 **File principali:** `src/lib/palloni.ts`, `src/lib/palloni-core.ts`,
 `src/components/crapp/TurnoPalloni.tsx`, `src/components/crapp/PromemoriaPalloni.tsx`,
 `src/routes/api/public/promemoria-palloni.ts`

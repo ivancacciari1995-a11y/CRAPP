@@ -1,6 +1,6 @@
 # Modulo — Scout Live
 
-**Stato:** implementato (v1.0, fix M7 per la persistenza condivisa)
+**Stato:** implementato (fix M7 per la persistenza condivisa)
 **File principali:** `src/lib/scout-live.ts`, `src/lib/scout-stato.ts`, `src/lib/scout-store.ts`,
 `src/lib/scout-export.ts`, `src/lib/cacche.ts`, `src/components/crapp/ScoutEntry.tsx`,
 `src/components/crapp/SondaggioCacche.tsx`, `src/routes/scout.tsx`, `src/routes/partita.$id.tsx`

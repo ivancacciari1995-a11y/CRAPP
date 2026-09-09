@@ -1,5 +1,5 @@
 -- M2 — Profilo Giocatore: dati personali, documento d'identità, certificato medico (DD-016)
--- Migration additiva: solo CREATE, nessuna modifica alle tabelle v1.0 esistenti.
+-- Migration additiva: solo CREATE, nessuna modifica alle tabelle preesistenti.
 -- I file non stanno qui: la tabella conserva solo i path dentro il bucket privato
 -- `profili-giocatore` creato dalla migration M3.
 

@@ -1,6 +1,6 @@
 # Modulo — Presenze
 
-**Stato:** implementato (v1.0)
+**Stato:** implementato
 **File principali:** `src/lib/presenze.ts`, `src/lib/presenze-mese.ts`, `src/components/crapp/RosaPresenze.tsx`,
 `src/components/crapp/EventoCard.tsx`, `src/routes/api/public/sollecita-presenze.ts`
 
@@ -51,6 +51,9 @@ EventoCard                 → src/components/crapp/EventoCard.tsx
 contaPresenzeGiocatore() / totaliEventiGiocatore()  → src/lib/presenze.ts
 usePresenzeUltimoMese()                             → src/lib/presenze-mese.ts
                                                        (percentuale ultimi 30gg, da cache già in memoria)
+
+contaPresenzeGiocatore() alimenta il campo `presenze` del `Giocatore` in `useRosa()`, mostrato
+come StatTile nel profilo e in home (sezione «Colpo d'occhio», `index.tsx`).
 
 --- sollecito (solo admin) ---
 Bottone "Sollecita" (RosaPresenze.tsx) → POST /api/public/sollecita-presenze

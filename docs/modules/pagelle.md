@@ -1,6 +1,6 @@
 # Modulo — Pagelle
 
-**Stato:** implementato (v1.0)
+**Stato:** implementato
 **File principali:** `src/lib/pagelle.ts`, `src/components/crapp/Pagelle.tsx`
 
 ---
@@ -35,7 +35,9 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
   `squadra.tsx`.
 - `useRosa()` inietta questa media storica nel campo `mediaVoto` di ogni giocatore, insieme al
   numero di voti ricevuti (`votiPagella`) — usato dal badge Pagellone (vedi
-  [badge.md](badge.md)) per richiedere un minimo di voti prima che la media conti.
+  [badge.md](badge.md)) per richiedere un minimo di voti prima che la media conti, e mostrato
+  come StatTile nel profilo e in home (sezione «Colpo d'occhio», `index.tsx`): senza voti
+  ricevuti la media vale `0` e la StatTile mostra `—` invece del numero.
 
 ---
 

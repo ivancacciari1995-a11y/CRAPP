@@ -72,6 +72,8 @@ Prima versione, pre-release.
 
 - In Squadra la classifica interna (filtro «Classifica per» + elenco) è sotto i 6 riquadri
   di Statistiche; la tab «Classifica» è stata rimossa dalla barra delle sottosezioni.
+- Tolto l'hint statico "+2 questo mese" dalla StatTile Presenze in home (sezione «Colpo
+  d'occhio»): mostrava un testo fisso, non un dato calcolato.
 
 ### Sicurezza
 

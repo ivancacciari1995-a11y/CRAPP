@@ -25,13 +25,13 @@ Serve a rispondere a domande del tipo:
 | [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)         | AI solo se utile                      |
 | [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database)               | Badge calcolati, non in DB            |
 | [DD-008](#dd-008--gamification-equa-tra-ruoli)                                    | Gamification equa tra ruoli           |
-| [DD-009](#dd-009--tesseramento-csi-manuale-in-v11-integrazione-api-in-v20)        | CSI manuale v1.1, API v2.0            |
-| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati-in-v1)             | Niente storico certificati v1         |
+| [DD-009](#dd-009--tesseramento-csi-manuale-integrazione-api-in-una-fase-successiva) | CSI manuale, poi integrazione API   |
+| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati)                   | Niente storico certificati            |
 | [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo) | Auth reale prima del profilo          |
-| [DD-012](#dd-012--non-migrare-gli-id-giocatore-in-v11)                            | Non migrare ID in v1.1                |
+| [DD-012](#dd-012--rimandare-la-migrazione-degli-id-giocatore)                     | Rimandare la migrazione ID            |
 | [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)       | Portabilità dello stack               |
 | [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                 | Rosa da hardcoded a DB                |
-| [DD-016](#dd-016--schema-dati-profilo-giocatore-v11-f0)                           | Schema dati Profilo Giocatore v1.1    |
+| [DD-016](#dd-016--schema-dati-profilo-giocatore-f0)                               | Schema dati Profilo Giocatore         |
 | [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)    | L'admin scrive al posto del giocatore |
 | [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
 | [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                         | Il branch lo decide l'utente          |
@@ -142,7 +142,7 @@ Ogni nuova funzionalità significativa viene prima **progettata e documentata** 
 **Conseguenze**
 
 - Rallenta leggermente l’avvio di nuove feature, ma riduce rework e discussioni infinite.
-- I moduli v1.0 vanno retro-documentati quando possibile.
+- I moduli preesistenti vanno retro-documentati quando possibile.
 - Nessuna feature non documentata entra in produzione.
 
 **Riesame**  
@@ -185,7 +185,7 @@ indietro. Vedi DD-019.
 **Stato:** Accettata
 
 **Contesto**  
-CrAPP v1.0 è già usata dalla squadra per presenze, calendario, scout, badge e notifiche. Rischiare regressioni su moduli funzionanti vanifica la fiducia degli utenti.
+CrAPP è già usata dalla squadra per presenze, calendario, scout, badge e notifiche. Rischiare regressioni su moduli funzionanti vanifica la fiducia degli utenti.
 
 **Decisione**  
 Le nuove versioni **introducono** funzionalità. Non si riscrive un modulo già operativo salvo richiesta esplicita e pianificata.
@@ -306,34 +306,34 @@ Se la squadra chiede esplicitamente classifiche tecniche per ruolo.
 
 ---
 
-### DD-009 — Tesseramento CSI manuale in v1.1, integrazione API in v2.0
+### DD-009 — Tesseramento CSI manuale, integrazione API in una fase successiva
 
 **Data:** agosto 2026  
 **Stato:** Accettata
 
 **Contesto**  
-La v1.1 deve aiutare gli admin a raccogliere documenti e dati per il tesseramento CSI. Un collegamento automatico al sistema CSI è complesso e non urgente.
+Il modulo Profilo Giocatore deve aiutare gli admin a raccogliere documenti e dati per il tesseramento CSI. Un collegamento automatico al sistema CSI è complesso e non urgente.
 
 **Decisione**
 
-- **v1.1:** profilo completo, dashboard admin, download documenti, export CSV con i campi richiesti dal CSI.
-- **v2.0:** eventuale collegamento automatico a CSI (calendario, risultati, classifica ufficiale).
+- **Prima fase:** profilo completo, dashboard admin, download documenti, export CSV con i campi richiesti dal CSI.
+- **Fase successiva:** eventuale collegamento automatico a CSI (calendario, risultati, classifica ufficiale).
 
 **Alternative scartate**
 
-- Integrazione CSI già in v1.1 → scope troppo ampio, dipendenza da API esterne non controllate.
+- Integrazione CSI già nella prima fase → scope troppo ampio, dipendenza da API esterne non controllate.
 
 **Conseguenze**
 
 - Gli admin guadagnano subito tempo (niente più Excel e chat per i documenti).
-- L’export CSV deve essere affidabile e completo: è il deliverable chiave della v1.1.
+- L’export CSV deve essere affidabile e completo: è il deliverable chiave di questa prima fase.
 
 **Riesame**  
 Quando il CSI mette a disposizione API stabili o quando il volume di tesseramenti giustifica l’automazione.
 
 ---
 
-### DD-010 — Profilo giocatore: niente storico certificati in v1
+### DD-010 — Profilo giocatore: niente storico certificati
 
 **Data:** agosto 2026  
 **Stato:** Accettata
@@ -342,7 +342,7 @@ Quando il CSI mette a disposizione API stabili o quando il volume di tesserament
 Il certificato medico va aggiornato ogni stagione. Tenere lo storico di tutte le versioni complica upload, storage e privacy.
 
 **Decisione**  
-In v1 il giocatore può **sovrascrivere** certificato e data di scadenza. Lo storico delle versioni precedenti non viene conservato.
+Il giocatore può **sovrascrivere** certificato e data di scadenza. Lo storico delle versioni precedenti non viene conservato.
 
 **Alternative scartate**
 
@@ -368,7 +368,7 @@ Se il CSI o il regolamento interno richiedono conservazione storica.
 Oggi l’app identifica l’utente con la selezione del giocatore da una lista, senza login. Documenti, certificati e dati personali richiedono sapere _chi_ sta operando e impedire accessi non autorizzati.
 
 **Decisione**  
-Prima di completare il modulo Profilo Giocatore (v1.1), introdurre **login con Google o email** tramite Supabase Auth — non tramite Lovable Auth. Dopo il login, il giocatore associa il proprio profilo squadra.
+Prima di completare il modulo Profilo Giocatore, introdurre **login con Google o email** tramite Supabase Auth — non tramite Lovable Auth. Dopo il login, il giocatore associa il proprio profilo squadra.
 
 **Alternative scartate**
 
@@ -386,7 +386,7 @@ Dopo il rollout auth, se emergono problemi di adozione (giocatori poco digitali)
 
 ---
 
-### DD-012 — Non migrare gli ID giocatore in v1.1
+### DD-012 — Rimandare la migrazione degli ID giocatore
 
 **Data:** agosto 2026  
 **Stato:** Accettata
@@ -395,11 +395,11 @@ Dopo il rollout auth, se emergono problemi di adozione (giocatori poco digitali)
 L’app usa identificativi semplici (`g1`, `g2`, …) collegati a presenze, voti, palloni e altre funzioni già in uso. Nel database esiste anche una tabella `giocatori` con UUID, non collegata al codice attuale.
 
 **Decisione**  
-Per la v1.1 **non** unificare gli ID. I nuovi dati del profilo si agganciano agli identificativi già in uso. La migrazione verso UUID resta un lavoro separato, pianificato e testato.
+Per ora **non** unificare gli ID. I nuovi dati del profilo si agganciano agli identificativi già in uso. La migrazione verso UUID resta un lavoro separato, pianificato e testato.
 
 **Alternative scartate**
 
-- Migrare tutto a UUID in v1.1 → rischio alto di rompere presenze, voti, scout e notifiche.
+- Migrare subito tutto a UUID → rischio alto di rompere presenze, voti, scout e notifiche.
 
 **Conseguenze**
 
@@ -407,7 +407,7 @@ Per la v1.1 **non** unificare gli ID. I nuovi dati del profilo si agganciano agl
 - `DATABASE.md` va tenuto aggiornato su cosa è “attivo” e cosa è “futuro”.
 
 **Riesame**  
-Quando la v1.1 è stabile e c’è tempo per una migration con checklist regressioni completa.
+Quando il modulo Profilo Giocatore è stabile e c’è tempo per una migration con checklist regressioni completa.
 
 ---
 
@@ -436,16 +436,16 @@ Se si adotta un servizio che viola questa regola.
 
 ---
 
-### DD-016 — Schema dati Profilo Giocatore v1.1 (F0)
+### DD-016 — Schema dati Profilo Giocatore (F0)
 
 **Data:** agosto 2026  
 **Stato:** Accettata
 
 **Contesto**  
-La progettazione F0 del modulo Profilo Giocatore ha definito come persistere dati personali, documenti e certificati, in coesistenza con l’anagrafica attuale (`g1`…`g17` nel codice) e con la tabella `giocatori` UUID già presente ma non usata. Serviva una scelta chiara su dove salvare i dati, come collegare l’autenticazione e come proteggere documenti sensibili — senza toccare le tabelle v1.0 già operative.
+La progettazione F0 del modulo Profilo Giocatore ha definito come persistere dati personali, documenti e certificati, in coesistenza con l’anagrafica attuale (`g1`…`g17` nel codice) e con la tabella `giocatori` UUID già presente ma non usata. Serviva una scelta chiara su dove salvare i dati, come collegare l’autenticazione e come proteggere documenti sensibili — senza toccare le tabelle preesistenti già operative.
 
 **Decisione**  
-Per la v1.1 si introducono **due nuove tabelle additive**:
+Si introducono **due nuove tabelle additive**:
 
 - **`giocatori_squadra`** — anagrafica squadra con ID testuali (`g1`…`g17`), dati gestiti dagli admin (nome, cognome, numero, ruolo) e collegamento account (`auth_user_id`).
 - **`profili_giocatore`** — dati personali, metadati documento identità, certificato medico e path dei file, in relazione 1:1 con `giocatori_squadra`.
@@ -456,8 +456,8 @@ Regole vincolanti:
 2. L’associazione **`auth_user_id` ↔ giocatore** è un’operazione **controllata e atomica** (es. al primo accesso da `/benvenuto`, con `UPDATE … WHERE auth_user_id IS NULL`). Il giocatore **non può modificare liberamente** `auth_user_id`; solo un admin può resettarlo in casi eccezionali.
 3. I file (documento identità, certificato, foto tessera) vivono nel bucket Storage **`profili-giocatore`**, configurato come **privato**.
 4. Documenti personali e sanitari **non devono mai essere esposti tramite URL pubblici**. Accesso solo tramite client autenticato con policy RLS, o signed URL a scadenza breve per download admin.
-5. Le **tabelle v1.0 esistenti non vengono modificate** (`eventi_app`, `risposte_presenze`, voti, palloni, scout, push, ecc.). Il profilo si aggancia agli ID `g1`…`g17` già in uso, senza migrare verso UUID in v1.1 (coerente con DD-012).
-6. La tabella `giocatori` (UUID) resta **invariata e non usata** dal modulo profilo in v1.1.
+5. Le **tabelle preesistenti non vengono modificate** (`eventi_app`, `risposte_presenze`, voti, palloni, scout, push, ecc.). Il profilo si aggancia agli ID `g1`…`g17` già in uso, senza migrare verso UUID per ora (coerente con DD-012).
+6. La tabella `giocatori` (UUID) resta **invariata e non usata** dal modulo profilo.
 
 **Alternative scartate**
 
@@ -465,21 +465,21 @@ Regole vincolanti:
 - Salvare file come base64 nel database → ingestibile, difficile da gestire e da scaricare.
 - Bucket pubblico con URL permanenti → inaccettabile per dati sanitari e documenti d’identità.
 - Permettere al giocatore di cambiare `auth_user_id` liberamente → rischio di impersonazione e race condition.
-- Modificare tabelle v1.0 per aggiungere FK verso il profilo → viola DD-004 e DD-012.
+- Modificare le tabelle preesistenti per aggiungere FK verso il profilo → viola DD-004 e DD-012.
 
 **Conseguenze**
 
 - Coesistono temporaneamente tre rappresentazioni dell’anagrafica: `crapp-data.ts` (fallback), `giocatori_squadra` (target), `giocatori` UUID (dormiente).
 - `src/lib/rosa.ts` legge dal database e ricade su `crapp-data.ts` in caso di errore o assenza dati (DD-015).
 - Il completamento profilo (30/30/30/10) si calcola in app, non si persiste nel database.
-- Lo storico certificati non viene conservato in v1 (coerente con DD-010).
+- Lo storico certificati non viene conservato (coerente con DD-010).
 - Le migration M1–M2 (tabelle, RLS, bucket) restano **additive**: solo `CREATE`, nessun `ALTER`/`DROP` su schema esistente.
 - Raffina e attua quanto proposto in DD-015 per la rosa anagrafica, senza sostituire formalmente quella voce.
 
 **Riesame**
 
 - Quando `giocatori_squadra` è stabile in produzione e il fallback `crapp-data.ts` non serve più.
-- Quando si pianifica la convergenza verso UUID (DD-012, post v1.1).
+- Quando si pianifica la convergenza verso UUID (DD-012, dopo che il profilo sarà stabile).
 - Se il CSI o il regolamento richiedono conservazione storica documenti o consensi privacy dedicati.
 
 ---
@@ -571,7 +571,7 @@ Unificare gradualmente sul modello autenticato, dopo auth e profilo stabili.
 Rischio regressioni su calendario e presenze, moduli più usati della squadra.
 
 **Riesame previsto**  
-Post v1.1, con migration e test dedicati.
+Dopo che il modulo Profilo Giocatore sarà stabile, con migration e test dedicati.
 
 ---
 
@@ -760,7 +760,7 @@ spesso da rendere il tema scuro una funzione e non un vezzo.
 **Stato:** Accettata
 
 **Contesto**  
-Le tabelle della v1.0 sono nate con policy `USING (true)` per `anon, authenticated`. M4
+Le tabelle preesistenti sono nate con policy `USING (true)` per `anon, authenticated`. M4
 (DD-011) ha tolto il GRANT ad `anon`, e la cosa è stata letta come «ora è chiuso». Non lo
 era: per gli autenticati non c'era rimasto nessun limite. Verificato sul database locale con
 un utente appena creato, senza ruolo e senza slot nella rosa: `POST /rest/v1/eventi_app` →
