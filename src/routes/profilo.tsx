@@ -192,7 +192,7 @@ function Profilo() {
         voci={[
           {
             id: "stagione",
-            label: "Stagione",
+            label: "Season",
             contenuto: (
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
