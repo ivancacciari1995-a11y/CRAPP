@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import type { Evento } from "@/lib/eventi";
 import {
   conRisposta,
+  contaPartiteGiocate,
   contaPresenzeGiocatore,
   destinatariSollecito,
   serieConferme,
@@ -90,6 +91,19 @@ assert.equal(contaPresenzeGiocatore("g1", eventi, presenze, OGGI), 4, "il ritard
 assert.equal(totaliEventiGiocatore("g1", eventi, OGGI), 5, "gli eventi futuri non contano");
 assert.equal(contaPresenzeGiocatore("g2", eventi, presenze, OGGI), 0, "chi non risponde è a zero");
 assert.equal(totaliEventiGiocatore("g2", eventi, OGGI), 5, "il denominatore è uguale per tutti");
+
+// contaPartiteGiocate esclude gli allenamenti: su 5 eventi passati (4 allenamenti, 1 partita
+// p1, presente), conta solo p1.
+assert.equal(
+  contaPartiteGiocate("g1", eventi, presenze, OGGI),
+  1,
+  "solo la partita p1: gli allenamenti non contano come partite giocate",
+);
+assert.equal(
+  contaPresenzeGiocatore("g1", eventi, presenze, OGGI, "allenamento"),
+  3,
+  "contaPresenzeGiocatore con tipo esplicito filtra come contaPartiteGiocate ma per allenamenti",
+);
 
 // Solo partite e allenamenti: compleanni e altri eventi restano fuori.
 const conAltri: Evento[] = [

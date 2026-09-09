@@ -10,6 +10,7 @@ import { useInfortuniERitardi } from "./infortuni";
 import { useGiocatoreId } from "./user-store";
 import { useEventi } from "./eventi";
 import {
+  contaPartiteGiocate,
   contaPresenzeGiocatore,
   serieConferme,
   serieConsecutiva,
@@ -88,6 +89,7 @@ export function useRosa(): Giocatore[] {
         iniziali: iniziali(g.nome, g.cognome),
         presenze: contaPresenzeGiocatore(g.id, eventi, mappaPresenze),
         totaliEventi: totaliEventiGiocatore(g.id, eventi),
+        partiteGiocate: contaPartiteGiocate(g.id, eventi, mappaPresenze),
         streak: serieConsecutiva(g.id, eventi, mappaPresenze),
         serieAllenamenti: serieConsecutiva(g.id, eventi, mappaPresenze, "allenamento"),
         seriePartite: serieConsecutiva(g.id, eventi, mappaPresenze, "partita"),
@@ -128,7 +130,7 @@ export function dettaglioClassifica(
   g: {
     streak: number;
     votiPagella: number;
-    totaliEventi: number;
+    partiteGiocate: number;
     cacche: number;
     seriePalloni: number;
   },
@@ -138,7 +140,7 @@ export function dettaglioClassifica(
     case "mediaVoto":
       return `${g.votiPagella} voti pagella`;
     case "mvp":
-      return `${g.totaliEventi} partite giocate`;
+      return `${g.partiteGiocate} partite giocate`;
     case "cacchePartita":
       return `${g.cacche} giornate top`;
     case "palloni":

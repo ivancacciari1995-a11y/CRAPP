@@ -101,7 +101,9 @@ Prima versione, pre-release.
   scollegato dal criterio scelto: ora segue il criterio selezionato (`dettaglioClassifica` in
   `src/lib/rosa.ts`). Per Palloni mostra le volte consecutive in cui il giocatore li ha
   portati (nuovo campo `Giocatore.seriePalloni`, calcolato da `serieConsecutivaPalloni` in
-  `src/lib/palloni-core.ts`), non più le presenze.
+  `src/lib/palloni-core.ts`), non più le presenze. Per MVP mostra le partite giocate — solo
+  partite, non più allenamenti compresi (nuovo campo `Giocatore.partiteGiocate`, da
+  `contaPartiteGiocate()` in `src/lib/presenze.ts`).
 
 ### Sicurezza
 

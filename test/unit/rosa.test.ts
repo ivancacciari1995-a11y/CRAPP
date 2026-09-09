@@ -28,7 +28,7 @@ assert.deepEqual(classificaRank([0, 0]), [1, 1], "parità anche a valore zero");
 
 // --- dettaglioClassifica: il sottotitolo segue il criterio selezionato -------
 
-const g = { streak: 12, votiPagella: 18, totaliEventi: 22, cacche: 3, seriePalloni: 4 };
+const g = { streak: 12, votiPagella: 18, partiteGiocate: 15, cacche: 3, seriePalloni: 4 };
 
 assert.equal(
   dettaglioClassifica(g, "presenze"),
@@ -47,8 +47,8 @@ assert.equal(
 );
 assert.equal(
   dettaglioClassifica(g, "mvp"),
-  "22 partite giocate",
-  "mvp: mostra le partite giocate, non le presenze consecutive",
+  "15 partite giocate",
+  "mvp: mostra le partite giocate (non gli eventi totali, che includerebbero gli allenamenti)",
 );
 assert.equal(
   dettaglioClassifica(g, "cacchePartita"),

@@ -14,26 +14,51 @@ export type MappaPresenze = Record<string, Record<string, Stato>>;
 export type MappaTempiRisposta = Record<string, Record<string, string>>;
 
 /** Allenamenti e partite CrAPP già passati, che contano per le statistiche di presenza. */
-function eventiContanoPresenze(eventi: Evento[], giocatoreId?: string, oggi = dataOggi()) {
+function eventiContanoPresenze(
+  eventi: Evento[],
+  giocatoreId?: string,
+  oggi = dataOggi(),
+  tipo?: "partita" | "allenamento",
+) {
   return eventi.filter(
     (e) =>
       (e.tipo === "partita" || e.tipo === "allenamento") &&
+      (tipo === undefined || e.tipo === tipo) &&
       e.data < oggi &&
       (giocatoreId === undefined || e.convocati.length === 0 || e.convocati.includes(giocatoreId)),
   );
 }
 
-/** Presenze effettive (presente o in ritardo) su eventi CrAPP. Senza eventi rilevanti restituisce 0. */
+/**
+ * Presenze effettive (presente o in ritardo) su eventi CrAPP. Senza eventi rilevanti
+ * restituisce 0. `tipo` filtra a un solo tipo di evento (es. solo partite); di default
+ * conta partite e allenamenti insieme, come il resto delle statistiche di presenza.
+ */
 export function contaPresenzeGiocatore(
   giocatoreId: string,
   eventi: Evento[],
   presenze: MappaPresenze,
   oggi: string = dataOggi(),
+  tipo?: "partita" | "allenamento",
 ): number {
-  return eventiContanoPresenze(eventi, giocatoreId, oggi).filter((e) => {
+  return eventiContanoPresenze(eventi, giocatoreId, oggi, tipo).filter((e) => {
     const stato = presenze[e.id]?.[giocatoreId];
     return stato === "presente" || stato === "ritardo";
   }).length;
+}
+
+/**
+ * Partite (non allenamenti) a cui il giocatore era presente o in ritardo: il dato giusto
+ * per contesti legati alle prestazioni in campo (es. MVP), a differenza di
+ * `totaliEventiGiocatore()` che è il denominatore delle presenze e include gli allenamenti.
+ */
+export function contaPartiteGiocate(
+  giocatoreId: string,
+  eventi: Evento[],
+  presenze: MappaPresenze,
+  oggi: string = dataOggi(),
+): number {
+  return contaPresenzeGiocatore(giocatoreId, eventi, presenze, oggi, "partita");
 }
 
 /** Eventi CrAPP rilevanti per il denominatore presenze di un giocatore. */

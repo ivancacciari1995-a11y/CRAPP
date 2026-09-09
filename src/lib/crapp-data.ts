@@ -28,6 +28,8 @@ export type Giocatore = {
   nascita: string;
   presenze: number;
   totaliEventi: number;
+  /** Solo partite (non allenamenti) a cui era presente o in ritardo. */
+  partiteGiocate: number;
   streak: number;
   /** Serie consecutive per tipo: si azzerano in modo indipendente. */
   serieAllenamenti: number;
@@ -103,6 +105,7 @@ export const giocatori: Giocatore[] = rosaCSI
     iniziali: inizialiDa(r.nome),
     presenze: 0,
     totaliEventi: 0,
+    partiteGiocate: 0,
     streak: 0,
     serieAllenamenti: 0,
     seriePartite: 0,

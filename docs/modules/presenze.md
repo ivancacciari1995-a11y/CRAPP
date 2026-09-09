@@ -55,6 +55,11 @@ usePresenzeUltimoMese()                             → src/lib/presenze-mese.ts
 contaPresenzeGiocatore() alimenta il campo `presenze` del `Giocatore` in `useRosa()`, mostrato
 come StatTile nel profilo e in home (sezione «Colpo d'occhio», `index.tsx`).
 
+contaPartiteGiocate() è contaPresenzeGiocatore() ristretto alle sole partite (non
+allenamenti): alimenta `Giocatore.partiteGiocate`, usato nel sottotitolo della classifica
+interna di Squadra quando si ordina per MVP — un conteggio di eventi generico (allenamenti
+compresi) sarebbe fuorviante lì, perché l'MVP si vota solo alle partite.
+
 --- sollecito (solo admin) ---
 Bottone "Sollecita" (RosaPresenze.tsx) → POST /api/public/sollecita-presenze
       ↓
