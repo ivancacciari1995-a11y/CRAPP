@@ -380,13 +380,16 @@ function SchedaGiocatore({
   profilo,
   oggi,
   indice,
+  aperta,
+  onToggle,
 }: {
   g: GiocatoreSquadra;
   profilo: Profilo | undefined;
   oggi: string;
   indice: number;
+  aperta: boolean;
+  onToggle: () => void;
 }) {
-  const [aperta, setAperta] = useState(false);
   const nome = nomeCompleto(g);
   const { ruolo, numero } = g;
   const perc = completamento(profilo);
@@ -397,11 +400,7 @@ function SchedaGiocatore({
 
   return (
     <Reveal indice={indice} className="rounded-2xl bg-card p-4 shadow-card">
-      <button
-        type="button"
-        onClick={() => setAperta((v) => !v)}
-        className="flex w-full items-center gap-3 text-left"
-      >
+      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 text-left">
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary font-display text-sm tabular-nums">
           {numero}
         </div>
@@ -620,6 +619,7 @@ function Dashboard() {
   const { righe: squadra } = useGiocatoriSquadra();
   const { profili, isPending } = useProfili();
   const { data: notificheAttive } = useNotificheAttive();
+  const [schedaAperta, setSchedaAperta] = useState<string | null>(null);
   const oggi = oggiISO();
 
   if (!admin) {
@@ -676,7 +676,15 @@ function Dashboard() {
   ) : (
     <div className="space-y-3">
       {attivi.map((g, i) => (
-        <SchedaGiocatore key={g.id} g={g} profilo={profili[g.id]} oggi={oggi} indice={i} />
+        <SchedaGiocatore
+          key={g.id}
+          g={g}
+          profilo={profili[g.id]}
+          oggi={oggi}
+          indice={i}
+          aperta={schedaAperta === g.id}
+          onToggle={() => setSchedaAperta((v) => (v === g.id ? null : g.id))}
+        />
       ))}
     </div>
   );
