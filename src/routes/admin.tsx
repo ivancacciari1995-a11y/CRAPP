@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BadgeCheck,
+  Bell,
   ChevronDown,
   Download,
   FileText,
@@ -16,14 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  Campo,
-  classiInput,
-  PageHeader,
-  Section,
-  Select,
-  StatTile,
-} from "@/components/crapp/ui-bits";
+import { Campo, classiInput, PageHeader, Select, StatTile } from "@/components/crapp/ui-bits";
+import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import {
   nomeCompleto,
@@ -54,6 +49,7 @@ import {
 import { oggiISO } from "@/lib/palloni-core";
 import { scaricaCsv } from "@/lib/scout-export";
 import { useIsAdmin } from "@/lib/ruoli";
+import { useNotificheAttive } from "@/lib/notifiche-admin";
 import { Reveal } from "@/components/motion/Reveal";
 
 export const Route = createFileRoute("/admin")({
@@ -623,6 +619,7 @@ function Dashboard() {
   const admin = useIsAdmin();
   const { righe: squadra } = useGiocatoriSquadra();
   const { profili, isPending } = useProfili();
+  const { data: notificheAttive } = useNotificheAttive();
   const oggi = oggiISO();
 
   if (!admin) {
@@ -649,56 +646,89 @@ function Dashboard() {
   ).length;
   const tesserati = attivi.filter((g) => g.numeroTessera).length;
 
+  const contenutoSquadra = (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        <StatTile valore={attivi.length} label="Giocatori" />
+        <StatTile valore={`${completi}/${attivi.length}`} label="Profili completi" />
+        <StatTile
+          valore={`${certificatiOk}/${attivi.length}`}
+          label="Certificati validi"
+          hint="non scaduti"
+        />
+        <StatTile valore={`${tesserati}/${attivi.length}`} label="Tesserati" hint="CSI" />
+      </div>
+      <button
+        type="button"
+        onClick={() => scaricaCsv(`tesseramento-csi-${oggi}.csv`, csvTesseramento(attivi, profili))}
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+      >
+        <Download className="h-4 w-4" /> Esporta CSV tesseramento
+      </button>
+      <AggiungiGiocatore righe={squadra} />
+    </>
+  );
+
+  const contenutoProfili = isPending ? (
+    <p className="rounded-2xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+      Caricamento…
+    </p>
+  ) : (
+    <div className="space-y-3">
+      {attivi.map((g, i) => (
+        <SchedaGiocatore key={g.id} g={g} profilo={profili[g.id]} oggi={oggi} indice={i} />
+      ))}
+    </div>
+  );
+
+  const contenutoDisattivati = (
+    <div className="space-y-2">
+      {disattivi.map((g) => (
+        <GiocatoreDisattivato key={g.id} g={g} />
+      ))}
+    </div>
+  );
+
+  const contenutoNotifiche = notificheAttive ? (
+    <>
+      <StatTile
+        valore={`${attivi.filter((g) => notificheAttive.has(g.id)).length}/${attivi.length}`}
+        label="Notifiche attive"
+      />
+      <div className="mt-3 space-y-2">
+        {attivi
+          .filter((g) => notificheAttive.has(g.id))
+          .map((g) => (
+            <div key={g.id} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card">
+              <Bell className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <p className="truncate text-sm font-semibold leading-tight">{nomeCompleto(g)}</p>
+            </div>
+          ))}
+      </div>
+    </>
+  ) : (
+    <p className="rounded-2xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+      Caricamento…
+    </p>
+  );
+
   return (
     <>
       <PageHeader titolo="Dashboard" sottotitolo="Profili e tesseramento" />
 
-      <Section titolo="Squadra">
-        <div className="grid grid-cols-2 gap-2">
-          <StatTile valore={attivi.length} label="Giocatori" />
-          <StatTile valore={`${completi}/${attivi.length}`} label="Profili completi" />
-          <StatTile
-            valore={`${certificatiOk}/${attivi.length}`}
-            label="Certificati validi"
-            hint="non scaduti"
-          />
-          <StatTile valore={`${tesserati}/${attivi.length}`} label="Tesserati" hint="CSI" />
-        </div>
-        <button
-          type="button"
-          onClick={() =>
-            scaricaCsv(`tesseramento-csi-${oggi}.csv`, csvTesseramento(attivi, profili))
-          }
-          className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
-        >
-          <Download className="h-4 w-4" /> Esporta CSV tesseramento
-        </button>
-        <AggiungiGiocatore righe={squadra} />
-      </Section>
-
-      <Section titolo="Profili" indice={1}>
-        {isPending ? (
-          <p className="rounded-2xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
-            Caricamento…
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {attivi.map((g, i) => (
-              <SchedaGiocatore key={g.id} g={g} profilo={profili[g.id]} oggi={oggi} indice={i} />
-            ))}
-          </div>
-        )}
-      </Section>
-
-      {disattivi.length > 0 ? (
-        <Section titolo="Giocatori disattivati" indice={2}>
-          <div className="space-y-2">
-            {disattivi.map((g) => (
-              <GiocatoreDisattivato key={g.id} g={g} />
-            ))}
-          </div>
-        </Section>
-      ) : null}
+      <BarraSottosezioni
+        defaultId="squadra"
+        variante="sottolineatura"
+        riempiLarghezza
+        voci={[
+          { id: "squadra", label: "Squadra", contenuto: contenutoSquadra },
+          { id: "profili", label: "Profili", contenuto: contenutoProfili },
+          ...(disattivi.length > 0
+            ? [{ id: "disattivati", label: "Disattivati", contenuto: contenutoDisattivati }]
+            : []),
+          { id: "notifiche", label: "Notifiche", contenuto: contenutoNotifiche },
+        ]}
+      />
     </>
   );
 }
