@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { richiediAdmin } from "@/lib/auth-route.server";
+import { idsConNotificheAttive } from "@/lib/notifiche-attive.server";
 
 export const Route = createFileRoute("/api/public/notifiche-attive")({
   server: {
@@ -17,8 +18,7 @@ export const Route = createFileRoute("/api/public/notifiche-attive")({
           return new Response("Errore lettura", { status: 500 });
         }
 
-        const giocatoreIds = [...new Set((data ?? []).map((r) => r.giocatore_id))];
-        return Response.json({ giocatoreIds });
+        return Response.json({ giocatoreIds: idsConNotificheAttive(data ?? []) });
       },
     },
   },

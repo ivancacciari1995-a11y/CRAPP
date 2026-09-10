@@ -81,10 +81,14 @@ route. Tutte e tre partono da un gesto di un amministratore dentro l'app, quindi
 è uno solo (`richiediAdmin` in `src/lib/auth-route.server.ts`) e non serve configurare nessuna
 variabile d'ambiente.
 
-| Route                                                        | Controllo                                                                          | Chi la chiama                                                   |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante riservato agli admin                      |
-| `csi`, `push-config`, `push-subscribe`                       | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
+| Route                                                                       | Controllo                                                                          | Chi la chiama                                                   |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni`, `notifiche-attive` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante o una vista riservati agli admin          |
+| `csi`, `push-config`, `push-subscribe`                                       | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
+
+`notifiche-attive` è a sola lettura: non manda push, restituisce gli id giocatore con almeno
+un dispositivo iscritto in `push_subscriptions` (deduplicati). Alimenta la tab "Notifiche"
+della dashboard admin (vedi [Profilo giocatore](profilo-giocatore.md)), non l'invio effettivo.
 
 ---
 

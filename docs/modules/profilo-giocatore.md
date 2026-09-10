@@ -165,9 +165,17 @@ Contiene.
 ## Dashboard amministratore
 
 Gli amministratori dispongono di una schermata dedicata (`/admin`, raggiungibile da
-Profilo → Opzioni).
+Profilo → Opzioni), organizzata in tab scorrevoli a pillole (`BarraSottosezioni`, stesso
+componente di [Squadra](squadra.md) e Campionato): Squadra, Profili, Disattivati (solo se
+c'è almeno un giocatore disattivato) e Notifiche.
 
-Per ogni giocatore vengono mostrati.
+La tab **Notifiche** mostra quanti giocatori attivi hanno almeno un dispositivo iscritto
+alle notifiche push e i loro nomi, leggendo `GET /api/public/notifiche-attive` (vedi
+[Notifiche](notifiche.md)). È solo consultiva: l'attivazione resta un gesto che ogni
+giocatore deve fare dal proprio dispositivo (Profilo), l'admin non può attivarla per conto
+di altri.
+
+Per ogni giocatore, nella tab Profili, vengono mostrati.
 
 - Stato del profilo
 - Certificato medico
