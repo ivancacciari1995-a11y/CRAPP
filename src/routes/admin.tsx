@@ -232,7 +232,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
           </Select>
         </Campo>
       </div>
-      <Campo label="Email (collegamento automatico al login, DD-018)">
+      <Campo label="Email">
         <input
           type="email"
           value={squadraCorrente.email ?? ""}
@@ -552,7 +552,7 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
           </Select>
         </Campo>
       </div>
-      <Campo label="Email (collegamento automatico al login, opzionale)">
+      <Campo label="Email">
         <input
           type="email"
           value={dati.email ?? ""}
