@@ -304,10 +304,6 @@ export function ProfiloAmministrativo({
         </span>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Servono agli amministratori per il tesseramento CSI. Li vedi solo tu e loro.
-      </p>
-
       <CampiProfilo
         corrente={corrente}
         aggiorna={aggiorna}
