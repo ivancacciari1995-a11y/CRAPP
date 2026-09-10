@@ -12,6 +12,26 @@ all'indietro.
 
 ## [Non rilasciato]
 
+## [0.9.2] - 2026-09-10
+
+### Aggiunto
+
+- **Dashboard amministratore** — nuova tab "Notifiche" che mostra quanti giocatori hanno
+  le notifiche push attive e chi sono.
+
+### Modificato
+
+- **Dashboard amministratore** — le sezioni impilate diventano un menu di tab scorrevole a
+  pillole (come Squadra e Campionato); nell'elenco Profili resta aperta una sola scheda
+  alla volta.
+- **Profilo** — testi dei campi amministrativi semplificati (label email, rimossa la nota
+  su chi vede quei dati).
+
+### Rimosso
+
+- Le dipendenze e il codice legati all'editor Lovable (login social e reporting errori
+  verso l'editor): l'app non ci gira più.
+
 ## [0.9.1] - 2026-09-10
 
 ### Modificato
