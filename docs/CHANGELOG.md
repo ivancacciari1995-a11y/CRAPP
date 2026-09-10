@@ -12,6 +12,8 @@ all'indietro.
 
 ## [Non rilasciato]
 
+## [0.9.1] - 2026-09-10
+
 ### Modificato
 
 - **Storico partite** — ogni scheda mostra il logo accanto al nome di entrambe le squadre
