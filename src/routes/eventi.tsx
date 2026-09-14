@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Campo, Card, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
 import {
   Drawer,
   DrawerClose,
@@ -14,6 +14,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { formatData } from "@/lib/crapp-data";
+import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
   categoriaEvento,
@@ -68,6 +69,16 @@ function GestioneEventi() {
   const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
   const [confermaModifica, setConfermaModifica] = useState(false);
   const rosa = squadra.filter((g) => g.attivo);
+
+  // SSR-safe: la data di oggi arriva solo dopo il mount.
+  const [oggi, setOggi] = useState<{ anno: number; mese: number; giorno: number } | null>(null);
+  useEffect(() => {
+    const d = new Date();
+    setOggi({ anno: d.getFullYear(), mese: d.getMonth(), giorno: d.getDate() });
+  }, []);
+  const [giornoSelezionato, setGiornoSelezionato] = useState<string | null>(null);
+  const { anno, mese, precedente, successivo } = useMeseNav();
+  const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
 
   if (!io || !admin) {
     return (
@@ -126,19 +137,105 @@ function GestioneEventi() {
     }
   }
 
+  const mesePrefix = `${anno}-${pad2(mese + 1)}`;
+  const eventiPerGiorno = new Map<number, Evento[]>();
+  for (const e of eventi) {
+    if (!e.data.startsWith(mesePrefix)) continue;
+    const g = Number(e.data.slice(8, 10));
+    const lista = eventiPerGiorno.get(g) ?? [];
+    lista.push(e);
+    eventiPerGiorno.set(g, lista);
+  }
+
+  function apriGiorno(giorno: number) {
+    setGiornoSelezionato(`${mesePrefix}-${pad2(giorno)}`);
+  }
+
+  function nuovoNelGiorno() {
+    if (!giornoSelezionato) return;
+    setBozza({ ...eventoVuoto(), data: giornoSelezionato });
+    setGiornoSelezionato(null);
+  }
+
+  function modificaDalGiorno(e: Evento) {
+    setBozza(e);
+    setGiornoSelezionato(null);
+  }
+
+  function eliminaDalGiorno(e: Evento) {
+    setDaEliminare(e);
+    setGiornoSelezionato(null);
+  }
+
+  // Non usa `eventiPerGiorno` (limitato al mese in vista sul calendario): il giorno
+  // selezionato può arrivare anche dalla lista sotto, per un mese diverso da quello mostrato.
+  const eventiGiornoSelezionato = giornoSelezionato
+    ? eventi.filter((e) => e.data === giornoSelezionato)
+    : [];
+
   return (
     <>
       <PageHeader titolo="Gestione eventi" sottotitolo={`${eventi.length} eventi in calendario`} />
 
-      <div className="px-5 pt-4">
-        <button
-          type="button"
-          onClick={() => setBozza(eventoVuoto())}
-          className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
-        >
-          <CalendarPlus className="h-4 w-4" /> Nuovo evento
-        </button>
-      </div>
+      <Section titolo="Calendario">
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={precedente}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese precedente"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <span className="font-display-sm text-xl uppercase">
+              {mesiIT[mese]} {anno}
+            </span>
+            <button
+              type="button"
+              onClick={successivo}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese successivo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
+            {giorniIT.map((g, i) => (
+              <span key={i}>{g}</span>
+            ))}
+          </div>
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {Array.from({ length: offsetLunedi }).map((_, i) => (
+              <span key={`v${i}`} />
+            ))}
+            {Array.from({ length: giorni }).map((_, i) => {
+              const giorno = i + 1;
+              const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
+              const haEventi = eventiGiorno.length > 0;
+              const isOggi =
+                !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+              return (
+                <button
+                  key={giorno}
+                  type="button"
+                  onClick={() => apriGiorno(giorno)}
+                  className={cn(
+                    "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold transition-transform active:scale-90",
+                    haEventi ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground",
+                    isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                  )}
+                  aria-label={`${giorno} ${mesiIT[mese]}${haEventi ? `: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}` : ", nessun evento"}`}
+                  aria-current={isOggi ? "date" : undefined}
+                >
+                  {giorno}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      </Section>
 
       {bozza ? (
         <Section
@@ -168,7 +265,6 @@ function GestioneEventi() {
                 value={bozza.titolo}
                 maxLength={80}
                 onChange={(e) => aggiorna({ titolo: e.target.value })}
-                placeholder="Es. CRAP Volley vs Aurora Nera"
                 className={classiInput}
               />
             </Campo>
@@ -319,9 +415,11 @@ function GestioneEventi() {
         ) : (
           <div className="space-y-2">
             {eventi.map((e) => (
-              <div
+              <button
                 key={e.id}
-                className="flex items-center gap-2 rounded-3xl bg-card p-3 shadow-card"
+                type="button"
+                onClick={() => setGiornoSelezionato(e.data)}
+                className="flex w-full items-center gap-2 rounded-3xl bg-card p-3 text-left shadow-card active:scale-[0.99]"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
@@ -329,27 +427,72 @@ function GestioneEventi() {
                     {formatData(e.data)} · {e.ora} · {e.luogo || "luogo da definire"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setBozza(e)}
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
-                  aria-label={`Modifica ${e.titolo}`}
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDaEliminare(e)}
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
-                  aria-label={`Elimina ${e.titolo}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </Section>
+
+      <Drawer
+        open={!!giornoSelezionato}
+        onOpenChange={(aperto) => !aperto && setGiornoSelezionato(null)}
+      >
+        <DrawerContent className="rounded-t-[24px] border-border bg-background px-4 pb-6 pt-2">
+          <DrawerHeader className="relative px-0 pb-2 text-left">
+            <DrawerTitle className="font-display-lg text-2xl uppercase">
+              {giornoSelezionato ? formatData(giornoSelezionato) : "Giorno"}
+            </DrawerTitle>
+            <DrawerClose className="absolute right-0 top-0 grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground transition-transform active:scale-90">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Chiudi</span>
+            </DrawerClose>
+          </DrawerHeader>
+          <div className="max-h-[50vh] space-y-2 overflow-y-auto py-2">
+            {eventiGiornoSelezionato.length > 0 ? (
+              eventiGiornoSelezionato.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {e.ora} · {e.luogo || "luogo da definire"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => modificaDalGiorno(e)}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
+                    aria-label={`Modifica ${e.titolo}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => eliminaDalGiorno(e)}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
+                    aria-label={`Elimina ${e.titolo}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+                Nessun evento in programma
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={nuovoNelGiorno}
+            className="premi mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+          >
+            <CalendarPlus className="h-4 w-4" /> Nuovo evento in questo giorno
+          </button>
+        </DrawerContent>
+      </Drawer>
 
       <Drawer
         open={confermaModifica}

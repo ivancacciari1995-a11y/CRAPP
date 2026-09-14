@@ -1,10 +1,11 @@
 # Modulo — Calendario ed Eventi
 
 **Stato:** implementato
-**File principali:** `src/lib/eventi.ts`, `src/lib/eventi.server.ts`, `src/routes/calendario.tsx`
-(vista mensile, tutti), `src/routes/eventi.tsx` (creazione/modifica, solo admin),
-`src/components/crapp/EventoCard.tsx` (card condivisa)
-**Test:** `test/unit/eventi.test.ts`
+**File principali:** `src/lib/eventi.ts`, `src/lib/eventi.server.ts`, `src/lib/calendario.ts`
+(griglia mensile condivisa), `src/routes/calendario.tsx` (vista mensile, tutti),
+`src/routes/eventi.tsx` (creazione/modifica, solo admin), `src/components/crapp/EventoCard.tsx`
+(card condivisa)
+**Test:** `test/unit/eventi.test.ts`, `test/unit/calendario.test.ts`
 
 ---
 
@@ -26,7 +27,14 @@ scout e turno palloni — la maggior parte degli altri moduli dipende da un `eve
   modifica ed elimina un evento, sceglie i convocati (`convocatiEvento()`, vuoto = tutta la
   rosa). Da qui si distingue "partita" da "amichevole" tramite il flag `campionato`
   (`categoriaEvento()`/`daCategoria()` in `eventi.ts` convertono tra la categoria mostrata
-  in interfaccia e la coppia `{ tipo, campionato }` salvata nel database).
+  in interfaccia e la coppia `{ tipo, campionato }` salvata nel database). Sopra alla lista
+  cronologica c'è una griglia mensile (stessa logica di `/calendario`, tramite le funzioni
+  condivise di `src/lib/calendario.ts`): ogni giorno è cliccabile, anche senza eventi, e apre
+  un drawer con gli eventi di quel giorno (modifica/elimina) e un bottone "Nuovo evento in
+  questo giorno" che apre il form con la data già precompilata. Creare, modificare ed
+  eliminare passano solo da lì: la lista cronologica sotto il calendario è un elenco senza
+  azioni dirette, cliccare una riga apre lo stesso drawer del giorno corrispondente (anche se
+  è in un mese diverso da quello mostrato sulla griglia) invece di duplicare matita/cestino.
 
 Entrambe leggono la stessa cache (`useEventi()`, `EVENTI_KEY`, `staleTime` 10 minuti: il
 calendario cambia raramente). `EventoCard.tsx` è la card riusata da entrambe le schermate;
