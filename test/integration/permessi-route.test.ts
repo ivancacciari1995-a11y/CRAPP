@@ -107,6 +107,31 @@ if (!locale) {
         assert.equal(res.status, 404, `${percorso}: superato l'accesso, evento inesistente`);
       }
     });
+
+    /** Messaggio libero: stesso controllo d'accesso, corpo diverso. */
+    const chiamaMessaggio = (intestazioni: Record<string, string> = {}) =>
+      fetch(`${server.baseUrl}/api/public/notifica-personalizzata`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...intestazioni },
+        body: JSON.stringify({ messaggio: "prova" }),
+      });
+
+    await prova("senza token non si manda un messaggio personalizzato", async () => {
+      assert.equal((await chiamaMessaggio()).status, 401);
+    });
+
+    await prova("un giocatore autenticato non manda messaggi personalizzati", async () => {
+      const res = await chiamaMessaggio({ authorization: `Bearer ${tokenGiocatore}` });
+      assert.equal(res.status, 403);
+    });
+
+    await prova("un amministratore manda il messaggio (nessun dispositivo iscritto)", async () => {
+      const res = await chiamaMessaggio({ authorization: `Bearer ${tokenAdmin}` });
+      assert.equal(res.status, 200);
+      const corpo = (await res.json()) as { inviate: number; destinatari: number };
+      assert.equal(corpo.destinatari, 0);
+      assert.equal(corpo.inviate, 0);
+    });
   } finally {
     server.stop();
     for (const id of idUtenti) {

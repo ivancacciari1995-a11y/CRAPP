@@ -230,6 +230,13 @@ try {
     }
   });
 
+  await prova("l'invio di un messaggio personalizzato chiede le credenziali", async () => {
+    assert.equal(
+      (await postJson("/api/public/notifica-personalizzata", { messaggio: "prova" })).status,
+      401,
+    );
+  });
+
   await prova("un token malformato non passa", async () => {
     const res = await fetch(url("/api/public/sollecita-presenze"), {
       method: "POST",

@@ -83,12 +83,22 @@ variabile d'ambiente.
 
 | Route                                                                       | Controllo                                                                          | Chi la chiama                                                   |
 | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni`, `notifiche-attive` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante o una vista riservati agli admin          |
+| `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni`, `notifiche-attive`, `notifica-personalizzata` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante o una vista riservati agli admin          |
 | `csi`, `push-config`, `push-subscribe`                                       | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
 
 `notifiche-attive` è a sola lettura: non manda push, restituisce gli id giocatore con almeno
 un dispositivo iscritto in `push_subscriptions` (deduplicati). Alimenta la tab "Notifiche"
 della dashboard admin (vedi [Profilo giocatore](profilo-giocatore.md)), non l'invio effettivo.
+La tab elenca tutti i giocatori attivi della squadra, non solo chi ha le notifiche abilitate:
+l'icona (campana piena/barrata) distingue chi ha almeno un dispositivo iscritto da chi non
+l'ha ancora attivata.
+
+`notifica-personalizzata` manda un messaggio libero scritto dall'admin: senza `giocatoreId`
+lo manda a tutti i dispositivi iscritti in `push_subscriptions`, con `giocatoreId` solo a
+quelli di quel giocatore. Titolo fisso ("Messaggio dallo staff"), corpo il testo scritto
+dall'admin (max 300 caratteri). Stessa logica di pulizia delle altre route: una sottoscrizione
+che risponde 404/410 viene cancellata dalla tabella. Nella tab "Notifiche" della dashboard
+admin c'è un bottone "Invia messaggio a tutti" sopra l'elenco e un bottone per riga giocatore.
 
 ---
 

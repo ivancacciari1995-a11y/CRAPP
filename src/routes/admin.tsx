@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Bell,
+  BellOff,
   ChevronDown,
   Download,
   FileText,
@@ -10,6 +11,7 @@ import {
   Image,
   Loader2,
   Lock,
+  Send,
   Unlink,
   UserCheck,
   UserPlus,
@@ -49,8 +51,17 @@ import {
 import { oggiISO } from "@/lib/palloni-core";
 import { scaricaCsv } from "@/lib/scout-export";
 import { useIsAdmin } from "@/lib/ruoli";
-import { useNotificheAttive } from "@/lib/notifiche-admin";
+import { useInviaNotifica, useNotificheAttive } from "@/lib/notifiche-admin";
 import { Reveal } from "@/components/motion/Reveal";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -621,6 +632,32 @@ function Dashboard() {
   const { data: notificheAttive } = useNotificheAttive();
   const [schedaAperta, setSchedaAperta] = useState<string | null>(null);
   const oggi = oggiISO();
+  const inviaNotifica = useInviaNotifica();
+  const [destinatarioMessaggio, setDestinatarioMessaggio] = useState<{
+    id?: string;
+    nome: string;
+  } | null>(null);
+  const [messaggio, setMessaggio] = useState("");
+
+  async function inviaMessaggio() {
+    if (!destinatarioMessaggio || !messaggio.trim()) return;
+    try {
+      const dati = await inviaNotifica.mutateAsync(
+        destinatarioMessaggio.id
+          ? { messaggio: messaggio.trim(), giocatoreId: destinatarioMessaggio.id }
+          : { messaggio: messaggio.trim() },
+      );
+      toast.success(
+        dati.inviate > 0
+          ? `Notifica inviata a ${dati.inviate} dispositivi`
+          : "Nessun dispositivo con notifiche attive per l'invio",
+      );
+      setDestinatarioMessaggio(null);
+      setMessaggio("");
+    } catch {
+      toast.error("Non sono riuscito a inviare la notifica");
+    }
+  }
 
   if (!admin) {
     return (
@@ -703,15 +740,42 @@ function Dashboard() {
         valore={`${attivi.filter((g) => notificheAttive.has(g.id)).length}/${attivi.length}`}
         label="Notifiche attive"
       />
+      <button
+        type="button"
+        onClick={() => setDestinatarioMessaggio({ nome: "tutta la squadra" })}
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+      >
+        <Send className="h-4 w-4" /> Invia messaggio a tutti
+      </button>
       <div className="mt-3 space-y-2">
-        {attivi
-          .filter((g) => notificheAttive.has(g.id))
-          .map((g) => (
+        {attivi.map((g) => {
+          const attiva = notificheAttive.has(g.id);
+          return (
             <div key={g.id} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card">
-              <Bell className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <p className="truncate text-sm font-semibold leading-tight">{nomeCompleto(g)}</p>
+              {attiva ? (
+                <Bell className="h-3.5 w-3.5 shrink-0 text-accent" />
+              ) : (
+                <BellOff className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              )}
+              <p
+                className={cn(
+                  "min-w-0 flex-1 truncate text-sm font-semibold leading-tight",
+                  !attiva && "text-muted-foreground",
+                )}
+              >
+                {nomeCompleto(g)}
+              </p>
+              <button
+                type="button"
+                onClick={() => setDestinatarioMessaggio({ id: g.id, nome: nomeCompleto(g) })}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
+                aria-label={`Invia messaggio a ${nomeCompleto(g)}`}
+              >
+                <Send className="h-3.5 w-3.5" />
+              </button>
             </div>
-          ))}
+          );
+        })}
       </div>
     </>
   ) : (
@@ -737,6 +801,58 @@ function Dashboard() {
           { id: "notifiche", label: "Notifiche", contenuto: contenutoNotifiche },
         ]}
       />
+
+      <Drawer
+        open={!!destinatarioMessaggio}
+        onOpenChange={(aperto) => {
+          if (!aperto) {
+            setDestinatarioMessaggio(null);
+            setMessaggio("");
+          }
+        }}
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Invia messaggio</DrawerTitle>
+            <DrawerDescription>
+              {destinatarioMessaggio ? `Destinatario: ${destinatarioMessaggio.nome}.` : ""}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
+            <textarea
+              value={messaggio}
+              maxLength={300}
+              rows={3}
+              onChange={(e) => setMessaggio(e.target.value)}
+              placeholder="Scrivi il messaggio da inviare come notifica push…"
+              className={cn(classiInput, "h-auto")}
+            />
+          </div>
+          <DrawerFooter>
+            <button
+              type="button"
+              onClick={inviaMessaggio}
+              disabled={inviaNotifica.isPending || !messaggio.trim()}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+            >
+              {inviaNotifica.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}{" "}
+              Invia
+            </button>
+            <DrawerClose asChild>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+              >
+                Annulla
+              </button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
