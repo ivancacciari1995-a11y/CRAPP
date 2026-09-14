@@ -66,6 +66,7 @@ function GestioneEventi() {
   const elimina = useEliminaEvento();
   const [bozza, setBozza] = useState<Evento | null>(null);
   const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
+  const [confermaModifica, setConfermaModifica] = useState(false);
   const rosa = squadra.filter((g) => g.attivo);
 
   if (!io || !admin) {
@@ -85,18 +86,31 @@ function GestioneEventi() {
     setBozza((b) => (b ? { ...b, ...patch } : b));
   }
 
-  async function conferma() {
+  const modificaEsistente = bozza ? eventi.some((e) => e.id === bozza.id) : false;
+
+  function chiediConferma() {
     if (!bozza) return;
     if (!bozza.titolo.trim()) {
       toast.error("Serve un titolo per l'evento");
       return;
     }
+    if (modificaEsistente) {
+      setConfermaModifica(true);
+      return;
+    }
+    conferma();
+  }
+
+  async function conferma() {
+    if (!bozza) return;
     try {
       await salva.mutateAsync({ ...bozza, titolo: bozza.titolo.trim() });
       toast.success("Evento salvato");
       setBozza(null);
     } catch {
       toast.error("Non sono riuscito a salvare l'evento");
+    } finally {
+      setConfermaModifica(false);
     }
   }
 
@@ -272,7 +286,7 @@ function GestioneEventi() {
               </button>
               <button
                 type="button"
-                onClick={conferma}
+                onClick={chiediConferma}
                 disabled={salva.isPending}
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
               >
@@ -336,6 +350,38 @@ function GestioneEventi() {
           </div>
         )}
       </Section>
+
+      <Drawer
+        open={confermaModifica}
+        onOpenChange={(aperto) => !aperto && setConfermaModifica(false)}
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Salvare le modifiche?</DrawerTitle>
+            <DrawerDescription>
+              {bozza ? `Aggiorni l'evento "${bozza.titolo.trim() || "senza titolo"}".` : ""}
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <button
+              type="button"
+              onClick={conferma}
+              disabled={salva.isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+            >
+              {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Conferma
+            </button>
+            <DrawerClose asChild>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+              >
+                Annulla
+              </button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
       <Drawer open={!!daEliminare} onOpenChange={(aperto) => !aperto && setDaEliminare(null)}>
         <DrawerContent>
