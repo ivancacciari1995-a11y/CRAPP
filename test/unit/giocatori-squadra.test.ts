@@ -23,6 +23,7 @@ const riga = (parziale: Partial<GiocatoreSquadra> = {}): GiocatoreSquadra => ({
   email: null,
   numeroTessera: null,
   dataTessera: null,
+  nascita: null,
   ...parziale,
 });
 
@@ -46,6 +47,11 @@ assert.deepEqual(
   fallback.map((g) => g.id).sort(),
   giocatori.map((g) => g.id).sort(),
   "gli id combaciano con la rosa reale",
+);
+assert.deepEqual(
+  Object.fromEntries(fallback.map((g) => [g.id, g.nascita])),
+  Object.fromEntries(giocatori.map((g) => [g.id, g.nascita])),
+  "la nascita del fallback combacia con quella del seed (M18)",
 );
 
 // --- nomeCompleto ----------------------------------------------------------------

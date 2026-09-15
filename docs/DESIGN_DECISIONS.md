@@ -1225,3 +1225,87 @@ modo per un giocatore di toglierle di torno per sempre.
 **Riesame**  
 Se la tabella crescesse in modo sensibile (squadre molto più numerose, o giocatori che non
 fanno mai swipe), va aggiunta la pulizia automatica scartata sopra.
+
+### DD-031 — Data di nascita pubblica: una colonna sincronizzata, non una seconda RLS aperta
+
+**Data:** 15 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+In "Squadra" la data di nascita mostrava **"Invalid Date"** per chi l'aveva inserita da
+solo dal proprio Profilo. Causa: due fonti mai collegate. I 17 giocatori del seed storico
+hanno la nascita in `nascitaPerId`, una mappa statica pubblica bundlata nel client
+(`src/lib/crapp-data.ts`) — il commento sulla riga la descriveva esplicitamente come
+stopgap: *"`giocatori_squadra` non ha ancora questa colonna (DD-015 follow-up)"*. Un
+giocatore aggiunto dopo la migrazione DD-015 inserisce invece la nascita dal form Profilo,
+che scrive su `profili_giocatore.data_nascita` — tabella con RLS "solo il proprio profilo o
+admin" (M2), mai letta da `useRosa()`/`useAnagraficaRosa()` (`src/lib/rosa.ts`), e comunque
+non visibile ai compagni per via della RLS. Per quel giocatore `nascitaPerId[g.id]` era
+`undefined` → `""` → `formatData("")` in `src/routes/squadra.tsx` produceva `Invalid Date`.
+
+**Decisione**  
+Migration `m18_nascita_pubblica_giocatori_squadra`: nuova colonna `giocatori_squadra.nascita`
+(quella prevista da DD-015), pubblica a tutta la rosa attiva con la stessa policy di lettura
+già in vigore per le altre colonne. Un trigger `SECURITY DEFINER` su `profili_giocatore`
+(`sincronizza_nascita_pubblica`, AFTER INSERT/UPDATE/DELETE) la tiene allineata a
+`data_nascita`: un solo input nel form Profilo (`CampiProfilo`), due destinazioni — quella
+amministrativa esistente (RLS invariata: sé stesso o admin) e questo specchio pubblico.
+`profili_giocatore` resta l'unica tabella che il client scrive per la nascita; il client non
+tocca mai `giocatori_squadra.nascita` direttamente.
+
+Essendo `SECURITY DEFINER` di proprietà dell'owner della tabella, la scrittura del trigger
+bypassa la RLS di `giocatori_squadra` automaticamente — nessuna nuova policy lì. Serve però
+un nuovo ramo in `enforce_giocatori_squadra_update()` (il trigger `BEFORE UPDATE` che oggi
+rifiuta qualunque modifica a uno slot già collegato da parte di chi non è admin): accetta un
+update dove cambia **solo** `nascita` e il chiamante è il proprietario dello slot
+(`OLD.auth_user_id = auth.uid()`). Senza quel ramo l'update annidato del trigger di sync
+fallirebbe con l'eccezione già in vigore.
+
+Backfill una tantum dei 17 storici con gli stessi valori di `nascitaPerId`, poi rimozione di
+quell'export (`crapp-data.ts`): era descritto fin dall'inizio come temporaneo, in attesa
+esattamente di questa colonna.
+
+**Alternative scartate**
+
+- Allentare la RLS di `profili_giocatore` per rendere `data_nascita` leggibile a tutta la
+  squadra → scartata: quella tabella porta anche indirizzo, telefono, documento d'identità
+  nello stesso record — aprirne la lettura avrebbe esposto molto più della sola nascita.
+- Un secondo campo "data di nascita pubblica" nel form Profilo, distinto da quello
+  amministrativo → scartata: due campi per lo stesso dato reale avrebbero richiesto
+  spiegare all'utente perché ne esistono due, con rischio di disallineamento se ne compila
+  uno solo.
+- Far scrivere `giocatori_squadra.nascita` direttamente dal client (nuova RLS policy per il
+  proprietario dello slot) invece di sincronizzarla da `profili_giocatore` → scartata: la
+  RLS di update per un non-admin resta `USING (auth_user_id IS NULL)` (solo reclamare uno
+  slot libero); aprirla anche a righe già collegate avrebbe ampliato la superficie scrivibile
+  dal client su una tabella con un trigger di sicurezza già delicato (DD-016/DD-023), per un
+  guadagno che il trigger di sync ottiene comunque senza toccare la RLS.
+
+**Conseguenze**
+
+- Chiunque compili la propria data di nascita dal Profilo la vede comparire in Squadra (e
+  nei compleanni del Calendario) esattamente come i 17 storici — non più un dato "di serie
+  B".
+- Cancellare il profilo (da sé o da un admin) azzera anche la nascita pubblica: non resta un
+  valore pubblico orfano di un profilo che non esiste più.
+- Un giocatore senza nascita nota (profilo mai compilato) non genera più "Invalid Date":
+  `squadra.tsx` mostra la riga della data di nascita solo se `g.nascita` è valorizzata,
+  stesso criterio già usato da `compleanniEventi()` per escludere chi non ha ancora un dato.
+- `test/integration/nascita-pubblica.test.ts` è la definizione eseguibile del comportamento:
+  sync alla scrittura, visibilità a un giocatore terzo (non solo l'interessato o l'admin),
+  azzeramento alla cancellazione, blocco della scrittura diretta dal client.
+
+**Riesame**  
+Se in futuro serve differenziare "chi può vedere la nascita" (es. solo squadra, non
+pubblico) va rivista insieme alla policy di lettura generale di `giocatori_squadra`, non solo
+per questa colonna.
+
+**Aggiornamento (15 settembre 2026, stesso giorno)** — dopo aver applicato M18 in produzione
+(`supabase db push`), la nascita in Squadra compariva solo per i 17 giocatori storici, non
+per chi aveva già compilato il proprio profilo prima della migration: il trigger di sync
+copre solo le scritture *future* su `profili_giocatore`, non retroattivamente, e M18
+backfillava a mano solo il seed storico. Migration `m19_backfill_nascita_da_profili_esistenti`
+allinea una tantum `giocatori_squadra.nascita` a `profili_giocatore.data_nascita` per tutti i
+profili già esistenti, con la stessa disattivazione temporanea del trigger di sicurezza usata
+in M18. Da qui in poi il gap non si può ripresentare: ogni scrittura successiva passa dal
+trigger di sync, questo backfill serve solo per lo storico antecedente a M18.

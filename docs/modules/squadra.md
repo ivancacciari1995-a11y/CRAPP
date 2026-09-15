@@ -22,7 +22,11 @@ giocatore dalla dashboard admin non aveva alcun effetto sul resto dell'app.
 
 - **`useAnagraficaRosa()`** (`rosa.ts`) — solo id, nome, ruolo, numero, data di nascita dei
   giocatori `attivo`. Serve dove basta sapere chi c'è, es. i compleanni nel Calendario o le
-  liste presenze: non monta gli hook di MVP/pagelle/palloni/infortuni.
+  liste presenze: non monta gli hook di MVP/pagelle/palloni/infortuni. La data di nascita
+  viene da `giocatori_squadra.nascita` (migration `m18_nascita_pubblica_giocatori_squadra`,
+  DD-031): pubblica a tutta la rosa, sincronizzata automaticamente da un trigger quando il
+  giocatore (o un admin per lui) la salva dal Profilo — vedi `profilo-giocatore.md`. `null`
+  finché non è stata inserita da nessuno.
 - **`useRosa()`** (`rosa.ts`) — la stessa anagrafica arricchita con tutte le statistiche
   personali calcolate a runtime: presenze, partite giocate, serie (presenze, allenamenti,
   partite, conferme, palloni), MVP vinti, media voto pagelle, palloni, cacche, infortuni,
@@ -77,12 +81,7 @@ presentazione — le rispettive specifiche stanno in `badge.md` e `obiettivi-squ
 
 ## Limiti noti
 
-1. **`giocatori_squadra` non ha ancora una colonna per la data di nascita.** Per i
-   giocatori storici (seed iniziale) la nascita viene letta da `crapp-data.ts`
-   (`nascitaPerId`, lookup per id); un giocatore aggiunto dopo la migrazione non ha nascita
-   nota finché la colonna non esiste (DD-015). Effetto visibile: niente compleanno nel
-   Calendario per quei giocatori.
-2. **`src/lib/crapp-data.ts` resta come fallback**, non più come fonte viva: se il database
+1. **`src/lib/crapp-data.ts` resta come fallback**, non più come fonte viva: se il database
    non risponde o non è ancora popolato, `rosaFallback()` genera una rosa di riserva dai
    dati statici storici. Un ambiente nuovo senza dati in `giocatori_squadra` mostra quindi
    comunque una squadra, non una schermata vuota — ma è la rosa 2025/26 hardcoded, non

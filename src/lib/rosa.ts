@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { nascitaPerId, type Giocatore } from "./crapp-data";
+import type { Giocatore } from "./crapp-data";
 import { nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
 import { mvpVintiPerGiocatore, useVotiMvp } from "./mvp-voti";
 import { mediePagelle, usePagelle } from "./pagelle";
@@ -44,7 +44,7 @@ export function useAnagraficaRosa(): Array<
           nome: nomeCompleto(g),
           ruolo: g.ruolo,
           numero: g.numero,
-          nascita: nascitaPerId[g.id] ?? "",
+          nascita: g.nascita ?? "",
         })),
     [squadra],
   );
@@ -85,7 +85,7 @@ export function useRosa(): Giocatore[] {
         nome: nomeCompleto(g),
         numero: g.numero,
         ruolo: g.ruolo,
-        nascita: nascitaPerId[g.id] ?? "",
+        nascita: g.nascita ?? "",
         iniziali: iniziali(g.nome, g.cognome),
         presenze: contaPresenzeGiocatore(g.id, eventi, mappaPresenze),
         totaliEventi: totaliEventiGiocatore(g.id, eventi),

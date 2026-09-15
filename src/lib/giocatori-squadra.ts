@@ -18,6 +18,8 @@ export type GiocatoreSquadra = {
   email: string | null;
   numeroTessera: string | null;
   dataTessera: string | null;
+  /** Pubblica a tutta la rosa (M18): sincronizzata da `profili_giocatore.data_nascita`. */
+  nascita: string | null;
 };
 
 export type RigaGiocatoreSquadra = {
@@ -31,6 +33,7 @@ export type RigaGiocatoreSquadra = {
   email: string | null;
   numero_tessera: string | null;
   data_tessera: string | null;
+  nascita: string | null;
 };
 
 /** Ruoli ammessi in campo (pallavolo): usati per il menu a tendina del profilo squadra. */
@@ -50,6 +53,7 @@ export function rosaFallback(): GiocatoreSquadra[] {
     email: null,
     numeroTessera: null,
     dataTessera: null,
+    nascita: g.nascita,
   }));
 }
 
@@ -77,7 +81,7 @@ export function slotPerEmail(
 }
 
 export const COLONNE_SQUADRA =
-  "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera";
+  "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera, nascita";
 
 /** Conversione riga database -> modello applicativo (riusabile anche lato server). */
 export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
@@ -92,6 +96,7 @@ export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
     email: r.email,
     numeroTessera: r.numero_tessera,
     dataTessera: r.data_tessera,
+    nascita: r.nascita,
   };
 }
 
@@ -231,7 +236,14 @@ export function useAggiungiGiocatore() {
       const { error } = await supabaseNuoveTabelle.from("giocatori_squadra").insert(riga);
       if (error) throw error;
       // Le colonne non inviate hanno i default della tabella (M1): `attivo` true, il resto NULL.
-      return { ...riga, authUserId: null, attivo: true, numeroTessera: null, dataTessera: null };
+      return {
+        ...riga,
+        authUserId: null,
+        attivo: true,
+        numeroTessera: null,
+        dataTessera: null,
+        nascita: null,
+      };
     },
     // Aggiornamento locale della cache: nessuna rilettura, stesso ordine della query
     // (`.order("cognome").order("nome")`).

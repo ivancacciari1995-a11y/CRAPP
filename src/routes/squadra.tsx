@@ -169,12 +169,14 @@ function Squadra() {
 
               {isOpen ? (
                 <div className="border-t border-border px-4 pb-4 pt-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Cake className="h-3.5 w-3.5" /> {formatData(g.nascita)}{" "}
-                      {g.nascita.slice(0, 4)}
-                    </p>
-                  </div>
+                  {g.nascita ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Cake className="h-3.5 w-3.5" /> {formatData(g.nascita)}{" "}
+                        {g.nascita.slice(0, 4)}
+                      </p>
+                    </div>
+                  ) : null}
 
                   <div className="mt-3 grid grid-cols-3 gap-2">
                     {[

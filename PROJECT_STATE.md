@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 09/09/2026
+Ultimo aggiornamento: 15/09/2026
 
 ## Stato generale
 
@@ -23,9 +23,10 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 28 migration in `supabase/migrations/`, fino a `m17_notifiche_utente` (15/09/2026) —
-  quest'ultima testata solo in locale (`npx supabase db reset`), non ancora applicata in
-  produzione (`supabase db push`)
+- 30 migration in `supabase/migrations/`, fino a `m19_backfill_nascita_da_profili_esistenti`
+  (15/09/2026). `m17_notifiche_utente` e `m18_nascita_pubblica_giocatori_squadra` sono state
+  applicate in produzione lo stesso giorno (`supabase db push`); `m19` (fix del backfill di
+  M18, vedi sotto) è ancora solo in locale
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -44,9 +45,18 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
   (`m16_funzione_bonifica_dati_evento_orfani` in produzione dal 09/09/2026, verificata con
   `npx supabase migration list`)
 - Migration `m17_notifiche_utente` (15/09/2026, DD-030): nuova tabella `notifiche_utente`
-  per il centro notifiche in-app, testata sullo stack locale — **non ancora applicata in
-  produzione**, va fatta con `supabase db push` quando si decide di rilasciare la
-  funzionalità (è additiva: non tocca schema o comportamento esistenti, vedi DD-030)
+  per il centro notifiche in-app — **in produzione** dal 15/09/2026 (è additiva: non tocca
+  schema o comportamento esistenti, vedi DD-030). Il codice che la usa (icona notifiche,
+  route aggiornate) non è ancora deployato: la tabella si riempie già in background
+- Migration `m18_nascita_pubblica_giocatori_squadra` (15/09/2026, DD-031): nuova colonna
+  `giocatori_squadra.nascita`, sincronizzata da `profili_giocatore.data_nascita` — corregge
+  l'"Invalid Date" in Squadra per chi inserisce la propria nascita dal Profilo invece del
+  seed storico. **In produzione** dal 15/09/2026, ma il backfill copriva solo il seed
+  storico: chi aveva già un profilo compilato prima di M18 è rimasto scoperto
+- Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
+  backfill di M18 per tutti i profili già esistenti — **non ancora applicata in produzione**,
+  va fatta con `supabase db push` appena possibile (M18 da sola in produzione lascia la
+  nascita vuota per chi non è nel seed storico e non risalva il profilo)
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza

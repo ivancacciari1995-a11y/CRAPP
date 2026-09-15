@@ -91,7 +91,11 @@ Il profilo viene suddiviso in sette aree.
 
 **Dati personali** — modificabili dal giocatore.
 
-- Data di nascita
+- Data di nascita — oltre a `profili_giocatore.data_nascita`, un trigger la sincronizza in
+  `giocatori_squadra.nascita` (DD-031): a differenza degli altri campi di questa sezione,
+  visibile a **tutta la squadra**, non solo al giocatore stesso o all'admin (alimenta
+  Squadra e i compleanni nel Calendario, vedi `squadra.md`). Cancellare il profilo azzera
+  anche quel valore pubblico.
 - Luogo di nascita
 - Indirizzo di residenza
 - Telefono
