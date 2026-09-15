@@ -1309,3 +1309,10 @@ allinea una tantum `giocatori_squadra.nascita` a `profili_giocatore.data_nascita
 profili già esistenti, con la stessa disattivazione temporanea del trigger di sicurezza usata
 in M18. Da qui in poi il gap non si può ripresentare: ogni scrittura successiva passa dal
 trigger di sync, questo backfill serve solo per lo storico antecedente a M18.
+
+A differenza della bonifica eventi orfani (DD-029, M15→M16), qui il backfill non è stato
+reso una funzione richiamabile: resta SQL diretto nella migration. La copertura di test
+(`test/integration/backfill-nascita-esistenti.test.ts`) verifica comunque lo stesso
+comportamento eseguendo lo stesso pattern SQL via `psql` nel container Postgres locale —
+scelta necessaria perché senza una funzione RPC, PostgREST non espone un update
+multi-tabella come questo.
