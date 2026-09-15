@@ -17,6 +17,7 @@ nessuna di esse da M4 (DD-011).
 | `risposte_presenze`, `cacche_partita`                            | il giocatore sulla propria riga (`giocatore_id`), più gli admin     |
 | `pagelle_voti`, `mvp_voti`, `badge_social_voti`                  | il votante sui propri voti (`votante_id`), se votante e votato sono convocati all'evento (`m13`); solo per le pagelle anche `pagelle_chiuse = false`; gli admin senza questi vincoli |
 | `turni_palloni`, `scout_sessioni`, `scout_live`, `scout_partite` | qualsiasi autenticato: nell'interfaccia non hanno gate              |
+| `notifiche_utente`                                               | nessuno scrive da client: le righe nascono da trigger/funzioni `SECURITY DEFINER` o dalla service role (M17); il giocatore può solo segnare come lette le proprie |
 | `profili_giocatore`                                              | il giocatore sul proprio profilo, admin su tutti (DD-016, DD-017)   |
 | `giocatori_squadra`                                              | admin; il giocatore può solo reclamare uno slot libero (DD-016)     |
 | `user_roles`                                                     | solo admin                                                          |
@@ -74,6 +75,7 @@ La tabella è verificata da `test/integration/permessi.test.ts` contro il databa
 | `turni_palloni`      | Gestione dei turni palloni.                   | Solo turni **confermati**. Gli allenamenti non ricevono proposta automatica (vedi [palloni.md](modules/palloni.md)); M10 azzera i turni salvati su allenamenti da oggi in poi. |
 | `push_subscriptions` | Dispositivi registrati per le notifiche Push. |                                                                                                                                                                                |
 | `promemoria_push`    | Non più usata.                                | Serviva da coda del testo quando la push partiva vuota; dal payload cifrato non la scrive né la legge nessuno. Tabella ancora presente, da eliminare con una migrazione.       |
+| `notifiche_utente`   | Centro notifiche in-app, con stato letto/non letto, accanto al profilo. | Introdotta dalla migration `m17_notifiche_utente`. Quattro sorgenti, tutte in parallelo alla push esistente: messaggio libero dell'admin (`notifica-personalizzata.ts`), un promemoria automatico prima di un evento — 24h e 3h prima, due `cron.schedule` (estensione `pg_cron`, abilitata il 31/07/2026 ma usata per la prima volta qui) — il turno palloni (`promemoria-palloni.ts`) e il sollecito presenze (`sollecita-presenze.ts`), questi ultimi due avviati a mano da un admin. Volutamente non c'è una notifica sulla sola creazione di un evento: conta l'avvicinarsi della data, non il momento in cui è stato messo in calendario. I destinatari di un evento seguono la stessa convenzione di `convocatiEvento()`/`evento_permette_voto()` (M13): `convocati` vuoto = tutta la rosa attiva. Letta/segnata come letta dal client con `useNotificheMie()`/`useSegnaLette()` (`src/lib/notifiche-utente.ts`), RLS-only, nessuna route API dedicata per queste due operazioni. |
 
 ## Funzioni speciali
 

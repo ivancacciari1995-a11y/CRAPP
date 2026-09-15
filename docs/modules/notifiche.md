@@ -1,9 +1,11 @@
 # Modulo — Notifiche
 
-**Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push
-**File principali:** `src/lib/notifiche-smart.ts`, `src/lib/push-client.ts`,
-`src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
-`src/routes/api/public/push-subscribe.ts`, `public/push-sw.js`
+**Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push, più un
+centro notifiche in-app indipendente accanto al profilo
+**File principali:** `src/lib/notifiche-smart.ts`, `src/lib/notifiche-utente.ts`,
+`src/lib/push-client.ts`, `src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
+`src/routes/api/public/push-subscribe.ts`, `public/push-sw.js`,
+`src/components/crapp/ui-bits.tsx` (`IconaNotifiche`)
 
 ---
 
@@ -111,6 +113,47 @@ ha un id deterministico; quelli già mostrati sono salvati in `localStorage` per
 ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 
 ---
+
+## Centro notifiche in-app (M17)
+
+Icona a campana accanto al link profilo (`IconaNotifiche` in `src/components/crapp/ui-bits.tsx`,
+dentro `PageHeader`), con badge del numero di non lette. Indipendente dal canale push sopra:
+non richiede che il dispositivo abbia attivato «Notifiche», ha uno storico persistente in
+`notifiche_utente` (vedi [DATABASE.md](../DATABASE.md)) con stato letto/non letto, e non è la
+stessa cosa delle notifiche smart (quelle restano locali, non salvate a database).
+
+Quattro sorgenti scrivono in `notifiche_utente`, mai il client:
+
+1. **Messaggio admin** — `notifica-personalizzata.ts` inserisce una riga per destinatario
+   in parallelo all'invio push esistente (a tutta la rosa attiva se `giocatoreId` è omesso).
+2. **Promemoria evento** — due job `pg_cron` (ogni ora per la finestra delle 24h, ogni 15
+   minuti per quella delle 3h) generano una notifica per evento imminente, per i convocati
+   (o tutta la rosa attiva se l'evento non ne specifica), deduplicata da un vincolo
+   `UNIQUE (giocatore_id, evento_id, tipo)` così un cron che gira più volte non manda
+   doppioni. Volutamente non c'è una notifica sulla sola creazione dell'evento: conta
+   l'avvicinarsi della data, non il momento in cui è stato messo in calendario.
+3. **Turno palloni** — `promemoria-palloni.ts` (bottone riservato agli admin sulla pagina
+   evento, vedi [Turno palloni](palloni.md)) inserisce una riga per ciascun avviso calcolato
+   da `avvisiPalloniEvento()`, in parallelo alla push.
+4. **Sollecito presenze** — `sollecita-presenze.ts` (stesso innesco manuale) inserisce una
+   riga per ciascun giocatore che non ha ancora risposto, in parallelo alla push.
+
+Turno palloni e sollecito presenze usano un `upsert` su `(giocatore_id, evento_id, tipo)`
+invece di un semplice insert: se l'admin preme di nuovo il pulsante per lo stesso evento, la
+notifica esistente viene aggiornata (testo e `creato_il` freschi, `letta` riportata a false)
+invece di duplicarsi o fallire per il vincolo `UNIQUE`.
+
+Lettura, "segna come letta" ed eliminazione passano dal client Supabase autenticato con RLS
+(`useNotificheMie()`/`useSegnaLette()`/`useEliminaNotifica()`), senza una route API dedicata
+— stesso pattern di `useSalvaEvento()` in `src/lib/eventi.ts`. Aprire il pannello segna tutte
+le notifiche del giocatore selezionato come lette; non c'è un pulsante "segna singola"
+separato.
+
+**Non c'è pulizia automatica delle notifiche vecchie** (DD-030): l'unico modo per farle
+sparire per sempre è eliminarle una per una, con uno swipe verso sinistra sulla riga
+(`RigaNotifica` in `ui-bits.tsx`, stessa fisica a molla dello swipe del calendario) o con la
+× che compare sopra ogni riga per chi non è su touch. Chi non tocca mai una notifica se la
+ritrova per sempre nell'elenco, solo segnata come letta.
 
 ## Limiti noti
 

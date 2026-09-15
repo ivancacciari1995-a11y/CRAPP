@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
 import { inviaPush } from "@/lib/webpush.server";
@@ -19,6 +20,9 @@ export const Route = createFileRoute("/api/public/notifica-personalizzata")({
         if (!parsed.success) return new Response("Dati non validi", { status: 400 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        // `types.ts` non include ancora `notifiche_utente` (M17): stesso aggiramento di
+        // `giocatori-squadra.server.ts` finché non viene rigenerato.
+        const client = supabaseAdmin as unknown as SupabaseClient;
 
         let query = supabaseAdmin.from("push_subscriptions").select("endpoint, p256dh, auth");
         if (parsed.data.giocatoreId) {
@@ -44,6 +48,29 @@ export const Route = createFileRoute("/api/public/notifica-personalizzata")({
           } catch (error) {
             console.error("notifica-personalizzata", error);
           }
+        }
+
+        // Storico in-app (M17): indipendente dall'esito della push, e non limitato a chi ha
+        // un dispositivo iscritto. Senza `giocatoreId` va a tutta la rosa attiva.
+        let destinatariNotifica: string[];
+        if (parsed.data.giocatoreId) {
+          destinatariNotifica = [parsed.data.giocatoreId];
+        } else {
+          const { data: rosa } = await client
+            .from("giocatori_squadra")
+            .select("id")
+            .eq("attivo", true);
+          destinatariNotifica = ((rosa ?? []) as Array<{ id: string }>).map((r) => r.id);
+        }
+        if (destinatariNotifica.length > 0) {
+          await client.from("notifiche_utente").insert(
+            destinatariNotifica.map((giocatoreId) => ({
+              giocatore_id: giocatoreId,
+              tipo: "admin",
+              titolo,
+              corpo: testo,
+            })),
+          );
         }
 
         return Response.json({ inviate, destinatari: iscrizioni?.length ?? 0 });

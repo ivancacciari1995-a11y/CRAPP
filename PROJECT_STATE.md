@@ -23,8 +23,9 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 27 migration in `supabase/migrations/`, fino a `m16_funzione_bonifica_dati_evento_orfani`
-  (09/09/2026)
+- 28 migration in `supabase/migrations/`, fino a `m17_notifiche_utente` (15/09/2026) —
+  quest'ultima testata solo in locale (`npx supabase db reset`), non ancora applicata in
+  produzione (`supabase db push`)
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -42,6 +43,10 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Schema v1.0 e migration da M1 a M16 applicate al nuovo Supabase
   (`m16_funzione_bonifica_dati_evento_orfani` in produzione dal 09/09/2026, verificata con
   `npx supabase migration list`)
+- Migration `m17_notifiche_utente` (15/09/2026, DD-030): nuova tabella `notifiche_utente`
+  per il centro notifiche in-app, testata sullo stack locale — **non ancora applicata in
+  produzione**, va fatta con `supabase db push` quando si decide di rilasciare la
+  funzionalità (è additiva: non tocca schema o comportamento esistenti, vedi DD-030)
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza

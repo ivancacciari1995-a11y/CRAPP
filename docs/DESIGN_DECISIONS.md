@@ -1155,3 +1155,73 @@ di orfani.
 **Riesame**  
 Se una nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va
 aggiornata a mano, non c'è un meccanismo che lo forzi).
+
+### DD-030 — Centro notifiche in-app: storico separato dalla push, letto solo con RLS
+
+**Data:** 15 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Le notifiche esistenti (`docs/modules/notifiche.md`) sono solo push OS/browser: arrivano se
+il dispositivo ha attivato l'interruttore in Profilo, sono effimere (nessuno storico) e non
+hanno uno stato letto/non letto — chi non attiva le push, o cambia dispositivo, semplicemente
+non le vede mai. Serviva un canale visibile sempre, dentro l'app, con un badge accanto al
+profilo che segnali quante cose non lette ci sono.
+
+**Decisione**  
+Nuova tabella `notifiche_utente` (migration `m17_notifiche_utente`), popolata da quattro
+sorgenti lato database — mai dal client:
+
+1. messaggio libero dell'admin (`notifica-personalizzata.ts`, in parallelo alla push);
+2. promemoria automatico prima di un evento, 24h e 3h prima, due `cron.schedule`
+   (estensione `pg_cron`, abilitata dal 31/07/2026 e usata per la prima volta qui);
+3. turno palloni (`promemoria-palloni.ts`), in parallelo alla push;
+4. sollecito presenze (`sollecita-presenze.ts`), in parallelo alla push.
+
+Lettura e scrittura (segna come letta, elimina) passano dal client Supabase autenticato con
+RLS (`useNotificheMie()`/`useSegnaLette()`/`useEliminaNotifica()` in
+`src/lib/notifiche-utente.ts`), senza una route API dedicata — stesso pattern di
+`useSalvaEvento()` in `eventi.ts`. Nessuna policy INSERT per `authenticated`: le righe nascono
+solo da funzioni `SECURITY DEFINER` o dalla service role, mai da un client.
+
+Icona a campana con badge (`IconaNotifiche`, `src/components/crapp/ui-bits.tsx`), pannello a
+comparsa costruito a mano (nel progetto non c'è una libreria dropdown). Ogni riga si elimina
+con uno swipe o una ×: non c'è pulizia automatica delle notifiche vecchie, quindi è l'unico
+modo per un giocatore di toglierle di torno per sempre.
+
+**Alternative scartate**
+
+- Notificare anche sulla sola creazione di un evento, non solo sull'avvicinarsi della data →
+  scartata su richiesta esplicita: conta quando l'evento sta per succedere, non il momento in
+  cui è stato messo in calendario. La prima versione aveva un trigger `AFTER INSERT ON
+  eventi_app` per questo, rimosso prima del rilascio.
+- Una route API dedicata per leggere/segnare come lette (come le route push esistenti) →
+  scartata: qui non serve la service role (niente da nascondere al giocatore stesso), quindi
+  la RLS basta ed evita di duplicare la logica di lettura già scritta lato client per gli
+  eventi.
+- Pulizia automatica delle notifiche vecchie con un cron di retention (es. elimina le lette
+  dopo 30 giorni) → scartata per ora a favore dello swipe manuale: più diretto da capire per
+  chi usa l'app, e la tabella resta comunque piccola per una sola squadra. Resta un'estensione
+  naturale se in futuro servisse.
+- Semplice `INSERT` invece di `upsert` per turno palloni e sollecito presenze → scartata: un
+  admin che preme due volte lo stesso pulsante per lo stesso evento avrebbe urtato contro il
+  vincolo `UNIQUE (giocatore_id, evento_id, tipo)`. L'upsert aggiorna la riga esistente
+  (testo e `creato_il` freschi, `letta` di nuovo `false`), così ripremere il pulsante si
+  comporta come un rinvio vero, non un errore silenzioso.
+
+**Conseguenze**
+
+- Il badge sull'icona riflette solo ciò che sta in `notifiche_utente`: un dispositivo senza
+  push attive vede comunque tutto, perché il canale è del tutto indipendente.
+- `eventi_app.ora` è testo libero e non validato dal form (`<input type="time">` si può
+  svuotare): la funzione `genera_promemoria_eventi()` usa `ora_evento_a_time()`, che assorbe
+  l'errore di cast riga per riga invece di far fallire l'intera generazione dei promemoria per
+  tutti gli eventi quando uno solo ha l'ora scritta male.
+- `test/integration/notifiche-utente.test.ts` è la definizione eseguibile del comportamento:
+  promemoria 24h/3h e deduplica, tolleranza a un'ora malformata, RLS su lettura/segna
+  letta/elimina, e le tre route (`notifica-personalizzata`, `promemoria-palloni`,
+  `sollecita-presenze`) che scrivono lo storico in-app.
+
+**Riesame**  
+Se la tabella crescesse in modo sensibile (squadre molto più numerose, o giocatori che non
+fanno mai swipe), va aggiunta la pulizia automatica scartata sopra.

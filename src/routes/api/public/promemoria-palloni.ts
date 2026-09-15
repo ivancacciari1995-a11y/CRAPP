@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
 import { nomeCompleto } from "@/lib/giocatori-squadra";
@@ -43,6 +44,24 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
 
         const avvisi = avvisiPalloniEvento(turni, eventi, evento.id);
         if (avvisi.length === 0) return Response.json({ inviate: 0, destinatari: 0 });
+
+        // Storico in-app (M17): un upsert perché ripremere il pulsante deve riportare la
+        // notifica a non letta con il testo aggiornato, non fallire per il vincolo UNIQUE.
+        // `types.ts` non include ancora `notifiche_utente`, stesso aggiramento di
+        // `giocatori-squadra.server.ts`.
+        const client = supabaseAdmin as unknown as SupabaseClient;
+        await client.from("notifiche_utente").upsert(
+          avvisi.map((a) => ({
+            giocatore_id: a.giocatoreId,
+            tipo: "turno_palloni",
+            titolo: a.titolo,
+            corpo: a.testo,
+            evento_id: evento.id,
+            letta: false,
+            creato_il: new Date().toISOString(),
+          })),
+          { onConflict: "giocatore_id,evento_id,tipo" },
+        );
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")

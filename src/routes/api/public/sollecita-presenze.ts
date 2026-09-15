@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
 import { formatData } from "@/lib/crapp-data";
@@ -47,6 +48,23 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
         const testo = `${evento.titolo} · ${formatData(evento.data)} ore ${evento.ora}. ${
           parsed.data.da ? `${parsed.data.da} chiede` : "Serve"
         } una conferma: presente, assente o in ritardo?`;
+
+        // Storico in-app (M17): un upsert perché ripremere il pulsante deve riportare la
+        // notifica a non letta, non fallire per il vincolo UNIQUE. `types.ts` non include
+        // ancora `notifiche_utente`, stesso aggiramento di `giocatori-squadra.server.ts`.
+        const client = supabaseAdmin as unknown as SupabaseClient;
+        await client.from("notifiche_utente").upsert(
+          destinatari.map((giocatoreId) => ({
+            giocatore_id: giocatoreId,
+            tipo: "sollecita_presenze",
+            titolo,
+            corpo: testo,
+            evento_id: evento.id,
+            letta: false,
+            creato_il: new Date().toISOString(),
+          })),
+          { onConflict: "giocatore_id,evento_id,tipo" },
+        );
 
         let inviate = 0;
         for (const iscrizione of iscrizioni ?? []) {

@@ -134,6 +134,12 @@ if (!locale) {
     });
   } finally {
     server.stop();
+    // La route scrive anche lo storico in-app (M17): il messaggio "prova" a tutta la
+    // rosa lascia righe in `notifiche_utente` che altrimenti restano per sempre.
+    await fetch(`${SUPABASE}/rest/v1/notifiche_utente?corpo=eq.prova&tipo=eq.admin`, {
+      method: "DELETE",
+      headers: authAdmin,
+    });
     for (const id of idUtenti) {
       await fetch(`${SUPABASE}/rest/v1/user_roles?user_id=eq.${id}`, {
         method: "DELETE",
