@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Crown, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { useGiocatoreInCampo } from "@/lib/user-store";
 import { usePresenzeEvento } from "@/lib/presenze";
 import type { Evento } from "@/lib/eventi";
 import {
@@ -25,14 +25,14 @@ import {
  */
 export function VotazioneMvp({ evento }: { evento: Evento }) {
   const matchId = evento.id;
-  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
-  const io = useGiocatoreBase();
+  // Solo `.id` serve qui, niente statistiche; `null` per l'allenatore, che non gioca (DD-034).
+  const io = useGiocatoreInCampo();
   const voti = useVotiMvp();
   const vota = useVotaMvp();
   const { righe: squadra } = useGiocatoriSquadra();
   const { risposte } = usePresenzeEvento(evento.id);
   const presente = (id: string) => risposte[id] === "presente" || risposte[id] === "ritardo";
-  const rosa = squadra.filter((g) => g.attivo && presente(g.id));
+  const rosa = squadra.filter((g) => inRosa(g) && presente(g.id));
   const [aperto, setAperto] = useState(false);
 
   const tutti: VotoMvp[] = voti.data ?? [];

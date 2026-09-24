@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
-import { formatData } from "@/lib/crapp-data";
+import { formatData, inizialiDa } from "@/lib/crapp-data";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import {
   useRosa,
@@ -15,6 +15,13 @@ import {
   type CriterioClassifica,
 } from "@/lib/rosa";
 import { usePresenzeUltimoMeseTutti } from "@/lib/presenze-mese";
+import {
+  isAllenatore,
+  nomeCompleto,
+  ruoloVisibile,
+  useGiocatoriSquadra,
+} from "@/lib/giocatori-squadra";
+import { useSonoAllenatore } from "@/lib/user-store";
 import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import { partiteGiocate } from "@/lib/csi-core";
@@ -87,6 +94,14 @@ function valore(
 
 function Squadra() {
   const rosa = useRosa();
+  // Gli allenatori stanno in Rosa con i giocatori, senza numero né statistiche (DD-034).
+  const { righe: squadra } = useGiocatoriSquadra();
+  const allenatori = useMemo(() => squadra.filter((g) => g.attivo && isAllenatore(g)), [squadra]);
+  // Chi allena non vede badge, cacche né obiettivi (DD-034).
+  const sonoAllenatore = useSonoAllenatore();
+  const criteriVisibili = sonoAllenatore
+    ? criteri.filter((c) => c.id !== "cacchePartita")
+    : criteri;
   const mese = usePresenzeUltimoMeseTutti();
   const scoutMatches = useScoutMatches();
   const { voti: pagelle } = usePagelle();
@@ -115,9 +130,36 @@ function Squadra() {
   const contenutoRosa = useMemo(
     () => (
       <div className="space-y-2">
+        {allenatori.map((a) => (
+          <article
+            key={a.id}
+            className="flex min-h-11 items-center gap-3 rounded-3xl bg-card p-3 shadow-card"
+          >
+            <Avatar
+              id={a.id}
+              fallback={inizialiDa(nomeCompleto(a))}
+              className="h-11 w-11 text-lg"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-bold leading-tight">
+                {nomeCompleto(a)}
+              </span>
+              <span className="mt-1 flex items-center gap-2">
+                <RuoloBadge ruolo={ruoloVisibile(a)} />
+                {a.nascita ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Cake className="h-3.5 w-3.5" /> {formatData(a.nascita)}
+                  </span>
+                ) : null}
+              </span>
+            </span>
+          </article>
+        ))}
         {rosa.map((g) => {
           const stati = badgeGiocatore(g);
-          const sbloccati = [...stati.filter((b) => b.grado !== null), ...badgeSegretiSbloccati(g)];
+          const sbloccati = sonoAllenatore
+            ? []
+            : [...stati.filter((b) => b.grado !== null), ...badgeSegretiSbloccati(g)];
           const isOpen = aperto === g.id;
           return (
             <article key={g.id} className="overflow-hidden rounded-3xl bg-card shadow-card">
@@ -185,7 +227,9 @@ function Squadra() {
                       { l: "Presenze di fila", v: g.streak },
                       { l: "Media voto", v: g.mediaVoto || "—" },
                       { l: "MVP", v: g.mvp },
-                      { l: "Cacche/partita 💩", v: g.cacchePartita || "—" },
+                      ...(sonoAllenatore
+                        ? []
+                        : [{ l: "Cacche/partita 💩", v: g.cacchePartita || "—" }]),
                     ].map((s) => (
                       <div key={s.l} className="rounded-2xl bg-secondary p-2.5 text-center">
                         <p className="font-display text-xl leading-none">{s.v}</p>
@@ -196,37 +240,45 @@ function Squadra() {
                     ))}
                   </div>
 
-                  <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                    Badge sbloccati · {collezioneBadge(g).ottenuti}/{collezioneBadge(g).totali}
-                  </p>
-                  {sbloccati.length === 0 ? (
-                    <p className="mt-2 rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
-                      Nessun badge sbloccato per ora.
-                    </p>
-                  ) : (
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {sbloccati.map((b) => {
-                        const Icon = b.def.icon;
-                        const meta = gradoMeta[b.grado!];
-                        return (
-                          <BadgeDrawer key={b.def.id} def={b.def} stato={b}>
-                            <div className={cn("rounded-2xl p-2.5 ring-1", meta.bg, meta.ring)}>
-                              <Icon className={cn("h-4 w-4", meta.text)} />
-                              <p className="mt-1 text-xs font-bold leading-tight">{b.def.nome}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {b.valore} {b.def.unita}
-                                {b.prossimaSoglia
-                                  ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}`
-                                  : ""}
-                              </p>
-                              <p className={cn("mt-1.5 text-xs font-bold uppercase", meta.text)}>
-                                {meta.label}
-                              </p>
-                            </div>
-                          </BadgeDrawer>
-                        );
-                      })}
-                    </div>
+                  {sonoAllenatore ? null : (
+                    <>
+                      <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                        Badge sbloccati · {collezioneBadge(g).ottenuti}/{collezioneBadge(g).totali}
+                      </p>
+                      {sbloccati.length === 0 ? (
+                        <p className="mt-2 rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+                          Nessun badge sbloccato per ora.
+                        </p>
+                      ) : (
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {sbloccati.map((b) => {
+                            const Icon = b.def.icon;
+                            const meta = gradoMeta[b.grado!];
+                            return (
+                              <BadgeDrawer key={b.def.id} def={b.def} stato={b}>
+                                <div className={cn("rounded-2xl p-2.5 ring-1", meta.bg, meta.ring)}>
+                                  <Icon className={cn("h-4 w-4", meta.text)} />
+                                  <p className="mt-1 text-xs font-bold leading-tight">
+                                    {b.def.nome}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {b.valore} {b.def.unita}
+                                    {b.prossimaSoglia
+                                      ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}`
+                                      : ""}
+                                  </p>
+                                  <p
+                                    className={cn("mt-1.5 text-xs font-bold uppercase", meta.text)}
+                                  >
+                                    {meta.label}
+                                  </p>
+                                </div>
+                              </BadgeDrawer>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ) : null}
@@ -235,7 +287,7 @@ function Squadra() {
         })}
       </div>
     ),
-    [rosa, aperto, mese],
+    [rosa, aperto, mese, allenatori, sonoAllenatore],
   );
 
   const contenutoStats = useMemo(
@@ -271,7 +323,7 @@ function Squadra() {
                 <DrawerTitle>Classifica per</DrawerTitle>
               </DrawerHeader>
               <div className="flex flex-col gap-1 px-4 pb-6">
-                {criteri.map((c) => (
+                {criteriVisibili.map((c) => (
                   <DrawerClose key={c.id} asChild>
                     <button
                       type="button"
@@ -326,7 +378,18 @@ function Squadra() {
         </div>
       </div>
     ),
-    [mediaPresenze, matchGiocati, pagelle, team, filtroAperto, criterio, ordinati, rank, max],
+    [
+      mediaPresenze,
+      matchGiocati,
+      pagelle,
+      team,
+      filtroAperto,
+      criterio,
+      ordinati,
+      rank,
+      max,
+      criteriVisibili,
+    ],
   );
 
   const contenutoObiettivi = useMemo(
@@ -450,8 +513,12 @@ function Squadra() {
         voci={[
           { id: "rosa", label: "Rosa", contenuto: contenutoRosa },
           { id: "stats", label: "Stats", contenuto: contenutoStats },
-          { id: "obiettivi", label: "Obiettivi", contenuto: contenutoObiettivi },
-          { id: "badge", label: "Badge", contenuto: contenutoBadge },
+          ...(sonoAllenatore
+            ? []
+            : [
+                { id: "obiettivi", label: "Obiettivi", contenuto: contenutoObiettivi },
+                { id: "badge", label: "Badge", contenuto: contenutoBadge },
+              ]),
         ]}
       />
     </>

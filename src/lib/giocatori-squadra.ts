@@ -7,10 +7,14 @@ import { dividiNome, giocatori } from "./crapp-data";
  * truth per il collegamento account ↔ giocatore; `crapp-data.ts` resta il fallback finché
  * la migrazione non è completa (DD-016 regola 1).
  */
+/** Chi gioca e chi allena (DD-034): l'allenatore ha uno slot ma non è nella rosa di gioco. */
+export type TipoMembro = "giocatore" | "allenatore";
+
 export type GiocatoreSquadra = {
   id: string;
   nome: string;
   cognome: string;
+  /** 0 per l'allenatore, che non ha numero di maglia (a database è NULL). */
   numero: number;
   ruolo: string;
   authUserId: string | null;
@@ -20,13 +24,14 @@ export type GiocatoreSquadra = {
   dataTessera: string | null;
   /** Pubblica a tutta la rosa (M18): sincronizzata da `profili_giocatore.data_nascita`. */
   nascita: string | null;
+  tipo: TipoMembro;
 };
 
 export type RigaGiocatoreSquadra = {
   id: string;
   nome: string;
   cognome: string;
-  numero: number;
+  numero: number | null;
   ruolo: string;
   auth_user_id: string | null;
   attivo: boolean;
@@ -34,6 +39,7 @@ export type RigaGiocatoreSquadra = {
   numero_tessera: string | null;
   data_tessera: string | null;
   nascita: string | null;
+  tipo: TipoMembro;
 };
 
 /** Ruoli ammessi in campo (pallavolo): usati per il menu a tendina del profilo squadra. */
@@ -54,11 +60,30 @@ export function rosaFallback(): GiocatoreSquadra[] {
     numeroTessera: null,
     dataTessera: null,
     nascita: g.nascita,
+    tipo: "giocatore" as const,
   }));
 }
 
 export function nomeCompleto(g: GiocatoreSquadra): string {
   return `${g.nome} ${g.cognome}`.trim();
+}
+
+export function isAllenatore(g: Pick<GiocatoreSquadra, "tipo"> | null | undefined): boolean {
+  return g?.tipo === "allenatore";
+}
+
+/**
+ * Rosa di gioco: giocatori attivi, senza allenatori (DD-034). È il filtro di presenze,
+ * convocati, voti, palloni, classifiche e badge; gli allenatori compaiono solo dove la
+ * specifica lo dice (Rosa di Squadra, compleanni, promemoria evento).
+ */
+export function inRosa(g: Pick<GiocatoreSquadra, "attivo" | "tipo">): boolean {
+  return g.attivo && g.tipo === "giocatore";
+}
+
+/** Dove un giocatore ha il ruolo in campo, l'allenatore ha scritto «Allenatore». */
+export function ruoloVisibile(g: Pick<GiocatoreSquadra, "ruolo" | "tipo">): string {
+  return g.tipo === "allenatore" ? "Allenatore" : g.ruolo;
 }
 
 /** Lo slot già collegato a questo account, se esiste. */
@@ -81,7 +106,7 @@ export function slotPerEmail(
 }
 
 export const COLONNE_SQUADRA =
-  "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera, nascita";
+  "id, nome, cognome, numero, ruolo, auth_user_id, attivo, email, numero_tessera, data_tessera, nascita, tipo";
 
 /** Conversione riga database -> modello applicativo (riusabile anche lato server). */
 export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
@@ -89,7 +114,7 @@ export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
     id: r.id,
     nome: r.nome,
     cognome: r.cognome,
-    numero: r.numero,
+    numero: r.numero ?? 0,
     ruolo: r.ruolo,
     authUserId: r.auth_user_id,
     attivo: r.attivo,
@@ -97,6 +122,7 @@ export function daRigaSquadra(r: RigaGiocatoreSquadra): GiocatoreSquadra {
     numeroTessera: r.numero_tessera,
     dataTessera: r.data_tessera,
     nascita: r.nascita,
+    tipo: r.tipo === "allenatore" ? "allenatore" : "giocatore",
   };
 }
 
@@ -120,7 +146,10 @@ export function useGiocatoriSquadra() {
 
 /** Dati squadra: li gestisce solo un amministratore (DD-017). L'email è quella usata per
  * il collegamento automatico al primo accesso (DD-018), non il dato personale del profilo. */
-export type DatiSquadra = Pick<GiocatoreSquadra, "nome" | "cognome" | "numero" | "ruolo" | "email">;
+export type DatiSquadra = Pick<
+  GiocatoreSquadra,
+  "nome" | "cognome" | "numero" | "ruolo" | "email" | "tipo"
+>;
 
 /**
  * Controlli che rispecchiano i vincoli della tabella (`numero > 0`, campi obbligatori):
@@ -130,6 +159,11 @@ export type DatiSquadra = Pick<GiocatoreSquadra, "nome" | "cognome" | "numero" |
 export function validaDatiSquadra(dati: DatiSquadra): string | null {
   if (!dati.nome.trim()) return "Il nome non può essere vuoto.";
   if (!dati.cognome.trim()) return "Il cognome non può essere vuoto.";
+  // L'allenatore non ha numero di maglia né ruolo in campo (DD-034).
+  if (dati.tipo === "allenatore") {
+    if (dati.email?.trim() && !dati.email.includes("@")) return "L'email non è valida.";
+    return null;
+  }
   if (!Number.isInteger(dati.numero) || dati.numero <= 0)
     return "Il numero di maglia deve essere maggiore di zero.";
   if (!dati.ruolo.trim()) return "Il ruolo non può essere vuoto.";
@@ -152,7 +186,19 @@ export function numeroGiaUsato(
   giocatoreId: string,
   numero: number,
 ): boolean {
-  return righe.some((g) => g.id !== giocatoreId && g.attivo && g.numero === numero);
+  return righe.some((g) => g.id !== giocatoreId && inRosa(g) && g.numero === numero);
+}
+
+/** Riga da scrivere: all'allenatore numero NULL e ruolo vuoto, il tipo non cambia qui. */
+function rigaDatiSquadra(dati: DatiSquadra) {
+  const allenatore = dati.tipo === "allenatore";
+  return {
+    nome: dati.nome.trim(),
+    cognome: dati.cognome.trim(),
+    numero: allenatore ? null : dati.numero,
+    ruolo: allenatore ? "" : dati.ruolo.trim(),
+    email: dati.email?.trim() || null,
+  };
 }
 
 /** Modifica dei dati squadra. Solo un admin passa le policy di M1. */
@@ -160,19 +206,13 @@ export function useSalvaDatiSquadra() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { giocatoreId: string; dati: DatiSquadra }) => {
-      const dati = {
-        nome: input.dati.nome.trim(),
-        cognome: input.dati.cognome.trim(),
-        numero: input.dati.numero,
-        ruolo: input.dati.ruolo.trim(),
-        email: input.dati.email?.trim() || null,
-      };
+      const riga = rigaDatiSquadra(input.dati);
       const { error } = await supabaseNuoveTabelle
         .from("giocatori_squadra")
-        .update(dati)
+        .update(riga)
         .eq("id", input.giocatoreId);
       if (error) throw error;
-      return { giocatoreId: input.giocatoreId, dati };
+      return { giocatoreId: input.giocatoreId, dati: { ...riga, numero: riga.numero ?? 0 } };
     },
     onSuccess: (input) => {
       queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
@@ -225,19 +265,13 @@ export function useAggiungiGiocatore() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; dati: DatiSquadra }): Promise<GiocatoreSquadra> => {
-      const riga = {
-        id: input.id,
-        nome: input.dati.nome.trim(),
-        cognome: input.dati.cognome.trim(),
-        numero: input.dati.numero,
-        ruolo: input.dati.ruolo.trim(),
-        email: input.dati.email?.trim() || null,
-      };
+      const riga = { id: input.id, tipo: input.dati.tipo, ...rigaDatiSquadra(input.dati) };
       const { error } = await supabaseNuoveTabelle.from("giocatori_squadra").insert(riga);
       if (error) throw error;
       // Le colonne non inviate hanno i default della tabella (M1): `attivo` true, il resto NULL.
       return {
         ...riga,
+        numero: riga.numero ?? 0,
         authUserId: null,
         attivo: true,
         numeroTessera: null,
@@ -252,6 +286,32 @@ export function useAggiungiGiocatore() {
         [...(prec ?? []), nuovo].sort(
           (a, b) => a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome),
         ),
+      );
+    },
+  });
+}
+
+/**
+ * Nome e cognome scritti dall'allenatore sul proprio slot (DD-034): per un giocatore sono
+ * dati squadra dell'admin, e il trigger di M21 rifiuta la stessa scrittura.
+ */
+export function useSalvaNomeAllenatore() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { giocatoreId: string; nome: string; cognome: string }) => {
+      const dati = { nome: input.nome.trim(), cognome: input.cognome.trim() };
+      if (!dati.nome) throw new Error("Il nome non può essere vuoto.");
+      if (!dati.cognome) throw new Error("Il cognome non può essere vuoto.");
+      const { error } = await supabaseNuoveTabelle
+        .from("giocatori_squadra")
+        .update(dati)
+        .eq("id", input.giocatoreId);
+      if (error) throw error;
+      return { giocatoreId: input.giocatoreId, dati };
+    },
+    onSuccess: (input) => {
+      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
+        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
       );
     },
   });

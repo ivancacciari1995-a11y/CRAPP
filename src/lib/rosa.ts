@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Giocatore } from "./crapp-data";
-import { nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
 import { mvpVintiPerGiocatore, useVotiMvp } from "./mvp-voti";
 import { mediePagelle, usePagelle } from "./pagelle";
 import { statisticheCacche, useCacche } from "./cacche";
@@ -27,18 +27,21 @@ function iniziali(nome: string, cognome: string): string {
 
 /**
  * Solo anagrafica (id, nome, ruolo, numero, data di nascita) dei giocatori attivi — es.
- * per i compleanni nel Calendario o le liste presenze. A differenza di `useRosa` non
- * legge MVP, pagelle, cacche, palloni né infortuni: evita di montare quei cinque hook e
- * il relativo `useMemo` solo per l'anagrafica.
+ * per le liste presenze o lo scout. A differenza di `useRosa` non legge MVP, pagelle,
+ * cacche, palloni né infortuni: evita di montare quei cinque hook e il relativo `useMemo`
+ * solo per l'anagrafica. Con `conAllenatori` include anche gli allenatori attivi, per chi
+ * elenca i membri della squadra e non solo chi gioca (compleanni in Calendario, DD-034).
  */
-export function useAnagraficaRosa(): Array<
+export function useAnagraficaRosa({
+  conAllenatori = false,
+}: { conAllenatori?: boolean } = {}): Array<
   Pick<Giocatore, "id" | "nome" | "ruolo" | "numero" | "nascita">
 > {
   const { righe: squadra } = useGiocatoriSquadra();
   return useMemo(
     () =>
       squadra
-        .filter((g) => g.attivo)
+        .filter((g) => (conAllenatori ? g.attivo : inRosa(g)))
         .map((g) => ({
           id: g.id,
           nome: nomeCompleto(g),
@@ -46,7 +49,7 @@ export function useAnagraficaRosa(): Array<
           numero: g.numero,
           nascita: g.nascita ?? "",
         })),
-    [squadra],
+    [squadra, conAllenatori],
   );
 }
 
@@ -54,7 +57,7 @@ export function useAnagraficaRosa(): Array<
  * Rosa completa con tutte le statistiche personali (presenze, MVP, media voto,
  * palloni, infortuni, ritardi, cacche). Legge l'anagrafica da `giocatori_squadra`
  * (DD-015): solo i giocatori attivi, gli altri restano nel database ma spariscono
- * dagli elenchi correnti. Usa solo cache già in memoria: nessuna query aggiuntiva
+ * dagli elenchi correnti. Gli allenatori non ci sono (DD-034): non hanno statistiche. Usa solo cache già in memoria: nessuna query aggiuntiva
  * rispetto a quelle che l'app fa comunque.
  */
 export function useRosa(): Giocatore[] {
@@ -78,32 +81,30 @@ export function useRosa(): Giocatore[] {
     const palloni = conteggioTurni(turniSalvati, eventi);
     const mvpVinti = mvpVintiPerGiocatore(votiMvp ?? []);
 
-    return squadra
-      .filter((g) => g.attivo)
-      .map((g) => ({
-        id: g.id,
-        nome: nomeCompleto(g),
-        numero: g.numero,
-        ruolo: g.ruolo,
-        nascita: g.nascita ?? "",
-        iniziali: iniziali(g.nome, g.cognome),
-        presenze: contaPresenzeGiocatore(g.id, eventi, mappaPresenze),
-        totaliEventi: totaliEventiGiocatore(g.id, eventi),
-        partiteGiocate: contaPartiteGiocate(g.id, eventi, mappaPresenze),
-        streak: serieConsecutiva(g.id, eventi, mappaPresenze),
-        serieAllenamenti: serieConsecutiva(g.id, eventi, mappaPresenze, "allenamento"),
-        seriePartite: serieConsecutiva(g.id, eventi, mappaPresenze, "partita"),
-        serieConferme: serieConferme(g.id, eventi, tempi),
-        mvp: mvpVinti[g.id] ?? 0,
-        mediaVoto: medie[g.id]?.media ?? 0,
-        votiPagella: medie[g.id]?.voti ?? 0,
-        palloni: palloni[g.id] ?? 0,
-        seriePalloni: serieConsecutivaPalloni(g.id, turniSalvati, eventi),
-        cacche: statCacche[g.id]?.giornateTop ?? 0,
-        cacchePartita: statCacche[g.id]?.media ?? 0,
-        infortuni: infortuni[g.id] ?? 0,
-        ritardi: ritardi[g.id] ?? 0,
-      }));
+    return squadra.filter(inRosa).map((g) => ({
+      id: g.id,
+      nome: nomeCompleto(g),
+      numero: g.numero,
+      ruolo: g.ruolo,
+      nascita: g.nascita ?? "",
+      iniziali: iniziali(g.nome, g.cognome),
+      presenze: contaPresenzeGiocatore(g.id, eventi, mappaPresenze),
+      totaliEventi: totaliEventiGiocatore(g.id, eventi),
+      partiteGiocate: contaPartiteGiocate(g.id, eventi, mappaPresenze),
+      streak: serieConsecutiva(g.id, eventi, mappaPresenze),
+      serieAllenamenti: serieConsecutiva(g.id, eventi, mappaPresenze, "allenamento"),
+      seriePartite: serieConsecutiva(g.id, eventi, mappaPresenze, "partita"),
+      serieConferme: serieConferme(g.id, eventi, tempi),
+      mvp: mvpVinti[g.id] ?? 0,
+      mediaVoto: medie[g.id]?.media ?? 0,
+      votiPagella: medie[g.id]?.voti ?? 0,
+      palloni: palloni[g.id] ?? 0,
+      seriePalloni: serieConsecutivaPalloni(g.id, turniSalvati, eventi),
+      cacche: statCacche[g.id]?.giornateTop ?? 0,
+      cacchePartita: statCacche[g.id]?.media ?? 0,
+      infortuni: infortuni[g.id] ?? 0,
+      ritardi: ritardi[g.id] ?? 0,
+    }));
   }, [
     squadra,
     votiMvp,

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import type { Giocatore } from "@/lib/crapp-data";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { useGiocatoreInCampo } from "@/lib/user-store";
 import { mieiVoti, pagellePartita, usePagelle, useVotaPagella } from "@/lib/pagelle";
 
 const voti = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -20,8 +20,8 @@ export function Pagelle({
   convocati: Giocatore[];
   chiuse?: boolean;
 }) {
-  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
-  const io = useGiocatoreBase();
+  // Solo `.id` serve qui, niente statistiche; `null` per l'allenatore, che non gioca (DD-034).
+  const io = useGiocatoreInCampo();
   const { voti: tutti, isPending } = usePagelle();
   const vota = useVotaPagella();
   const [apertoPer, setApertoPer] = useState<string | null>(null);

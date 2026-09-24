@@ -10,7 +10,7 @@ import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
 import { useAnagraficaRosa } from "@/lib/rosa";
-import { useIsAdmin } from "@/lib/ruoli";
+import { usePuoGestireEventi } from "@/lib/ruoli";
 import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
 import {
   Drawer,
@@ -55,9 +55,9 @@ function Calendario() {
   }, []);
   const [giornoSelezionato, setGiornoSelezionato] = useState<number | null>(null);
   const [drawerAperto, setDrawerAperto] = useState(false);
-  const admin = useIsAdmin();
+  const puoGestire = usePuoGestireEventi();
   const { eventi } = useEventi();
-  const rosa = useAnagraficaRosa();
+  const rosa = useAnagraficaRosa({ conAllenatori: true });
   // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
   // `prefers-reduced-motion`: disattiva anche lo swipe orizzontale tra mesi.
   const ridotto = useMotoRidotto();
@@ -244,7 +244,7 @@ function Calendario() {
         </Card>
       </Section>
 
-      {admin ? (
+      {puoGestire ? (
         <div className="px-5 pt-4">
           <Link
             to="/eventi"

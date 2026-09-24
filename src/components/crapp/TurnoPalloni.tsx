@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/crapp/Avatar";
 import { intestazioniAutenticate } from "@/lib/auth";
-import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { useAssegnaTurno, useTurniPalloni } from "@/lib/palloni";
 import { useIsAdmin } from "@/lib/ruoli";
 import { useGiocatoreBase } from "@/lib/user-store";
@@ -18,7 +18,7 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
   const io = useGiocatoreBase();
   const admin = useIsAdmin();
   const { righe: squadra } = useGiocatoriSquadra();
-  const rosa = squadra.filter((g) => g.attivo);
+  const rosa = squadra.filter(inRosa);
 
   const id = turni[eventoId];
   const proposto = !salvati[eventoId];

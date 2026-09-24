@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { useGiocatoreInCampo } from "@/lib/user-store";
 import { intestazioniAutenticate } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
 import {
@@ -27,8 +27,8 @@ export function SondaggioCacche({
   dataEvento: string;
   oraEvento: string;
 }) {
-  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
-  const io = useGiocatoreBase();
+  // Solo `.id` serve qui, niente statistiche; `null` per l'allenatore, che non gioca (DD-034).
+  const io = useGiocatoreInCampo();
   const { righe } = useCacche();
   const salva = useSalvaCacche();
   const { righe: squadra } = useGiocatoriSquadra();

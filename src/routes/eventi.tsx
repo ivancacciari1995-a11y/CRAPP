@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/drawer";
 import { formatData } from "@/lib/crapp-data";
 import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
-import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
   categoriaEvento,
   daCategoria,
@@ -28,7 +28,7 @@ import {
   type Evento,
 } from "@/lib/eventi";
 import { useGiocatoreBase } from "@/lib/user-store";
-import { useIsAdmin } from "@/lib/ruoli";
+import { usePuoGestireEventi } from "@/lib/ruoli";
 import { molla, proietta } from "@/lib/molla";
 import { useMotoRidotto } from "@/lib/motion";
 
@@ -61,9 +61,10 @@ const tipi: Array<{ id: CategoriaEvento; label: string }> = [
 ];
 
 function GestioneEventi() {
-  // Solo verità (`!io`, gate admin): `useGiocatoreBase` basta, niente statistiche.
+  // Solo verità (`!io`, gate admin o allenatore): `useGiocatoreBase` basta, niente statistiche.
   const io = useGiocatoreBase();
-  const admin = useIsAdmin();
+  // Admin o allenatore (DD-034): la RLS di `eventi_app` (M21) dice lo stesso.
+  const puoGestire = usePuoGestireEventi();
   const { eventi, isPending, isError, error, refetch } = useEventi();
   const { righe: squadra } = useGiocatoriSquadra();
   const salva = useSalvaEvento();
@@ -72,7 +73,7 @@ function GestioneEventi() {
   const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
   const [confermaModifica, setConfermaModifica] = useState(false);
   const [cambiaGiorno, setCambiaGiorno] = useState(false);
-  const rosa = squadra.filter((g) => g.attivo);
+  const rosa = squadra.filter(inRosa);
 
   // SSR-safe: la data di oggi arriva solo dopo il mount.
   const [oggi, setOggi] = useState<{ anno: number; mese: number; giorno: number } | null>(null);
@@ -85,7 +86,7 @@ function GestioneEventi() {
   const { anno, mese, direzione, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
 
-  if (!io || !admin) {
+  if (!io || !puoGestire) {
     return (
       <>
         <PageHeader titolo="Gestione eventi" sottotitolo="Area riservata" />

@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
-import { useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { inRosa, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { useGiocatoreInCampo } from "@/lib/user-store";
 import { dataOggi } from "@/lib/scout-live";
 
 const tipoMeta = {
@@ -69,12 +69,12 @@ export function EventoCard({
 }) {
   const { risposte } = usePresenzeEvento(evento.id);
   const salva = useSalvaPresenza();
-  // Solo `io.id` serve qui (per leggere/scrivere la propria risposta): `useGiocatoreBase`
-  // legge la sola anagrafica, non le statistiche di tutta la rosa di `useGiocatoreCorrente`.
+  // Solo `io.id` serve qui (per leggere/scrivere la propria risposta, `null` per l'allenatore
+  // che non risponde, DD-034): `useGiocatoreInCampo` legge la sola anagrafica, non le statistiche di tutta la rosa di `useGiocatoreCorrente`.
   // Rilevante perché ogni card monta questo hook: il Calendario ne rende diverse insieme.
-  const io = useGiocatoreBase();
+  const io = useGiocatoreInCampo();
   const { righe: squadra } = useGiocatoriSquadra();
-  const rosa = squadra.filter((g) => g.attivo);
+  const rosa = squadra.filter(inRosa);
   const stato = io ? risposte[io.id] : undefined;
   const presentiVeri = rosa.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",

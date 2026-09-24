@@ -144,6 +144,18 @@ export function completamento(p: Profilo | null | undefined): number {
   );
 }
 
+/**
+ * L'allenatore compila solo i dati personali ridotti (DD-034): niente indirizzo, documento,
+ * certificato né foto tessera, che servono al tesseramento dei giocatori.
+ */
+export const CAMPI_ALLENATORE = ["dataNascita", "luogoNascita", "telefono", "email"] as const;
+
+/** Percentuale dei campi dell'allenatore compilati: 100 quando ci sono tutti. */
+export function completamentoAllenatore(p: Profilo | null | undefined): number {
+  const pieni = CAMPI_ALLENATORE.filter((c) => !!p?.[c]?.trim()).length;
+  return Math.round((pieni / CAMPI_ALLENATORE.length) * 100);
+}
+
 export type StatoScadenza = "mancante" | "scaduto" | "valido";
 
 /** Un certificato scaduto blocca il tesseramento: per l'admin non vale come presente. */

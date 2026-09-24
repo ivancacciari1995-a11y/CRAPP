@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useEventi } from "./eventi";
 import { useRispostePresenze } from "./presenze";
-import { useGiocatoriSquadra } from "./giocatori-squadra";
+import { inRosa, useGiocatoriSquadra } from "./giocatori-squadra";
 import {
   presenzeUltimoMese,
   presenzeUltimoMeseTutti,
@@ -30,7 +30,7 @@ export function usePresenzeUltimoMeseTutti(): Record<string, StatistichePresenza
   const { righe: squadra } = useGiocatoriSquadra();
 
   return useMemo(() => {
-    const idRosa = squadra.filter((g) => g.attivo).map((g) => g.id);
+    const idRosa = squadra.filter(inRosa).map((g) => g.id);
     return presenzeUltimoMeseTutti(eventi, presenze, idRosa);
   }, [eventi, presenze, squadra]);
 }

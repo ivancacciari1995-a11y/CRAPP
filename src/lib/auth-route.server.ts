@@ -7,9 +7,9 @@
  * è un timestamp in base 36 e compare negli URL che la squadra si scambia — quindi non
  * può fare da credenziale.
  *
- * Tutte e tre le route che mandano notifiche partono da un pulsante riservato agli
- * amministratori, quindi il controllo è uno solo: `richiediAdmin` verifica il token della
- * sessione Supabase e poi il ruolo in `user_roles`. Torna `null` quando la richiesta può
+ * Le route che mandano notifiche partono da un pulsante riservato agli amministratori, e il
+ * sollecito presenze anche agli allenatori (DD-034): `richiediAdmin` e `richiediGestoreEventi`
+ * verificano il token della sessione Supabase e poi il ruolo in `user_roles`. Torna `null` quando la richiesta può
  * proseguire, altrimenti la `Response` di rifiuto già pronta.
  */
 
@@ -24,10 +24,14 @@ function tokenDaRichiesta(request: Request): string | null {
 }
 
 /**
- * Lascia passare solo un amministratore autenticato. `401` se manca o non vale il token,
- * `403` se il token è buono ma l'utente non è admin.
+ * Lascia passare solo un utente autenticato con almeno uno dei `ruoli`. `401` se manca o non
+ * vale il token, `403` se il token è buono ma il ruolo no.
  */
-export async function richiediAdmin(request: Request): Promise<Response | null> {
+async function richiediRuolo(
+  request: Request,
+  ruoli: Array<"admin" | "allenatore">,
+  rifiuto: string,
+): Promise<Response | null> {
   const token = tokenDaRichiesta(request);
   if (!token) return new Response("Autenticazione richiesta", { status: 401 });
 
@@ -37,13 +41,22 @@ export async function richiediAdmin(request: Request): Promise<Response | null> 
   if (error || !utente?.user) return new Response("Sessione non valida", { status: 401 });
 
   // Stessa fonte di `src/lib/ruoli.ts`: i permessi stanno solo in `user_roles` (DD-011).
-  const { data: ruolo } = await supabaseAdmin
+  const { data: righe } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", utente.user.id)
-    .eq("role", "admin")
-    .maybeSingle();
+    .in("role", ruoli);
 
-  if (!ruolo) return new Response("Riservato agli amministratori", { status: 403 });
+  if (!righe?.length) return new Response(rifiuto, { status: 403 });
   return null;
+}
+
+/** Solo un amministratore: promemoria palloni, messaggi, sondaggio, notifiche attive. */
+export function richiediAdmin(request: Request): Promise<Response | null> {
+  return richiediRuolo(request, ["admin"], "Riservato agli amministratori");
+}
+
+/** Admin o allenatore: chi gestisce gli eventi può anche sollecitare le presenze (DD-034). */
+export function richiediGestoreEventi(request: Request): Promise<Response | null> {
+  return richiediRuolo(request, ["admin", "allenatore"], "Riservato a admin e allenatori");
 }

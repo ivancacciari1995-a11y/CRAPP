@@ -21,12 +21,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Campo, classiInput, PageHeader, Select, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
-import { CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
+import { CampiAllenatore, CampiProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import {
+  inRosa,
+  isAllenatore,
   nomeCompleto,
   numeroGiaUsato,
   prossimoIdGiocatore,
   RUOLI,
+  ruoloVisibile,
   useAggiungiGiocatore,
   useGiocatoriSquadra,
   useImpostaAttivo,
@@ -41,6 +44,7 @@ import {
 import { scaricaFile, useProfili, useSalvaProfilo } from "@/lib/profili";
 import {
   completamento,
+  completamentoAllenatore,
   csvTesseramento,
   profiloVuoto,
   sezioniComplete,
@@ -126,7 +130,10 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
     numero: g.numero,
     ruolo: g.ruolo,
     email: g.email,
+    tipo: g.tipo,
   };
+  // L'allenatore non ha numero, ruolo in campo né tesseramento (DD-034).
+  const allenatore = isAllenatore(g);
   const profiloCorrente = bozza ?? profilo ?? profiloVuoto(g.id);
 
   async function confermaSquadra() {
@@ -135,7 +142,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
       toast.error(errore);
       return;
     }
-    if (numeroGiaUsato(righe, g.id, squadraCorrente.numero)) {
+    if (!allenatore && numeroGiaUsato(righe, g.id, squadraCorrente.numero)) {
       toast.error(`Il numero ${squadraCorrente.numero} è già assegnato a un altro giocatore.`);
       return;
     }
@@ -216,28 +223,34 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
             className={classiInput}
           />
         </Campo>
-        <Campo label="Numero">
-          <input
-            type="number"
-            min={1}
-            value={squadraCorrente.numero}
-            onChange={(e) => setDatiSquadra({ ...squadraCorrente, numero: Number(e.target.value) })}
-            className={classiInput}
-          />
-        </Campo>
-        <Campo label="Ruolo">
-          <Select
-            value={squadraCorrente.ruolo}
-            onChange={(e) => setDatiSquadra({ ...squadraCorrente, ruolo: e.target.value })}
-          >
-            <option value="">—</option>
-            {RUOLI.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </Select>
-        </Campo>
+        {allenatore ? null : (
+          <>
+            <Campo label="Numero">
+              <input
+                type="number"
+                min={1}
+                value={squadraCorrente.numero}
+                onChange={(e) =>
+                  setDatiSquadra({ ...squadraCorrente, numero: Number(e.target.value) })
+                }
+                className={classiInput}
+              />
+            </Campo>
+            <Campo label="Ruolo">
+              <Select
+                value={squadraCorrente.ruolo}
+                onChange={(e) => setDatiSquadra({ ...squadraCorrente, ruolo: e.target.value })}
+              >
+                <option value="">—</option>
+                {RUOLI.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+          </>
+        )}
       </div>
       <Campo label="Email">
         <input
@@ -257,44 +270,61 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
         Salva dati squadra
       </button>
 
-      <h3 className="font-display text-sm uppercase tracking-wide">Tesseramento CSI</h3>
-      <div className="grid grid-cols-2 gap-3">
-        <Campo label="Numero tessera">
-          <input
-            value={tesseramentoCorrente.numeroTessera ?? ""}
-            maxLength={40}
-            placeholder="Non ancora tesserato"
-            onChange={(e) =>
-              setTesseramento({ ...tesseramentoCorrente, numeroTessera: e.target.value || null })
-            }
-            className={classiInput}
-          />
-        </Campo>
-        <Campo label="Data tessera">
-          <input
-            type="date"
-            value={tesseramentoCorrente.dataTessera ?? ""}
-            onChange={(e) =>
-              setTesseramento({ ...tesseramentoCorrente, dataTessera: e.target.value || null })
-            }
-            className={classiInput}
-          />
-        </Campo>
-      </div>
-      <button
-        type="button"
-        onClick={confermaTesseramento}
-        disabled={!tesseramento || salvaTesseramento.isPending}
-        className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
-      >
-        Salva tesseramento
-      </button>
+      {allenatore ? null : (
+        <>
+          <h3 className="font-display text-sm uppercase tracking-wide">Tesseramento CSI</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Campo label="Numero tessera">
+              <input
+                value={tesseramentoCorrente.numeroTessera ?? ""}
+                maxLength={40}
+                placeholder="Non ancora tesserato"
+                onChange={(e) =>
+                  setTesseramento({
+                    ...tesseramentoCorrente,
+                    numeroTessera: e.target.value || null,
+                  })
+                }
+                className={classiInput}
+              />
+            </Campo>
+            <Campo label="Data tessera">
+              <input
+                type="date"
+                value={tesseramentoCorrente.dataTessera ?? ""}
+                onChange={(e) =>
+                  setTesseramento({ ...tesseramentoCorrente, dataTessera: e.target.value || null })
+                }
+                className={classiInput}
+              />
+            </Campo>
+          </div>
+          <button
+            type="button"
+            onClick={confermaTesseramento}
+            disabled={!tesseramento || salvaTesseramento.isPending}
+            className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+          >
+            Salva tesseramento
+          </button>
+        </>
+      )}
 
-      <CampiProfilo
-        corrente={profiloCorrente}
-        aggiorna={(patch) => setBozza({ ...profiloCorrente, ...patch })}
-        sezioni={sezioniComplete(profiloCorrente)}
-      />
+      {allenatore ? (
+        <>
+          <h3 className="font-display text-sm uppercase tracking-wide">Dati personali</h3>
+          <CampiAllenatore
+            corrente={profiloCorrente}
+            aggiorna={(patch) => setBozza({ ...profiloCorrente, ...patch })}
+          />
+        </>
+      ) : (
+        <CampiProfilo
+          corrente={profiloCorrente}
+          aggiorna={(patch) => setBozza({ ...profiloCorrente, ...patch })}
+          sezioni={sezioniComplete(profiloCorrente)}
+        />
+      )}
       <button
         type="button"
         onClick={confermaProfilo}
@@ -402,8 +432,9 @@ function SchedaGiocatore({
   onToggle: () => void;
 }) {
   const nome = nomeCompleto(g);
-  const { ruolo, numero } = g;
-  const perc = completamento(profilo);
+  const { numero } = g;
+  const allenatore = isAllenatore(g);
+  const perc = allenatore ? completamentoAllenatore(profilo) : completamento(profilo);
   const sezioni = sezioniComplete(profilo);
   const certificato = statoScadenza(profilo?.certificatoScadenza, profilo?.certificatoPath, oggi);
   const fronte = statoScadenza(profilo?.documentoScadenza, profilo?.documentoFrontePath, oggi);
@@ -413,12 +444,12 @@ function SchedaGiocatore({
     <Reveal indice={indice} className="rounded-2xl bg-card p-4 shadow-card">
       <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 text-left">
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary font-display text-sm tabular-nums">
-          {numero}
+          {allenatore ? "All" : numero}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold leading-tight">{nome}</p>
           <p className="text-xs text-muted-foreground">
-            {ruolo} · profilo {perc}%
+            {ruoloVisibile(g)} · profilo {perc}%
           </p>
         </div>
         <ChevronDown
@@ -436,55 +467,65 @@ function SchedaGiocatore({
         />
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Documento
-          icona={<IdCard className="h-3.5 w-3.5" />}
-          label="Doc fronte"
-          stato={fronte}
-          path={profilo?.documentoFrontePath ?? null}
-        />
-        <Documento
-          icona={<IdCard className="h-3.5 w-3.5" />}
-          label="Doc retro"
-          stato={retro}
-          path={profilo?.documentoRetroPath ?? null}
-        />
-        <Documento
-          icona={<FileText className="h-3.5 w-3.5" />}
-          label="Certificato"
-          stato={certificato}
-          path={profilo?.certificatoPath ?? null}
-        />
-        <Documento
-          icona={<Image className="h-3.5 w-3.5" />}
-          label="Foto"
-          stato={sezioni.foto ? "presente" : "assente"}
-          path={profilo?.fotoPath ?? null}
-        />
-        <span
-          className={cn(
-            "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
-            statoClasse[g.numeroTessera ? "presente" : "assente"],
-          )}
-        >
-          <BadgeCheck className="h-3.5 w-3.5" />
-          {g.numeroTessera ? "Tesserato" : "Da tesserare"}
-        </span>
-      </div>
+      {allenatore ? null : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Documento
+            icona={<IdCard className="h-3.5 w-3.5" />}
+            label="Doc fronte"
+            stato={fronte}
+            path={profilo?.documentoFrontePath ?? null}
+          />
+          <Documento
+            icona={<IdCard className="h-3.5 w-3.5" />}
+            label="Doc retro"
+            stato={retro}
+            path={profilo?.documentoRetroPath ?? null}
+          />
+          <Documento
+            icona={<FileText className="h-3.5 w-3.5" />}
+            label="Certificato"
+            stato={certificato}
+            path={profilo?.certificatoPath ?? null}
+          />
+          <Documento
+            icona={<Image className="h-3.5 w-3.5" />}
+            label="Foto"
+            stato={sezioni.foto ? "presente" : "assente"}
+            path={profilo?.fotoPath ?? null}
+          />
+          <span
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
+              statoClasse[g.numeroTessera ? "presente" : "assente"],
+            )}
+          >
+            <BadgeCheck className="h-3.5 w-3.5" />
+            {g.numeroTessera ? "Tesserato" : "Da tesserare"}
+          </span>
+        </div>
+      )}
 
       {aperta ? <ModificaGiocatore g={g} profilo={profilo} /> : null}
     </Reveal>
   );
 }
 
-const datiVuoti: DatiSquadra = { nome: "", cognome: "", numero: 1, ruolo: "", email: null };
+const datiVuoti: DatiSquadra = {
+  nome: "",
+  cognome: "",
+  numero: 1,
+  ruolo: "",
+  email: null,
+  tipo: "giocatore",
+};
 
-/** Form per aggiungere un giocatore alla rosa (DD-017): l'id `g<N>` è calcolato in app,
- * il database non lo genera da solo. */
+/** Form per aggiungere un giocatore alla rosa (DD-017), o un allenatore (DD-034): l'id
+ * `g<N>` è calcolato in app, il database non lo genera da solo. */
 function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
   const [aperto, setAperto] = useState(false);
   const [dati, setDati] = useState<DatiSquadra>(datiVuoti);
   const aggiungi = useAggiungiGiocatore();
+  const allenatore = dati.tipo === "allenatore";
 
   async function conferma() {
     const errore = validaDatiSquadra(dati);
@@ -492,13 +533,17 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
       toast.error(errore);
       return;
     }
-    if (numeroGiaUsato(righe, "", dati.numero)) {
+    if (!allenatore && numeroGiaUsato(righe, "", dati.numero)) {
       toast.error(`Il numero ${dati.numero} è già assegnato a un altro giocatore.`);
       return;
     }
     try {
       await aggiungi.mutateAsync({ id: prossimoIdGiocatore(righe), dati });
-      toast.success(`${dati.nome} ${dati.cognome} aggiunto alla rosa`);
+      toast.success(
+        allenatore
+          ? `${dati.nome} ${dati.cognome} aggiunto come allenatore`
+          : `${dati.nome} ${dati.cognome} aggiunto alla rosa`,
+      );
       setDati(datiVuoti);
       setAperto(false);
     } catch (e) {
@@ -513,14 +558,27 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
         onClick={() => setAperto(true)}
         className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-bold uppercase"
       >
-        <UserPlus className="h-4 w-4" /> Aggiungi giocatore
+        <UserPlus className="h-4 w-4" /> Aggiungi giocatore o allenatore
       </button>
     );
   }
 
   return (
     <div className="mt-3 space-y-3 rounded-2xl bg-card p-4 shadow-card">
-      <h3 className="font-display text-sm uppercase tracking-wide">Nuovo giocatore</h3>
+      <h3 className="font-display text-sm uppercase tracking-wide">
+        {allenatore ? "Nuovo allenatore" : "Nuovo giocatore"}
+      </h3>
+      <Campo label="Tipo">
+        <Select
+          value={dati.tipo}
+          onChange={(e) =>
+            setDati({ ...dati, tipo: e.target.value === "allenatore" ? "allenatore" : "giocatore" })
+          }
+        >
+          <option value="giocatore">Giocatore</option>
+          <option value="allenatore">Allenatore</option>
+        </Select>
+      </Campo>
       <div className="grid grid-cols-2 gap-3">
         <Campo label="Nome">
           <input
@@ -538,25 +596,32 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
             className={classiInput}
           />
         </Campo>
-        <Campo label="Numero">
-          <input
-            type="number"
-            min={1}
-            value={dati.numero}
-            onChange={(e) => setDati({ ...dati, numero: Number(e.target.value) })}
-            className={classiInput}
-          />
-        </Campo>
-        <Campo label="Ruolo">
-          <Select value={dati.ruolo} onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}>
-            <option value="">—</option>
-            {RUOLI.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </Select>
-        </Campo>
+        {allenatore ? null : (
+          <>
+            <Campo label="Numero">
+              <input
+                type="number"
+                min={1}
+                value={dati.numero}
+                onChange={(e) => setDati({ ...dati, numero: Number(e.target.value) })}
+                className={classiInput}
+              />
+            </Campo>
+            <Campo label="Ruolo">
+              <Select
+                value={dati.ruolo}
+                onChange={(e) => setDati({ ...dati, ruolo: e.target.value })}
+              >
+                <option value="">—</option>
+                {RUOLI.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+          </>
+        )}
       </div>
       <Campo label="Email">
         <input
@@ -610,7 +675,7 @@ function GiocatoreDisattivato({ g }: { g: GiocatoreSquadra }) {
       <div className="min-w-0">
         <p className="truncate font-semibold leading-tight">{nomeCompleto(g)}</p>
         <p className="text-xs text-muted-foreground">
-          #{g.numero} · {g.ruolo}
+          {isAllenatore(g) ? ruoloVisibile(g) : `#${g.numero} · ${g.ruolo}`}
         </p>
       </div>
       <button
@@ -673,7 +738,11 @@ function Dashboard() {
     );
   }
 
-  const attivi = squadra.filter((g) => g.attivo);
+  // Conteggi, tesseramento ed export CSI riguardano solo chi gioca (DD-034).
+  const attivi = squadra.filter(inRosa);
+  const allenatori = squadra.filter((g) => g.attivo && isAllenatore(g));
+  // Le notifiche arrivano anche agli allenatori: nella tab Notifiche ci sono tutti.
+  const membri = [...attivi, ...allenatori];
   const disattivi = squadra.filter((g) => !g.attivo);
   const completi = attivi.filter((g) => completamento(profili[g.id]) === 100).length;
   const certificatiOk = attivi.filter(
@@ -723,6 +792,20 @@ function Dashboard() {
           onToggle={() => setSchedaAperta((v) => (v === g.id ? null : g.id))}
         />
       ))}
+      {allenatori.length > 0 ? (
+        <h3 className="pt-2 font-display text-sm uppercase tracking-wide">Allenatori</h3>
+      ) : null}
+      {allenatori.map((g, i) => (
+        <SchedaGiocatore
+          key={g.id}
+          g={g}
+          profilo={profili[g.id]}
+          oggi={oggi}
+          indice={attivi.length + i}
+          aperta={schedaAperta === g.id}
+          onToggle={() => setSchedaAperta((v) => (v === g.id ? null : g.id))}
+        />
+      ))}
     </div>
   );
 
@@ -737,7 +820,7 @@ function Dashboard() {
   const contenutoNotifiche = notificheAttive ? (
     <>
       <StatTile
-        valore={`${attivi.filter((g) => notificheAttive.has(g.id)).length}/${attivi.length}`}
+        valore={`${membri.filter((g) => notificheAttive.has(g.id)).length}/${membri.length}`}
         label="Notifiche attive"
       />
       <button
@@ -748,7 +831,7 @@ function Dashboard() {
         <Send className="h-4 w-4" /> Invia messaggio a tutti
       </button>
       <div className="mt-3 space-y-2">
-        {attivi.map((g) => {
+        {membri.map((g) => {
           const attiva = notificheAttive.has(g.id);
           return (
             <div key={g.id} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card">

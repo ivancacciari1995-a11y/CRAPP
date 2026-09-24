@@ -3,7 +3,7 @@
 **Stato:** implementato
 **File principali:** `src/lib/eventi.ts`, `src/lib/eventi.server.ts`, `src/lib/calendario.ts`
 (griglia mensile condivisa), `src/routes/calendario.tsx` (vista mensile, tutti),
-`src/routes/eventi.tsx` (creazione/modifica, solo admin), `src/components/crapp/EventoCard.tsx`
+`src/routes/eventi.tsx` (creazione/modifica, admin e allenatori), `src/components/crapp/EventoCard.tsx`
 (card condivisa)
 **Test:** `test/unit/eventi.test.ts`, `test/unit/calendario.test.ts`
 
@@ -20,12 +20,14 @@ scout e turno palloni — la maggior parte degli altri moduli dipende da un `eve
 
 - **`/calendario`** — vista mensile per tutta la squadra, sola lettura. Mostra allenamenti,
   partite, eventi ed **eventi virtuali** per i compleanni della rosa (`compleanniEventi()`
-  in `eventi.ts`, generati a runtime dall'anagrafica di `useAnagraficaRosa()`, non righe
+  in `eventi.ts`, generati a runtime dall'anagrafica di `useAnagraficaRosa({ conAllenatori:
+true })` — ci sono anche gli allenatori, DD-034 — non righe
   vere di `eventi_app`): la spunta della vista `giorniIT`/`mesiIT` colora la cella per tipo
   di evento, i giorni con più eventi si dividono lo spazio.
-- **`/eventi`** — "Gestione eventi", riservata agli amministratori (`useIsAdmin()`): crea,
-  modifica ed elimina un evento, sceglie i convocati (`convocatiEvento()`, vuoto = tutta la
-  rosa). Da qui si distingue "partita" da "amichevole" tramite il flag `campionato`
+- **`/eventi`** — "Gestione eventi", riservata ad amministratori e allenatori
+  (`usePuoGestireEventi()`, [DD-034](../DESIGN_DECISIONS.md#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)):
+  crea, modifica ed elimina un evento, sceglie i convocati tra i soli giocatori
+  (`convocatiEvento()`, vuoto = tutta la rosa). Da qui si distingue "partita" da "amichevole" tramite il flag `campionato`
   (`categoriaEvento()`/`daCategoria()` in `eventi.ts` convertono tra la categoria mostrata
   in interfaccia e la coppia `{ tipo, campionato }` salvata nel database). La pagina mostra
   solo una griglia mensile (stessa logica di `/calendario`, tramite le funzioni condivise di

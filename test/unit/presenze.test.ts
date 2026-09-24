@@ -120,11 +120,12 @@ assert.equal(totaliEventiGiocatore("g1", conRistretti, OGGI), 5, "chi non è con
 
 // --- destinatari del sollecito: chi non ha risposto, più i "forse" ------------
 const squadra = [
-  { id: "g1", attivo: true },
-  { id: "g2", attivo: true },
-  { id: "g3", attivo: true },
-  { id: "g4", attivo: true },
-  { id: "g5", attivo: false }, // uscito dalla squadra: non lo si disturba più
+  { id: "g1", attivo: true, tipo: "giocatore" as const },
+  { id: "g2", attivo: true, tipo: "giocatore" as const },
+  { id: "g3", attivo: true, tipo: "giocatore" as const },
+  { id: "g4", attivo: true, tipo: "giocatore" as const },
+  { id: "g5", attivo: false, tipo: "giocatore" as const }, // uscito: non lo si disturba più
+  { id: "g6", attivo: true, tipo: "allenatore" as const }, // non risponde: mai sollecitato (DD-034)
 ];
 
 const risposte = [

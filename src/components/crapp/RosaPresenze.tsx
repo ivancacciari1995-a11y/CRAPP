@@ -8,9 +8,9 @@ import { Barra } from "@/components/motion/Barra";
 import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useAnagraficaRosa } from "@/lib/rosa";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { useGiocatoreBase, useGiocatoreInCampo } from "@/lib/user-store";
 import { intestazioniAutenticate } from "@/lib/auth";
-import { useIsAdmin } from "@/lib/ruoli";
+import { usePuoGestireEventi } from "@/lib/ruoli";
 import { dataOggi } from "@/lib/scout-live";
 
 const ordine: Stato[] = ["presente", "ritardo", "forse", "infortunato", "assente"];
@@ -20,8 +20,10 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
   const salva = useSalvaPresenza();
   // Solo `.id`/`.nome` servono qui: `useGiocatoreBase`/`useAnagraficaRosa` bastano,
   // niente statistiche di squadra.
-  const io = useGiocatoreBase();
-  const admin = useIsAdmin();
+  const io = useGiocatoreInCampo();
+  // Il nome di chi sollecita: admin o allenatore, che non ha una risposta propria (DD-034).
+  const mittente = useGiocatoreBase();
+  const puoSollecitare = usePuoGestireEventi();
   const rosa = useAnagraficaRosa();
   const [sollecito, setSollecito] = useState(false);
   const passato = data < dataOggi();
@@ -37,7 +39,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
       const res = await fetch("/api/public/sollecita-presenze", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(await intestazioniAutenticate()) },
-        body: JSON.stringify({ eventoId, da: io?.nome }),
+        body: JSON.stringify({ eventoId, da: mittente?.nome }),
       });
       if (!res.ok) throw new Error();
       const dati = (await res.json()) as { inviate: number; destinatari: number };
@@ -115,7 +117,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
           </div>
         ) : null}
 
-        {admin ? (
+        {puoSollecitare ? (
           <button
             type="button"
             onClick={sollecita}
