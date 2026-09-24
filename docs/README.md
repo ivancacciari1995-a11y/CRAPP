@@ -6,16 +6,16 @@ ancora e va **prima documentata** (vedi [DD-002](DESIGN_DECISIONS.md#dd-002--svi
 
 ## Dove sta cosa
 
-| Documento                                  | Risponde a                                                                   |
-| ------------------------------------------ | ---------------------------------------------------------------------------- |
-| [ROADMAP.md](ROADMAP.md)                   | Cosa è fatto, cosa è previsto, cosa resta un'idea                            |
-| [ARCHITECTURE.md](ARCHITECTURE.md)         | Com'è fatta l'app: stack, struttura del codice, flusso di sviluppo           |
-| [DATABASE.md](DATABASE.md)                 | Quali tabelle esistono, a cosa servono, chi le usa                           |
-| [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Perché abbiamo scelto così, cosa abbiamo escluso e quando riaprire la scelta |
-| [PORTABILITA.md](PORTABILITA.md)           | Cosa lega l'app a un fornitore e cosa no, come spostarla su server proprio   |
-| [EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md) | Come tenere basso il consumo cloud: cache, query, push                       |
-| [CHANGELOG.md](CHANGELOG.md)               | Cosa è cambiato e quando                                                     |
-| [modules/](modules/)                       | Specifica funzionale di ogni modulo, una per file                            |
+| Documento                                  | Risponde a                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| [ROADMAP.md](ROADMAP.md)                   | Cosa è fatto, cosa è previsto, cosa resta un'idea                                                             |
+| [ARCHITECTURE.md](ARCHITECTURE.md)         | Com'è fatta l'app: stack, struttura del codice, flusso di sviluppo                                            |
+| [DATABASE.md](DATABASE.md)                 | Quali tabelle esistono, a cosa servono, chi le usa                                                            |
+| [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Perché abbiamo scelto così, cosa abbiamo escluso e quando riaprire la scelta                                  |
+| [PORTABILITA.md](PORTABILITA.md)           | Cosa lega l'app a un fornitore e cosa no, come spostarla su server proprio (backup/disaster recovery incluso) |
+| [EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md) | Come tenere basso il consumo cloud: cache, query, push                                                        |
+| [CHANGELOG.md](CHANGELOG.md)               | Cosa è cambiato e quando                                                                                      |
+| [modules/](modules/)                       | Specifica funzionale di ogni modulo, una per file                                                             |
 
 Le regole vincolanti per gli assistenti AI stanno in [AGENTS.md](../AGENTS.md);
 lo stato corrente del lavoro in [PROJECT_STATE.md](../PROJECT_STATE.md).

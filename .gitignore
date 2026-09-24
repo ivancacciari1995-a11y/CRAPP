@@ -41,3 +41,10 @@ dist-ssr
 .vercel
 # Supabase CLI local state
 supabase/.temp/
+
+# Backup locali del database (contengono dati reali degli utenti):
+# ignora tutto il contenuto generato, ma tieni in git lo script e il README.
+backups/*
+!backups/backup.sh
+!backups/download-storage.mjs
+!backups/README.md

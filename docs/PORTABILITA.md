@@ -27,6 +27,15 @@ senza dipendere da servizi esclusivi di Lovable Cloud.
 5. Job pianificati richiamabili via semplice HTTP POST (es. `/api/public/promemoria-palloni`),
    così funzionano con cron di sistema, pg_cron o qualsiasi scheduler.
 
+## Backup e disaster recovery
+
+Lo script [`backups/backup.sh`](../backups/backup.sh) scarica su un host locale schema e
+dati del database (`public` e `auth`), utenti Supabase Auth e file dei bucket storage, in
+modo da poter ripartire in fretta se il progetto Supabase (o Vercel) venisse perso.
+Uso, contenuto del backup e procedura di ripristino sono descritti in
+[`backups/README.md`](../backups/README.md). Non ancora automatizzato: l'export delle
+variabili d'ambiente Vercel (richiede login interattivo).
+
 ## Migrazione su server proprio (sintesi)
 
 1. `bun run build` (o `npm run build`) → avvio del server Node generato.
