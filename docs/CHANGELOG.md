@@ -19,6 +19,10 @@ all'indietro.
   elimina), toccando l'avatar si va al profilo come prima.
 - **Campionato** — l'header riporta la stagione delle gare CSI (es. «Stagione 2025/26») e lo
   storico partite è diviso per stagione.
+- **Gestione eventi** — tolta la lista "Eventi in calendario": resta solo il calendario
+  mensile, che ora si scorre anche con lo swipe come quello della squadra.
+- **Gestione eventi** — nel form il giorno toccato sul calendario è già fissato: resta da
+  scegliere solo l'ora («Cambia» per spostare l'evento in un altro giorno).
 
 ## [0.9.2] - 2026-09-10
 

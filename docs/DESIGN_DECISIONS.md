@@ -45,6 +45,10 @@ Serve a rispondere a domande del tipo:
 | [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
 | [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)         | Soglia minima Media voto e MVP        |
 | [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)        | Pulizia a cascata evento cancellato   |
+| [DD-030](#dd-030--centro-notifiche-in-app-storico-separato-dalla-push-letto-solo-con-rls) | Centro notifiche in-app               |
+| [DD-031](#dd-031--data-di-nascita-pubblica-una-colonna-sincronizzata-non-una-seconda-rls-aperta) | Nascita pubblica sincronizzata        |
+| [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                | Stagione CSI dalle date delle gare    |
+| [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)       | Gestione eventi solo da calendario    |
 
 **In valutazione**
 
@@ -1318,3 +1322,80 @@ reso una funzione richiamabile: resta SQL diretto nella migration. La copertura 
 comportamento eseguendo lo stesso pattern SQL via `psql` nel container Postgres locale —
 scelta necessaria perché senza una funzione RPC, PostgREST non espone un update
 multi-tabella come questo.
+
+### DD-032 — La stagione CSI si ricava dalle date delle gare
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+La pagina Campionato (`/classifica`) non diceva a quale stagione si riferissero classifica e
+storico partite. Il portale CSI non espone il nome della stagione da nessuna parte:
+`project-sheets.php`, `league_details.php`, `team-main.php` e il feed
+`getEventsByTeamId.php` riportano solo il nome della competizione (verificato il
+24/09/2026). Il `project_id` cambia a ogni stagione ed è aggiornato a mano in
+`csi-core.ts`.
+
+**Decisione**  
+`stagioneDi()` in `src/lib/csi-core.ts` ricava la stagione ("2025/26") dalla data di una
+gara, con l'anno che cambia ad agosto; `stagioneDaPartite()` usa la prima gara del
+campionato letto (tutte le gare, non solo quelle giocate, così a inizio stagione basta il
+calendario). L'header di `/classifica` mostra quella stagione, e lo storico partite è
+diviso per stagione con `raggruppaPerStagione()`: le gare dello Scout Live locale, usate
+quando il CSI non ne ha, possono essere di stagioni diverse.
+
+**Alternative scartate**
+
+- Una costante `CSI_STAGIONE` accanto a `CSI_PROJECT_ID` → un secondo valore da ricordarsi
+  di aggiornare a ogni stagione, che può divergere dal `project_id`; ricavata dai dati
+  segue da sola.
+- Usare la stagione "in corso" per la squadra (la data di oggi) → sbaglierebbe proprio nel
+  periodo di passaggio: a settembre 2026 il CSI mostra ancora i dati 2025/26.
+
+**Conseguenze**
+
+- Oggi Campionato mostra «Stagione 2025/26» mentre Squadra e Calendario, che hanno la
+  stagione scritta nel codice, mostrano «Stagione 2026/27»: il CSI non ha ancora creato le
+  pagine della nuova stagione. È voluto — Campionato riporta la stagione dei dati che
+  mostra (dettagli in [collegamento-csi.md](modules/collegamento-csi.md)).
+- Quando si aggiornano i `project_id` l'etichetta si aggiorna senza toccare altro codice.
+
+**Riesame**  
+Se il CSI iniziasse a esporre il nome della stagione, leggerlo da lì; se una stagione CSI
+dovesse iniziare prima di agosto, spostare la soglia in `stagioneDi()`.
+
+### DD-033 — Gestione eventi: solo calendario, giorno fissato dal tocco
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+`/eventi` mostrava sotto la griglia mensile anche la lista cronologica di tutti gli eventi
+("Eventi in calendario"). La lista non aveva azioni proprie (toccare una riga apriva lo
+stesso drawer del giorno) e allungava la pagina con informazioni già nel calendario. Nel
+form, poi, il campo «Data» era già precompilato con il giorno toccato ma sembrava da
+compilare: l'amministratore doveva scegliere solo l'ora.
+
+**Decisione**  
+La pagina mostra solo il calendario, che si scorre di mese in mese con le frecce o con lo
+swipe (stessa fisica a molla di `/calendario`, disattivata con `useMotoRidotto()`). Nel form
+il giorno compare come testo fisso e resta da scegliere l'ora; il campo data compare solo
+toccando «Cambia», per spostare un evento in un altro giorno.
+
+**Alternative scartate**
+
+- Togliere del tutto il campo data → non si potrebbe più spostare un evento esistente, una
+  funzione che oggi c'è (regola anti-regressione).
+- Tenere la lista ma più corta (solo i prossimi eventi) → i prossimi eventi sono già in home
+  e in `/calendario`; qui sarebbe stata un doppione.
+
+**Conseguenze**
+
+- Per trovare un evento lontano bisogna scorrere fino al suo mese; il totale degli eventi
+  resta nel sottotitolo dell'header.
+- Caricamento ed errore di `useEventi()` compaiono dentro la card del calendario, dove prima
+  stava la lista.
+
+**Riesame**  
+Se gli eventi crescono tanto da rendere scomodo lo scorrere dei mesi, valutare una ricerca
+per titolo invece di reintrodurre la lista completa.

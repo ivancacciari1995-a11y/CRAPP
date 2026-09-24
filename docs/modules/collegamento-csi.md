@@ -50,7 +50,7 @@ mostra «Stagione 2025/26» mentre Squadra e Calendario, che hanno la stagione s
 codice, mostrano già «Stagione 2026/27». È voluto: la pagina Campionato riporta la stagione
 dei dati CSI che sta mostrando, non quella in corso per la squadra. Quando il CSI pubblica
 la nuova stagione si aggiornano i due `project_id` (vedi sotto) e l'etichetta passa da sola
-a 2026/27.
+a 2026/27 ([DD-032](../DESIGN_DECISIONS.md#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)).
 
 Per ritrovare questi id a ogni cambio stagione: `components/team-main.php?team_id=3359`
 (dietro `team_details.php`) contiene una sezione "Campionati" con un link

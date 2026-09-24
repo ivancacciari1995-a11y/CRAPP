@@ -27,14 +27,16 @@ scout e turno palloni — la maggior parte degli altri moduli dipende da un `eve
   modifica ed elimina un evento, sceglie i convocati (`convocatiEvento()`, vuoto = tutta la
   rosa). Da qui si distingue "partita" da "amichevole" tramite il flag `campionato`
   (`categoriaEvento()`/`daCategoria()` in `eventi.ts` convertono tra la categoria mostrata
-  in interfaccia e la coppia `{ tipo, campionato }` salvata nel database). Sopra alla lista
-  cronologica c'è una griglia mensile (stessa logica di `/calendario`, tramite le funzioni
-  condivise di `src/lib/calendario.ts`): ogni giorno è cliccabile, anche senza eventi, e apre
-  un drawer con gli eventi di quel giorno (modifica/elimina) e un bottone "Nuovo evento in
-  questo giorno" che apre il form con la data già precompilata. Creare, modificare ed
-  eliminare passano solo da lì: la lista cronologica sotto il calendario è un elenco senza
-  azioni dirette, cliccare una riga apre lo stesso drawer del giorno corrispondente (anche se
-  è in un mese diverso da quello mostrato sulla griglia) invece di duplicare matita/cestino.
+  in interfaccia e la coppia `{ tipo, campionato }` salvata nel database). La pagina mostra
+  solo una griglia mensile (stessa logica di `/calendario`, tramite le funzioni condivise di
+  `src/lib/calendario.ts`), che si scorre di mese in mese con le frecce o con lo swipe, con
+  la stessa fisica a molla di `/calendario`. Ogni giorno è cliccabile, anche senza eventi, e
+  apre un drawer con gli eventi di quel giorno (modifica/elimina) e un bottone "Nuovo evento
+  in questo giorno" che apre il form con la data già precompilata: creare, modificare ed
+  eliminare passano solo da lì. Nel form il giorno si legge come testo fisso e resta da
+  scegliere solo l'ora; il campo data compare solo toccando «Cambia», per spostare l'evento. Fino a 0.9.2 sotto la griglia c'era anche la lista
+  cronologica di tutti gli eventi, tolta perché ripeteva il calendario
+  ([DD-033](../DESIGN_DECISIONS.md#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)).
 
 Entrambe leggono la stessa cache (`useEventi()`, `EVENTI_KEY`, `staleTime` 10 minuti: il
 calendario cambia raramente). `EventoCard.tsx` è la card riusata da entrambe le schermate;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Campo, Card, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
 import {
@@ -28,6 +29,8 @@ import {
 } from "@/lib/eventi";
 import { useGiocatoreBase } from "@/lib/user-store";
 import { useIsAdmin } from "@/lib/ruoli";
+import { molla, proietta } from "@/lib/molla";
+import { useMotoRidotto } from "@/lib/motion";
 
 export const Route = createFileRoute("/eventi")({
   head: () => ({
@@ -68,6 +71,7 @@ function GestioneEventi() {
   const [bozza, setBozza] = useState<Evento | null>(null);
   const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
   const [confermaModifica, setConfermaModifica] = useState(false);
+  const [cambiaGiorno, setCambiaGiorno] = useState(false);
   const rosa = squadra.filter((g) => g.attivo);
 
   // SSR-safe: la data di oggi arriva solo dopo il mount.
@@ -77,7 +81,8 @@ function GestioneEventi() {
     setOggi({ anno: d.getFullYear(), mese: d.getMonth(), giorno: d.getDate() });
   }, []);
   const [giornoSelezionato, setGiornoSelezionato] = useState<string | null>(null);
-  const { anno, mese, precedente, successivo } = useMeseNav();
+  const ridotto = useMotoRidotto();
+  const { anno, mese, direzione, precedente, successivo } = useMeseNav();
   const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
 
   if (!io || !admin) {
@@ -154,11 +159,13 @@ function GestioneEventi() {
   function nuovoNelGiorno() {
     if (!giornoSelezionato) return;
     setBozza({ ...eventoVuoto(), data: giornoSelezionato });
+    setCambiaGiorno(false);
     setGiornoSelezionato(null);
   }
 
   function modificaDalGiorno(e: Evento) {
     setBozza(e);
+    setCambiaGiorno(false);
     setGiornoSelezionato(null);
   }
 
@@ -167,8 +174,6 @@ function GestioneEventi() {
     setGiornoSelezionato(null);
   }
 
-  // Non usa `eventiPerGiorno` (limitato al mese in vista sul calendario): il giorno
-  // selezionato può arrivare anche dalla lista sotto, per un mese diverso da quello mostrato.
   const eventiGiornoSelezionato = giornoSelezionato
     ? eventi.filter((e) => e.data === giornoSelezionato)
     : [];
@@ -206,34 +211,82 @@ function GestioneEventi() {
               <span key={i}>{g}</span>
             ))}
           </div>
-          <div className="mt-1 grid grid-cols-7 gap-1">
-            {Array.from({ length: offsetLunedi }).map((_, i) => (
-              <span key={`v${i}`} />
-            ))}
-            {Array.from({ length: giorni }).map((_, i) => {
-              const giorno = i + 1;
-              const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
-              const haEventi = eventiGiorno.length > 0;
-              const isOggi =
-                !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
-              return (
-                <button
-                  key={giorno}
-                  type="button"
-                  onClick={() => apriGiorno(giorno)}
-                  className={cn(
-                    "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold transition-transform active:scale-90",
-                    haEventi ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground",
-                    isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
-                  )}
-                  aria-label={`${giorno} ${mesiIT[mese]}${haEventi ? `: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}` : ", nessun evento"}`}
-                  aria-current={isOggi ? "date" : undefined}
-                >
-                  {giorno}
-                </button>
-              );
-            })}
+          {/* Swipe tra mesi con la stessa fisica di `/calendario` (vedi il commento lì). */}
+          <div className="relative -mx-1 mt-1 overflow-hidden p-1">
+            <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
+              <motion.div
+                key={mesePrefix}
+                custom={direzione}
+                drag={ridotto ? false : "x"}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                dragMomentum={false}
+                onDragEnd={(_, info) => {
+                  const arrivo = info.offset.x + proietta(info.velocity.x);
+                  if (arrivo < -60) successivo();
+                  else if (arrivo > 60) precedente();
+                }}
+                initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * 48 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * -48 }}
+                transition={ridotto ? { duration: 0.2 } : molla.foglio}
+                className="grid touch-pan-y grid-cols-7 gap-1"
+              >
+                {Array.from({ length: offsetLunedi }).map((_, i) => (
+                  <span key={`v${i}`} />
+                ))}
+                {Array.from({ length: giorni }).map((_, i) => {
+                  const giorno = i + 1;
+                  const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
+                  const haEventi = eventiGiorno.length > 0;
+                  const isOggi =
+                    !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+                  return (
+                    <button
+                      key={giorno}
+                      type="button"
+                      onClick={() => apriGiorno(giorno)}
+                      className={cn(
+                        "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold transition-transform active:scale-90",
+                        haEventi
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-secondary text-foreground",
+                        isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                      )}
+                      aria-label={`${giorno} ${mesiIT[mese]}${haEventi ? `: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}` : ", nessun evento"}`}
+                      aria-current={isOggi ? "date" : undefined}
+                    >
+                      {giorno}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
           </div>
+          {isPending ? (
+            <p aria-busy="true" className="mt-2 text-xs text-muted-foreground">
+              Carico gli eventi…
+            </p>
+          ) : isError ? (
+            <div className="mt-3 space-y-2 text-center text-sm">
+              <p className="text-destructive">
+                Non sono riuscito a caricare gli eventi
+                {error instanceof Error ? `: ${error.message}` : ""}.
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
+              >
+                Riprova
+              </button>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Scorri a destra o sinistra per cambiare mese. Tocca un giorno per aggiungere,
+              modificare o eliminare.
+            </p>
+          )}
         </Card>
       </Section>
 
@@ -270,14 +323,34 @@ function GestioneEventi() {
             </Campo>
 
             <div className="grid grid-cols-2 gap-3">
-              <Campo label="Data">
-                <input
-                  type="date"
-                  value={bozza.data}
-                  onChange={(e) => aggiorna({ data: e.target.value })}
-                  className={classiInput}
-                />
-              </Campo>
+              {/* Il giorno arriva già dal calendario: si mostra e basta, il campo data
+                  compare solo per spostare l'evento. */}
+              {cambiaGiorno ? (
+                <Campo label="Giorno">
+                  <input
+                    type="date"
+                    value={bozza.data}
+                    onChange={(e) => aggiorna({ data: e.target.value })}
+                    className={classiInput}
+                  />
+                </Campo>
+              ) : (
+                <div className="min-w-0">
+                  <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    Giorno
+                  </span>
+                  <div className="mt-1 flex h-10 items-center justify-between gap-1">
+                    <span className="truncate text-sm font-semibold">{formatData(bozza.data)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCambiaGiorno(true)}
+                      className="shrink-0 rounded-full px-2 py-1 text-xs font-bold uppercase text-accent active:scale-95"
+                    >
+                      Cambia
+                    </button>
+                  </div>
+                </div>
+              )}
               <Campo label="Ora">
                 <input
                   type="time"
@@ -392,46 +465,6 @@ function GestioneEventi() {
           </div>
         </Section>
       ) : null}
-
-      <Section titolo="Eventi in calendario">
-        {isPending ? (
-          <p aria-busy="true" className="text-center text-xs text-muted-foreground">
-            Carico gli eventi…
-          </p>
-        ) : isError ? (
-          <div className="space-y-2 rounded-3xl bg-card p-4 text-center text-sm shadow-card">
-            <p className="text-destructive">
-              Non sono riuscito a caricare gli eventi
-              {error instanceof Error ? `: ${error.message}` : ""}.
-            </p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
-            >
-              Riprova
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {eventi.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                onClick={() => setGiornoSelezionato(e.data)}
-                className="flex w-full items-center gap-2 rounded-3xl bg-card p-3 text-left shadow-card active:scale-[0.99]"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatData(e.data)} · {e.ora} · {e.luogo || "luogo da definire"}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </Section>
 
       <Drawer
         open={!!giornoSelezionato}
