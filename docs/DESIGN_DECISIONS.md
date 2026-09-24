@@ -50,6 +50,7 @@ Serve a rispondere a domande del tipo:
 | [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                               | Stagione CSI dalle date delle gare    |
 | [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
 | [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)        | Ruolo allenatore                      |
+| [DD-035](#dd-035--avviso-certificati-calcolato-in-home-visibile-solo-al-titolare-e-agli-admin)   | Avviso certificati in Home            |
 
 **In valutazione**
 
@@ -1451,3 +1452,61 @@ collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando
 **Riesame**  
 Se arriva un secondo tipo di staff (dirigente, segreteria) o se i filtri sulla rosa diventano
 fonte di bug, passare alla tabella `staff` separata.
+
+### DD-035 — Avviso certificati: calcolato in Home, visibile solo al titolare e agli admin
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata (da implementare)
+
+**Contesto**  
+Il certificato medico ha una data di scadenza (`profili_giocatore.certificato_scadenza`), ma
+oggi ci si accorge che è scaduto solo aprendo la tab Profili di `/admin`: spesso quando il
+giocatore è già fuori regola. La richiesta è un avviso in Home, giallo nei 7 giorni prima
+della scadenza e nero dopo, con i nomi dei giocatori, che sparisca da solo quando il
+certificato viene rinnovato. Specifica completa in
+[modules/profilo-giocatore.md](modules/profilo-giocatore.md#avviso-certificati).
+
+**Decisione**
+
+1. L'avviso si **calcola al volo** dalla data già salvata, con una funzione pura in
+   `profili-core.ts`: nessuna tabella, nessuno stato «avvisato», nessuna migration.
+2. Lo vedono **solo gli admin**, con i nomi di tutta la rosa, e **il giocatore interessato**,
+   riferito solo a sé. L'allenatore e i compagni non lo vedono.
+3. L'avviso dello staff **non è cliccabile**; quello personale apre
+   `/profilo?tab=documenti`.
+4. Soglia fissa di **7 giorni** in una costante; il giorno della scadenza il certificato vale
+   ancora (come `statoScadenza()`).
+5. **Niente push**: l'avviso vive solo in Home.
+
+**Alternative scartate**
+
+- Mostrarlo anche all'allenatore → il certificato è un dato sanitario che oggi l'allenatore
+  non vede (DD-034); servirebbe una funzione `SECURITY DEFINER` apposta per un'informazione
+  che all'allenatore non serve ad agire.
+- Salvare gli avvisi in una tabella o nel centro notifiche (DD-030) → uno stato da tenere
+  allineato alla data, che si disallinea appena il giocatore corregge la scadenza; calcolarlo
+  è gratis e sempre giusto.
+- Avviso dello staff cliccabile verso `/admin?tab=profili` → l'admin non può caricare il file
+  al posto del giocatore (DD-017), quindi il tocco non gli farebbe fare nulla in più, e
+  richiederebbe di aggiungere a `/admin` la lettura della tab dall'URL.
+- Mostrare al massimo alcuni nomi e un «e altri N» → a inizio stagione ne scadono molti
+  insieme ed è proprio lì che l'elenco completo serve.
+- Push quotidiana a chi ha il certificato in scadenza → servirebbe un cron, che oggi non
+  esiste per nessuna push (DD-025), e le push vanno riservate agli eventi importanti
+  ([EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md)).
+- Includere i certificati mancanti → è un problema diverso (profilo incompleto), già coperto
+  dal widget «Completa il tuo profilo» e dalla tab Profili.
+
+**Conseguenze**
+
+- Nessuna query nuova: si riusa `useProfili()`, già in cache per Profilo e `/admin`, e le RLS
+  esistenti decidono quanti profili arrivano (tutti all'admin, il proprio al giocatore).
+- Il rinnovo non richiede nessuna azione di chiusura: cambiata la data, l'avviso si aggiorna
+  da solo.
+- Chi non apre l'app non viene avvisato: l'avviso raggiunge solo chi entra in Home.
+- Un admin che è anche giocatore vede solo l'avviso dello staff, dove compare il suo nome.
+
+**Riesame**  
+Se gli avvisi in Home non bastano (certificati che scadono comunque senza essere rinnovati),
+valutare una push, legata a un cron o a un invio manuale dell'admin come per i palloni. Se 7
+giorni si rivelano pochi per prenotare una visita, alzare la costante o renderla regolabile.

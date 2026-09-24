@@ -69,7 +69,8 @@ quando quei campi sono compilati.
 La Home dell'allenatore tiene ciò che riguarda la squadra e toglie ciò che riguarda il
 giocatore: restano classifica e bilancio, prossimo impegno e ultima partita; spariscono lo
 streak personale, il promemoria palloni, «Da confermare», l'obiettivo di squadra e il
-«Colpo d'occhio» con le statistiche personali.
+«Colpo d'occhio» con le statistiche personali. Non compare nemmeno l'avviso certificati: lo
+vedono solo gli admin e il giocatore interessato (DD-035).
 
 ## Squadra
 
@@ -148,19 +149,20 @@ giocatore).
 
 ## Permessi (riepilogo)
 
-| Azione                                          | Giocatore | Allenatore         | Admin              |
-| ----------------------------------------------- | --------- | ------------------ | ------------------ |
-| Modificare nome e cognome                       | no        | sì, i propri       | tutti              |
-| Dati personali e foto profilo                   | i propri  | i propri (ridotti) | tutti (non i file) |
-| Documento, certificato, foto tessera            | i propri  | —                  | lettura/download   |
-| Creare/modificare/eliminare eventi, convocati   | no        | sì                 | sì                 |
-| Sollecitare le presenze                         | no        | sì                 | sì                 |
-| Promemoria palloni, notifica personalizzata     | no        | no                 | sì                 |
-| Rispondere alle presenze, votare, essere votato | sì        | no                 | sì (se giocatore)  |
-| Tab Stagione e Badge del profilo                | sì        | no                 | sì                 |
-| Tab Obiettivi e Badge di Squadra                | sì        | no                 | sì                 |
-| Badge e classifiche/dati sulle cacche           | sì        | no                 | sì                 |
-| Dashboard `/admin`                              | no        | no                 | sì                 |
+| Azione                                          | Giocatore  | Allenatore         | Admin              |
+| ----------------------------------------------- | ---------- | ------------------ | ------------------ |
+| Modificare nome e cognome                       | no         | sì, i propri       | tutti              |
+| Dati personali e foto profilo                   | i propri   | i propri (ridotti) | tutti (non i file) |
+| Documento, certificato, foto tessera            | i propri   | —                  | lettura/download   |
+| Avviso certificati in Home                      | il proprio | no                 | tutta la rosa      |
+| Creare/modificare/eliminare eventi, convocati   | no         | sì                 | sì                 |
+| Sollecitare le presenze                         | no         | sì                 | sì                 |
+| Promemoria palloni, notifica personalizzata     | no         | no                 | sì                 |
+| Rispondere alle presenze, votare, essere votato | sì         | no                 | sì (se giocatore)  |
+| Tab Stagione e Badge del profilo                | sì         | no                 | sì                 |
+| Tab Obiettivi e Badge di Squadra                | sì         | no                 | sì                 |
+| Badge e classifiche/dati sulle cacche           | sì         | no                 | sì                 |
+| Dashboard `/admin`                              | no         | no                 | sì                 |
 
 ## Implementazione
 

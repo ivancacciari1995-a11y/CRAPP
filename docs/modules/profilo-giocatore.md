@@ -64,7 +64,7 @@ Se il profilo non è completo compare automaticamente un widget di completamento
 
 ## Home
 
-Il giocatore visualizza un widget dedicato.
+Il giocatore visualizza un widget dedicato e, quando serve, l'avviso sul certificato medico.
 
 ### Completa il tuo profilo
 
@@ -79,6 +79,128 @@ Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
 Il tap apre Profilo sulla sottosezione **Documenti** (`/profilo?tab=documenti`), non
 sulla tab Stagione.
+
+### Avviso certificati
+
+**Stato:** da implementare (DD-035).
+
+Un avviso in Home segnala i certificati medici in scadenza o scaduti, così nessuno se ne
+accorge quando il giocatore è già fuori regola. Si calcola al volo dalla data di scadenza
+già salvata: niente tabella, niente migration, niente push.
+
+#### Chi lo vede
+
+| Utente                      | Cosa vede                                                       | Al tocco                      |
+| --------------------------- | --------------------------------------------------------------- | ----------------------------- |
+| Admin                       | l'avviso **dello staff**: i nomi di tutti i giocatori coinvolti | niente, non è cliccabile      |
+| Giocatore interessato       | l'avviso **personale**: solo il proprio certificato             | apre `/profilo?tab=documenti` |
+| Admin che è anche giocatore | solo l'avviso dello staff, dove compare già il suo nome         | niente                        |
+| Altri giocatori             | niente                                                          | —                             |
+| Allenatore                  | niente: non vede i certificati altrui e non ne ha uno (DD-034)  | —                             |
+
+L'avviso dello staff non è cliccabile, come quello dei palloni: l'admin non può caricare il
+certificato al posto del giocatore (DD-017), quindi può solo sollecitarlo, e il giocatore
+riceve già il proprio avviso. Quello personale porta invece dove si carica il certificato
+nuovo, come il widget «Completa il tuo profilo».
+
+I certificati sono dati sanitari: fuori da `/admin` li legge solo il titolare (DD-016).
+Nessuna policy cambia, perché `useProfili()` restituisce già tutti i profili a un admin e il
+solo proprio a un giocatore.
+
+#### Quando compare
+
+`giorni` è la differenza in giorni di calendario tra la scadenza e oggi (ora locale), soglia
+`GIORNI_AVVISO_CERTIFICATO = 7`.
+
+| Condizione           | Stato       | Avviso             |
+| -------------------- | ----------- | ------------------ |
+| `giorni > 7`         | valido      | nessuno            |
+| `0 ≤ giorni ≤ 7`     | in scadenza | giallo (`warning`) |
+| `giorni < 0`         | scaduto     | nero (`primary`)   |
+| data o file mancanti | mancante    | nessuno            |
+
+- Il giorno della scadenza il certificato vale ancora, coerente con `statoScadenza()`: il
+  giocatore compare nel giallo con «scade oggi» e passa al nero dal giorno dopo.
+- L'avviso nero resta finché il giocatore non aggiorna la data: non c'è un limite di tempo.
+- Il certificato **mancante** non genera avviso: è un problema diverso, già visibile nella
+  tab Profili di `/admin` e nel widget di completamento del giocatore.
+- Sono esclusi i giocatori disattivati e gli allenatori: conta solo la rosa (`inRosa()`,
+  cioè `attivo` e `tipo = 'giocatore'`).
+
+#### Testi
+
+| Avviso            | Titolo (staff / personale) | Riga                                                                     |
+| ----------------- | -------------------------- | ------------------------------------------------------------------------ |
+| Giallo, staff     | «Certificati in scadenza»  | «Mario Rossi — scade tra 5 giorni», «… — scade domani», «… — scade oggi» |
+| Nero, staff       | «Certificati scaduti»      | «Mario Rossi — scaduto il 12/09/2026»                                    |
+| Giallo, personale | «Certificato in scadenza»  | «Il tuo certificato medico scade tra 5 giorni» / «domani» / «oggi»       |
+| Nero, personale   | «Certificato scaduto»      | «Il tuo certificato medico è scaduto il 12/09/2026: caricane uno nuovo»  |
+
+Il numero di giorni scende da solo ogni giorno (7, 6, 5… domani, oggi): l'avviso non
+conserva niente, rilegge la data a ogni apertura della Home.
+
+#### Più giocatori
+
+- Più giocatori nello stesso stato stanno in un **unico avviso**, una riga ciascuno, e
+  compaiono **tutti**: nessun limite al numero di nomi, anche a inizio stagione quando ne
+  scadono molti insieme.
+- Se ci sono sia certificati in scadenza sia scaduti compaiono **due avvisi**: prima quello
+  nero, poi quello giallo.
+- Ordine delle righe: dalla scadenza più vicina nel giallo, dal certificato scaduto da più
+  tempo nel nero; a parità di data, alfabetico per cognome e poi per nome. L'ordine è
+  stabile, quindi l'elenco non si rimescola tra un'apertura e l'altra.
+
+#### Aspetto e posizione
+
+- Stessa forma del banner palloni (`PromemoriaPalloni`): card arrotondata a tutta larghezza
+  con icona e titolo in `font-display` maiuscolo, righe in testo piccolo sotto.
+- Giallo: sfondo `bg-warning`, testo `text-warning-foreground`. Nero: sfondo `bg-primary`,
+  testo `text-primary-foreground`. L'app è solo chiara (DD-022), quindi il nero non rischia
+  di confondersi con lo sfondo.
+- In Home sta subito **sotto il banner palloni** e sopra «Completa il tuo profilo»: prima
+  ciò che scade oggi, poi ciò che manca.
+
+#### Rinnovo
+
+Il giocatore rinnova dal proprio profilo, sottosezione Documenti: carica il file nuovo e
+aggiorna la data. Il salvataggio aggiorna la cache dei profili (`setQueryData`), quindi il
+suo avviso personale sparisce subito. Nell'avviso dello staff il nome sparisce alla lettura
+successiva dei profili da parte dell'admin (cache di 30 minuti, `useProfili()`), senza
+nessuna azione da parte sua. Quando non resta nessuno, l'avviso non compare più.
+
+Basta aggiornare la data: l'avviso guarda solo quella (e la presenza di un file). Che il
+file caricato sia davvero quello nuovo resta un controllo dell'admin, come oggi. Anche l'admin
+può correggere la data dalla scheda del giocatore (DD-017, non il file): l'avviso segue la
+data, chiunque l'abbia scritta.
+
+#### Caricamento
+
+Finché ruoli e profili non sono arrivati, l'avviso non compare: così un admin che è anche
+giocatore non vede per un attimo l'avviso personale prima di quello dello staff. Se la
+lettura dei profili fallisce l'avviso semplicemente non compare, senza messaggio d'errore:
+la Home non deve rompersi per un dato accessorio.
+
+#### Implementazione
+
+| Pezzo                                           | Ruolo                                                                                                                                       |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GIORNI_AVVISO_CERTIFICATO` (`profili-core.ts`) | la soglia, 7                                                                                                                                |
+| `giorniAllaScadenza(scadenza, oggi)`            | differenza in giorni di calendario tra due date `AAAA-MM-GG`, negativa se scaduto                                                           |
+| `avvisiCertificati(rosa, profili, oggi)`        | funzione pura: restituisce `{ scaduti, inScadenza }`, ognuno una lista ordinata di `{ giocatoreId, nome, cognome, scadenza, giorni }`       |
+| `testoScadenza(giorni)`                         | «scade oggi» / «scade domani» / «scade tra N giorni»                                                                                        |
+| `src/components/crapp/AvvisoCertificati.tsx`    | legge `useGiocatoriSquadra()`, `useProfili()`, `useIsAdmin()` e l'utente corrente; sceglie avviso dello staff o personale e disegna le card |
+| `src/routes/index.tsx`                          | monta `<AvvisoCertificati />` subito dopo `<PromemoriaPalloni />`                                                                           |
+
+- "Oggi" viene da `oggiISO()` (`palloni-core.ts`), in ora locale. Non da
+  `new Date().toISOString()`, che è in UTC e tra mezzanotte e le 2 darebbe il giorno prima.
+- Nessuna query nuova: `useProfili()` ha la stessa chiave di cache usata da Profilo e
+  `/admin`, quindi al massimo una lettura di `profili_giocatore` per sessione (vedi
+  [EFFICIENZA_CLOUD.md](../EFFICIENZA_CLOUD.md)). Per l'allenatore il componente non legge
+  i profili.
+- Test in `test/unit/profili-core.test.ts`: soglia (8 giorni no, 7 sì, 0 sì, −1 scaduto),
+  certificato senza file o senza data escluso, giocatore disattivato e allenatore esclusi,
+  ordinamento (per data, poi alfabetico), testi al singolare e al plurale, cambio di mese e
+  di anno nel calcolo dei giorni.
 
 ## Profilo
 
@@ -131,6 +253,10 @@ Upload.
 - Certificato medico
 
 Il giocatore può aggiornare liberamente sia la data sia il file.
+
+Quando mancano 7 giorni o meno alla scadenza, o il certificato è scaduto, il giocatore
+riceve un avviso nella propria Home e compare in quello degli admin (vedi
+[Avviso certificati](#avviso-certificati)).
 
 Lo storico non viene mantenuto nella prima versione.
 
@@ -255,6 +381,9 @@ Quando tutte le sezioni risultano complete il profilo raggiunge il 100%.
 dati, modificare dati squadra e dati personali di chiunque e scollegare un account (DD-017).
 Non carica file al posto di altri.
 
+**Avviso certificati** — il giocatore vede solo il proprio, l'admin i nomi di tutta la rosa,
+nessun altro ne vede (vedi [Avviso certificati](#avviso-certificati)).
+
 ## Versione 1
 
 - Profilo giocatore
@@ -269,6 +398,7 @@ Non carica file al posto di altri.
 ## Versioni future
 
 - Storico certificati medici
+- Avviso certificati anche via push, o con una soglia regolabile dall'admin (DD-035, Riesame)
 - Gestione documenti aggiuntivi
 - Consensi privacy
 - Firma digitale

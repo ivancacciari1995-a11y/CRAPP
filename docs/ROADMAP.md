@@ -41,6 +41,10 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 
 ## Prossimo
 
+- [ ] Avviso certificati in scadenza — in Home, giallo nei 7 giorni prima e nero dopo la
+      scadenza: agli admin con i nomi dei giocatori, al giocatore solo per il proprio
+      ([specifica](modules/profilo-giocatore.md#avviso-certificati))
+
 - [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
       Campionato usa solo quelle giocate
 - [ ] Database esercizi

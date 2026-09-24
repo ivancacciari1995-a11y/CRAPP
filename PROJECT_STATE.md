@@ -178,9 +178,10 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: tutto quello che era in lavorazione è chiuso, tesseramento CSI incluso
-(numero e data di tessera registrabili da `/admin`, migration `m8_tesseramento_csi`). Le voci
-ancora aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+**Avviso certificati in scadenza** (24/09/2026, branch `develop`): specifica scritta in
+[docs/modules/profilo-giocatore.md](docs/modules/profilo-giocatore.md#avviso-certificati),
+decisione in DD-035, codice non ancora iniziato. Solo client: nessuna migration e nessuna
+push. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---
 
