@@ -43,6 +43,15 @@ un `project_id`), nessun codice le chiama direttamente.
 `project_id` (767), `CSI_COPPA_PROJECT_ID` (848) e `team_id` (3359) sono costanti in
 `src/lib/csi-core.ts`.
 
+**Stagione 2026/27 non ancora sul portale (verificato il 24/09/2026).** Il CSI non ha ancora
+creato le pagine di campionato e Coppa 2026/27: le uniche competizioni della squadra sono
+ancora `767` e `848`, con gare da novembre 2025 a maggio 2026. Per questo `/classifica`
+mostra «Stagione 2025/26» mentre Squadra e Calendario, che hanno la stagione scritta nel
+codice, mostrano già «Stagione 2026/27». È voluto: la pagina Campionato riporta la stagione
+dei dati CSI che sta mostrando, non quella in corso per la squadra. Quando il CSI pubblica
+la nuova stagione si aggiornano i due `project_id` (vedi sotto) e l'etichetta passa da sola
+a 2026/27.
+
 Per ritrovare questi id a ogni cambio stagione: `components/team-main.php?team_id=3359`
 (dietro `team_details.php`) contiene una sezione "Campionati" con un link
 `league_details.php?project_id=…` per ogni competizione a cui la squadra è iscritta —
@@ -155,7 +164,8 @@ useCsi()                     → src/lib/csi.ts (React Query, staleTime 6h)
       ↓
 /classifica                  → src/routes/classifica.tsx (tab "Classifica": Coppa sopra, Girone
                                 sotto; tab "Storico partite": ogni squadra col proprio logo,
-                                chevron di dettaglio sulle gare cliccabili)
+                                chevron di dettaglio sulle gare cliccabili, gare divise
+                                per stagione; stagione anche nel sottotitolo dell'header)
 
 CSI (portale, 3 endpoint)
       ↓  fetch server-side on-demand, cache per-partita 6 ore
@@ -239,6 +249,9 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    Il check con `CSI_LIVE=1` serve a scoprire il problema di parsing.
 2. **`project_id` è legato alla stagione.** Per il 2026/27 servirà un nuovo id (vedi
    "Sorgente dati" sopra per come ritrovarlo). Oggi va aggiornato a mano in `csi-core.ts`.
+   L'etichetta «Stagione 2025/26» di `/classifica` invece non va toccata: il portale non
+   espone il nome della stagione, quindi `stagioneDi()`/`stagioneDaPartite()` la ricavano
+   dalla data delle gare (l'anno cambia ad agosto) e segue da sola il nuovo `project_id`.
 3. **La cache vive nel processo del server.** Si perde a ogni cold start e non è condivisa tra
    istanze — vale sia per `/api/public/csi` sia per la `Map` per-partita di
    `/api/public/csi-partita/$id`. Sufficiente per una squadra; se serve di più, spostare i

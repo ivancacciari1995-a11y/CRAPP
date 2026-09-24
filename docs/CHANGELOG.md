@@ -17,6 +17,8 @@ all'indietro.
 - **Notifiche in-app** — tolta la campanella in alto a destra: il numero delle notifiche è ora
   un pallino rosso sull'avatar del profilo. Toccando il pallino si apre l'elenco (leggi ed
   elimina), toccando l'avatar si va al profilo come prima.
+- **Campionato** — l'header riporta la stagione delle gare CSI (es. «Stagione 2025/26») e lo
+  storico partite è diviso per stagione.
 
 ## [0.9.2] - 2026-09-10
 

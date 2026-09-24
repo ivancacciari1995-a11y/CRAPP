@@ -7,7 +7,13 @@ import { PageHeader, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
-import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
+import {
+  isNostraSquadra,
+  matchDaPartitaCsi,
+  partiteGiocate,
+  raggruppaPerStagione,
+  stagioneDaPartite,
+} from "@/lib/csi-core";
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 import { useEventi } from "@/lib/eventi";
 import { LogoSquadra } from "@/components/crapp/DettaglioCsi";
@@ -127,6 +133,8 @@ function Classifica() {
 
   const classifica = useMemo(() => csi?.classifica ?? [], [csi]);
   const classificaCoppa = useMemo(() => csi?.classificaCoppa ?? [], [csi]);
+  // Tutte le gare, non solo quelle giocate: a inizio stagione il calendario c'è già.
+  const stagioneCsi = useMemo(() => stagioneDaPartite(csi?.partite ?? []), [csi]);
 
   const mvpPerMatch = useMemo(() => vincitoriMvp(votiMvp.data ?? []), [votiMvp.data]);
   const eventoIdPerData = useMemo(
@@ -200,119 +208,127 @@ function Classifica() {
           Nessuna partita disponibile.
         </p>
       ) : (
-        <div className="space-y-3">
-          {tuttiMatch.map((m) => {
-            const vinta = m.setNostri > m.setLoro;
-            const eventoId = eventoIdPerData.get(m.data);
-            const cliccabile = Boolean(eventoId) || !m.scout;
-            const casa = {
-              nome: m.casa ? NOME_NOI : m.avversario,
-              nostro: m.casa,
-            };
-            const trasferta = {
-              nome: m.casa ? m.avversario : NOME_NOI,
-              nostro: !m.casa,
-            };
-            // Badge e parziali in ordine casa–ospite; il colore resta sulla vittoria CRAP.
-            const setCasa = m.casa ? m.setNostri : m.setLoro;
-            const setOspite = m.casa ? m.setLoro : m.setNostri;
-            const contenuto = (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <LogoPartita
-                        nostro={casa.nostro}
-                        logoAvversario={m.logoAvversario}
-                        avversario={m.avversario}
-                      />
-                      <p className="truncate text-sm font-bold">{casa.nome}</p>
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <LogoPartita
-                        nostro={trasferta.nostro}
-                        logoAvversario={m.logoAvversario}
-                        avversario={m.avversario}
-                      />
-                      <p className="truncate text-sm font-bold">{trasferta.nome}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatData(m.data)} · MVP {m.mvp || "da votare"}
-                      {m.scout ? " · scoutata" : ""}
-                    </p>
-                  </div>
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-xl px-2.5 py-1 font-display text-xl",
-                      vinta
-                        ? "bg-success text-success-foreground"
-                        : "bg-destructive text-destructive-foreground",
-                    )}
-                  >
-                    {setCasa}-{setOspite}
-                  </span>
-                  {cliccabile ? (
-                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
-                  ) : null}
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {m.parziali.map((p, i) => {
-                    const puntiCasa = m.casa ? p[0] : p[1];
-                    const puntiOspite = m.casa ? p[1] : p[0];
-                    const setVintoDaNoi = p[0] > p[1];
-                    return (
+        <div className="space-y-5">
+          {raggruppaPerStagione(tuttiMatch).map(({ stagione, match }) => (
+            <section key={stagione} className="space-y-3">
+              <h3 className="px-1 text-sm font-bold text-foreground">Stagione {stagione}</h3>
+              {match.map((m) => {
+                const vinta = m.setNostri > m.setLoro;
+                const eventoId = eventoIdPerData.get(m.data);
+                const cliccabile = Boolean(eventoId) || !m.scout;
+                const casa = {
+                  nome: m.casa ? NOME_NOI : m.avversario,
+                  nostro: m.casa,
+                };
+                const trasferta = {
+                  nome: m.casa ? m.avversario : NOME_NOI,
+                  nostro: !m.casa,
+                };
+                // Badge e parziali in ordine casa–ospite; il colore resta sulla vittoria CRAP.
+                const setCasa = m.casa ? m.setNostri : m.setLoro;
+                const setOspite = m.casa ? m.setLoro : m.setNostri;
+                const contenuto = (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <LogoPartita
+                            nostro={casa.nostro}
+                            logoAvversario={m.logoAvversario}
+                            avversario={m.avversario}
+                          />
+                          <p className="truncate text-sm font-bold">{casa.nome}</p>
+                        </div>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <LogoPartita
+                            nostro={trasferta.nostro}
+                            logoAvversario={m.logoAvversario}
+                            avversario={m.avversario}
+                          />
+                          <p className="truncate text-sm font-bold">{trasferta.nome}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {formatData(m.data)} · MVP {m.mvp || "da votare"}
+                          {m.scout ? " · scoutata" : ""}
+                        </p>
+                      </div>
                       <span
-                        key={i}
                         className={cn(
-                          "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
-                          setVintoDaNoi ? "bg-secondary" : "bg-muted text-muted-foreground",
+                          "shrink-0 rounded-xl px-2.5 py-1 font-display text-xl",
+                          vinta
+                            ? "bg-success text-success-foreground"
+                            : "bg-destructive text-destructive-foreground",
                         )}
                       >
-                        {puntiCasa}-{puntiOspite}
+                        {setCasa}-{setOspite}
                       </span>
-                    );
-                  })}
-                  {eventoId && !m.mvp ? (
-                    <span className="ml-auto inline-flex items-center gap-0.5 text-xs font-bold uppercase text-accent">
-                      Vota MVP <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-                    </span>
-                  ) : null}
-                </div>
-              </>
-            );
-            const aria = `${casa.nome} vs ${trasferta.nome}: dettaglio partita`;
-            if (eventoId) {
-              return (
-                <Link
-                  key={m.id}
-                  to="/partita/$id"
-                  params={{ id: eventoId }}
-                  aria-label={aria}
-                  className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
-                >
-                  {contenuto}
-                </Link>
-              );
-            }
-            // Senza evento CrAPP collegato (nessuna creazione automatica dal calendario
-            // CSI, vedi "Evoluzioni possibili"): le gare scoutate localmente non hanno un
-            // corrispettivo sul portale da mostrare, quelle CSI sì.
-            return m.scout ? (
-              <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
-                {contenuto}
-              </article>
-            ) : (
-              <Link
-                key={m.id}
-                to="/partita-csi/$id"
-                params={{ id: m.id }}
-                aria-label={aria}
-                className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
-              >
-                {contenuto}
-              </Link>
-            );
-          })}
+                      {cliccabile ? (
+                        <ChevronRight
+                          className="h-5 w-5 shrink-0 text-muted-foreground"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      {m.parziali.map((p, i) => {
+                        const puntiCasa = m.casa ? p[0] : p[1];
+                        const puntiOspite = m.casa ? p[1] : p[0];
+                        const setVintoDaNoi = p[0] > p[1];
+                        return (
+                          <span
+                            key={i}
+                            className={cn(
+                              "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
+                              setVintoDaNoi ? "bg-secondary" : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {puntiCasa}-{puntiOspite}
+                          </span>
+                        );
+                      })}
+                      {eventoId && !m.mvp ? (
+                        <span className="ml-auto inline-flex items-center gap-0.5 text-xs font-bold uppercase text-accent">
+                          Vota MVP <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                        </span>
+                      ) : null}
+                    </div>
+                  </>
+                );
+                const aria = `${casa.nome} vs ${trasferta.nome}: dettaglio partita`;
+                if (eventoId) {
+                  return (
+                    <Link
+                      key={m.id}
+                      to="/partita/$id"
+                      params={{ id: eventoId }}
+                      aria-label={aria}
+                      className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
+                    >
+                      {contenuto}
+                    </Link>
+                  );
+                }
+                // Senza evento CrAPP collegato (nessuna creazione automatica dal calendario
+                // CSI, vedi "Evoluzioni possibili"): le gare scoutate localmente non hanno un
+                // corrispettivo sul portale da mostrare, quelle CSI sì.
+                return m.scout ? (
+                  <article key={m.id} className="rounded-3xl bg-card p-4 shadow-card">
+                    {contenuto}
+                  </article>
+                ) : (
+                  <Link
+                    key={m.id}
+                    to="/partita-csi/$id"
+                    params={{ id: m.id }}
+                    aria-label={aria}
+                    className="premi block rounded-3xl bg-card p-4 shadow-card ring-1 ring-transparent transition-[box-shadow,transform] active:scale-[0.99] hover:ring-accent/30"
+                  >
+                    {contenuto}
+                  </Link>
+                );
+              })}
+            </section>
+          ))}
         </div>
       ),
     [tuttiMatch, eventoIdPerData],
@@ -322,7 +338,13 @@ function Classifica() {
     <>
       <PageHeader
         titolo="Campionato"
-        sottotitolo={csi ? `${csi.girone} · CSI Bologna` : "CSI Bologna"}
+        sottotitolo={
+          csi
+            ? [csi.girone, "CSI Bologna", stagioneCsi && `Stagione ${stagioneCsi}`]
+                .filter(Boolean)
+                .join(" · ")
+            : "CSI Bologna"
+        }
       />
 
       <BarraSottosezioni
