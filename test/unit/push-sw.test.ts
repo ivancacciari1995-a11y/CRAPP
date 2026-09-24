@@ -4,11 +4,16 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
 const codice = readFileSync(new URL("../../public/push-sw.js", import.meta.url), "utf8");
-type Evento = { data?: { json: () => unknown } | null; waitUntil: (p: Promise<unknown>) => void };
+type Evento = {
+  data?: { json: () => unknown } | null | undefined;
+  waitUntil: (p: Promise<unknown>) => void;
+};
+// `renotify` è supportato da Chromium ma manca dai tipi DOM di TypeScript.
+type OpzioniNotifica = NotificationOptions & { renotify?: boolean };
 
 function avviaWorker() {
   const listener = new Map<string, (event: Evento) => void>();
-  const notifiche: Array<{ titolo: string; opzioni: NotificationOptions }> = [];
+  const notifiche: Array<{ titolo: string; opzioni: OpzioniNotifica }> = [];
   let completa: (() => void) | undefined;
   const mostrata = new Promise<void>((resolve) => (completa = resolve));
   const installata = Promise.resolve();
@@ -23,7 +28,7 @@ function avviaWorker() {
         matchAll: () => assert.fail("la push deve funzionare senza consultare finestre aperte"),
       },
       registration: {
-        showNotification(titolo: string, opzioni: NotificationOptions) {
+        showNotification(titolo: string, opzioni: OpzioniNotifica) {
           notifiche.push({ titolo, opzioni });
           return mostrata;
         },

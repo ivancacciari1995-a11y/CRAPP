@@ -26,9 +26,7 @@ function LogoPartita({
   avversario: string;
 }) {
   if (nostro) {
-    return (
-      <TeamLogo src={LOGO_NOI} className="h-8 w-8 rounded-lg shadow-none" />
-    );
+    return <TeamLogo src={LOGO_NOI} className="h-8 w-8 rounded-lg shadow-none" />;
   }
   if (logoAvversario) {
     return <LogoSquadra src={logoAvversario} alt={avversario} className="h-8 w-8" />;
@@ -254,10 +252,7 @@ function Classifica() {
                     {setCasa}-{setOspite}
                   </span>
                   {cliccabile ? (
-                    <ChevronRight
-                      className="h-5 w-5 shrink-0 text-muted-foreground"
-                      aria-hidden
-                    />
+                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
                   ) : null}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -270,9 +265,7 @@ function Classifica() {
                         key={i}
                         className={cn(
                           "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
-                          setVintoDaNoi
-                            ? "bg-secondary"
-                            : "bg-muted text-muted-foreground",
+                          setVintoDaNoi ? "bg-secondary" : "bg-muted text-muted-foreground",
                         )}
                       >
                         {puntiCasa}-{puntiOspite}

@@ -27,6 +27,8 @@ import { daRiga, type RigaEvento, type Evento } from "@/lib/eventi";
 import { giocatori, type Giocatore } from "@/lib/crapp-data";
 import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
+import type { Stato } from "@/lib/crapp-data";
+import type { MappaPresenze } from "@/lib/presenze";
 
 const locale = statoLocale();
 
@@ -97,16 +99,16 @@ if (!locale) {
   }
 
   /** Rilegge esattamente come `fetchPresenze()`. */
-  async function leggiPresenze(): Promise<Record<string, Record<string, string>>> {
+  async function leggiPresenze(): Promise<MappaPresenze> {
     const res = await rest(
       `risposte_presenze?evento_id=like.${PREFISSO}*&select=evento_id,giocatore_id,stato`,
     );
     const righe = (await res.json()) as Array<{
       evento_id: string;
       giocatore_id: string;
-      stato: string;
+      stato: Stato;
     }>;
-    const mappa: Record<string, Record<string, string>> = {};
+    const mappa: MappaPresenze = {};
     for (const r of righe) (mappa[r.evento_id] ??= {})[r.giocatore_id] = r.stato;
     return mappa;
   }

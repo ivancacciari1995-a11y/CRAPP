@@ -59,6 +59,14 @@ if (!URL_BASE || !CHIAVE_SERVIZIO || !CHIAVE_PUBBLICA) {
     // Attenzione al falso verde: su un UPDATE che non tocca nessuna riga PostgREST
     // risponde comunque 2xx. Quello che conta è che il dato non cambi.
     await prova("un anonimo non si collega a uno slot della rosa", async () => {
+      const leggiSlot = async () => {
+        const r = await rest("giocatori_squadra?id=eq.g1&select=auth_user_id", CHIAVE_SERVIZIO);
+        const righe = (await r.json()) as Array<{ auth_user_id: string | null }>;
+        return righe[0]?.auth_user_id ?? null;
+      };
+      // Sul database di produzione g1 può essere già collegato a un giocatore vero:
+      // conta che il tentativo anonimo non cambi il valore, non che lo slot sia libero.
+      const prima = await leggiSlot();
       const res = await rest("giocatori_squadra?id=eq.g1", CHIAVE_PUBBLICA, {
         method: "PATCH",
         headers: { Prefer: "return=representation" },
@@ -68,9 +76,7 @@ if (!URL_BASE || !CHIAVE_SERVIZIO || !CHIAVE_PUBBLICA) {
         const aggiornate = (await res.json()) as unknown[];
         assert.equal(aggiornate.length, 0, "nessuna riga aggiornata senza sessione");
       }
-      const dopo = await rest("giocatori_squadra?id=eq.g1&select=auth_user_id", CHIAVE_SERVIZIO);
-      const righe = (await dopo.json()) as Array<{ auth_user_id: string | null }>;
-      assert.equal(righe[0]?.auth_user_id ?? null, null, "lo slot g1 è rimasto libero");
+      assert.equal(await leggiSlot(), prima, "lo slot g1 non è stato modificato");
     });
 
     // --- M8: tracciamento tesseramento CSI --------------------------------------

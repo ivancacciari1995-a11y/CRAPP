@@ -4,7 +4,8 @@ import { SCOUT_STATO_KEY, statoIniziale } from "@/lib/scout-stato";
 
 // --- statoIniziale: parte vuoto, con avversario e campo memorizzati -----------
 const stato = statoIniziale("Avversari", true);
-assert.deepEqual(stato, { azioni: [], setChiusi: [], avversario: "Avversari", casa: true });
+// Confronta una copia: deepEqual restringerebbe `stato` al letterale, con `azioni: never[]`.
+assert.deepEqual({ ...stato }, { azioni: [], setChiusi: [], avversario: "Avversari", casa: true });
 
 const trasferta = statoIniziale("Altra Squadra", false);
 assert.equal(trasferta.casa, false);

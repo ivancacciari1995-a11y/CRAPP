@@ -67,7 +67,7 @@ export function useRosa(): Giocatore[] {
   const { eventi } = useEventi();
   const { presenze: mappaPresenze, tempi } = useRispostePresenze();
 
-  const votiMvp = voti.data ?? [];
+  const votiMvp = voti.data;
 
   return useMemo(() => {
     const medie = mediePagelle(pagelle);
@@ -76,7 +76,7 @@ export function useRosa(): Giocatore[] {
     // premiare chi ha davvero portato i palloni, non chi l'algoritmo di rotazione ha
     // scelto per un evento passato senza che nessuno confermasse nulla.
     const palloni = conteggioTurni(turniSalvati, eventi);
-    const mvpVinti = mvpVintiPerGiocatore(votiMvp);
+    const mvpVinti = mvpVintiPerGiocatore(votiMvp ?? []);
 
     return squadra
       .filter((g) => g.attivo)
