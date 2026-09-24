@@ -34,6 +34,7 @@ npm run dev     # http://localhost:8080
 ```bash
 npm run build   # build di produzione
 npm run lint    # eslint (include prettier)
+npm run typecheck  # controllo dei tipi TypeScript
 npm run test    # test unit; npm run test:all per la suite completa
 ```
 

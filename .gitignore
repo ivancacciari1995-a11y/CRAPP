@@ -47,4 +47,5 @@ supabase/.temp/
 backups/*
 !backups/backup.sh
 !backups/download-storage.mjs
+!backups/storage-core.ts
 !backups/README.md

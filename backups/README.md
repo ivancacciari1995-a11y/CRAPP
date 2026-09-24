@@ -56,6 +56,10 @@ Ogni esecuzione crea una cartella nuova con timestamp: non sovrascrive backup
 precedenti. Non c'è pulizia automatica dei vecchi backup — cancellali a mano
 quando non servono più.
 
+Se un passaggio fallisce (un dump o anche un solo file dello storage non scaricato),
+lo script si ferma con un errore e **non** stampa «Backup completato»: un backup
+incompleto non va considerato valido, rilancialo.
+
 Il backup contiene:
 
 | File/cartella       | Contenuto                                                                                                  |
@@ -97,3 +101,11 @@ personali reali. Per questo:
 - se sposti un backup fuori da questo host, usa sempre `--encrypt` o cifra tu
   l'archivio a mano;
 - cancella i backup in chiaro quando non ti servono più.
+
+## File di questa cartella
+
+| File                   | Ruolo                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `backup.sh`            | Punto di ingresso: esegue dump e download in ordine                                              |
+| `download-storage.mjs` | Scarica i file dei bucket (usa la service role key del `.env`)                                   |
+| `storage-core.ts`      | Logica pura (lettura del `.env`, elenco dei file), coperta da `test/unit/backup-storage.test.ts` |

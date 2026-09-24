@@ -108,6 +108,7 @@ lanciato, così swipe come quello del calendario atterrano dove il gesto stava a
 npm run dev       # vite dev su http://localhost:8080
 npm run build     # build di produzione (nitro)
 npm run lint      # eslint (include prettier come regola)
+npm run typecheck # controllo dei tipi TypeScript (tsc, senza generare file)
 npm run format    # prettier --write .
 npm run test      # test unit (veloci, senza rete né database)
 npm run test:integration  # route server vere
