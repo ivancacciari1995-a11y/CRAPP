@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 15/09/2026
+Ultimo aggiornamento: 24/09/2026
 
 ## Stato generale
 
@@ -23,10 +23,8 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 30 migration in `supabase/migrations/`, fino a `m19_backfill_nascita_da_profili_esistenti`
-  (15/09/2026). `m17_notifiche_utente` e `m18_nascita_pubblica_giocatori_squadra` sono state
-  applicate in produzione lo stesso giorno (`supabase db push`); `m19` (fix del backfill di
-  M18, vedi sotto) è ancora solo in locale
+- 32 migration in `supabase/migrations/`, fino a `m21_ruolo_allenatore` (24/09/2026), tutte
+  applicate in produzione (verificato con `npx supabase migration list` il 24/09/2026)
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -54,9 +52,17 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
   seed storico. **In produzione** dal 15/09/2026, ma il backfill copriva solo il seed
   storico: chi aveva già un profilo compilato prima di M18 è rimasto scoperto
 - Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
-  backfill di M18 per tutti i profili già esistenti — **non ancora applicata in produzione**,
-  va fatta con `supabase db push` appena possibile (M18 da sola in produzione lascia la
-  nascita vuota per chi non è nel seed storico e non risalva il profilo)
+  backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
+  in `npx supabase migration list` del 24/09/2026)
+- Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (24/09/2026, DD-034): ruolo
+  allenatore (colonna `giocatori_squadra.tipo`, valore `allenatore` di `app_role`, policy e
+  trigger) — verificate in locale con `npx supabase db reset` e `npm run test:all`, **in
+  produzione** dal 24/09/2026 (`supabase db push`). Compatibili con la 0.9.2: senza allenatori
+  registrati non cambiano nulla. Il codice che le usa non è ancora deployato
+- Slot `g18` «Beta Tester» impostato come allenatore in produzione il 24/09/2026 (colonna
+  `tipo`, ruolo assegnato dal trigger di M21). Numero 99 e ruolo «Palleggiatore»
+  lasciati apposta finché gira la 0.9.2, che lo mostra ancora come giocatore: da svuotare
+  da `/admin` dopo il deploy del codice nuovo
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza
