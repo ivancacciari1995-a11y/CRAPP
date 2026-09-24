@@ -10,9 +10,10 @@ Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
 amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
-reali (M9). Prima versione pre-release rilasciata (0.9.0, vedi `docs/CHANGELOG.md`). Cancellare
-un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane da
-cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
+reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0
+con il ruolo allenatore, è pronta ma non ancora pubblicata (vedi `docs/CHANGELOG.md`).
+Cancellare un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane
+da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
 ---
 

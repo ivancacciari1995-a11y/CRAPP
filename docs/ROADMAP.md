@@ -6,7 +6,7 @@ il _cosa_: `CHANGELOG.md` registra _quando_ una voce è stata rilasciata e con q
 
 ## Fatto
 
-Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`).
+Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 
 - [x] Gestione squadra
 - [x] Calendario
@@ -37,8 +37,7 @@ Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`
 - [x] Dettaglio partita — formazioni, storico scontri diretti e probabilità di vittoria
       calcolata dal CSI
 - [x] Ruolo allenatore — gestisce gli eventi e sollecita le presenze, profilo ridotto senza
-      stagione e badge ([specifica](modules/allenatore.md), DD-034); in `develop`, non ancora
-      rilasciato
+      stagione e badge ([specifica](modules/allenatore.md), DD-034)
 
 ## Prossimo
 

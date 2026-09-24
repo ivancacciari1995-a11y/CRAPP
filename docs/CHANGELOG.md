@@ -6,11 +6,17 @@ e le voci sono divise per categoria (Aggiunto, Modificato, Sicurezza...). L'elen
 completo delle funzionalità, fatte e previste, sta in [ROADMAP.md](ROADMAP.md); qui si
 registra solo _quando_ una voce è stata rilasciata e con quale versione.
 
-Le versioni sono sempre a tre cifre (`x.y.z`, mai `x.y`). Il progetto è pre-1.0 (`0.y.z`):
-finché resta sotto `1.0.0` un aumento di `y` può includere anche cambi non compatibili
-all'indietro.
+Le versioni sono sempre a tre cifre (`x.y.z`, mai `x.y`). Dalla `1.0.0` si segue il
+[versionamento semantico](https://semver.org/lang/it/): `x` cresce con i cambi non
+compatibili all'indietro, `y` con le funzionalità nuove, `z` con le sole correzioni. Le
+versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
+
+## [1.0.0] - 2026-09-24
+
+Prima versione stabile. Oltre al ruolo allenatore riunisce il lavoro fatto dalla 0.9.2:
+centro notifiche in-app, messaggi dell'admin e la nuova Gestione eventi a calendario.
 
 ### Aggiunto
 
@@ -19,18 +25,39 @@ all'indietro.
   sollecita le presenze; ha un profilo ridotto (dati personali e foto, senza stagione e
   badge), compare in Squadra con la dicitura «Allenatore» e non vede badge né cacche.
   Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (DD-034).
+- **Centro notifiche in-app** — lo storico delle notifiche dentro l'app, indipendente dalla
+  push: messaggi dell'admin, promemoria automatici 24 ore e 3 ore prima di un evento, turno
+  palloni e sollecito presenze. Ogni notifica si toglie con uno swipe o con la ×. Migration
+  `m17_notifiche_utente` (DD-030).
+- **Messaggi dell'admin** — dalla tab Notifiche della dashboard l'admin manda un messaggio
+  libero a tutta la squadra o a un solo giocatore; la tab elenca anche chi non ha le
+  notifiche attive.
+- **Gestione eventi a calendario** — `/eventi` è una griglia mensile: si tocca un giorno per
+  vederne gli eventi e crearne, modificarne o eliminarne uno. Prima di salvare la modifica
+  di un evento esistente compare una conferma, come per l'eliminazione.
+- **Backup completo** — uno script scarica schema e dati del database e i file dello
+  storage, per poter ripartire se si perde Supabase o Vercel (vedi `PORTABILITA.md`).
 
 ### Modificato
 
-- **Notifiche in-app** — tolta la campanella in alto a destra: il numero delle notifiche è ora
-  un pallino rosso sull'avatar del profilo. Toccando il pallino si apre l'elenco (leggi ed
-  elimina), toccando l'avatar si va al profilo come prima.
+- **Notifiche in-app** — il numero delle non lette è un pallino rosso sull'avatar del
+  profilo, al posto della campanella in alto a destra. Toccando il pallino si apre l'elenco
+  (leggi ed elimina), toccando l'avatar si va al profilo come prima.
 - **Campionato** — l'header riporta la stagione delle gare CSI (es. «Stagione 2025/26») e lo
   storico partite è diviso per stagione.
 - **Gestione eventi** — tolta la lista "Eventi in calendario": resta solo il calendario
-  mensile, che ora si scorre anche con lo swipe come quello della squadra.
+  mensile, che si scorre anche con lo swipe come quello della squadra.
 - **Gestione eventi** — nel form il giorno toccato sul calendario è già fissato: resta da
-  scegliere solo l'ora («Cambia» per spostare l'evento in un altro giorno).
+  scegliere solo l'ora («Cambia» per spostare l'evento in un altro giorno). Il campo
+  «Luogo» di un nuovo evento parte vuoto invece che con «Palestra Comunale».
+
+### Corretto
+
+- **Squadra** — la data di nascita inserita dal proprio Profilo compare a tutta la squadra
+  (e nei compleanni del Calendario) invece di «Invalid Date»; allineati anche i profili
+  compilati prima della correzione. Migration `m18_nascita_pubblica_giocatori_squadra` e
+  `m19_backfill_nascita_da_profili_esistenti` (DD-031).
+- **Squadra** — la rosa non si ricalcola più a ogni render mentre i voti MVP si caricano.
 
 ## [0.9.2] - 2026-09-10
 
