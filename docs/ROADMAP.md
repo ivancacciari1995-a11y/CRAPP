@@ -36,6 +36,9 @@ Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`
 - [x] Risultati campionato
 - [x] Dettaglio partita — formazioni, storico scontri diretti e probabilità di vittoria
       calcolata dal CSI
+- [x] Ruolo allenatore — gestisce gli eventi e sollecita le presenze, profilo ridotto senza
+      stagione e badge ([specifica](modules/allenatore.md), DD-034); in `develop`, non ancora
+      rilasciato
 
 ## Prossimo
 
@@ -44,8 +47,6 @@ Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`
 - [ ] Database esercizi
 - [ ] AI Allenamenti
 - [ ] Archivio allenamenti
-- [ ] Ruolo allenatore — gestisce gli eventi, profilo ridotto senza stagione e badge
-      ([specifica](modules/allenatore.md), DD-034)
 
 ## Idee future
 

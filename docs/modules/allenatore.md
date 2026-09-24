@@ -1,10 +1,15 @@
 # Modulo — Ruolo Allenatore
 
-**Stato:** da implementare (specifica)
+**Stato:** implementato
 **Decisione:** [DD-034](../DESIGN_DECISIONS.md#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)
-**File coinvolti (previsti):** `src/lib/ruoli.ts`, `src/lib/auth-route.server.ts`,
-`src/routes/profilo.tsx`, `src/routes/eventi.tsx`, `src/routes/admin.tsx`,
-`src/lib/profili-core.ts`, i punti che leggono la rosa (vedi [Esclusione dalla rosa](#esclusione-dalla-rosa))
+**Migration:** `m20_ruolo_allenatore_enum`, `m21_ruolo_allenatore`
+**File principali:** `src/lib/giocatori-squadra.ts` (`tipo`, `inRosa`, `isAllenatore`,
+`ruoloVisibile`), `src/lib/ruoli.ts`, `src/lib/user-store.ts` (`useSonoAllenatore`,
+`useGiocatoreInCampo`), `src/lib/auth-route.server.ts`, `src/routes/profilo.tsx`,
+`src/routes/admin.tsx`, `src/routes/squadra.tsx`, `src/routes/index.tsx`
+**Test:** `test/unit/giocatori-squadra.test.ts`, `test/unit/profili-core.test.ts`,
+`test/unit/presenze.test.ts`, `test/integration/permessi-allenatore.test.ts`,
+`test/integration/permessi-route.test.ts`
 
 ## Obiettivo
 
@@ -28,7 +33,7 @@ auto-promuoversi, perché il tipo dello slot lo scrive solo un admin (come oggi 
 
 ## Profilo
 
-Il profilo dell'allenatore ha solo due tab (in `TAB_PROFILO` oggi sono quattro):
+Il profilo dell'allenatore ha solo due tab (quelle del giocatore sono quattro):
 
 | Tab          | Giocatore | Allenatore                                     |
 | ------------ | --------- | ---------------------------------------------- |
@@ -55,8 +60,16 @@ tessera, tesseramento CSI.
 
 ### Completamento profilo
 
-Per l'allenatore il completamento conta solo i dati personali della tabella sopra (100%).
-Il widget in Home segue la stessa regola: sparisce quando quei campi sono compilati.
+Per l'allenatore il completamento conta solo data e luogo di nascita, telefono ed email, 25%
+ciascuno (`completamentoAllenatore()`). Il widget in Home segue la stessa regola: sparisce
+quando quei campi sono compilati.
+
+## Home
+
+La Home dell'allenatore tiene ciò che riguarda la squadra e toglie ciò che riguarda il
+giocatore: restano classifica e bilancio, prossimo impegno e ultima partita; spariscono lo
+streak personale, il promemoria palloni, «Da confermare», l'obiettivo di squadra e il
+«Colpo d'occhio» con le statistiche personali.
 
 ## Squadra
 
@@ -65,8 +78,8 @@ per un giocatore c'è il ruolo in campo (palleggiatore, schiacciatore…) per lu
 **Allenatore**, ricavato da `tipo` e non dal campo `ruolo`. Non ha numero di maglia né
 statistiche, e non compare nella tab Stats né nelle classifiche.
 
-Da allenatore, in `/squadra` vede solo **Rosa** e **Stats**. Le tab **Obiettivi** e **Badge**
-non compaiono, e un link diretto a una delle due apre Rosa.
+Da allenatore, in `/squadra` vede solo **Rosa** e **Stats**: le tab **Obiettivi** e **Badge**
+non compaiono.
 
 | Tab       | Giocatore | Allenatore |
 | --------- | --------- | ---------- |
@@ -85,6 +98,7 @@ nessuna schermata:
 | `/squadra` → Stats                  | il criterio di ordinamento «Cacche» (`cacchePartita`)                            |
 | `/squadra` → Rosa, scheda giocatore | la riga «Cacche/partita 💩»                                                      |
 | `/partita/$id`                      | la sezione «Badge votati dai compagni» e il sondaggio cacche (`SondaggioCacche`) |
+| push «Sondaggio pre-partita aperto» | non parte verso i dispositivi degli allenatori (`apri-sondaggio.ts`)             |
 | `/profilo`, `/squadra`              | le tab Badge (già escluse sopra)                                                 |
 
 Presenze, media voto, MVP e palloni restano visibili.
@@ -92,15 +106,14 @@ Presenze, media voto, MVP e palloni restano visibili.
 ## Gestione eventi
 
 L'allenatore ha su `/eventi` gli stessi poteri dell'admin: crea, modifica, sposta ed elimina
-eventi e sceglie i convocati. Nel database la policy di scrittura su `eventi_app` passa da
-"solo admin" a "admin o allenatore" (oggi `m11_scritture_per_ruolo`); la cancellazione a
-cascata (DD-029) resta invariata.
-
-Il link a `/eventi` compare dove oggi compare per l'admin.
+eventi e sceglie i convocati (l'elenco dei convocati contiene solo giocatori). Nel database
+la policy di scrittura su `eventi_app` è "admin o allenatore" (M21); la cancellazione a
+cascata (DD-029) resta invariata. Il bottone «Gestisci eventi» del Calendario compare anche
+a lui (`usePuoGestireEventi()`).
 
 Può anche **sollecitare le presenze** di un evento, come l'admin: la route
-`sollecita-presenze.ts` accetta admin o allenatore (oggi `richiediAdmin()`), e il sollecito
-arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso.
+`sollecita-presenze.ts` accetta admin o allenatore (`richiediGestoreEventi()`), e il
+sollecito arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso.
 
 **Restano solo admin:** dashboard `/admin`, dati e documenti dei giocatori, export CSI,
 notifica personalizzata, promemoria palloni, apertura sondaggio cacche, correzione delle
@@ -108,26 +121,27 @@ risposte presenze altrui, gestione dei ruoli.
 
 ## Notifiche
 
-L'allenatore riceve i promemoria degli eventi (24h e 3h prima, push e centro notifiche
-in-app) come i giocatori, anche se non è convocato, e può attivare le push dal proprio
-Profilo. Non riceve il sollecito presenze né il turno palloni, che riguardano chi gioca.
+L'allenatore riceve i promemoria automatici degli eventi (24h e 3h prima, centro notifiche
+in-app di M17) come i giocatori, anche se non è convocato: `giocatori_destinatari_evento()`
+lo include sempre. Riceve anche i messaggi dell'admin, e può attivare le push dal proprio
+Profilo. Non riceve il sollecito presenze, il turno palloni né il sondaggio cacche, che
+riguardano chi gioca.
 
 ## Esclusione dalla rosa
 
 L'allenatore ha uno slot in `giocatori_squadra` (DD-034), quindi ogni lettura della "rosa di
-gioco" deve escluderlo: oggi il filtro è `attivo`, diventa `attivo e tipo = giocatore`. Fanno
-eccezione la tab Rosa di Squadra, i compleanni del Calendario e i destinatari dei promemoria
-evento, che lo includono. Punti da coprire, da verificare uno per uno in implementazione:
+gioco" lo esclude con `inRosa()` (`attivo` e `tipo = giocatore`) al posto del vecchio filtro
+su `attivo`. Fanno eccezione la tab Rosa di Squadra, i compleanni del Calendario
+(`useAnagraficaRosa({ conAllenatori: true })`), i destinatari dei promemoria evento e dei
+messaggi admin, che lo includono.
 
-- client: `useRosa()`, `useGiocatoriSquadra()` (dove usata come rosa), `useAnagraficaRosa()`
-  — Squadra (Stats, Obiettivi, Badge), Presenze, Palloni, Pagelle, MVP, Badge, Classifica,
-  Scout, form convocati di `/eventi`;
-- server e condivisi: `leggiGiocatoriSquadra()`, `convocatiEvento()` (`eventi.ts`, riceve la
-  rosa già filtrata), route API che notificano "tutta la rosa";
-- database: `evento_permette_voto()` (M13), che con `convocati` vuoto intende "tutta la rosa
-  attiva"; i cron dei promemoria evento (M17) invece aggiungono sempre l'allenatore ai
-  destinatari, convocato o no;
-- admin: tab Profili (conteggi di completamento e tesseramento), export CSI.
+| Livello  | Dove si esclude l'allenatore                                                                                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| client   | `useRosa()`, `useAnagraficaRosa()`, `useTurniPalloni()`, `usePresenzeUltimoMeseTutti()`, form convocati di `/eventi`, `EventoCard`, `TurnoPalloni`, `VotazioneMvp`, `VotoSocial` |
+| identità | `useGiocatoreInCampo()` è `null` per l'allenatore: niente risposta presenze, voti, pagelle, cacche, promemoria palloni                                                           |
+| server   | `destinatariSollecito()`, `promemoria-palloni.ts`, `apri-sondaggio.ts`                                                                                                           |
+| database | policy presenze e cacche «la propria riga» solo per `tipo = giocatore`; `evento_permette_voto()` rifiuta votante o votato allenatore                                             |
+| admin    | tab Squadra (conteggi, export CSI) e Profili (allenatori in un gruppo a parte, senza documenti né tesseramento)                                                                  |
 
 Il compleanno dell'allenatore resta visibile in Calendario (è un membro della squadra, non un
 giocatore).
@@ -148,37 +162,22 @@ giocatore).
 | Badge e classifiche/dati sulle cacche           | sì        | no                 | sì                 |
 | Dashboard `/admin`                              | no        | no                 | sì                 |
 
-## Cosa implementare
+## Implementazione
 
-1. **Migration** (nuova, non si riscrivono le esistenti):
-   - `giocatori_squadra.tipo` (`giocatore` | `allenatore`, default `giocatore`, non nullo);
-   - valore `allenatore` nell'enum `app_role`, assegnato in `user_roles` da una funzione
-     `SECURITY DEFINER` al momento del collegamento di uno slot con `tipo = allenatore`
-     (i permessi restano letti da `user_roles`, DD-011);
-   - trigger `enforce_giocatori_squadra_update`: `tipo` scrivibile solo dall'admin; `nome` e
-     `cognome` scrivibili dall'allenatore sul proprio slot;
-   - policy di scrittura `eventi_app`: admin o allenatore;
-   - `evento_permette_voto()`: escludere `tipo = allenatore`;
-   - cron promemoria evento: includere sempre gli allenatori attivi tra i destinatari.
-2. **`src/lib/ruoli.ts`**: `useIsAllenatore()` e `usePuoGestireEventi()` (admin o allenatore),
-   stessa lettura di `user_roles` e stessa cache.
-3. **`/eventi`**: gate `usePuoGestireEventi()` al posto di `useIsAdmin()`, anche per il link di accesso.
-   Il bottone del sollecito presenze usa lo stesso gate; lato server `sollecita-presenze.ts`
-   passa da `richiediAdmin()` a un controllo "admin o allenatore" in `auth-route.server.ts`.
-4. **`/profilo`**: tab e campi in base al tipo; nome e cognome modificabili per l'allenatore.
-5. **`/squadra`**: l'allenatore compare in Rosa con la dicitura «Allenatore», senza numero né
-   statistiche; da allenatore non si vedono le tab Obiettivi e Badge, né il criterio e la riga
-   delle cacche.
-   **`/partita/$id`**: niente sezione badge né sondaggio cacche per l'allenatore.
-6. **`profili-core.ts`**: completamento dedicato all'allenatore (solo dati personali).
-7. **`/admin`**: scelta del tipo in "Aggiungi"; allenatori mostrati a parte, fuori dai conteggi
-   di completamento e tesseramento; nessun export CSI per loro.
-8. **Filtro rosa** in tutti i punti elencati sopra.
-9. **Test**: unit sul completamento e sul filtro rosa; integration in
-   `test/integration/permessi.test.ts` (l'allenatore scrive `eventi_app`, non vota, non cambia
-   il proprio `tipo`, non scrive slot altrui).
-10. **Documentazione** alla consegna: `DATABASE.md` (colonna, enum, tabella permessi),
-    `profilo-giocatore.md`, `squadra.md`, `calendario.md`, `CHANGELOG.md`, `ROADMAP.md`, DD-034 → Accettata.
+- **Migration M20** aggiunge `allenatore` all'enum `app_role`: sta da sola perché Postgres non
+  lascia usare un valore di enum nella transazione che lo crea.
+- **Migration M21**: colonna `giocatori_squadra.tipo`; `numero` nullabile solo per gli
+  allenatori (vincolo `giocatori_squadra_numero_giocatori`); trigger
+  `enforce_giocatori_squadra_update` con `tipo` bloccato e nome/cognome liberi solo sullo slot
+  del proprio allenatore; policy «L'allenatore aggiorna il proprio slot»; trigger
+  `sincronizza_ruolo_allenatore` che aggiunge o toglie la riga `allenatore` in `user_roles` al
+  collegamento, scollegamento, disattivazione o cambio di tipo; policy `eventi_app` admin o
+  allenatore; presenze, cacche e voti chiusi all'allenatore; promemoria evento aperti.
+- **Client**: nell'app `numero` resta un `number` (0 per l'allenatore, NULL a database). I
+  permessi (eventi, sollecito) leggono `user_roles` con `usePuoGestireEventi()`; cosa si vede
+  dipende dal tipo del proprio slot (`useSonoAllenatore()`), che è immediato.
+- **Admin**: «Aggiungi giocatore o allenatore» con il campo Tipo; per l'allenatore il form non
+  chiede numero e ruolo. Il tipo si sceglie solo alla creazione.
 
 ## Scelte confermate
 

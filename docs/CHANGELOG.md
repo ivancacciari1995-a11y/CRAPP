@@ -12,6 +12,14 @@ all'indietro.
 
 ## [Non rilasciato]
 
+### Aggiunto
+
+- **Ruolo allenatore** — l'admin registra un allenatore da `/admin` (tipo «Allenatore», con
+  l'email Gmail) e lui si collega al primo accesso come i giocatori. Gestisce gli eventi e
+  sollecita le presenze; ha un profilo ridotto (dati personali e foto, senza stagione e
+  badge), compare in Squadra con la dicitura «Allenatore» e non vede badge né cacche.
+  Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (DD-034).
+
 ### Modificato
 
 - **Notifiche in-app** — tolta la campanella in alto a destra: il numero delle notifiche è ora

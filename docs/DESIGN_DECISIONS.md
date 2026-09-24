@@ -49,13 +49,13 @@ Serve a rispondere a domande del tipo:
 | [DD-031](#dd-031--data-di-nascita-pubblica-una-colonna-sincronizzata-non-una-seconda-rls-aperta) | Nascita pubblica sincronizzata        |
 | [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                               | Stagione CSI dalle date delle gare    |
 | [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
+| [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)        | Ruolo allenatore                      |
 
 **In valutazione**
 
-| ID                                                                                        | Titolo                |
-| ----------------------------------------------------------------------------------------- | --------------------- |
-| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)                          | Convergenza schema DB |
-| [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore) | Ruolo allenatore      |
+| ID                                                               | Titolo                |
+| ---------------------------------------------------------------- | --------------------- |
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
 
 **Sostituite**
 
@@ -1404,7 +1404,7 @@ per titolo invece di reintrodurre la lista completa.
 ### DD-034 — L'allenatore è uno slot della squadra con tipo diverso, non un giocatore
 
 **Data:** 24 settembre 2026  
-**Stato:** In valutazione
+**Stato:** Accettata (implementata con le migration M20 e M21)
 
 **Contesto**  
 Serve un account per l'allenatore: deve gestire gli eventi (oggi solo admin, `m11`) ma non è
@@ -1438,6 +1438,11 @@ collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando
   nella specifica e va coperto dai test di `permessi.test.ts`.
 - Il trigger sugli slot cambia: `tipo` lo scrive solo l'admin; nome e cognome li scrive anche
   l'allenatore sul proprio slot.
+- `numero` diventa nullabile a database, ma solo per gli allenatori (vincolo di M21); nell'app
+  resta un numero, 0 per l'allenatore, per non toccare i tipi di tutta la rosa.
+- Due fonti distinte, ciascuna per il suo scopo: i permessi (eventi, sollecito) da
+  `user_roles`, la visibilità (badge, cacche, stagione) dal tipo del proprio slot, che è
+  immediato e non aspetta la query dei ruoli.
 - L'allenatore non vede le tab Stagione e Badge del Profilo, né Obiettivi e Badge di Squadra.
 - In Squadra compare nella tab Rosa con «Allenatore» al posto del ruolo, ricavato da `tipo`;
   riceve i promemoria degli eventi e può sollecitare le presenze, non il turno palloni.
