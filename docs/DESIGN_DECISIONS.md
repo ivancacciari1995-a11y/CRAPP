@@ -16,45 +16,46 @@ Serve a rispondere a domande del tipo:
 
 **Accettate**
 
-| ID                                                                                | Titolo                                |
-| --------------------------------------------------------------------------------- | ------------------------------------- |
-| [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable)                     | Indipendenza da Lovable               |
-| [DD-002](#dd-002--sviluppo-document-first)                                        | Sviluppo document-first               |
-| [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive)                            | Ogni versione aggiunge, non riscrive  |
-| [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi)                         | Mobile-first                          |
-| [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)         | AI solo se utile                      |
-| [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database)               | Badge calcolati, non in DB            |
-| [DD-008](#dd-008--gamification-equa-tra-ruoli)                                    | Gamification equa tra ruoli           |
-| [DD-009](#dd-009--tesseramento-csi-manuale-integrazione-api-in-una-fase-successiva) | CSI manuale, poi integrazione API   |
-| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati)                   | Niente storico certificati            |
-| [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo) | Auth reale prima del profilo          |
-| [DD-012](#dd-012--rimandare-la-migrazione-degli-id-giocatore)                     | Rimandare la migrazione ID            |
-| [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)       | Portabilità dello stack               |
-| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                 | Rosa da hardcoded a DB                |
-| [DD-016](#dd-016--schema-dati-profilo-giocatore-f0)                               | Schema dati Profilo Giocatore         |
-| [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)    | L'admin scrive al posto del giocatore |
-| [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
-| [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                         | Il branch lo decide l'utente          |
-| [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                | Test obbligatori e verdi              |
-| [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)  | Molle interrompibili con motion       |
-| [DD-022](#dd-022--lapp-è-solo-chiara)                                             | App solo chiara                       |
-| [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                          | Scritture limitate per ruolo          |
-| [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
-| [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
-| [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
-| [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
-| [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)         | Soglia minima Media voto e MVP        |
-| [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)        | Pulizia a cascata evento cancellato   |
-| [DD-030](#dd-030--centro-notifiche-in-app-storico-separato-dalla-push-letto-solo-con-rls) | Centro notifiche in-app               |
+| ID                                                                                               | Titolo                                |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable)                                    | Indipendenza da Lovable               |
+| [DD-002](#dd-002--sviluppo-document-first)                                                       | Sviluppo document-first               |
+| [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive)                                           | Ogni versione aggiunge, non riscrive  |
+| [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi)                                        | Mobile-first                          |
+| [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)                        | AI solo se utile                      |
+| [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database)                              | Badge calcolati, non in DB            |
+| [DD-008](#dd-008--gamification-equa-tra-ruoli)                                                   | Gamification equa tra ruoli           |
+| [DD-009](#dd-009--tesseramento-csi-manuale-integrazione-api-in-una-fase-successiva)              | CSI manuale, poi integrazione API     |
+| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati)                                  | Niente storico certificati            |
+| [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo)                | Auth reale prima del profilo          |
+| [DD-012](#dd-012--rimandare-la-migrazione-degli-id-giocatore)                                    | Rimandare la migrazione ID            |
+| [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)                      | Portabilità dello stack               |
+| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                                | Rosa da hardcoded a DB                |
+| [DD-016](#dd-016--schema-dati-profilo-giocatore-f0)                                              | Schema dati Profilo Giocatore         |
+| [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)                   | L'admin scrive al posto del giocatore |
+| [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)                            | Collegamento automatico per email     |
+| [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                                        | Il branch lo decide l'utente          |
+| [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                               | Test obbligatori e verdi              |
+| [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)                 | Molle interrompibili con motion       |
+| [DD-022](#dd-022--lapp-è-solo-chiara)                                                            | App solo chiara                       |
+| [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                                         | Scritture limitate per ruolo          |
+| [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)                      | Route di notifica autenticate         |
+| [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)                           | Promemoria palloni manuale            |
+| [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                                | Payload push cifrato                  |
+| [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso)            | Voto limitato ai convocati            |
+| [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)                        | Soglia minima Media voto e MVP        |
+| [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)                       | Pulizia a cascata evento cancellato   |
+| [DD-030](#dd-030--centro-notifiche-in-app-storico-separato-dalla-push-letto-solo-con-rls)        | Centro notifiche in-app               |
 | [DD-031](#dd-031--data-di-nascita-pubblica-una-colonna-sincronizzata-non-una-seconda-rls-aperta) | Nascita pubblica sincronizzata        |
-| [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                | Stagione CSI dalle date delle gare    |
-| [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)       | Gestione eventi solo da calendario    |
+| [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                               | Stagione CSI dalle date delle gare    |
+| [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
 
 **In valutazione**
 
-| ID                                                               | Titolo                |
-| ---------------------------------------------------------------- | --------------------- |
-| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
+| ID                                                                                        | Titolo                |
+| ----------------------------------------------------------------------------------------- | --------------------- |
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)                          | Convergenza schema DB |
+| [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore) | Ruolo allenatore      |
 
 **Sostituite**
 
@@ -1200,7 +1201,7 @@ modo per un giocatore di toglierle di torno per sempre.
 - Notificare anche sulla sola creazione di un evento, non solo sull'avvicinarsi della data →
   scartata su richiesta esplicita: conta quando l'evento sta per succedere, non il momento in
   cui è stato messo in calendario. La prima versione aveva un trigger `AFTER INSERT ON
-  eventi_app` per questo, rimosso prima del rilascio.
+eventi_app` per questo, rimosso prima del rilascio.
 - Una route API dedicata per leggere/segnare come lette (come le route push esistenti) →
   scartata: qui non serve la service role (niente da nascondere al giocatore stesso), quindi
   la RLS basta ed evita di duplicare la logica di lettura già scritta lato client per gli
@@ -1242,7 +1243,7 @@ In "Squadra" la data di nascita mostrava **"Invalid Date"** per chi l'aveva inse
 solo dal proprio Profilo. Causa: due fonti mai collegate. I 17 giocatori del seed storico
 hanno la nascita in `nascitaPerId`, una mappa statica pubblica bundlata nel client
 (`src/lib/crapp-data.ts`) — il commento sulla riga la descriveva esplicitamente come
-stopgap: *"`giocatori_squadra` non ha ancora questa colonna (DD-015 follow-up)"*. Un
+stopgap: _"`giocatori_squadra` non ha ancora questa colonna (DD-015 follow-up)"_. Un
 giocatore aggiunto dopo la migrazione DD-015 inserisce invece la nascita dal form Profilo,
 che scrive su `profili_giocatore.data_nascita` — tabella con RLS "solo il proprio profilo o
 admin" (M2), mai letta da `useRosa()`/`useAnagraficaRosa()` (`src/lib/rosa.ts`), e comunque
@@ -1309,7 +1310,7 @@ per questa colonna.
 **Aggiornamento (15 settembre 2026, stesso giorno)** — dopo aver applicato M18 in produzione
 (`supabase db push`), la nascita in Squadra compariva solo per i 17 giocatori storici, non
 per chi aveva già compilato il proprio profilo prima della migration: il trigger di sync
-copre solo le scritture *future* su `profili_giocatore`, non retroattivamente, e M18
+copre solo le scritture _future_ su `profili_giocatore`, non retroattivamente, e M18
 backfillava a mano solo il seed storico. Migration `m19_backfill_nascita_da_profili_esistenti`
 allinea una tantum `giocatori_squadra.nascita` a `profili_giocatore.data_nascita` per tutti i
 profili già esistenti, con la stessa disattivazione temporanea del trigger di sicurezza usata
@@ -1399,3 +1400,49 @@ toccando «Cambia», per spostare un evento in un altro giorno.
 **Riesame**  
 Se gli eventi crescono tanto da rendere scomodo lo scorrere dei mesi, valutare una ricerca
 per titolo invece di reintrodurre la lista completa.
+
+### DD-034 — L'allenatore è uno slot della squadra con tipo diverso, non un giocatore
+
+**Data:** 24 settembre 2026  
+**Stato:** In valutazione
+
+**Contesto**  
+Serve un account per l'allenatore: deve gestire gli eventi (oggi solo admin, `m11`) ma non è
+un giocatore. Non ha statistiche, badge né stagione, non vota e non viene votato. L'admin
+vuole registrarlo come i giocatori, inserendo la sua email Gmail. Specifica completa in
+[modules/allenatore.md](modules/allenatore.md).
+
+**Decisione**  
+L'allenatore è una riga di `giocatori_squadra` con una nuova colonna `tipo = 'allenatore'`
+(default `'giocatore'`). Così riusa senza cambiarli il collegamento per email (DD-018),
+`profili_giocatore` per i dati personali, il bucket avatar e il compleanno sincronizzato
+(DD-031). Il permesso di gestire gli eventi arriva da un nuovo valore `allenatore` di
+`app_role` in `user_roles` (DD-011), scritto da una funzione `SECURITY DEFINER` quando si
+collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando lo slot.
+"Rosa" diventa `attivo e tipo = 'giocatore'` ovunque.
+
+**Alternative scartate**
+
+- Una tabella `staff` separata → isola l'allenatore da voti e rosa senza toccare i filtri, ma
+  duplica collegamento per email, profilo, avatar e form admin. Resta l'alternativa se i
+  filtri sulla rosa si rivelano troppi o fragili.
+- Registrare l'allenatore come admin → gli darebbe dati personali e documenti di tutta la
+  squadra (DD-017), molto più del necessario.
+- Distinguere l'allenatore dal campo `ruolo` (ruolo in campo) → mescola due concetti e il
+  campo è testo libero.
+
+**Conseguenze**
+
+- Ogni lettura della rosa (client, server, SQL di voto e promemoria) va filtrata per `tipo`:
+  un punto dimenticato rende l'allenatore votabile o lo conta tra i convocati. L'elenco sta
+  nella specifica e va coperto dai test di `permessi.test.ts`.
+- Il trigger sugli slot cambia: `tipo` lo scrive solo l'admin; nome e cognome li scrive anche
+  l'allenatore sul proprio slot.
+- L'allenatore non vede le tab Stagione e Badge del Profilo, né Obiettivi e Badge di Squadra.
+- In Squadra compare nella tab Rosa con «Allenatore» al posto del ruolo, ricavato da `tipo`;
+  riceve i promemoria degli eventi e può sollecitare le presenze, non il turno palloni.
+- Non vede badge né classifiche o sondaggi sulle cacche, in nessuna schermata.
+
+**Riesame**  
+Se arriva un secondo tipo di staff (dirigente, segreteria) o se i filtri sulla rosa diventano
+fonte di bug, passare alla tabella `staff` separata.

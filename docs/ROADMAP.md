@@ -44,6 +44,8 @@ Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`
 - [ ] Database esercizi
 - [ ] AI Allenamenti
 - [ ] Archivio allenamenti
+- [ ] Ruolo allenatore — gestisce gli eventi, profilo ridotto senza stagione e badge
+      ([specifica](modules/allenatore.md), DD-034)
 
 ## Idee future
 
