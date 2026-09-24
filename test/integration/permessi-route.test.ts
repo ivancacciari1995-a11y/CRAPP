@@ -66,8 +66,19 @@ if (!locale) {
     body: JSON.stringify({ user_id: idAdmin, role: "admin" }),
   });
 
+  // Il ruolo allenatore lo scrive il trigger di M21 al collegamento dello slot; qui basta
+  // la riga in `user_roles`, che è ciò che la route legge (DD-034).
+  const emailAllenatore = `test-route-allenatore-${Date.now()}@example.test`;
+  const idAllenatore = await creaUtente(emailAllenatore);
+  await fetch(`${SUPABASE}/rest/v1/user_roles`, {
+    method: "POST",
+    headers: { ...authAdmin, "content-type": "application/json" },
+    body: JSON.stringify({ user_id: idAllenatore, role: "allenatore" }),
+  });
+
   const tokenGiocatore = await accedi(emailGiocatore);
   const tokenAdmin = await accedi(emailAdmin);
+  const tokenAllenatore = await accedi(emailAllenatore);
 
   const server = await avviaServer();
   console.log(`permessi route su ${server.baseUrl} (database ${SUPABASE})`);
@@ -107,8 +118,58 @@ if (!locale) {
         assert.equal(res.status, 404, `${percorso}: superato l'accesso, evento inesistente`);
       }
     });
+
+    await prova(
+      "l'allenatore sollecita le presenze ma non manda palloni né sondaggio",
+      async () => {
+        const sollecito = await chiama("/api/public/sollecita-presenze", {
+          authorization: `Bearer ${tokenAllenatore}`,
+        });
+        assert.equal(sollecito.status, 404, "sollecito: superato l'accesso, evento inesistente");
+        for (const percorso of ["/api/public/apri-sondaggio", "/api/public/promemoria-palloni"]) {
+          const res = await chiama(percorso, { authorization: `Bearer ${tokenAllenatore}` });
+          assert.equal(res.status, 403, `${percorso}: restano all'admin`);
+        }
+      },
+    );
+
+    /** Messaggio libero: stesso controllo d'accesso, corpo diverso. */
+    const chiamaMessaggio = (intestazioni: Record<string, string> = {}) =>
+      fetch(`${server.baseUrl}/api/public/notifica-personalizzata`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...intestazioni },
+        body: JSON.stringify({ messaggio: "prova" }),
+      });
+
+    await prova("senza token non si manda un messaggio personalizzato", async () => {
+      assert.equal((await chiamaMessaggio()).status, 401);
+    });
+
+    await prova("un giocatore autenticato non manda messaggi personalizzati", async () => {
+      const res = await chiamaMessaggio({ authorization: `Bearer ${tokenGiocatore}` });
+      assert.equal(res.status, 403);
+    });
+
+    await prova("l'allenatore non manda messaggi personalizzati", async () => {
+      const res = await chiamaMessaggio({ authorization: `Bearer ${tokenAllenatore}` });
+      assert.equal(res.status, 403);
+    });
+
+    await prova("un amministratore manda il messaggio (nessun dispositivo iscritto)", async () => {
+      const res = await chiamaMessaggio({ authorization: `Bearer ${tokenAdmin}` });
+      assert.equal(res.status, 200);
+      const corpo = (await res.json()) as { inviate: number; destinatari: number };
+      assert.equal(corpo.destinatari, 0);
+      assert.equal(corpo.inviate, 0);
+    });
   } finally {
     server.stop();
+    // La route scrive anche lo storico in-app (M17): il messaggio "prova" a tutta la
+    // rosa lascia righe in `notifiche_utente` che altrimenti restano per sempre.
+    await fetch(`${SUPABASE}/rest/v1/notifiche_utente?corpo=eq.prova&tipo=eq.admin`, {
+      method: "DELETE",
+      headers: authAdmin,
+    });
     for (const id of idUtenti) {
       await fetch(`${SUPABASE}/rest/v1/user_roles?user_id=eq.${id}`, {
         method: "DELETE",

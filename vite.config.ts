@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, mergeConfig } from "vite";
+import { defineConfig, loadEnv, mergeConfig, type UserConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
@@ -46,14 +46,13 @@ export default defineConfig(async ({ command, mode }) => {
   }
   plugins.push(viteReact());
 
-  let config = {
+  let config: UserConfig = {
     define: envDefine,
     ...(isDevBuild
       ? {
           environments: {
             client: { define: { "process.env.NODE_ENV": JSON.stringify("development") } },
           },
-          esbuild: { keepNames: true },
         }
       : {}),
     css: { transformer: "lightningcss" as const },

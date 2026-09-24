@@ -1,10 +1,27 @@
-import { useId, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inizialiDa, statoMeta, type Stato } from "@/lib/crapp-data";
 import { nomeCompleto } from "@/lib/giocatori-squadra";
 import { useGiocatoreBase } from "@/lib/user-store";
+import { useMotoRidotto } from "@/lib/motion";
+import { molla, proietta } from "@/lib/molla";
+import {
+  pallinoNotifiche,
+  useEliminaNotifica,
+  useNotificheMie,
+  useSegnaLette,
+  type NotificaUtente,
+} from "@/lib/notifiche-utente";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Numero } from "@/components/motion/Numero";
@@ -48,6 +65,66 @@ export function Card({
   return <Tag className={cn("premi rounded-3xl bg-card p-4 shadow-card", className)} {...props} />;
 }
 
+/** "or ora" / "tra 3 ore" / "2 giorni fa" — così basta guardare senza fare i conti. */
+function tempoRelativo(dataIso: string): string {
+  const rtf = new Intl.RelativeTimeFormat("it", { numeric: "auto" });
+  const minuti = Math.round((new Date(dataIso).getTime() - Date.now()) / 60_000);
+  if (Math.abs(minuti) < 60) return rtf.format(minuti, "minute");
+  const ore = Math.round(minuti / 60);
+  if (Math.abs(ore) < 24) return rtf.format(ore, "hour");
+  return rtf.format(Math.round(ore / 24), "day");
+}
+
+/**
+ * Una riga del pannello notifiche, eliminabile con uno swipe a sinistra o con la ×: non
+ * c'è pulizia automatica delle notifiche vecchie (M17), quindi è l'unico modo per un
+ * giocatore di togliersele di torno. Soglia e proiezione della velocità di rilascio come
+ * lo swipe del calendario (`src/routes/calendario.tsx`), ma qui in una sola direzione: non
+ * c'è "indietro", solo "via".
+ */
+function RigaNotifica({
+  notifica,
+  onElimina,
+}: {
+  notifica: NotificaUtente;
+  onElimina: (id: string) => void;
+}) {
+  const ridotto = useMotoRidotto();
+  return (
+    <motion.li
+      layout={!ridotto}
+      initial={false}
+      exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+      transition={molla.ui}
+      className="relative overflow-hidden rounded-xl"
+    >
+      <motion.div
+        drag={ridotto ? false : "x"}
+        dragConstraints={{ left: -80, right: 0 }}
+        dragElastic={{ left: 0.2, right: 0 }}
+        dragMomentum={false}
+        onDragEnd={(_, info) => {
+          const arrivo = info.offset.x + proietta(info.velocity.x);
+          if (arrivo < -60) onElimina(notifica.id);
+        }}
+        className="touch-pan-y bg-card p-3 pr-8 text-sm"
+      >
+        <p className="font-semibold">{notifica.titolo}</p>
+        {notifica.corpo ? <p className="mt-0.5 text-muted-foreground">{notifica.corpo}</p> : null}
+        <p className="mt-1 text-xs text-muted-foreground">{tempoRelativo(notifica.creataIl)}</p>
+      </motion.div>
+      <button
+        type="button"
+        onClick={() => onElimina(notifica.id)}
+        aria-label="Rimuovi notifica"
+        className="absolute right-1 top-1 rounded-full p-1.5 text-muted-foreground active:scale-90"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </motion.li>
+  );
+}
+
 /**
  * Accesso al profilo in alto a destra: la BottomNav ha quattro voci e questa è
  * l'unica porta verso `/profilo`. Sulla pagina del profilo si passa `azione` a
@@ -57,18 +134,105 @@ export function Card({
  * iniziali, mentre `useIo` calcola l'intera rosa con statistiche (MVP, pagelle,
  * cacche, palloni, infortuni). Essendo in un componente montato su quasi ogni
  * pagina, quei moduli finirebbero nel bundle condiviso di tutte le rotte.
+ *
+ * Sopra l'avatar sta il pallino del centro notifiche (M17): il tap sull'avatar
+ * porta sempre al profilo, quello sul pallino apre il pannello.
  */
 export function LinkProfilo() {
   const g = useGiocatoreBase();
   if (!g) return <TeamLogo className="h-12 w-12" />;
   return (
-    <Link
-      to="/profilo"
-      aria-label="Il tuo profilo"
-      className="premi shrink-0 rounded-2xl ring-2 ring-primary-foreground/30"
-    >
-      <Avatar id={g.id} fallback={inizialiDa(nomeCompleto(g))} className="h-12 w-12 text-lg" />
-    </Link>
+    <div className="relative shrink-0">
+      <Link
+        to="/profilo"
+        aria-label="Il tuo profilo"
+        className="premi block rounded-2xl ring-2 ring-primary-foreground/30"
+      >
+        <Avatar id={g.id} fallback={inizialiDa(nomeCompleto(g))} className="h-12 w-12 text-lg" />
+      </Link>
+      <PallinoNotifiche />
+    </div>
+  );
+}
+
+/**
+ * Pallino del centro notifiche (M17) sull'angolo dell'avatar (aspetto deciso da
+ * `pallinoNotifiche()`). Copre quattro sorgenti generate lato database (mai dal client):
+ * messaggi admin, promemoria automatici, turno palloni, sollecito presenze — vedi
+ * `src/lib/notifiche-utente.ts`.
+ *
+ * Nel progetto non c'è una libreria dropdown: il pannello è un `div` posizionato a mano,
+ * chiuso al click fuori o con Escape. Aprirlo segna tutte le notifiche come lette; per
+ * toglierle di mezzo per sempre serve lo swipe o la × di `RigaNotifica`.
+ */
+function PallinoNotifiche() {
+  const { notifiche, nonLette } = useNotificheMie();
+  const segnaLette = useSegnaLette();
+  const eliminaNotifica = useEliminaNotifica();
+  const [aperto, setAperto] = useState(false);
+  const riquadro = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aperto) return;
+    const chiudiSeFuori = (e: MouseEvent) => {
+      if (riquadro.current && !riquadro.current.contains(e.target as Node)) setAperto(false);
+    };
+    const chiudiConEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAperto(false);
+    };
+    document.addEventListener("mousedown", chiudiSeFuori);
+    document.addEventListener("keydown", chiudiConEsc);
+    return () => {
+      document.removeEventListener("mousedown", chiudiSeFuori);
+      document.removeEventListener("keydown", chiudiConEsc);
+    };
+  }, [aperto]);
+
+  const pallino = pallinoNotifiche(notifiche.length, nonLette);
+  if (!pallino) return null;
+
+  function alClick() {
+    const stavaChiuso = !aperto;
+    setAperto(stavaChiuso);
+    if (stavaChiuso && nonLette > 0) segnaLette.mutate();
+  }
+
+  // Tolta l'ultima, il pallino sparisce: chiuso anche il pannello, così alla prossima
+  // notifica non si riapre da solo.
+  function elimina(id: string) {
+    if (notifiche.length === 1) setAperto(false);
+    eliminaNotifica.mutate(id);
+  }
+
+  return (
+    <div ref={riquadro}>
+      {/* `after:` allarga l'area di tocco oltre i 20px del pallino senza ingrandirlo. */}
+      <button
+        type="button"
+        onClick={alClick}
+        aria-label={nonLette > 0 ? `Notifiche, ${nonLette} da leggere` : "Notifiche"}
+        aria-expanded={aperto}
+        className={cn(
+          "absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold shadow-pop ring-2 ring-primary-foreground after:absolute after:-inset-3 active:scale-90",
+          pallino.daLeggere
+            ? "bg-accent-grad text-accent-foreground"
+            : "bg-muted text-muted-foreground",
+        )}
+      >
+        {pallino.testo}
+      </button>
+      {aperto ? (
+        <div className="absolute right-0 top-14 z-50 w-72 max-w-[calc(100vw-2.5rem)] rounded-2xl bg-card p-2 text-foreground shadow-card">
+          <ul className="max-h-80 overflow-y-auto">
+            <AnimatePresence initial={false}>
+              {notifiche.map((n) => (
+                <RigaNotifica key={n.id} notifica={n} onElimina={elimina} />
+              ))}
+            </AnimatePresence>
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -12,8 +12,10 @@ import {
   useSalvaProfilo,
   type SezioneFile,
 } from "@/lib/profili";
+import { useSalvaNomeAllenatore, type GiocatoreSquadra } from "@/lib/giocatori-squadra";
 import {
   completamento,
+  completamentoAllenatore,
   profiloVuoto,
   sezioniComplete,
   type Profilo,
@@ -245,6 +247,138 @@ export function CampiProfilo({
 }
 
 /**
+ * I dati personali dell'allenatore (DD-034): gli stessi campi di `profili_giocatore`, meno
+ * indirizzo, documento, certificato e foto tessera. Condivisi tra Profilo e dashboard admin.
+ */
+export function CampiAllenatore({
+  corrente,
+  aggiorna,
+}: {
+  corrente: Profilo;
+  aggiorna: (patch: Partial<Profilo>) => void;
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Data di nascita">
+          <input
+            type="date"
+            value={corrente.dataNascita ?? ""}
+            onChange={(e) => aggiorna({ dataNascita: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Luogo di nascita">
+          <input
+            value={corrente.luogoNascita ?? ""}
+            maxLength={80}
+            onChange={(e) => aggiorna({ luogoNascita: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Telefono">
+          <input
+            type="tel"
+            value={corrente.telefono ?? ""}
+            maxLength={20}
+            onChange={(e) => aggiorna({ telefono: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Email">
+          <input
+            type="email"
+            value={corrente.email ?? ""}
+            maxLength={120}
+            onChange={(e) => aggiorna({ email: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Tab Docs dell'allenatore: nome e cognome (sul proprio slot, M21) più i dati personali
+ * ridotti. Un solo pulsante salva entrambi.
+ */
+export function ProfiloAllenatore({ g }: { g: GiocatoreSquadra }) {
+  const { profili } = useProfili();
+  const salvaProfilo = useSalvaProfilo();
+  const salvaNome = useSalvaNomeAllenatore();
+  const [bozza, setBozza] = useState<Profilo | null>(null);
+  const [nome, setNome] = useState<{ nome: string; cognome: string } | null>(null);
+
+  const corrente = bozza ?? profili[g.id] ?? profiloVuoto(g.id);
+  const nomeCorrente = nome ?? { nome: g.nome, cognome: g.cognome };
+  const sporco = bozza !== null || nome !== null;
+  const inCorso = salvaProfilo.isPending || salvaNome.isPending;
+  const perc = completamentoAllenatore(corrente);
+
+  async function salva() {
+    try {
+      if (nome) await salvaNome.mutateAsync({ giocatoreId: g.id, ...nome });
+      if (bozza) await salvaProfilo.mutateAsync(bozza);
+      setNome(null);
+      setBozza(null);
+      toast.success("Profilo aggiornato");
+    } catch (errore) {
+      toast.error(errore instanceof Error ? errore.message : "Salvataggio non riuscito");
+    }
+  }
+
+  return (
+    <div className="space-y-3 rounded-3xl bg-card p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-secondary">
+          <div
+            className="h-full rounded-full bg-accent-grad transition-all"
+            style={{ width: `${perc}%` }}
+          />
+        </div>
+        <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
+          {perc}%
+        </span>
+      </div>
+
+      <Intestazione titolo="Dati personali" completa={perc === 100} />
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Nome">
+          <input
+            value={nomeCorrente.nome}
+            maxLength={40}
+            onChange={(e) => setNome({ ...nomeCorrente, nome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+        <Campo label="Cognome">
+          <input
+            value={nomeCorrente.cognome}
+            maxLength={40}
+            onChange={(e) => setNome({ ...nomeCorrente, cognome: e.target.value })}
+            className={classiInput}
+          />
+        </Campo>
+      </div>
+      <CampiAllenatore corrente={corrente} aggiorna={(p) => setBozza({ ...corrente, ...p })} />
+
+      <button
+        type="button"
+        onClick={() => void salva()}
+        disabled={!sporco || inCorso}
+        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+      >
+        {inCorso ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        {sporco ? "Salva" : "Salvato"}
+      </button>
+    </div>
+  );
+}
+
+/**
  * Dati amministrativi del giocatore: quello che la dashboard amministratore poi legge.
  * Ogni giocatore scrive solo la propria riga — è la RLS a garantirlo, non questo componente.
  */
@@ -380,13 +514,18 @@ export function ProfiloAmministrativo({
  */
 export function CompletaProfilo({
   giocatoreId,
+  allenatore = false,
   indice = 0,
 }: {
   giocatoreId: string;
+  /** L'allenatore ha solo i dati personali ridotti (DD-034). */
+  allenatore?: boolean;
   indice?: number;
 }) {
   const { profili, isPending } = useProfili();
-  const perc = completamento(profili[giocatoreId]);
+  const perc = allenatore
+    ? completamentoAllenatore(profili[giocatoreId])
+    : completamento(profili[giocatoreId]);
   if (isPending || perc === 100) return null;
 
   return (
@@ -409,7 +548,9 @@ export function CompletaProfilo({
           />
         </div>
         <p className="mt-2 text-[13px] text-muted-foreground">
-          Documento, certificato medico e foto tessera servono per il tesseramento CSI.
+          {allenatore
+            ? "Data e luogo di nascita, telefono ed email."
+            : "Documento, certificato medico e foto tessera servono per il tesseramento CSI."}
         </p>
       </Link>
     </Reveal>

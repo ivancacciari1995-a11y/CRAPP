@@ -1,6 +1,6 @@
 {
   "name": "crapp",
-  "version": "0.9.2",
+  "version": "1.0.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -10,6 +10,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "bun test/run.ts",
     "test:integration": "bun test/run.ts integration",

@@ -104,7 +104,7 @@ export function eventoVuoto(): Evento {
     id: nuovoIdEvento(),
     tipo: "allenamento",
     titolo: "",
-    luogo: "Palestra Comunale",
+    luogo: "",
     data: new Date().toISOString().slice(0, 10),
     ora: "20:30",
     note: "",

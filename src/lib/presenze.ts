@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Stato } from "./crapp-data";
 import type { Evento } from "./eventi";
+import { inRosa, type TipoMembro } from "./giocatori-squadra";
 import { aggiornaSerie } from "./serie";
 import { dataOggi } from "./scout-live";
 
@@ -71,17 +72,18 @@ export function totaliEventiGiocatore(
 }
 
 /**
- * Chi va sollecitato per un evento: i giocatori attivi che non hanno ancora risposto, più
+ * Chi va sollecitato per un evento: i giocatori attivi (non gli allenatori) che non hanno ancora risposto, più
  * quelli che hanno risposto «forse». Funzione pura, come `avvisiPalloniEvento()` per i
  * palloni: la route `/api/public/sollecita-presenze` la chiama con i dati che ha già letto.
  */
 export function destinatariSollecito(
-  squadra: Array<{ id: string; attivo: boolean }>,
+  squadra: Array<{ id: string; attivo: boolean; tipo: TipoMembro }>,
   risposte: Array<{ giocatore_id: string; stato: string }>,
 ): string[] {
   const stati = new Map(risposte.map((r) => [r.giocatore_id, r.stato]));
+  // L'allenatore non risponde alle presenze, quindi non va sollecitato (DD-034).
   return squadra
-    .filter((g) => g.attivo)
+    .filter(inRosa)
     .filter((g) => {
       const stato = stati.get(g.id);
       return stato === undefined || stato === "forse";

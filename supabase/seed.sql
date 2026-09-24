@@ -5,6 +5,12 @@
 -- I path dei file puntano a oggetti che nel bucket non esistono: i pulsanti di download
 -- falliscono finché non carichi qualcosa dall'app o dallo Studio (http://127.0.0.1:54323).
 
+-- Il trigger di sync M18 (`sincronizza_nascita_pubblica`) aggiorna `giocatori_squadra.nascita`
+-- appena questo INSERT tocca `data_nascita`, ma qui gira senza un JWT reale: né il ramo admin
+-- né quello del proprietario dello slot del trigger di sicurezza passerebbero. Va disabilitato
+-- solo per questo seed, mai un problema in produzione dove il seed non gira.
+ALTER TABLE public.giocatori_squadra DISABLE TRIGGER enforce_giocatori_squadra_update;
+
 INSERT INTO public.profili_giocatore
   (giocatore_id, data_nascita, luogo_nascita, indirizzo, telefono, email,
    documento_tipo, documento_numero, documento_rilasciato_da,
@@ -28,6 +34,8 @@ VALUES
    NULL, NULL, NULL, NULL, NULL, NULL, NULL,
    '2027-09-15', 'g2/certificato.pdf', NULL)
 ON CONFLICT (giocatore_id) DO NOTHING;
+
+ALTER TABLE public.giocatori_squadra ENABLE TRIGGER enforce_giocatori_squadra_update;
 
 -- Il primo amministratore non si può seminare qui: `user_roles.user_id` punta a un utente
 -- di `auth.users`, che su un database appena creato non esiste ancora. Dopo il primo login

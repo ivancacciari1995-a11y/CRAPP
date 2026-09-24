@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarPlus, Loader2, Pencil, Trash2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { Campo, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Campo, Card, classiInput, PageHeader, Section } from "@/components/crapp/ui-bits";
 import {
   Drawer,
   DrawerClose,
@@ -14,7 +15,8 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { formatData } from "@/lib/crapp-data";
-import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import {
   categoriaEvento,
   daCategoria,
@@ -26,7 +28,9 @@ import {
   type Evento,
 } from "@/lib/eventi";
 import { useGiocatoreBase } from "@/lib/user-store";
-import { useIsAdmin } from "@/lib/ruoli";
+import { usePuoGestireEventi } from "@/lib/ruoli";
+import { molla, proietta } from "@/lib/molla";
+import { useMotoRidotto } from "@/lib/motion";
 
 export const Route = createFileRoute("/eventi")({
   head: () => ({
@@ -57,18 +61,32 @@ const tipi: Array<{ id: CategoriaEvento; label: string }> = [
 ];
 
 function GestioneEventi() {
-  // Solo verità (`!io`, gate admin): `useGiocatoreBase` basta, niente statistiche.
+  // Solo verità (`!io`, gate admin o allenatore): `useGiocatoreBase` basta, niente statistiche.
   const io = useGiocatoreBase();
-  const admin = useIsAdmin();
+  // Admin o allenatore (DD-034): la RLS di `eventi_app` (M21) dice lo stesso.
+  const puoGestire = usePuoGestireEventi();
   const { eventi, isPending, isError, error, refetch } = useEventi();
   const { righe: squadra } = useGiocatoriSquadra();
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();
   const [bozza, setBozza] = useState<Evento | null>(null);
   const [daEliminare, setDaEliminare] = useState<Evento | null>(null);
-  const rosa = squadra.filter((g) => g.attivo);
+  const [confermaModifica, setConfermaModifica] = useState(false);
+  const [cambiaGiorno, setCambiaGiorno] = useState(false);
+  const rosa = squadra.filter(inRosa);
 
-  if (!io || !admin) {
+  // SSR-safe: la data di oggi arriva solo dopo il mount.
+  const [oggi, setOggi] = useState<{ anno: number; mese: number; giorno: number } | null>(null);
+  useEffect(() => {
+    const d = new Date();
+    setOggi({ anno: d.getFullYear(), mese: d.getMonth(), giorno: d.getDate() });
+  }, []);
+  const [giornoSelezionato, setGiornoSelezionato] = useState<string | null>(null);
+  const ridotto = useMotoRidotto();
+  const { anno, mese, direzione, precedente, successivo } = useMeseNav();
+  const { giorni, offsetLunedi } = giorniDelMese(anno, mese);
+
+  if (!io || !puoGestire) {
     return (
       <>
         <PageHeader titolo="Gestione eventi" sottotitolo="Area riservata" />
@@ -85,18 +103,31 @@ function GestioneEventi() {
     setBozza((b) => (b ? { ...b, ...patch } : b));
   }
 
-  async function conferma() {
+  const modificaEsistente = bozza ? eventi.some((e) => e.id === bozza.id) : false;
+
+  function chiediConferma() {
     if (!bozza) return;
     if (!bozza.titolo.trim()) {
       toast.error("Serve un titolo per l'evento");
       return;
     }
+    if (modificaEsistente) {
+      setConfermaModifica(true);
+      return;
+    }
+    conferma();
+  }
+
+  async function conferma() {
+    if (!bozza) return;
     try {
       await salva.mutateAsync({ ...bozza, titolo: bozza.titolo.trim() });
       toast.success("Evento salvato");
       setBozza(null);
     } catch {
       toast.error("Non sono riuscito a salvare l'evento");
+    } finally {
+      setConfermaModifica(false);
     }
   }
 
@@ -112,19 +143,153 @@ function GestioneEventi() {
     }
   }
 
+  const mesePrefix = `${anno}-${pad2(mese + 1)}`;
+  const eventiPerGiorno = new Map<number, Evento[]>();
+  for (const e of eventi) {
+    if (!e.data.startsWith(mesePrefix)) continue;
+    const g = Number(e.data.slice(8, 10));
+    const lista = eventiPerGiorno.get(g) ?? [];
+    lista.push(e);
+    eventiPerGiorno.set(g, lista);
+  }
+
+  function apriGiorno(giorno: number) {
+    setGiornoSelezionato(`${mesePrefix}-${pad2(giorno)}`);
+  }
+
+  function nuovoNelGiorno() {
+    if (!giornoSelezionato) return;
+    setBozza({ ...eventoVuoto(), data: giornoSelezionato });
+    setCambiaGiorno(false);
+    setGiornoSelezionato(null);
+  }
+
+  function modificaDalGiorno(e: Evento) {
+    setBozza(e);
+    setCambiaGiorno(false);
+    setGiornoSelezionato(null);
+  }
+
+  function eliminaDalGiorno(e: Evento) {
+    setDaEliminare(e);
+    setGiornoSelezionato(null);
+  }
+
+  const eventiGiornoSelezionato = giornoSelezionato
+    ? eventi.filter((e) => e.data === giornoSelezionato)
+    : [];
+
   return (
     <>
       <PageHeader titolo="Gestione eventi" sottotitolo={`${eventi.length} eventi in calendario`} />
 
-      <div className="px-5 pt-4">
-        <button
-          type="button"
-          onClick={() => setBozza(eventoVuoto())}
-          className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
-        >
-          <CalendarPlus className="h-4 w-4" /> Nuovo evento
-        </button>
-      </div>
+      <Section titolo="Calendario">
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={precedente}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese precedente"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <span className="font-display-sm text-xl uppercase">
+              {mesiIT[mese]} {anno}
+            </span>
+            <button
+              type="button"
+              onClick={successivo}
+              className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+              aria-label="Mese successivo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
+            {giorniIT.map((g, i) => (
+              <span key={i}>{g}</span>
+            ))}
+          </div>
+          {/* Swipe tra mesi con la stessa fisica di `/calendario` (vedi il commento lì). */}
+          <div className="relative -mx-1 mt-1 overflow-hidden p-1">
+            <AnimatePresence initial={false} mode="popLayout" custom={direzione}>
+              <motion.div
+                key={mesePrefix}
+                custom={direzione}
+                drag={ridotto ? false : "x"}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                dragMomentum={false}
+                onDragEnd={(_, info) => {
+                  const arrivo = info.offset.x + proietta(info.velocity.x);
+                  if (arrivo < -60) successivo();
+                  else if (arrivo > 60) precedente();
+                }}
+                initial={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * 48 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={ridotto ? { opacity: 0 } : { opacity: 0, x: direzione * -48 }}
+                transition={ridotto ? { duration: 0.2 } : molla.foglio}
+                className="grid touch-pan-y grid-cols-7 gap-1"
+              >
+                {Array.from({ length: offsetLunedi }).map((_, i) => (
+                  <span key={`v${i}`} />
+                ))}
+                {Array.from({ length: giorni }).map((_, i) => {
+                  const giorno = i + 1;
+                  const eventiGiorno = eventiPerGiorno.get(giorno) ?? [];
+                  const haEventi = eventiGiorno.length > 0;
+                  const isOggi =
+                    !!oggi && oggi.anno === anno && oggi.mese === mese && oggi.giorno === giorno;
+                  return (
+                    <button
+                      key={giorno}
+                      type="button"
+                      onClick={() => apriGiorno(giorno)}
+                      className={cn(
+                        "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold transition-transform active:scale-90",
+                        haEventi
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-secondary text-foreground",
+                        isOggi && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                      )}
+                      aria-label={`${giorno} ${mesiIT[mese]}${haEventi ? `: ${eventiGiorno.length} ${eventiGiorno.length === 1 ? "evento" : "eventi"}` : ", nessun evento"}`}
+                      aria-current={isOggi ? "date" : undefined}
+                    >
+                      {giorno}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          {isPending ? (
+            <p aria-busy="true" className="mt-2 text-xs text-muted-foreground">
+              Carico gli eventi…
+            </p>
+          ) : isError ? (
+            <div className="mt-3 space-y-2 text-center text-sm">
+              <p className="text-destructive">
+                Non sono riuscito a caricare gli eventi
+                {error instanceof Error ? `: ${error.message}` : ""}.
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
+              >
+                Riprova
+              </button>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Scorri a destra o sinistra per cambiare mese. Tocca un giorno per aggiungere,
+              modificare o eliminare.
+            </p>
+          )}
+        </Card>
+      </Section>
 
       {bozza ? (
         <Section
@@ -154,20 +319,39 @@ function GestioneEventi() {
                 value={bozza.titolo}
                 maxLength={80}
                 onChange={(e) => aggiorna({ titolo: e.target.value })}
-                placeholder="Es. CRAP Volley vs Aurora Nera"
                 className={classiInput}
               />
             </Campo>
 
             <div className="grid grid-cols-2 gap-3">
-              <Campo label="Data">
-                <input
-                  type="date"
-                  value={bozza.data}
-                  onChange={(e) => aggiorna({ data: e.target.value })}
-                  className={classiInput}
-                />
-              </Campo>
+              {/* Il giorno arriva già dal calendario: si mostra e basta, il campo data
+                  compare solo per spostare l'evento. */}
+              {cambiaGiorno ? (
+                <Campo label="Giorno">
+                  <input
+                    type="date"
+                    value={bozza.data}
+                    onChange={(e) => aggiorna({ data: e.target.value })}
+                    className={classiInput}
+                  />
+                </Campo>
+              ) : (
+                <div className="min-w-0">
+                  <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    Giorno
+                  </span>
+                  <div className="mt-1 flex h-10 items-center justify-between gap-1">
+                    <span className="truncate text-sm font-semibold">{formatData(bozza.data)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCambiaGiorno(true)}
+                      className="shrink-0 rounded-full px-2 py-1 text-xs font-bold uppercase text-accent active:scale-95"
+                    >
+                      Cambia
+                    </button>
+                  </div>
+                </div>
+              )}
               <Campo label="Ora">
                 <input
                   type="time"
@@ -272,7 +456,7 @@ function GestioneEventi() {
               </button>
               <button
                 type="button"
-                onClick={conferma}
+                onClick={chiediConferma}
                 disabled={salva.isPending}
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
               >
@@ -283,59 +467,98 @@ function GestioneEventi() {
         </Section>
       ) : null}
 
-      <Section titolo="Eventi in calendario">
-        {isPending ? (
-          <p aria-busy="true" className="text-center text-xs text-muted-foreground">
-            Carico gli eventi…
-          </p>
-        ) : isError ? (
-          <div className="space-y-2 rounded-3xl bg-card p-4 text-center text-sm shadow-card">
-            <p className="text-destructive">
-              Non sono riuscito a caricare gli eventi
-              {error instanceof Error ? `: ${error.message}` : ""}.
-            </p>
+      <Drawer
+        open={!!giornoSelezionato}
+        onOpenChange={(aperto) => !aperto && setGiornoSelezionato(null)}
+      >
+        <DrawerContent className="rounded-t-[24px] border-border bg-background px-4 pb-6 pt-2">
+          <DrawerHeader className="relative px-0 pb-2 text-left">
+            <DrawerTitle className="font-display-lg text-2xl uppercase">
+              {giornoSelezionato ? formatData(giornoSelezionato) : "Giorno"}
+            </DrawerTitle>
+            <DrawerClose className="absolute right-0 top-0 grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground transition-transform active:scale-90">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Chiudi</span>
+            </DrawerClose>
+          </DrawerHeader>
+          <div className="max-h-[50vh] space-y-2 overflow-y-auto py-2">
+            {eventiGiornoSelezionato.length > 0 ? (
+              eventiGiornoSelezionato.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {e.ora} · {e.luogo || "luogo da definire"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => modificaDalGiorno(e)}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
+                    aria-label={`Modifica ${e.titolo}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => eliminaDalGiorno(e)}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
+                    aria-label={`Elimina ${e.titolo}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+                Nessun evento in programma
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={nuovoNelGiorno}
+            className="premi mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+          >
+            <CalendarPlus className="h-4 w-4" /> Nuovo evento in questo giorno
+          </button>
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer
+        open={confermaModifica}
+        onOpenChange={(aperto) => !aperto && setConfermaModifica(false)}
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Salvare le modifiche?</DrawerTitle>
+            <DrawerDescription>
+              {bozza ? `Aggiorni l'evento "${bozza.titolo.trim() || "senza titolo"}".` : ""}
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
             <button
               type="button"
-              onClick={() => refetch()}
-              className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
+              onClick={conferma}
+              disabled={salva.isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
             >
-              Riprova
+              {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Conferma
             </button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {eventi.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-center gap-2 rounded-3xl bg-card p-3 shadow-card"
+            <DrawerClose asChild>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatData(e.data)} · {e.ora} · {e.luogo || "luogo da definire"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setBozza(e)}
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground active:scale-95"
-                  aria-label={`Modifica ${e.titolo}`}
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDaEliminare(e)}
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive active:scale-95"
-                  aria-label={`Elimina ${e.titolo}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
+                Annulla
+              </button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
       <Drawer open={!!daEliminare} onOpenChange={(aperto) => !aperto && setDaEliminare(null)}>
         <DrawerContent>

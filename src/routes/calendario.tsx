@@ -10,7 +10,8 @@ import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
 import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
 import { useAnagraficaRosa } from "@/lib/rosa";
-import { useIsAdmin } from "@/lib/ruoli";
+import { usePuoGestireEventi } from "@/lib/ruoli";
+import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
 import {
   Drawer,
   DrawerClose,
@@ -37,8 +38,6 @@ export const Route = createFileRoute("/calendario")({
   component: Calendario,
 });
 
-const giorniIT = ["L", "M", "M", "G", "V", "S", "D"];
-
 /** Colore per tipo di evento, usato per dividere le celle con più tipi. */
 const coloreTipo: Record<Evento["tipo"], string> = {
   partita: "var(--accent)",
@@ -46,63 +45,6 @@ const coloreTipo: Record<Evento["tipo"], string> = {
   evento: "var(--warning)",
   compleanno: "var(--success)",
 };
-
-const mesiIT = [
-  "Gennaio",
-  "Febbraio",
-  "Marzo",
-  "Aprile",
-  "Maggio",
-  "Giugno",
-  "Luglio",
-  "Agosto",
-  "Settembre",
-  "Ottobre",
-  "Novembre",
-  "Dicembre",
-] as const;
-
-function useMeseNav(initial?: { anno: number; mese: number }) {
-  const oggi = new Date();
-  const [anno, setAnno] = useState(initial?.anno ?? oggi.getFullYear());
-  const [mese, setMese] = useState(initial?.mese ?? oggi.getMonth());
-  // Serve a far entrare e uscire la griglia dallo stesso lato del gesto:
-  // se un mese esce a sinistra, il precedente deve rientrare da sinistra.
-  const [direzione, setDirezione] = useState(0);
-
-  const precedente = () => {
-    setDirezione(-1);
-    if (mese === 0) {
-      setMese(11);
-      setAnno((a) => a - 1);
-    } else {
-      setMese((m) => m - 1);
-    }
-  };
-
-  const successivo = () => {
-    setDirezione(1);
-    if (mese === 11) {
-      setMese(0);
-      setAnno((a) => a + 1);
-    } else {
-      setMese((m) => m + 1);
-    }
-  };
-
-  return { anno, mese, direzione, precedente, successivo };
-}
-
-function giorniDelMese(anno: number, mese: number) {
-  const giorni = new Date(Date.UTC(anno, mese + 1, 0)).getUTCDate();
-  const primoGiorno = new Date(Date.UTC(anno, mese, 1)).getUTCDay();
-  const offsetLunedi = (primoGiorno + 6) % 7;
-  return { giorni, offsetLunedi };
-}
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
 
 function Calendario() {
   // SSR-safe: la data di oggi arriva solo dopo il mount.
@@ -113,9 +55,9 @@ function Calendario() {
   }, []);
   const [giornoSelezionato, setGiornoSelezionato] = useState<number | null>(null);
   const [drawerAperto, setDrawerAperto] = useState(false);
-  const admin = useIsAdmin();
+  const puoGestire = usePuoGestireEventi();
   const { eventi } = useEventi();
-  const rosa = useAnagraficaRosa();
+  const rosa = useAnagraficaRosa({ conAllenatori: true });
   // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
   // `prefers-reduced-motion`: disattiva anche lo swipe orizzontale tra mesi.
   const ridotto = useMotoRidotto();
@@ -302,7 +244,7 @@ function Calendario() {
         </Card>
       </Section>
 
-      {admin ? (
+      {puoGestire ? (
         <div className="px-5 pt-4">
           <Link
             to="/eventi"

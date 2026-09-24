@@ -16,35 +16,40 @@ Serve a rispondere a domande del tipo:
 
 **Accettate**
 
-| ID                                                                                | Titolo                                |
-| --------------------------------------------------------------------------------- | ------------------------------------- |
-| [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable)                     | Indipendenza da Lovable               |
-| [DD-002](#dd-002--sviluppo-document-first)                                        | Sviluppo document-first               |
-| [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive)                            | Ogni versione aggiunge, non riscrive  |
-| [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi)                         | Mobile-first                          |
-| [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)         | AI solo se utile                      |
-| [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database)               | Badge calcolati, non in DB            |
-| [DD-008](#dd-008--gamification-equa-tra-ruoli)                                    | Gamification equa tra ruoli           |
-| [DD-009](#dd-009--tesseramento-csi-manuale-integrazione-api-in-una-fase-successiva) | CSI manuale, poi integrazione API   |
-| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati)                   | Niente storico certificati            |
-| [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo) | Auth reale prima del profilo          |
-| [DD-012](#dd-012--rimandare-la-migrazione-degli-id-giocatore)                     | Rimandare la migrazione ID            |
-| [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)       | Portabilità dello stack               |
-| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                 | Rosa da hardcoded a DB                |
-| [DD-016](#dd-016--schema-dati-profilo-giocatore-f0)                               | Schema dati Profilo Giocatore         |
-| [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)    | L'admin scrive al posto del giocatore |
-| [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)             | Collegamento automatico per email     |
-| [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                         | Il branch lo decide l'utente          |
-| [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                | Test obbligatori e verdi              |
-| [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)  | Molle interrompibili con motion       |
-| [DD-022](#dd-022--lapp-è-solo-chiara)                                             | App solo chiara                       |
-| [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                          | Scritture limitate per ruolo          |
-| [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)       | Route di notifica autenticate         |
-| [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)            | Promemoria palloni manuale            |
-| [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                 | Payload push cifrato                  |
-| [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso) | Voto limitato ai convocati            |
-| [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)         | Soglia minima Media voto e MVP        |
-| [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)        | Pulizia a cascata evento cancellato   |
+| ID                                                                                               | Titolo                                |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| [DD-001](#dd-001--crapp-deve-restare-indipendente-da-lovable)                                    | Indipendenza da Lovable               |
+| [DD-002](#dd-002--sviluppo-document-first)                                                       | Sviluppo document-first               |
+| [DD-004](#dd-004--ogni-versione-aggiunge-non-riscrive)                                           | Ogni versione aggiunge, non riscrive  |
+| [DD-005](#dd-005--mobile-first-pochi-click-pochi-schermi)                                        | Mobile-first                          |
+| [DD-006](#dd-006--intelligenza-artificiale-solo-se-porta-beneficio-reale)                        | AI solo se utile                      |
+| [DD-007](#dd-007--badge-calcolati-dallapp-non-salvati-nel-database)                              | Badge calcolati, non in DB            |
+| [DD-008](#dd-008--gamification-equa-tra-ruoli)                                                   | Gamification equa tra ruoli           |
+| [DD-009](#dd-009--tesseramento-csi-manuale-integrazione-api-in-una-fase-successiva)              | CSI manuale, poi integrazione API     |
+| [DD-010](#dd-010--profilo-giocatore-niente-storico-certificati)                                  | Niente storico certificati            |
+| [DD-011](#dd-011--autenticazione-reale-prima-del-profilo-amministrativo-completo)                | Auth reale prima del profilo          |
+| [DD-012](#dd-012--rimandare-la-migrazione-degli-id-giocatore)                                    | Rimandare la migrazione ID            |
+| [DD-013](#dd-013--portabilità-lapp-non-deve-dipendere-da-servizi-esclusivi)                      | Portabilità dello stack               |
+| [DD-015](#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)                                | Rosa da hardcoded a DB                |
+| [DD-016](#dd-016--schema-dati-profilo-giocatore-f0)                                              | Schema dati Profilo Giocatore         |
+| [DD-017](#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)                   | L'admin scrive al posto del giocatore |
+| [DD-018](#dd-018--collegamento-automatico-giocatoreaccount-per-email)                            | Collegamento automatico per email     |
+| [DD-019](#dd-019--il-branch-dei-commit-lo-decide-lutente)                                        | Il branch lo decide l'utente          |
+| [DD-020](#dd-020--una-funzione-modificata-senza-test-non-è-finita)                               | Test obbligatori e verdi              |
+| [DD-021](#dd-021--molle-interrompibili-al-posto-delle-animazioni-a-durata-fissa)                 | Molle interrompibili con motion       |
+| [DD-022](#dd-022--lapp-è-solo-chiara)                                                            | App solo chiara                       |
+| [DD-023](#dd-023--ogni-scrittura-è-limitata-a-chi-la-fa)                                         | Scritture limitate per ruolo          |
+| [DD-024](#dd-024--le-route-che-avvisano-la-squadra-chiedono-le-credenziali)                      | Route di notifica autenticate         |
+| [DD-025](#dd-025--il-promemoria-palloni-lo-manda-ladmin-per-un-evento)                           | Promemoria palloni manuale            |
+| [DD-026](#dd-026--il-testo-della-notifica-viaggia-dentro-la-push)                                | Payload push cifrato                  |
+| [DD-027](#dd-027--chi-vota-deve-essere-convocato-non-solo-autenticato-come-sé-stesso)            | Voto limitato ai convocati            |
+| [DD-028](#dd-028--soglia-minima-di-campione-per-media-voto-e-mvp-in-home)                        | Soglia minima Media voto e MVP        |
+| [DD-029](#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati)                       | Pulizia a cascata evento cancellato   |
+| [DD-030](#dd-030--centro-notifiche-in-app-storico-separato-dalla-push-letto-solo-con-rls)        | Centro notifiche in-app               |
+| [DD-031](#dd-031--data-di-nascita-pubblica-una-colonna-sincronizzata-non-una-seconda-rls-aperta) | Nascita pubblica sincronizzata        |
+| [DD-032](#dd-032--la-stagione-csi-si-ricava-dalle-date-delle-gare)                               | Stagione CSI dalle date delle gare    |
+| [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
+| [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)        | Ruolo allenatore                      |
 
 **In valutazione**
 
@@ -1155,3 +1160,294 @@ di orfani.
 **Riesame**  
 Se una nuova tabella collegata a un evento non viene aggiunta al trigger quando creata (va
 aggiornata a mano, non c'è un meccanismo che lo forzi).
+
+### DD-030 — Centro notifiche in-app: storico separato dalla push, letto solo con RLS
+
+**Data:** 15 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Le notifiche esistenti (`docs/modules/notifiche.md`) sono solo push OS/browser: arrivano se
+il dispositivo ha attivato l'interruttore in Profilo, sono effimere (nessuno storico) e non
+hanno uno stato letto/non letto — chi non attiva le push, o cambia dispositivo, semplicemente
+non le vede mai. Serviva un canale visibile sempre, dentro l'app, con un badge accanto al
+profilo che segnali quante cose non lette ci sono.
+
+**Decisione**  
+Nuova tabella `notifiche_utente` (migration `m17_notifiche_utente`), popolata da quattro
+sorgenti lato database — mai dal client:
+
+1. messaggio libero dell'admin (`notifica-personalizzata.ts`, in parallelo alla push);
+2. promemoria automatico prima di un evento, 24h e 3h prima, due `cron.schedule`
+   (estensione `pg_cron`, abilitata dal 31/07/2026 e usata per la prima volta qui);
+3. turno palloni (`promemoria-palloni.ts`), in parallelo alla push;
+4. sollecito presenze (`sollecita-presenze.ts`), in parallelo alla push.
+
+Lettura e scrittura (segna come letta, elimina) passano dal client Supabase autenticato con
+RLS (`useNotificheMie()`/`useSegnaLette()`/`useEliminaNotifica()` in
+`src/lib/notifiche-utente.ts`), senza una route API dedicata — stesso pattern di
+`useSalvaEvento()` in `eventi.ts`. Nessuna policy INSERT per `authenticated`: le righe nascono
+solo da funzioni `SECURITY DEFINER` o dalla service role, mai da un client.
+
+Pallino con il conteggio sull'avatar del profilo (`PallinoNotifiche`,
+`src/components/crapp/ui-bits.tsx`; in origine una campanella separata, tolta per liberare
+l'header: il tap sull'avatar resta l'accesso al profilo, quello sul pallino apre il
+pannello), pannello a comparsa costruito a mano (nel progetto non c'è una libreria dropdown). Ogni riga si elimina
+con uno swipe o una ×: non c'è pulizia automatica delle notifiche vecchie, quindi è l'unico
+modo per un giocatore di toglierle di torno per sempre.
+
+**Alternative scartate**
+
+- Notificare anche sulla sola creazione di un evento, non solo sull'avvicinarsi della data →
+  scartata su richiesta esplicita: conta quando l'evento sta per succedere, non il momento in
+  cui è stato messo in calendario. La prima versione aveva un trigger `AFTER INSERT ON
+eventi_app` per questo, rimosso prima del rilascio.
+- Una route API dedicata per leggere/segnare come lette (come le route push esistenti) →
+  scartata: qui non serve la service role (niente da nascondere al giocatore stesso), quindi
+  la RLS basta ed evita di duplicare la logica di lettura già scritta lato client per gli
+  eventi.
+- Pulizia automatica delle notifiche vecchie con un cron di retention (es. elimina le lette
+  dopo 30 giorni) → scartata per ora a favore dello swipe manuale: più diretto da capire per
+  chi usa l'app, e la tabella resta comunque piccola per una sola squadra. Resta un'estensione
+  naturale se in futuro servisse.
+- Semplice `INSERT` invece di `upsert` per turno palloni e sollecito presenze → scartata: un
+  admin che preme due volte lo stesso pulsante per lo stesso evento avrebbe urtato contro il
+  vincolo `UNIQUE (giocatore_id, evento_id, tipo)`. L'upsert aggiorna la riga esistente
+  (testo e `creato_il` freschi, `letta` di nuovo `false`), così ripremere il pulsante si
+  comporta come un rinvio vero, non un errore silenzioso.
+
+**Conseguenze**
+
+- Il pallino sull'avatar riflette solo ciò che sta in `notifiche_utente`: un dispositivo senza
+  push attive vede comunque tutto, perché il canale è del tutto indipendente.
+- `eventi_app.ora` è testo libero e non validato dal form (`<input type="time">` si può
+  svuotare): la funzione `genera_promemoria_eventi()` usa `ora_evento_a_time()`, che assorbe
+  l'errore di cast riga per riga invece di far fallire l'intera generazione dei promemoria per
+  tutti gli eventi quando uno solo ha l'ora scritta male.
+- `test/integration/notifiche-utente.test.ts` è la definizione eseguibile del comportamento:
+  promemoria 24h/3h e deduplica, tolleranza a un'ora malformata, RLS su lettura/segna
+  letta/elimina, e le tre route (`notifica-personalizzata`, `promemoria-palloni`,
+  `sollecita-presenze`) che scrivono lo storico in-app.
+
+**Riesame**  
+Se la tabella crescesse in modo sensibile (squadre molto più numerose, o giocatori che non
+fanno mai swipe), va aggiunta la pulizia automatica scartata sopra.
+
+### DD-031 — Data di nascita pubblica: una colonna sincronizzata, non una seconda RLS aperta
+
+**Data:** 15 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+In "Squadra" la data di nascita mostrava **"Invalid Date"** per chi l'aveva inserita da
+solo dal proprio Profilo. Causa: due fonti mai collegate. I 17 giocatori del seed storico
+hanno la nascita in `nascitaPerId`, una mappa statica pubblica bundlata nel client
+(`src/lib/crapp-data.ts`) — il commento sulla riga la descriveva esplicitamente come
+stopgap: _"`giocatori_squadra` non ha ancora questa colonna (DD-015 follow-up)"_. Un
+giocatore aggiunto dopo la migrazione DD-015 inserisce invece la nascita dal form Profilo,
+che scrive su `profili_giocatore.data_nascita` — tabella con RLS "solo il proprio profilo o
+admin" (M2), mai letta da `useRosa()`/`useAnagraficaRosa()` (`src/lib/rosa.ts`), e comunque
+non visibile ai compagni per via della RLS. Per quel giocatore `nascitaPerId[g.id]` era
+`undefined` → `""` → `formatData("")` in `src/routes/squadra.tsx` produceva `Invalid Date`.
+
+**Decisione**  
+Migration `m18_nascita_pubblica_giocatori_squadra`: nuova colonna `giocatori_squadra.nascita`
+(quella prevista da DD-015), pubblica a tutta la rosa attiva con la stessa policy di lettura
+già in vigore per le altre colonne. Un trigger `SECURITY DEFINER` su `profili_giocatore`
+(`sincronizza_nascita_pubblica`, AFTER INSERT/UPDATE/DELETE) la tiene allineata a
+`data_nascita`: un solo input nel form Profilo (`CampiProfilo`), due destinazioni — quella
+amministrativa esistente (RLS invariata: sé stesso o admin) e questo specchio pubblico.
+`profili_giocatore` resta l'unica tabella che il client scrive per la nascita; il client non
+tocca mai `giocatori_squadra.nascita` direttamente.
+
+Essendo `SECURITY DEFINER` di proprietà dell'owner della tabella, la scrittura del trigger
+bypassa la RLS di `giocatori_squadra` automaticamente — nessuna nuova policy lì. Serve però
+un nuovo ramo in `enforce_giocatori_squadra_update()` (il trigger `BEFORE UPDATE` che oggi
+rifiuta qualunque modifica a uno slot già collegato da parte di chi non è admin): accetta un
+update dove cambia **solo** `nascita` e il chiamante è il proprietario dello slot
+(`OLD.auth_user_id = auth.uid()`). Senza quel ramo l'update annidato del trigger di sync
+fallirebbe con l'eccezione già in vigore.
+
+Backfill una tantum dei 17 storici con gli stessi valori di `nascitaPerId`, poi rimozione di
+quell'export (`crapp-data.ts`): era descritto fin dall'inizio come temporaneo, in attesa
+esattamente di questa colonna.
+
+**Alternative scartate**
+
+- Allentare la RLS di `profili_giocatore` per rendere `data_nascita` leggibile a tutta la
+  squadra → scartata: quella tabella porta anche indirizzo, telefono, documento d'identità
+  nello stesso record — aprirne la lettura avrebbe esposto molto più della sola nascita.
+- Un secondo campo "data di nascita pubblica" nel form Profilo, distinto da quello
+  amministrativo → scartata: due campi per lo stesso dato reale avrebbero richiesto
+  spiegare all'utente perché ne esistono due, con rischio di disallineamento se ne compila
+  uno solo.
+- Far scrivere `giocatori_squadra.nascita` direttamente dal client (nuova RLS policy per il
+  proprietario dello slot) invece di sincronizzarla da `profili_giocatore` → scartata: la
+  RLS di update per un non-admin resta `USING (auth_user_id IS NULL)` (solo reclamare uno
+  slot libero); aprirla anche a righe già collegate avrebbe ampliato la superficie scrivibile
+  dal client su una tabella con un trigger di sicurezza già delicato (DD-016/DD-023), per un
+  guadagno che il trigger di sync ottiene comunque senza toccare la RLS.
+
+**Conseguenze**
+
+- Chiunque compili la propria data di nascita dal Profilo la vede comparire in Squadra (e
+  nei compleanni del Calendario) esattamente come i 17 storici — non più un dato "di serie
+  B".
+- Cancellare il profilo (da sé o da un admin) azzera anche la nascita pubblica: non resta un
+  valore pubblico orfano di un profilo che non esiste più.
+- Un giocatore senza nascita nota (profilo mai compilato) non genera più "Invalid Date":
+  `squadra.tsx` mostra la riga della data di nascita solo se `g.nascita` è valorizzata,
+  stesso criterio già usato da `compleanniEventi()` per escludere chi non ha ancora un dato.
+- `test/integration/nascita-pubblica.test.ts` è la definizione eseguibile del comportamento:
+  sync alla scrittura, visibilità a un giocatore terzo (non solo l'interessato o l'admin),
+  azzeramento alla cancellazione, blocco della scrittura diretta dal client.
+
+**Riesame**  
+Se in futuro serve differenziare "chi può vedere la nascita" (es. solo squadra, non
+pubblico) va rivista insieme alla policy di lettura generale di `giocatori_squadra`, non solo
+per questa colonna.
+
+**Aggiornamento (15 settembre 2026, stesso giorno)** — dopo aver applicato M18 in produzione
+(`supabase db push`), la nascita in Squadra compariva solo per i 17 giocatori storici, non
+per chi aveva già compilato il proprio profilo prima della migration: il trigger di sync
+copre solo le scritture _future_ su `profili_giocatore`, non retroattivamente, e M18
+backfillava a mano solo il seed storico. Migration `m19_backfill_nascita_da_profili_esistenti`
+allinea una tantum `giocatori_squadra.nascita` a `profili_giocatore.data_nascita` per tutti i
+profili già esistenti, con la stessa disattivazione temporanea del trigger di sicurezza usata
+in M18. Da qui in poi il gap non si può ripresentare: ogni scrittura successiva passa dal
+trigger di sync, questo backfill serve solo per lo storico antecedente a M18.
+
+A differenza della bonifica eventi orfani (DD-029, M15→M16), qui il backfill non è stato
+reso una funzione richiamabile: resta SQL diretto nella migration. La copertura di test
+(`test/integration/backfill-nascita-esistenti.test.ts`) verifica comunque lo stesso
+comportamento eseguendo lo stesso pattern SQL via `psql` nel container Postgres locale —
+scelta necessaria perché senza una funzione RPC, PostgREST non espone un update
+multi-tabella come questo.
+
+### DD-032 — La stagione CSI si ricava dalle date delle gare
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+La pagina Campionato (`/classifica`) non diceva a quale stagione si riferissero classifica e
+storico partite. Il portale CSI non espone il nome della stagione da nessuna parte:
+`project-sheets.php`, `league_details.php`, `team-main.php` e il feed
+`getEventsByTeamId.php` riportano solo il nome della competizione (verificato il
+24/09/2026). Il `project_id` cambia a ogni stagione ed è aggiornato a mano in
+`csi-core.ts`.
+
+**Decisione**  
+`stagioneDi()` in `src/lib/csi-core.ts` ricava la stagione ("2025/26") dalla data di una
+gara, con l'anno che cambia ad agosto; `stagioneDaPartite()` usa la prima gara del
+campionato letto (tutte le gare, non solo quelle giocate, così a inizio stagione basta il
+calendario). L'header di `/classifica` mostra quella stagione, e lo storico partite è
+diviso per stagione con `raggruppaPerStagione()`: le gare dello Scout Live locale, usate
+quando il CSI non ne ha, possono essere di stagioni diverse.
+
+**Alternative scartate**
+
+- Una costante `CSI_STAGIONE` accanto a `CSI_PROJECT_ID` → un secondo valore da ricordarsi
+  di aggiornare a ogni stagione, che può divergere dal `project_id`; ricavata dai dati
+  segue da sola.
+- Usare la stagione "in corso" per la squadra (la data di oggi) → sbaglierebbe proprio nel
+  periodo di passaggio: a settembre 2026 il CSI mostra ancora i dati 2025/26.
+
+**Conseguenze**
+
+- Oggi Campionato mostra «Stagione 2025/26» mentre Squadra e Calendario, che hanno la
+  stagione scritta nel codice, mostrano «Stagione 2026/27»: il CSI non ha ancora creato le
+  pagine della nuova stagione. È voluto — Campionato riporta la stagione dei dati che
+  mostra (dettagli in [collegamento-csi.md](modules/collegamento-csi.md)).
+- Quando si aggiornano i `project_id` l'etichetta si aggiorna senza toccare altro codice.
+
+**Riesame**  
+Se il CSI iniziasse a esporre il nome della stagione, leggerlo da lì; se una stagione CSI
+dovesse iniziare prima di agosto, spostare la soglia in `stagioneDi()`.
+
+### DD-033 — Gestione eventi: solo calendario, giorno fissato dal tocco
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+`/eventi` mostrava sotto la griglia mensile anche la lista cronologica di tutti gli eventi
+("Eventi in calendario"). La lista non aveva azioni proprie (toccare una riga apriva lo
+stesso drawer del giorno) e allungava la pagina con informazioni già nel calendario. Nel
+form, poi, il campo «Data» era già precompilato con il giorno toccato ma sembrava da
+compilare: l'amministratore doveva scegliere solo l'ora.
+
+**Decisione**  
+La pagina mostra solo il calendario, che si scorre di mese in mese con le frecce o con lo
+swipe (stessa fisica a molla di `/calendario`, disattivata con `useMotoRidotto()`). Nel form
+il giorno compare come testo fisso e resta da scegliere l'ora; il campo data compare solo
+toccando «Cambia», per spostare un evento in un altro giorno.
+
+**Alternative scartate**
+
+- Togliere del tutto il campo data → non si potrebbe più spostare un evento esistente, una
+  funzione che oggi c'è (regola anti-regressione).
+- Tenere la lista ma più corta (solo i prossimi eventi) → i prossimi eventi sono già in home
+  e in `/calendario`; qui sarebbe stata un doppione.
+
+**Conseguenze**
+
+- Per trovare un evento lontano bisogna scorrere fino al suo mese; il totale degli eventi
+  resta nel sottotitolo dell'header.
+- Caricamento ed errore di `useEventi()` compaiono dentro la card del calendario, dove prima
+  stava la lista.
+
+**Riesame**  
+Se gli eventi crescono tanto da rendere scomodo lo scorrere dei mesi, valutare una ricerca
+per titolo invece di reintrodurre la lista completa.
+
+### DD-034 — L'allenatore è uno slot della squadra con tipo diverso, non un giocatore
+
+**Data:** 24 settembre 2026  
+**Stato:** Accettata (implementata con le migration M20 e M21)
+
+**Contesto**  
+Serve un account per l'allenatore: deve gestire gli eventi (oggi solo admin, `m11`) ma non è
+un giocatore. Non ha statistiche, badge né stagione, non vota e non viene votato. L'admin
+vuole registrarlo come i giocatori, inserendo la sua email Gmail. Specifica completa in
+[modules/allenatore.md](modules/allenatore.md).
+
+**Decisione**  
+L'allenatore è una riga di `giocatori_squadra` con una nuova colonna `tipo = 'allenatore'`
+(default `'giocatore'`). Così riusa senza cambiarli il collegamento per email (DD-018),
+`profili_giocatore` per i dati personali, il bucket avatar e il compleanno sincronizzato
+(DD-031). Il permesso di gestire gli eventi arriva da un nuovo valore `allenatore` di
+`app_role` in `user_roles` (DD-011), scritto da una funzione `SECURITY DEFINER` quando si
+collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando lo slot.
+"Rosa" diventa `attivo e tipo = 'giocatore'` ovunque.
+
+**Alternative scartate**
+
+- Una tabella `staff` separata → isola l'allenatore da voti e rosa senza toccare i filtri, ma
+  duplica collegamento per email, profilo, avatar e form admin. Resta l'alternativa se i
+  filtri sulla rosa si rivelano troppi o fragili.
+- Registrare l'allenatore come admin → gli darebbe dati personali e documenti di tutta la
+  squadra (DD-017), molto più del necessario.
+- Distinguere l'allenatore dal campo `ruolo` (ruolo in campo) → mescola due concetti e il
+  campo è testo libero.
+
+**Conseguenze**
+
+- Ogni lettura della rosa (client, server, SQL di voto e promemoria) va filtrata per `tipo`:
+  un punto dimenticato rende l'allenatore votabile o lo conta tra i convocati. L'elenco sta
+  nella specifica e va coperto dai test di `permessi.test.ts`.
+- Il trigger sugli slot cambia: `tipo` lo scrive solo l'admin; nome e cognome li scrive anche
+  l'allenatore sul proprio slot.
+- `numero` diventa nullabile a database, ma solo per gli allenatori (vincolo di M21); nell'app
+  resta un numero, 0 per l'allenatore, per non toccare i tipi di tutta la rosa.
+- Due fonti distinte, ciascuna per il suo scopo: i permessi (eventi, sollecito) da
+  `user_roles`, la visibilità (badge, cacche, stagione) dal tipo del proprio slot, che è
+  immediato e non aspetta la query dei ruoli.
+- L'allenatore non vede le tab Stagione e Badge del Profilo, né Obiettivi e Badge di Squadra.
+- In Squadra compare nella tab Rosa con «Allenatore» al posto del ruolo, ricavato da `tipo`;
+  riceve i promemoria degli eventi e può sollecitare le presenze, non il turno palloni.
+- Non vede badge né classifiche o sondaggi sulle cacche, in nessuna schermata.
+
+**Riesame**  
+Se arriva un secondo tipo di staff (dirigente, segreteria) o se i filtri sulla rosa diventano
+fonte di bug, passare alla tabella `staff` separata.

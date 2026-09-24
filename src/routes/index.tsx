@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
@@ -11,6 +12,8 @@ import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useEventi, type Evento } from "@/lib/eventi";
 import { useRispostePresenze } from "@/lib/presenze";
 import { useIo, useObiettivi } from "@/lib/rosa";
+import { isAllenatore, nomeCompleto } from "@/lib/giocatori-squadra";
+import { useGiocatoreBase } from "@/lib/user-store";
 import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { useScoutMatches } from "@/lib/scout-store";
@@ -38,7 +41,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  // `useIo` c'è solo per i giocatori; l'allenatore ha lo slot ma non statistiche (DD-034).
+  const base = useGiocatoreBase();
   const giocatore = useIo();
+  const allenatore = isAllenatore(base);
   const { eventi } = useEventi();
   const { presenze } = useRispostePresenze();
   const oggi = new Date().toISOString().slice(0, 10);
@@ -65,7 +71,8 @@ function Index() {
     ? { ...ultimaBase, mvp: (eventoUltima && mvpPerMatch[eventoUltima.id]) ?? "" }
     : null;
 
-  if (!giocatore) return null;
+  if (!base || (!giocatore && !allenatore)) return null;
+  const nome = giocatore?.nome ?? nomeCompleto(base);
 
   return (
     <>
@@ -78,7 +85,7 @@ function Index() {
             />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
-                Ciao {giocatore.nome.split(" ")[0]}
+                Ciao {nome.split(" ")[0]}
               </p>
               <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
             </div>
@@ -86,7 +93,9 @@ function Index() {
           <LinkProfilo />
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 text-center">
+        <div
+          className={cn("mt-6 grid gap-2 text-center", giocatore ? "grid-cols-3" : "grid-cols-2")}
+        >
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">{noi ? `${noi.pos}º` : "—"}</p>
             <p className="text-xs uppercase text-primary-foreground/80">In classifica</p>
@@ -97,19 +106,21 @@ function Index() {
             </p>
             <p className="text-xs uppercase text-primary-foreground/80">Bilancio W-L</p>
           </div>
-          <div className="rounded-2xl bg-primary-foreground/10 p-3">
-            <p className="inline-flex items-center gap-1 font-display text-2xl leading-none">
-              <Flame className="h-4 w-4 text-accent" />
-              {giocatore.streak}
-            </p>
-            <p className="text-xs uppercase text-primary-foreground/80">Streak</p>
-          </div>
+          {giocatore ? (
+            <div className="rounded-2xl bg-primary-foreground/10 p-3">
+              <p className="inline-flex items-center gap-1 font-display text-2xl leading-none">
+                <Flame className="h-4 w-4 text-accent" />
+                {giocatore.streak}
+              </p>
+              <p className="text-xs uppercase text-primary-foreground/80">Streak</p>
+            </div>
+          ) : null}
         </div>
       </Reveal>
 
       <PromemoriaPalloni />
 
-      <CompletaProfilo giocatoreId={giocatore.id} indice={1} />
+      <CompletaProfilo giocatoreId={base.id} allenatore={allenatore} indice={1} />
 
       <Section
         titolo="Prossimo impegno"
@@ -132,20 +143,22 @@ function Index() {
         )}
       </Section>
 
-      <Section titolo="Da confermare" indice={3}>
-        <div className="space-y-3">
-          {daConfermare.length > 0 ? (
-            daConfermare.map((e) => {
-              const link = linkPerEvento(e);
-              return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
-            })
-          ) : (
-            <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
-              Nient'altro da confermare: sei in pari.
-            </p>
-          )}
-        </div>
-      </Section>
+      {giocatore ? (
+        <Section titolo="Da confermare" indice={3}>
+          <div className="space-y-3">
+            {daConfermare.length > 0 ? (
+              daConfermare.map((e) => {
+                const link = linkPerEvento(e);
+                return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
+              })
+            ) : (
+              <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+                Nient'altro da confermare: sei in pari.
+              </p>
+            )}
+          </div>
+        </Section>
+      ) : null}
 
       <Section
         titolo="Ultima partita"
@@ -207,43 +220,47 @@ function Index() {
         )}
       </Section>
 
-      <Section
-        titolo="Obiettivo di squadra"
-        indice={5}
-        azione={
-          <Link
-            to="/squadra"
-            className="inline-flex items-center text-[14px] font-semibold text-accent"
-          >
-            Tutti <ChevronRight className="h-4 w-4" />
-          </Link>
-        }
-      >
-        {obiettivo ? (
-          <Card>
-            <div className="flex items-center gap-2 text-sm font-bold">
-              <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
-            </div>
-            <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
-              {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
-            </p>
-            <p className="mt-1 text-xs font-semibold text-accent">
-              {microcopyObiettivo(obiettivo)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
-          </Card>
-        ) : null}
-      </Section>
+      {allenatore ? null : (
+        <Section
+          titolo="Obiettivo di squadra"
+          indice={5}
+          azione={
+            <Link
+              to="/squadra"
+              className="inline-flex items-center text-[14px] font-semibold text-accent"
+            >
+              Tutti <ChevronRight className="h-4 w-4" />
+            </Link>
+          }
+        >
+          {obiettivo ? (
+            <Card>
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
+              </div>
+              <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
+                {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
+              </p>
+              <p className="mt-1 text-xs font-semibold text-accent">
+                {microcopyObiettivo(obiettivo)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
+            </Card>
+          ) : null}
+        </Section>
+      )}
 
-      <Section titolo="Colpo d'occhio" indice={6}>
-        <div className="grid grid-cols-3 gap-2">
-          <StatTile valore={giocatore.presenze} label="Presenze" />
-          <StatTile valore={mediaVotoColpoDOcchio(giocatore)} label="Media voto" />
-          <StatTile valore={giocatore.mvp} label="MVP" />
-        </div>
-      </Section>
+      {giocatore ? (
+        <Section titolo="Colpo d'occhio" indice={6}>
+          <div className="grid grid-cols-3 gap-2">
+            <StatTile valore={giocatore.presenze} label="Presenze" />
+            <StatTile valore={mediaVotoColpoDOcchio(giocatore)} label="Media voto" />
+            <StatTile valore={giocatore.mvp} label="MVP" />
+          </div>
+        </Section>
+      ) : null}
     </>
   );
 }

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
-import { nomeCompleto } from "@/lib/giocatori-squadra";
+import { inRosa, nomeCompleto } from "@/lib/giocatori-squadra";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 import { avvisiPalloniEvento, completaTurni } from "@/lib/palloni-core";
 import { inviaPush } from "@/lib/webpush.server";
@@ -36,13 +37,29 @@ export const Route = createFileRoute("/api/public/promemoria-palloni")({
         for (const riga of righe ?? []) salvati[riga.evento_id] = riga.giocatore_id;
 
         const squadra = await leggiGiocatoriSquadra();
-        const rosa = squadra
-          .filter((g) => g.attivo)
-          .map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
+        const rosa = squadra.filter(inRosa).map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
         const turni = completaTurni(salvati, eventi, rosa);
 
         const avvisi = avvisiPalloniEvento(turni, eventi, evento.id);
         if (avvisi.length === 0) return Response.json({ inviate: 0, destinatari: 0 });
+
+        // Storico in-app (M17): un upsert perché ripremere il pulsante deve riportare la
+        // notifica a non letta con il testo aggiornato, non fallire per il vincolo UNIQUE.
+        // `types.ts` non include ancora `notifiche_utente`, stesso aggiramento di
+        // `giocatori-squadra.server.ts`.
+        const client = supabaseAdmin as unknown as SupabaseClient;
+        await client.from("notifiche_utente").upsert(
+          avvisi.map((a) => ({
+            giocatore_id: a.giocatoreId,
+            tipo: "turno_palloni",
+            titolo: a.titolo,
+            corpo: a.testo,
+            evento_id: evento.id,
+            letta: false,
+            creato_il: new Date().toISOString(),
+          })),
+          { onConflict: "giocatore_id,evento_id,tipo" },
+        );
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   aRigaProfilo,
   completamento,
+  completamentoAllenatore,
   csvTesseramento,
   daRigaProfilo,
   sezioniComplete,
@@ -114,6 +115,8 @@ const squadra: GiocatoreSquadra[] = [
     email: null,
     numeroTessera: null,
     dataTessera: null,
+    nascita: null,
+    tipo: "giocatore",
   },
   {
     id: "g2",
@@ -126,6 +129,8 @@ const squadra: GiocatoreSquadra[] = [
     email: null,
     numeroTessera: null,
     dataTessera: null,
+    nascita: null,
+    tipo: "giocatore",
   },
 ];
 const csv = csvTesseramento(squadra, { g1: completo });
@@ -153,7 +158,14 @@ assert.equal(slotDi(squadra, "u2")?.id, "g2");
 assert.equal(slotDi(squadra, "sconosciuto"), null);
 
 // --- dati squadra modificabili dall'admin (DD-017) ---------------------------
-const datiOk = { nome: "Ivan", cognome: "Cacciari", numero: 23, ruolo: "Banda", email: null };
+const datiOk = {
+  nome: "Ivan",
+  cognome: "Cacciari",
+  numero: 23,
+  ruolo: "Banda",
+  email: null,
+  tipo: "giocatore" as const,
+};
 assert.equal(validaDatiSquadra(datiOk), null);
 assert.match(validaDatiSquadra({ ...datiOk, nome: "  " }) ?? "", /nome/i);
 assert.match(validaDatiSquadra({ ...datiOk, cognome: "" }) ?? "", /cognome/i);
@@ -181,5 +193,25 @@ assert.ok(
   fallback.every((g) => g.authUserId === null && g.attivo),
   "il fallback non può collegare account",
 );
+
+// --- completamento dell'allenatore (DD-034) --------------------------------------
+assert.equal(completamentoAllenatore(null), 0, "senza profilo: 0%");
+assert.equal(
+  completamentoAllenatore({ ...vuoto, dataNascita: "1980-01-01", telefono: "333" }),
+  50,
+  "due campi su quattro",
+);
+assert.equal(
+  completamentoAllenatore({
+    ...vuoto,
+    dataNascita: "1980-01-01",
+    luogoNascita: "Bologna",
+    telefono: "333",
+    email: "a@b.it",
+  }),
+  100,
+  "bastano i quattro dati personali: niente indirizzo, documento, certificato, foto",
+);
+assert.equal(completamentoAllenatore({ ...vuoto, telefono: "   " }), 0, "spazi soli non contano");
 
 console.log("profili-core: ok");

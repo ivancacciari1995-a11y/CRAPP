@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { useGiocatoreBase } from "@/lib/user-store";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
+import { useGiocatoreInCampo } from "@/lib/user-store";
 import {
   categorieSocial,
   conteggioCategoria,
@@ -15,12 +15,12 @@ import {
 
 /** Voto social post-partita: un compagno per categoria, veloce da mobile. */
 export function VotoSocial({ matchId }: { matchId: string }) {
-  // Solo `.id` serve qui: `useGiocatoreBase` basta, niente statistiche.
-  const io = useGiocatoreBase();
+  // Solo `.id` serve qui, niente statistiche; `null` per l'allenatore, che non gioca (DD-034).
+  const io = useGiocatoreInCampo();
   const voti = useVotiSocial();
   const vota = useVotaSocial();
   const { righe: squadra } = useGiocatoriSquadra();
-  const rosa = squadra.filter((g) => g.attivo);
+  const rosa = squadra.filter(inRosa);
   const [aperta, setAperta] = useState<string | null>(null);
 
   const tutti = voti.data ?? [];

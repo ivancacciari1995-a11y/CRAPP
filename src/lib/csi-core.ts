@@ -21,6 +21,43 @@ export const CSI_TEAM_ID = 3359;
 export const CSI_GIRONE = "Girone B";
 export const CSI_NOME_SQUADRA = "C.R.A.P. Volley";
 
+/**
+ * Stagione sportiva di una data `YYYY-MM-DD`, nel formato "2025/26". Il portale CSI non
+ * espone il nome della stagione (né nella classifica né nel calendario della squadra):
+ * si ricava dalla data della gara, con l'anno che cambia ad agosto — le gare di
+ * settembre-dicembre aprono la stagione, quelle di gennaio-luglio la chiudono.
+ */
+export function stagioneDi(dataIso: string): string {
+  const anno = Number(dataIso.slice(0, 4));
+  const mese = Number(dataIso.slice(5, 7));
+  const inizio = mese >= 8 ? anno : anno - 1;
+  return `${inizio}/${String((inizio + 1) % 100).padStart(2, "0")}`;
+}
+
+/** Stagione del campionato letto dal CSI: quella della prima gara, null se non ce ne sono. */
+export function stagioneDaPartite(partite: ReadonlyArray<{ data: string }>): string | null {
+  const date = partite.map((p) => p.data).filter((d) => /^\d{4}-\d{2}/.test(d));
+  if (date.length === 0) return null;
+  return stagioneDi(date.reduce((a, b) => (a < b ? a : b)));
+}
+
+/**
+ * Storico partite diviso per stagione, nell'ordine in cui arrivano: le gare scoutate in
+ * locale possono essere di stagioni diverse, quelle CSI sono tutte dello stesso campionato.
+ */
+export function raggruppaPerStagione<T extends { data: string }>(
+  match: readonly T[],
+): Array<{ stagione: string; match: T[] }> {
+  const gruppi: Array<{ stagione: string; match: T[] }> = [];
+  for (const m of match) {
+    const stagione = stagioneDi(m.data);
+    const gruppo = gruppi.find((g) => g.stagione === stagione);
+    if (gruppo) gruppo.match.push(m);
+    else gruppi.push({ stagione, match: [m] });
+  }
+  return gruppi;
+}
+
 export const urlClassifica = (projectId = CSI_PROJECT_ID) =>
   `${CSI_BASE}/components/project-sheets.php?project_id=${projectId}`;
 export const urlPartite = (teamId = CSI_TEAM_ID) =>

@@ -10,6 +10,9 @@ import {
   parseClassifica,
   parseFormazioni,
   parseInfoPartita,
+  raggruppaPerStagione,
+  stagioneDaPartite,
+  stagioneDi,
   parsePrecedenti,
   partiteDaEventi,
   partiteFormatoSospetto,
@@ -367,5 +370,35 @@ if (process.env["CSI_LIVE"]) {
       `formazione ${liveFormazioni!.noi.titolari.length} titolari`,
   );
 }
+
+// --- stagioneDi / stagioneDaPartite: l'anno cambia ad agosto ------------------
+assert.equal(stagioneDi("2025-11-12"), "2025/26");
+assert.equal(stagioneDi("2026-05-20"), "2025/26");
+assert.equal(stagioneDi("2026-07-31"), "2025/26");
+assert.equal(stagioneDi("2026-08-01"), "2026/27");
+assert.equal(stagioneDi("2099-10-01"), "2099/00");
+assert.equal(stagioneDaPartite([]), null);
+assert.equal(
+  stagioneDaPartite([{ data: "2026-03-04" }, { data: "2025-11-12" }, { data: "" }]),
+  "2025/26",
+);
+
+assert.deepEqual(
+  raggruppaPerStagione([
+    { id: "a", data: "2026-04-10" },
+    { id: "b", data: "2025-10-01" },
+    { id: "c", data: "2025-05-02" },
+  ]),
+  [
+    {
+      stagione: "2025/26",
+      match: [
+        { id: "a", data: "2026-04-10" },
+        { id: "b", data: "2025-10-01" },
+      ],
+    },
+    { stagione: "2024/25", match: [{ id: "c", data: "2025-05-02" }] },
+  ],
+);
 
 console.log("csi-core: ok");

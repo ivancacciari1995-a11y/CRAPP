@@ -14,6 +14,7 @@ import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
 import { useIsAdmin } from "@/lib/ruoli";
+import { useSonoAllenatore } from "@/lib/user-store";
 import { VotazioneMvp } from "@/components/crapp/VotazioneMvp";
 import { VotoSocial } from "@/components/crapp/VotoSocial";
 import { TurnoPalloni } from "@/components/crapp/TurnoPalloni";
@@ -47,6 +48,7 @@ function PartitaDetail() {
   const { id } = Route.useParams();
   const { evento } = useEvento(id);
   const admin = useIsAdmin();
+  const sonoAllenatore = useSonoAllenatore();
   const scoutMatches = useScoutMatches();
   const { data: csi } = useCsi();
   const { risposte } = usePresenzeEvento(id);
@@ -203,9 +205,12 @@ function PartitaDetail() {
       </Section>
 
       {match ? (
-        <Section titolo="Badge votati dai compagni">
-          <VotoSocial matchId={match.id} />
-        </Section>
+        // Badge e cacche non si mostrano all'allenatore (DD-034).
+        sonoAllenatore ? null : (
+          <Section titolo="Badge votati dai compagni">
+            <VotoSocial matchId={match.id} />
+          </Section>
+        )
       ) : (
         <Section titolo="In programma">
           <p className="rounded-3xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
@@ -219,9 +224,11 @@ function PartitaDetail() {
         <ScoutEntry eventoId={evento.id} />
       </Section>
 
-      <Section titolo="Sondaggio pre-partita">
-        <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} oraEvento={evento.ora} />
-      </Section>
+      {sonoAllenatore ? null : (
+        <Section titolo="Sondaggio pre-partita">
+          <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} oraEvento={evento.ora} />
+        </Section>
+      )}
 
       {match ? (
         <Section titolo="Pagelle di fine partita">

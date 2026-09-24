@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { completaTurni } from "./palloni-core";
 import { useEventi } from "./eventi";
-import { nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
+import { inRosa, nomeCompleto, useGiocatoriSquadra } from "./giocatori-squadra";
 
 export const TURNI_KEY = ["turni-palloni"] as const;
 
@@ -29,7 +29,7 @@ export function useTurniPalloni() {
   const { eventi } = useEventi();
   const { righe: squadra } = useGiocatoriSquadra();
   const salvati = query.data ?? {};
-  const rosa = squadra.filter((g) => g.attivo).map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
+  const rosa = squadra.filter(inRosa).map((g) => ({ id: g.id, nome: nomeCompleto(g) }));
   return { ...query, salvati, turni: completaTurni(salvati, eventi, rosa) };
 }
 

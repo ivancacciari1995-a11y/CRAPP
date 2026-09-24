@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 09/09/2026
+Ultimo aggiornamento: 24/09/2026
 
 ## Stato generale
 
@@ -10,9 +10,10 @@ Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
 amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
-reali (M9). Prima versione pre-release rilasciata (0.9.0, vedi `docs/CHANGELOG.md`). Cancellare
-un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane da
-cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
+reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0
+con il ruolo allenatore, è pronta ma non ancora pubblicata (vedi `docs/CHANGELOG.md`).
+Cancellare un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane
+da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
 ---
 
@@ -23,8 +24,8 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 27 migration in `supabase/migrations/`, fino a `m16_funzione_bonifica_dati_evento_orfani`
-  (09/09/2026)
+- 32 migration in `supabase/migrations/`, fino a `m21_ruolo_allenatore` (24/09/2026), tutte
+  applicate in produzione (verificato con `npx supabase migration list` il 24/09/2026)
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -42,6 +43,27 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Schema v1.0 e migration da M1 a M16 applicate al nuovo Supabase
   (`m16_funzione_bonifica_dati_evento_orfani` in produzione dal 09/09/2026, verificata con
   `npx supabase migration list`)
+- Migration `m17_notifiche_utente` (15/09/2026, DD-030): nuova tabella `notifiche_utente`
+  per il centro notifiche in-app — **in produzione** dal 15/09/2026 (è additiva: non tocca
+  schema o comportamento esistenti, vedi DD-030). Il codice che la usa (centro notifiche,
+  route aggiornate) non è ancora deployato: la tabella si riempie già in background
+- Migration `m18_nascita_pubblica_giocatori_squadra` (15/09/2026, DD-031): nuova colonna
+  `giocatori_squadra.nascita`, sincronizzata da `profili_giocatore.data_nascita` — corregge
+  l'"Invalid Date" in Squadra per chi inserisce la propria nascita dal Profilo invece del
+  seed storico. **In produzione** dal 15/09/2026, ma il backfill copriva solo il seed
+  storico: chi aveva già un profilo compilato prima di M18 è rimasto scoperto
+- Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
+  backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
+  in `npx supabase migration list` del 24/09/2026)
+- Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (24/09/2026, DD-034): ruolo
+  allenatore (colonna `giocatori_squadra.tipo`, valore `allenatore` di `app_role`, policy e
+  trigger) — verificate in locale con `npx supabase db reset` e `npm run test:all`, **in
+  produzione** dal 24/09/2026 (`supabase db push`). Compatibili con la 0.9.2: senza allenatori
+  registrati non cambiano nulla. Il codice che le usa non è ancora deployato
+- Slot `g18` «Beta Tester» impostato come allenatore in produzione il 24/09/2026 (colonna
+  `tipo`, ruolo assegnato dal trigger di M21). Numero 99 e ruolo «Palleggiatore»
+  lasciati apposta finché gira la 0.9.2, che lo mostra ancora come giocatore: da svuotare
+  da `/admin` dopo il deploy del codice nuovo
 - `public.giocatori_squadra`: rosa iniziale di 17 giocatori (migration `m5_email_giocatori_squadra`)
   più quelli aggiunti da `/admin` a stagione in corso; da settembre 2026 tutti i giocatori
   attivi hanno l'email registrata (colonna `email`, DD-018), impostabile da `/admin` senza

@@ -23,6 +23,7 @@ import { Route as PartitaCsiIdRouteImport } from './routes/partita-csi.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
 import { Route as ApiPublicApriSondaggioRouteImport } from './routes/api/public/apri-sondaggio'
 import { Route as ApiPublicCsiRouteImport } from './routes/api/public/csi'
+import { Route as ApiPublicNotificaPersonalizzataRouteImport } from './routes/api/public/notifica-personalizzata'
 import { Route as ApiPublicNotificheAttiveRouteImport } from './routes/api/public/notifiche-attive'
 import { Route as ApiPublicPromemoriaPalloniRouteImport } from './routes/api/public/promemoria-palloni'
 import { Route as ApiPublicPushConfigRouteImport } from './routes/api/public/push-config'
@@ -100,6 +101,12 @@ const ApiPublicCsiRoute = ApiPublicCsiRouteImport.update({
   path: '/api/public/csi',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicNotificaPersonalizzataRoute =
+  ApiPublicNotificaPersonalizzataRouteImport.update({
+    id: '/api/public/notifica-personalizzata',
+    path: '/api/public/notifica-personalizzata',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicNotificheAttiveRoute =
   ApiPublicNotificheAttiveRouteImport.update({
     id: '/api/public/notifiche-attive',
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
+  '/api/public/notifica-personalizzata': typeof ApiPublicNotificaPersonalizzataRoute
   '/api/public/notifiche-attive': typeof ApiPublicNotificheAttiveRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
+  '/api/public/notifica-personalizzata': typeof ApiPublicNotificaPersonalizzataRoute
   '/api/public/notifiche-attive': typeof ApiPublicNotificheAttiveRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -194,6 +203,7 @@ export interface FileRoutesById {
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
   '/api/public/csi': typeof ApiPublicCsiRoute
+  '/api/public/notifica-personalizzata': typeof ApiPublicNotificaPersonalizzataRoute
   '/api/public/notifiche-attive': typeof ApiPublicNotificheAttiveRoute
   '/api/public/promemoria-palloni': typeof ApiPublicPromemoriaPalloniRoute
   '/api/public/push-config': typeof ApiPublicPushConfigRoute
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
+    | '/api/public/notifica-personalizzata'
     | '/api/public/notifiche-attive'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
+    | '/api/public/notifica-personalizzata'
     | '/api/public/notifiche-attive'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -262,6 +274,7 @@ export interface FileRouteTypes {
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
     | '/api/public/csi'
+    | '/api/public/notifica-personalizzata'
     | '/api/public/notifiche-attive'
     | '/api/public/promemoria-palloni'
     | '/api/public/push-config'
@@ -285,6 +298,7 @@ export interface RootRouteChildren {
   PartitaIdRoute: typeof PartitaIdRoute
   ApiPublicApriSondaggioRoute: typeof ApiPublicApriSondaggioRoute
   ApiPublicCsiRoute: typeof ApiPublicCsiRoute
+  ApiPublicNotificaPersonalizzataRoute: typeof ApiPublicNotificaPersonalizzataRoute
   ApiPublicNotificheAttiveRoute: typeof ApiPublicNotificheAttiveRoute
   ApiPublicPromemoriaPalloniRoute: typeof ApiPublicPromemoriaPalloniRoute
   ApiPublicPushConfigRoute: typeof ApiPublicPushConfigRoute
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCsiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/notifica-personalizzata': {
+      id: '/api/public/notifica-personalizzata'
+      path: '/api/public/notifica-personalizzata'
+      fullPath: '/api/public/notifica-personalizzata'
+      preLoaderRoute: typeof ApiPublicNotificaPersonalizzataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/notifiche-attive': {
       id: '/api/public/notifiche-attive'
       path: '/api/public/notifiche-attive'
@@ -453,6 +474,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartitaIdRoute: PartitaIdRoute,
   ApiPublicApriSondaggioRoute: ApiPublicApriSondaggioRoute,
   ApiPublicCsiRoute: ApiPublicCsiRoute,
+  ApiPublicNotificaPersonalizzataRoute: ApiPublicNotificaPersonalizzataRoute,
   ApiPublicNotificheAttiveRoute: ApiPublicNotificheAttiveRoute,
   ApiPublicPromemoriaPalloniRoute: ApiPublicPromemoriaPalloniRoute,
   ApiPublicPushConfigRoute: ApiPublicPushConfigRoute,

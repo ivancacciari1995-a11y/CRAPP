@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { motion, type Transition } from "motion/react";
 import { cn } from "@/lib/utils";
 import { proietta } from "@/lib/molla";
 import { useMotoRidotto } from "@/lib/motion";
@@ -13,7 +13,7 @@ export type VoceSottosezione = {
 };
 
 /** Tween breve: evita molle + exit che tengono due pannelli in DOM insieme. */
-const transizioneTab = { type: "tween" as const, duration: 0.16, ease: [0.25, 0.1, 0.25, 1] };
+const transizioneTab: Transition = { type: "tween", duration: 0.16, ease: [0.25, 0.1, 0.25, 1] };
 
 /**
  * Barra di sottosezioni in un'unica fila e pannello che mostra una sola sezione
@@ -116,11 +116,7 @@ export function BarraSottosezioni({
                   }}
                   className={cn(
                     "min-h-11 touch-manipulation whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-colors",
-                    riempiLarghezza
-                      ? "min-w-0 flex-1"
-                      : sottolineatura
-                        ? "shrink-0"
-                        : "w-full",
+                    riempiLarghezza ? "min-w-0 flex-1" : sottolineatura ? "shrink-0" : "w-full",
                     sottolineatura
                       ? cn(
                           "rounded-xl px-1 py-2.5 text-center",

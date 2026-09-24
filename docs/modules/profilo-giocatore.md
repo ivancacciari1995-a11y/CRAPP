@@ -14,6 +14,9 @@ L'obiettivo è centralizzare in un'unica schermata tutti i dati necessari sia al
 
 ## Utenti
 
+L'allenatore ha un profilo ridotto (solo Docs con i dati personali essenziali e Opzioni):
+la specifica sta in [allenatore.md](allenatore.md).
+
 ### Giocatore
 
 Può:
@@ -35,7 +38,8 @@ Può:
 - modificare i dati squadra di qualsiasi giocatore (nome, cognome, numero, ruolo, email)
 - compilare e correggere i dati personali e del documento al posto di un giocatore (DD-017)
 - scollegare un account da un profilo, liberando lo slot
-- aggiungere un nuovo giocatore alla rosa (id, nome, cognome, numero, ruolo, email opzionale)
+- aggiungere un nuovo giocatore alla rosa (id, nome, cognome, numero, ruolo, email opzionale),
+  oppure un allenatore (tipo «Allenatore»: niente numero né ruolo, DD-034)
 - disattivare un giocatore che ha lasciato la squadra, e riattivarlo in caso di errore: la
   riga non viene eliminata, così presenze, voti, pagelle e badge della stagione restano
   agganciati al suo id
@@ -91,7 +95,11 @@ Il profilo viene suddiviso in sette aree.
 
 **Dati personali** — modificabili dal giocatore.
 
-- Data di nascita
+- Data di nascita — oltre a `profili_giocatore.data_nascita`, un trigger la sincronizza in
+  `giocatori_squadra.nascita` (DD-031): a differenza degli altri campi di questa sezione,
+  visibile a **tutta la squadra**, non solo al giocatore stesso o all'admin (alimenta
+  Squadra e i compleanni nel Calendario, vedi `squadra.md`). Cancellare il profilo azzera
+  anche quel valore pubblico.
 - Luogo di nascita
 - Indirizzo di residenza
 - Telefono
@@ -174,6 +182,9 @@ alle notifiche push e i loro nomi, leggendo `GET /api/public/notifiche-attive` (
 [Notifiche](notifiche.md)). È solo consultiva: l'attivazione resta un gesto che ogni
 giocatore deve fare dal proprio dispositivo (Profilo), l'admin non può attivarla per conto
 di altri.
+
+Gli allenatori stanno nella stessa tab in un gruppo «Allenatori» a parte, senza documenti né
+tesseramento, e non entrano nei conteggi della tab Squadra né nell'export CSI (DD-034).
 
 Per ogni giocatore, nella tab Profili, vengono mostrati.
 

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
 import { leggiEventi } from "@/lib/eventi.server";
 import { inviaPush } from "@/lib/webpush.server";
+import { isAllenatore } from "@/lib/giocatori-squadra";
+import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
 
 const schema = z.object({ eventoId: z.string().min(1).max(50) });
 
@@ -22,15 +24,20 @@ export const Route = createFileRoute("/api/public/apri-sondaggio")({
         if (!partita) return new Response("Evento non trovato", { status: 404 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: iscrizioni } = await supabaseAdmin
+        const { data: tutte } = await supabaseAdmin
           .from("push_subscriptions")
-          .select("endpoint, p256dh, auth");
+          .select("endpoint, p256dh, auth, giocatore_id");
+        // Il sondaggio cacche non riguarda l'allenatore, che non le vede (DD-034).
+        const allenatori = new Set(
+          (await leggiGiocatoriSquadra()).filter(isAllenatore).map((g) => g.id),
+        );
+        const iscrizioni = (tutte ?? []).filter((i) => !allenatori.has(i.giocatore_id));
 
         const titolo = "💩 Sondaggio pre-partita aperto";
         const testo = `${partita.titolo} · ore ${partita.ora}. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.`;
 
         let inviate = 0;
-        for (const iscrizione of iscrizioni ?? []) {
+        for (const iscrizione of iscrizioni) {
           try {
             const { stato } = await inviaPush(iscrizione, titolo, testo);
             if (stato === 404 || stato === 410) {
@@ -46,7 +53,7 @@ export const Route = createFileRoute("/api/public/apri-sondaggio")({
           }
         }
 
-        return Response.json({ inviate, destinatari: (iscrizioni ?? []).length });
+        return Response.json({ inviate, destinatari: iscrizioni.length });
       },
     },
   },

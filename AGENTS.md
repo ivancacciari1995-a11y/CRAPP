@@ -30,6 +30,7 @@ Le dipendenze si installano con **bun** (`bun.lock`). `bunfig.toml` impone
 npm run dev       # vite dev su http://localhost:8080
 npm run build     # build di produzione (nitro)
 npm run lint      # eslint (include prettier come regola)
+npm run typecheck # controllo dei tipi TypeScript (tsc, senza generare file)
 npm run format    # prettier --write .
 npm run test      # suite di test (test/); npm run test:all per quella completa
 
@@ -59,7 +60,7 @@ copre più il comportamento nuovo va aggiornata nello stesso lavoro.
 Prima di dire che hai finito:
 
 1. i test delle funzioni aggiunte o modificate esistono e sono verdi;
-2. `npm run lint` e `npm run test` passano (`test:all` se hai toccato database o flussi e2e);
+2. `npm run lint`, `npm run typecheck` e `npm run test` passano (`test:all` se hai toccato database o flussi e2e);
 3. la documentazione toccata dalla modifica è aggiornata (vedi Test e Tracciabilità);
 4. hai detto all'utente cosa hai cambiato, cosa hai lasciato fuori e quali rischi vedi.
 
