@@ -1,11 +1,11 @@
 # Modulo — Notifiche
 
 **Stato:** implementato — un unico opt-in dispositivo abilita tutto il canale push, più un
-centro notifiche in-app indipendente accanto al profilo
+centro notifiche in-app indipendente, con un pallino sull'avatar del profilo
 **File principali:** `src/lib/notifiche-smart.ts`, `src/lib/notifiche-utente.ts`,
 `src/lib/push-client.ts`, `src/lib/webpush.server.ts`, `src/routes/api/public/push-config.ts`,
 `src/routes/api/public/push-subscribe.ts`, `public/push-sw.js`,
-`src/components/crapp/ui-bits.tsx` (`IconaNotifiche`)
+`src/components/crapp/ui-bits.tsx` (`LinkProfilo`, `PallinoNotifiche`)
 
 ---
 
@@ -83,10 +83,10 @@ route. Tutte e tre partono da un gesto di un amministratore dentro l'app, quindi
 è uno solo (`richiediAdmin` in `src/lib/auth-route.server.ts`) e non serve configurare nessuna
 variabile d'ambiente.
 
-| Route                                                                       | Controllo                                                                          | Chi la chiama                                                   |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Route                                                                                                       | Controllo                                                                          | Chi la chiama                                                   |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `apri-sondaggio`, `sollecita-presenze`, `promemoria-palloni`, `notifiche-attive`, `notifica-personalizzata` | `richiediAdmin` — token della sessione Supabase, poi ruolo `admin` in `user_roles` | l'app, da un pulsante o una vista riservati agli admin          |
-| `csi`, `push-config`, `push-subscribe`                                       | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
+| `csi`, `push-config`, `push-subscribe`                                                                      | nessuno                                                                            | il browser prima del login, che una sessione non ce l'ha ancora |
 
 `notifiche-attive` è a sola lettura: non manda push, restituisce gli id giocatore con almeno
 un dispositivo iscritto in `push_subscriptions` (deduplicati). Alimenta la tab "Notifiche"
@@ -116,8 +116,12 @@ ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
 
 ## Centro notifiche in-app (M17)
 
-Icona a campana accanto al link profilo (`IconaNotifiche` in `src/components/crapp/ui-bits.tsx`,
-dentro `PageHeader`), con badge del numero di non lette. Indipendente dal canale push sopra:
+Pallino sull'angolo dell'avatar del profilo in alto a destra (`PallinoNotifiche` dentro
+`LinkProfilo`, `src/components/crapp/ui-bits.tsx`): rosso con il numero delle non lette; se
+sono tutte lette resta neutro con il totale, così le lette restano raggiungibili per
+eliminarle; senza notifiche non compare. Il tap sull'avatar porta sempre a `/profilo`, solo il
+tap sul pallino apre il pannello (logica in `pallinoNotifiche()`). Fino a 0.9.2 era una
+campanella separata accanto all'avatar. Indipendente dal canale push sopra:
 non richiede che il dispositivo abbia attivato «Notifiche», ha uno storico persistente in
 `notifiche_utente` (vedi [DATABASE.md](../DATABASE.md)) con stato letto/non letto, e non è la
 stessa cosa delle notifiche smart (quelle restano locali, non salvate a database).

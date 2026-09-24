@@ -12,6 +12,12 @@ all'indietro.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- **Notifiche in-app** — tolta la campanella in alto a destra: il numero delle notifiche è ora
+  un pallino rosso sull'avatar del profilo. Toccando il pallino si apre l'elenco (leggi ed
+  elimina), toccando l'avatar si va al profilo come prima.
+
 ## [0.9.2] - 2026-09-10
 
 ### Aggiunto

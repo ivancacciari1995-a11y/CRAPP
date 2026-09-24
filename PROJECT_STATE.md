@@ -46,7 +46,7 @@ cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
   `npx supabase migration list`)
 - Migration `m17_notifiche_utente` (15/09/2026, DD-030): nuova tabella `notifiche_utente`
   per il centro notifiche in-app — **in produzione** dal 15/09/2026 (è additiva: non tocca
-  schema o comportamento esistenti, vedi DD-030). Il codice che la usa (icona notifiche,
+  schema o comportamento esistenti, vedi DD-030). Il codice che la usa (centro notifiche,
   route aggiornate) non è ancora deployato: la tabella si riempie già in background
 - Migration `m18_nascita_pubblica_giocatori_squadra` (15/09/2026, DD-031): nuova colonna
   `giocatori_squadra.nascita`, sincronizzata da `profili_giocatore.data_nascita` — corregge

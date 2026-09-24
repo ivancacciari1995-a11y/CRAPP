@@ -1,6 +1,11 @@
 /** Check delle notifiche in-app (M17): `bun test/unit/notifiche-utente.test.ts`. */
 import assert from "node:assert/strict";
-import { contatoreBadge, daRiga, type RigaNotifica } from "@/lib/notifiche-utente";
+import {
+  contatoreBadge,
+  daRiga,
+  pallinoNotifiche,
+  type RigaNotifica,
+} from "@/lib/notifiche-utente";
 
 // --- daRiga: conversione database -> modello applicativo ---------------------
 const riga: RigaNotifica = {
@@ -35,5 +40,12 @@ assert.equal(contatoreBadge(1), "1");
 assert.equal(contatoreBadge(9), "9");
 assert.equal(contatoreBadge(10), "9+");
 assert.equal(contatoreBadge(42), "9+");
+
+// --- pallinoNotifiche: rosso con le non lette, neutro col totale, assente se vuoto ---
+assert.equal(pallinoNotifiche(0, 0), null);
+assert.deepEqual(pallinoNotifiche(5, 2), { testo: "2", daLeggere: true });
+assert.deepEqual(pallinoNotifiche(30, 12), { testo: "9+", daLeggere: true });
+// Tutte lette: il pallino resta per poterle ancora aprire ed eliminare.
+assert.deepEqual(pallinoNotifiche(3, 0), { testo: "3", daLeggere: false });
 
 console.log("notifiche-utente: ok");

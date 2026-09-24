@@ -1184,8 +1184,10 @@ RLS (`useNotificheMie()`/`useSegnaLette()`/`useEliminaNotifica()` in
 `useSalvaEvento()` in `eventi.ts`. Nessuna policy INSERT per `authenticated`: le righe nascono
 solo da funzioni `SECURITY DEFINER` o dalla service role, mai da un client.
 
-Icona a campana con badge (`IconaNotifiche`, `src/components/crapp/ui-bits.tsx`), pannello a
-comparsa costruito a mano (nel progetto non c'è una libreria dropdown). Ogni riga si elimina
+Pallino con il conteggio sull'avatar del profilo (`PallinoNotifiche`,
+`src/components/crapp/ui-bits.tsx`; in origine una campanella separata, tolta per liberare
+l'header: il tap sull'avatar resta l'accesso al profilo, quello sul pallino apre il
+pannello), pannello a comparsa costruito a mano (nel progetto non c'è una libreria dropdown). Ogni riga si elimina
 con uno swipe o una ×: non c'è pulizia automatica delle notifiche vecchie, quindi è l'unico
 modo per un giocatore di toglierle di torno per sempre.
 
@@ -1211,7 +1213,7 @@ modo per un giocatore di toglierle di torno per sempre.
 
 **Conseguenze**
 
-- Il badge sull'icona riflette solo ciò che sta in `notifiche_utente`: un dispositivo senza
+- Il pallino sull'avatar riflette solo ciò che sta in `notifiche_utente`: un dispositivo senza
   push attive vede comunque tutto, perché il canale è del tutto indipendente.
 - `eventi_app.ora` è testo libero e non validato dal form (`<input type="time">` si può
   svuotare): la funzione `genera_promemoria_eventi()` usa `ora_evento_a_time()`, che assorbe

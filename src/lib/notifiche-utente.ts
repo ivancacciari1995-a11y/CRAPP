@@ -3,7 +3,7 @@ import { supabaseNuoveTabelle } from "@/integrations/supabase/client-nuove-tabel
 import { useGiocatoreId } from "./user-store";
 
 /**
- * Centro notifiche in-app (M17): icona a campana accanto al profilo, con badge delle non
+ * Centro notifiche in-app (M17): pallino sull'avatar del profilo, con il numero delle non
  * lette. Quattro sorgenti riempiono `notifiche_utente` (lato database, mai dal client): un
  * messaggio libero dell'admin, un promemoria automatico prima di un evento (24h e 3h), il
  * turno palloni e il sollecito presenze (questi due avviati a mano da un admin, in
@@ -128,4 +128,18 @@ export function useEliminaNotifica() {
 /** Testo del badge: il conteggio esatto fino a 9, poi "9+" per non farlo esplodere. */
 export function contatoreBadge(nonLette: number): string {
   return nonLette > 9 ? "9+" : String(nonLette);
+}
+
+/**
+ * Pallino sull'avatar del profilo: rosso con il numero delle non lette; se sono tutte lette
+ * resta neutro con il totale, altrimenti le notifiche già lette non sarebbero più
+ * raggiungibili per eliminarle. Senza notifiche non c'è (`null`).
+ */
+export function pallinoNotifiche(
+  totale: number,
+  nonLette: number,
+): { testo: string; daLeggere: boolean } | null {
+  if (totale === 0) return null;
+  if (nonLette > 0) return { testo: contatoreBadge(nonLette), daLeggere: true };
+  return { testo: contatoreBadge(totale), daLeggere: false };
 }

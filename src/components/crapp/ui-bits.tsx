@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { Bell, ChevronDown, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inizialiDa, statoMeta, type Stato } from "@/lib/crapp-data";
 import { nomeCompleto } from "@/lib/giocatori-squadra";
@@ -16,7 +16,7 @@ import { useGiocatoreBase } from "@/lib/user-store";
 import { useMotoRidotto } from "@/lib/motion";
 import { molla, proietta } from "@/lib/molla";
 import {
-  contatoreBadge,
+  pallinoNotifiche,
   useEliminaNotifica,
   useNotificheMie,
   useSegnaLette,
@@ -63,30 +63,6 @@ export function Card({
   ...props
 }: ComponentPropsWithoutRef<"div"> & { as?: "div" | "article" | "section" }) {
   return <Tag className={cn("premi rounded-3xl bg-card p-4 shadow-card", className)} {...props} />;
-}
-
-/**
- * Accesso al profilo in alto a destra: la BottomNav ha quattro voci e questa è
- * l'unica porta verso `/profilo`. Sulla pagina del profilo si passa `azione` a
- * `PageHeader` con il logo che porta alla home.
- *
- * Usa `useGiocatoreBase` (sola anagrafica) e non `useIo`: qui serve solo id e
- * iniziali, mentre `useIo` calcola l'intera rosa con statistiche (MVP, pagelle,
- * cacche, palloni, infortuni). Essendo in un componente montato su quasi ogni
- * pagina, quei moduli finirebbero nel bundle condiviso di tutte le rotte.
- */
-export function LinkProfilo() {
-  const g = useGiocatoreBase();
-  if (!g) return <TeamLogo className="h-12 w-12" />;
-  return (
-    <Link
-      to="/profilo"
-      aria-label="Il tuo profilo"
-      className="premi shrink-0 rounded-2xl ring-2 ring-primary-foreground/30"
-    >
-      <Avatar id={g.id} fallback={inizialiDa(nomeCompleto(g))} className="h-12 w-12 text-lg" />
-    </Link>
-  );
 }
 
 /** "or ora" / "tra 3 ore" / "2 giorni fa" — così basta guardare senza fare i conti. */
@@ -150,8 +126,38 @@ function RigaNotifica({
 }
 
 /**
- * Campanella accanto al profilo (M17): badge con le notifiche non lette, pannello con
- * l'elenco al click. Copre quattro sorgenti generate lato database (mai dal client):
+ * Accesso al profilo in alto a destra: la BottomNav ha quattro voci e questa è
+ * l'unica porta verso `/profilo`. Sulla pagina del profilo si passa `azione` a
+ * `PageHeader` con il logo che porta alla home.
+ *
+ * Usa `useGiocatoreBase` (sola anagrafica) e non `useIo`: qui serve solo id e
+ * iniziali, mentre `useIo` calcola l'intera rosa con statistiche (MVP, pagelle,
+ * cacche, palloni, infortuni). Essendo in un componente montato su quasi ogni
+ * pagina, quei moduli finirebbero nel bundle condiviso di tutte le rotte.
+ *
+ * Sopra l'avatar sta il pallino del centro notifiche (M17): il tap sull'avatar
+ * porta sempre al profilo, quello sul pallino apre il pannello.
+ */
+export function LinkProfilo() {
+  const g = useGiocatoreBase();
+  if (!g) return <TeamLogo className="h-12 w-12" />;
+  return (
+    <div className="relative shrink-0">
+      <Link
+        to="/profilo"
+        aria-label="Il tuo profilo"
+        className="premi block rounded-2xl ring-2 ring-primary-foreground/30"
+      >
+        <Avatar id={g.id} fallback={inizialiDa(nomeCompleto(g))} className="h-12 w-12 text-lg" />
+      </Link>
+      <PallinoNotifiche />
+    </div>
+  );
+}
+
+/**
+ * Pallino del centro notifiche (M17) sull'angolo dell'avatar (aspetto deciso da
+ * `pallinoNotifiche()`). Copre quattro sorgenti generate lato database (mai dal client):
  * messaggi admin, promemoria automatici, turno palloni, sollecito presenze — vedi
  * `src/lib/notifiche-utente.ts`.
  *
@@ -159,7 +165,7 @@ function RigaNotifica({
  * chiuso al click fuori o con Escape. Aprirlo segna tutte le notifiche come lette; per
  * toglierle di mezzo per sempre serve lo swipe o la × di `RigaNotifica`.
  */
-export function IconaNotifiche() {
+function PallinoNotifiche() {
   const { notifiche, nonLette } = useNotificheMie();
   const segnaLette = useSegnaLette();
   const eliminaNotifica = useEliminaNotifica();
@@ -182,40 +188,48 @@ export function IconaNotifiche() {
     };
   }, [aperto]);
 
+  const pallino = pallinoNotifiche(notifiche.length, nonLette);
+  if (!pallino) return null;
+
   function alClick() {
     const stavaChiuso = !aperto;
     setAperto(stavaChiuso);
     if (stavaChiuso && nonLette > 0) segnaLette.mutate();
   }
 
+  // Tolta l'ultima, il pallino sparisce: chiuso anche il pannello, così alla prossima
+  // notifica non si riapre da solo.
+  function elimina(id: string) {
+    if (notifiche.length === 1) setAperto(false);
+    eliminaNotifica.mutate(id);
+  }
+
   return (
-    <div ref={riquadro} className="relative shrink-0">
+    <div ref={riquadro}>
+      {/* `after:` allarga l'area di tocco oltre i 20px del pallino senza ingrandirlo. */}
       <button
         type="button"
         onClick={alClick}
         aria-label={nonLette > 0 ? `Notifiche, ${nonLette} da leggere` : "Notifiche"}
-        className="premi relative flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground ring-2 ring-primary-foreground/30"
+        aria-expanded={aperto}
+        className={cn(
+          "absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold shadow-pop ring-2 ring-primary-foreground after:absolute after:-inset-3 active:scale-90",
+          pallino.daLeggere
+            ? "bg-accent-grad text-accent-foreground"
+            : "bg-muted text-muted-foreground",
+        )}
       >
-        <Bell className="h-5 w-5" />
-        {nonLette > 0 ? (
-          <span className="bg-accent-grad absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-accent-foreground shadow-pop">
-            {contatoreBadge(nonLette)}
-          </span>
-        ) : null}
+        {pallino.testo}
       </button>
       {aperto ? (
         <div className="absolute right-0 top-14 z-50 w-72 max-w-[calc(100vw-2.5rem)] rounded-2xl bg-card p-2 text-foreground shadow-card">
-          {notifiche.length === 0 ? (
-            <p className="p-3 text-sm text-muted-foreground">Nessuna notifica</p>
-          ) : (
-            <ul className="max-h-80 overflow-y-auto">
-              <AnimatePresence initial={false}>
-                {notifiche.map((n) => (
-                  <RigaNotifica key={n.id} notifica={n} onElimina={eliminaNotifica.mutate} />
-                ))}
-              </AnimatePresence>
-            </ul>
-          )}
+          <ul className="max-h-80 overflow-y-auto">
+            <AnimatePresence initial={false}>
+              {notifiche.map((n) => (
+                <RigaNotifica key={n.id} notifica={n} onElimina={elimina} />
+              ))}
+            </AnimatePresence>
+          </ul>
         </div>
       ) : null}
     </div>
@@ -241,12 +255,7 @@ export function PageHeader({
             <p className="mt-1 truncate text-sm text-primary-foreground/80">{sottotitolo}</p>
           ) : null}
         </div>
-        {azione ?? (
-          <div className="flex shrink-0 items-center gap-2">
-            <IconaNotifiche />
-            <LinkProfilo />
-          </div>
-        )}
+        {azione ?? <LinkProfilo />}
       </div>
     </header>
   );

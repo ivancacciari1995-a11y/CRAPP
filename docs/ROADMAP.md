@@ -21,8 +21,8 @@ Tutto quello che è in `main`, rilasciato in versione 0.9.0 (vedi `CHANGELOG.md`
 - [x] Turno palloni
 - [x] Infortuni — conteggio eventi saltati, in forma minima
 - [x] Notifiche Push (promemoria intelligenti)
-- [x] Centro notifiche in-app — icona a campana accanto al profilo, con badge delle non
-      lette, indipendente dalla push (messaggi admin, promemoria evento, turno palloni,
+- [x] Centro notifiche in-app — pallino con il numero delle non lette sull'avatar del
+      profilo (il tap sul pallino apre l'elenco), indipendente dalla push (messaggi admin, promemoria evento, turno palloni,
       sollecito presenze)
 - [x] Dashboard amministratore
 - [x] Download CSV dati
