@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Flame, ChevronRight } from "lucide-react";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { PromemoriaPalloni } from "@/components/crapp/PromemoriaPalloni";
+import { AvvisoCertificati } from "@/components/crapp/AvvisoCertificati";
 import { Card, LinkProfilo, Section, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
@@ -119,6 +120,8 @@ function Index() {
       </Reveal>
 
       <PromemoriaPalloni />
+
+      <AvvisoCertificati />
 
       <CompletaProfilo giocatoreId={base.id} allenatore={allenatore} indice={1} />
 

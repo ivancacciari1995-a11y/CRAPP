@@ -2,12 +2,16 @@
 import assert from "node:assert/strict";
 import {
   aRigaProfilo,
+  avvisiCertificati,
   completamento,
   completamentoAllenatore,
   csvTesseramento,
   daRigaProfilo,
+  formatDataBreve,
+  giorniAllaScadenza,
   sezioniComplete,
   statoScadenza,
+  testoScadenza,
   type Profilo,
 } from "@/lib/profili-core";
 import {
@@ -213,5 +217,120 @@ assert.equal(
   "bastano i quattro dati personali: niente indirizzo, documento, certificato, foto",
 );
 assert.equal(completamentoAllenatore({ ...vuoto, telefono: "   " }), 0, "spazi soli non contano");
+
+// --- avviso certificati (DD-035) ------------------------------------------------
+assert.equal(giorniAllaScadenza("2026-09-27", "2026-09-20"), 7);
+assert.equal(giorniAllaScadenza("2026-09-19", "2026-09-20"), -1, "scaduto ieri");
+assert.equal(giorniAllaScadenza("2026-09-20", "2026-09-20"), 0, "scade oggi");
+assert.equal(giorniAllaScadenza("2026-10-01", "2026-09-30"), 1, "cambio di mese");
+assert.equal(giorniAllaScadenza("2027-01-01", "2026-12-31"), 1, "cambio di anno");
+
+assert.equal(formatDataBreve("2026-09-12"), "12/09/2026");
+
+assert.equal(testoScadenza(0), "scade oggi");
+assert.equal(testoScadenza(1), "scade domani");
+assert.equal(testoScadenza(5), "scade tra 5 giorni");
+
+const rosaCertificati: GiocatoreSquadra[] = [
+  { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Cacciari", attivo: true, tipo: "giocatore" },
+  { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Bruni", attivo: true, tipo: "giocatore" },
+  { ...squadra[0]!, id: "g3", nome: "Marco", cognome: "Verdi", attivo: true, tipo: "giocatore" },
+  { ...squadra[0]!, id: "g4", nome: "Sara", cognome: "Neri", attivo: false, tipo: "giocatore" },
+  { ...squadra[0]!, id: "g5", nome: "Luca", cognome: "Bianchi", attivo: true, tipo: "allenatore" },
+];
+const oggiTest = "2026-09-20";
+const profiliCertificati: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-25", certificatoPath: "p1" }, // in scadenza, 5 giorni
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-10", certificatoPath: "p2" }, // scaduto da 10 giorni
+  g3: { ...vuoto, giocatoreId: "g3", certificatoScadenza: "2026-10-31", certificatoPath: "p3" }, // valido, fuori soglia
+  g4: { ...vuoto, giocatoreId: "g4", certificatoScadenza: "2026-09-21", certificatoPath: "p4" }, // disattivato: escluso
+  g5: { ...vuoto, giocatoreId: "g5", certificatoScadenza: "2026-09-21", certificatoPath: "p5" }, // allenatore: escluso
+};
+const avvisi = avvisiCertificati(rosaCertificati, profiliCertificati, oggiTest);
+assert.deepEqual(
+  avvisi.scaduti.map((a) => a.giocatoreId),
+  ["g2"],
+);
+assert.deepEqual(
+  avvisi.inScadenza.map((a) => a.giocatoreId),
+  ["g1"],
+);
+
+assert.equal(
+  avvisiCertificati(
+    [{ ...squadra[0]!, id: "g6" }],
+    { g6: { ...vuoto, giocatoreId: "g6", certificatoScadenza: null, certificatoPath: null } },
+    oggiTest,
+  ).inScadenza.length,
+  0,
+  "certificato mancante: nessun avviso",
+);
+
+const dueInScadenza: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-27", certificatoPath: "p1" }, // 7 giorni, più lontano
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-21", certificatoPath: "p2" }, // 1 giorno, più vicino
+};
+const ordinati = avvisiCertificati(
+  [
+    { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Cacciari" },
+    { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Bruni" },
+  ],
+  dueInScadenza,
+  oggiTest,
+).inScadenza.map((a) => a.giocatoreId);
+assert.deepEqual(ordinati, ["g2", "g1"], "la scadenza più vicina viene prima");
+
+const pariGiorni: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-25", certificatoPath: "p1" },
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-25", certificatoPath: "p2" },
+};
+const alfabetico = avvisiCertificati(
+  [
+    { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Zeta" },
+    { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Alfa" },
+  ],
+  pariGiorni,
+  oggiTest,
+).inScadenza.map((a) => a.giocatoreId);
+assert.deepEqual(alfabetico, ["g2", "g1"], "a parità di data, ordine alfabetico per cognome");
+
+// soglia esatta (DD-035): 8 giorni fuori, 7 e 0 dentro
+const rosaSoglia: GiocatoreSquadra[] = [
+  { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Cacciari" },
+  { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Bruni" },
+  { ...squadra[0]!, id: "g3", nome: "Marco", cognome: "Verdi" },
+];
+const profiliSoglia: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-28", certificatoPath: "p1" }, // 8 giorni: fuori
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-27", certificatoPath: "p2" }, // 7 giorni: dentro
+  g3: { ...vuoto, giocatoreId: "g3", certificatoScadenza: "2026-09-20", certificatoPath: "p3" }, // 0 giorni: dentro
+};
+const soglia = avvisiCertificati(rosaSoglia, profiliSoglia, oggiTest);
+assert.deepEqual(
+  soglia.inScadenza.map((a) => a.giocatoreId),
+  ["g3", "g2"],
+  "8 giorni resta valido, 7 e 0 generano avviso",
+);
+assert.equal(soglia.scaduti.length, 0);
+
+// ordinamento tra scaduti: il più vecchio prima, poi alfabetico a parità di data
+const rosaScaduti: GiocatoreSquadra[] = [
+  { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Zeta" },
+  { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Alfa" },
+  { ...squadra[0]!, id: "g3", nome: "Marco", cognome: "Verdi" },
+];
+const profiliScaduti: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-01", certificatoPath: "p1" }, // scaduto da 19 giorni
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-01", certificatoPath: "p2" }, // pari data di g1
+  g3: { ...vuoto, giocatoreId: "g3", certificatoScadenza: "2026-09-19", certificatoPath: "p3" }, // scaduto da 1 giorno
+};
+const scadutiOrdinati = avvisiCertificati(rosaScaduti, profiliScaduti, oggiTest).scaduti.map(
+  (a) => a.giocatoreId,
+);
+assert.deepEqual(
+  scadutiOrdinati,
+  ["g2", "g1", "g3"],
+  "il più vecchio prima, poi alfabetico a parità di data (Alfa prima di Zeta)",
+);
 
 console.log("profili-core: ok");

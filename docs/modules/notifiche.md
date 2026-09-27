@@ -18,6 +18,11 @@ indipendenti:
 - **Notifiche smart** — notifiche locali mostrate solo ad app aperta, generate da badge,
   serie e obiettivi appena raggiunti; non è un canale push separato.
 
+Gli avvisi fissi in Home (turno palloni, certificati in scadenza) non passano da nessuno dei
+due: sono card calcolate dai dati, che spariscono da sole quando la condizione finisce. In
+particolare il certificato in scadenza **non** genera push né voci nel centro notifiche
+(DD-035, specifica in [profilo-giocatore.md](profilo-giocatore.md#avviso-certificati)).
+
 ---
 
 ## Dati

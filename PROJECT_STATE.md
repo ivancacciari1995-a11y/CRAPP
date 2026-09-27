@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 24/09/2026
+Ultimo aggiornamento: 27/09/2026
 
 ## Stato generale
 
@@ -178,9 +178,9 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: tutto quello che era in lavorazione è chiuso, tesseramento CSI incluso
-(numero e data di tessera registrabili da `/admin`, migration `m8_tesseramento_csi`). Le voci
-ancora aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+Niente di assegnato: l'avviso certificati in scadenza (DD-035) è implementato e versione
+1.1.0 (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
+[docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---
 

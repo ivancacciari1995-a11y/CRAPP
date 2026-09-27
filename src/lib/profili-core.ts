@@ -1,5 +1,5 @@
 import { rigaCsv } from "./scout-export";
-import { nomeCompleto, type GiocatoreSquadra } from "./giocatori-squadra";
+import { inRosa, nomeCompleto, type GiocatoreSquadra } from "./giocatori-squadra";
 
 /**
  * Profilo amministrativo di un giocatore (DD-016). I file veri stanno nel bucket privato
@@ -214,4 +214,74 @@ export function csvTesseramento(
 /** Etichetta per l'elenco della dashboard. */
 export function etichettaGiocatore(g: GiocatoreSquadra): string {
   return `#${g.numero} ${nomeCompleto(g)}`;
+}
+
+/** Soglia dell'avviso certificati in Home (DD-035). */
+export const GIORNI_AVVISO_CERTIFICATO = 7;
+
+/** Giorni di calendario tra due date `AAAA-MM-GG` (ora locale): negativo se `scadenza` è passata. */
+export function giorniAllaScadenza(scadenza: string, oggi: string): number {
+  const a = new Date(`${scadenza}T00:00:00`);
+  const b = new Date(`${oggi}T00:00:00`);
+  return Math.round((a.getTime() - b.getTime()) / 86_400_000);
+}
+
+/** Data in formato `GG/MM/AAAA`, per i testi dell'avviso certificati. */
+export function formatDataBreve(iso: string): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+/** Riga dell'avviso certificati per un giocatore (DD-035). */
+export function testoScadenza(giorni: number): string {
+  if (giorni === 0) return "scade oggi";
+  if (giorni === 1) return "scade domani";
+  return `scade tra ${giorni} giorni`;
+}
+
+export type AvvisoCertificato = {
+  giocatoreId: string;
+  nome: string;
+  cognome: string;
+  scadenza: string;
+  giorni: number;
+};
+
+function confrontaAvvisi(a: AvvisoCertificato, b: AvvisoCertificato): number {
+  return a.giorni - b.giorni || a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome);
+}
+
+/**
+ * Certificati in scadenza o scaduti nella rosa (DD-035): calcolato al volo da
+ * `certificato_scadenza`, niente stato salvato. Esclude chi non è in rosa e chi non ha
+ * ancora un certificato caricato (è un problema diverso, non un avviso di scadenza).
+ */
+export function avvisiCertificati(
+  rosa: GiocatoreSquadra[],
+  profili: Record<string, Profilo>,
+  oggi: string,
+): { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } {
+  const scaduti: AvvisoCertificato[] = [];
+  const inScadenza: AvvisoCertificato[] = [];
+  for (const g of rosa) {
+    if (!inRosa(g)) continue;
+    const p = profili[g.id];
+    if (!p?.certificatoScadenza || !p.certificatoPath) continue;
+    const giorni = giorniAllaScadenza(p.certificatoScadenza, oggi);
+    if (giorni > GIORNI_AVVISO_CERTIFICATO) continue;
+    const avviso: AvvisoCertificato = {
+      giocatoreId: g.id,
+      nome: g.nome,
+      cognome: g.cognome,
+      scadenza: p.certificatoScadenza,
+      giorni,
+    };
+    (giorni < 0 ? scaduti : inScadenza).push(avviso);
+  }
+  scaduti.sort(confrontaAvvisi);
+  inScadenza.sort(confrontaAvvisi);
+  return { scaduti, inScadenza };
 }
