@@ -82,7 +82,7 @@ sulla tab Stagione.
 
 ### Avviso certificati
 
-**Stato:** da implementare (DD-035).
+**Stato:** implementato (DD-035).
 
 Un avviso in Home segnala i certificati medici in scadenza o scaduti, così nessuno se ne
 accorge quando il giocatore è già fuori regola. Si calcola al volo dalla data di scadenza

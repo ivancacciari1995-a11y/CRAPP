@@ -178,10 +178,11 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-**Avviso certificati in scadenza** (24/09/2026, branch `develop`): specifica scritta in
-[docs/modules/profilo-giocatore.md](docs/modules/profilo-giocatore.md#avviso-certificati),
-decisione in DD-035, codice non ancora iniziato. Solo client: nessuna migration e nessuna
-push. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+**Avviso certificati in scadenza** (27/09/2026, branch `develop`): codice scritto secondo la
+specifica in [docs/modules/profilo-giocatore.md](docs/modules/profilo-giocatore.md#avviso-certificati)
+(decisione DD-035), non ancora rilasciato in una versione. Solo client: nessuna migration e
+nessuna push. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto
+«Prossimo».
 
 ---
 

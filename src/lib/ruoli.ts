@@ -24,15 +24,23 @@ async function fetchRuoli(utenteId: string | null): Promise<Ruolo[] | null> {
   return (data ?? []).map((r) => r.role as Ruolo);
 }
 
-function useRuoli(): Ruolo[] {
+function useRuoliQuery() {
   const { utenteId } = useSessione();
   // Il ruolo cambia solo quando un admin lo assegna: una lettura per sessione basta.
-  const query = useQuery({
+  return useQuery({
     queryKey: [...RUOLI_KEY, utenteId],
     queryFn: () => fetchRuoli(utenteId),
     staleTime: 30 * 60_000,
   });
-  return query.data ?? [];
+}
+
+function useRuoli(): Ruolo[] {
+  return useRuoliQuery().data ?? [];
+}
+
+/** L'avviso certificati (DD-035) aspetta i ruoli: niente flash dell'avviso sbagliato. */
+export function useRuoliPronti(): boolean {
+  return !useRuoliQuery().isPending;
 }
 
 export function useIsAdmin(): boolean {
