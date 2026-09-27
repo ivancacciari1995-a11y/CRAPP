@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Backup completo di disaster recovery: schema + dati DB, utenti auth, file storage.
 # Uso:
-#   ./backups/backup.sh              crea backups/YYYYMMDD_HHMM/ con dentro tutto
-#   ./backups/backup.sh --encrypt    come sopra, poi comprime e cifra con gpg (chiede una passphrase)
+#   ./backups/backup.sh              crea backups/YYYYMMDD_HHMM/, comprime e cifra con gpg (chiede una passphrase)
+#   ./backups/backup.sh --no-encrypt come sopra ma lascia solo il tar.gz in chiaro
 #
 # Richiede: essere già collegati al progetto Supabase (supabase login + link, già fatto
 # in questo repo) e avere .env con VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.
@@ -33,11 +33,17 @@ node "$SCRIPT_DIR/download-storage.mjs" "$RUN_DIR/storage"
 
 echo "==> Backup completato: $RUN_DIR"
 
-if [[ "${1:-}" == "--encrypt" ]]; then
-  ARCHIVE="$RUN_DIR.tar.gz.gpg"
-  echo "==> Comprimo e cifro in $ARCHIVE (verrà chiesta una passphrase)"
-  tar -C "$SCRIPT_DIR" -czf - "$STAMP" | gpg --symmetric --cipher-algo AES256 -o "$ARCHIVE"
-  rm -rf "$RUN_DIR"
+TARBALL="$RUN_DIR.tar.gz"
+echo "==> Comprimo in $TARBALL"
+tar -C "$SCRIPT_DIR" -czf "$TARBALL" "$STAMP"
+
+if [[ "${1:-}" == "--no-encrypt" ]]; then
+  echo "==> Archivio pronto: $TARBALL"
+else
+  ARCHIVE="$TARBALL.gpg"
+  echo "==> Cifro in $ARCHIVE (verrà chiesta una passphrase)"
+  gpg --symmetric --cipher-algo AES256 -o "$ARCHIVE" "$TARBALL"
+  rm -rf "$RUN_DIR" "$TARBALL"
   echo "==> Archivio cifrato pronto: $ARCHIVE"
   echo "    Per estrarlo: gpg -d $ARCHIVE | tar xz"
 fi

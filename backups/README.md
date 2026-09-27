@@ -35,7 +35,7 @@ Da fare una volta sola per host (poi il backup si rilancia semplicemente con
    Project Settings → API. La **service role key** è quella con permessi pieni
    (bypassa le RLS): serve solo per scaricare i file dai bucket, non va mai
    esposta lato client né committata.
-5. **(Solo se userai `--encrypt`) Verifica che gpg sia installato**:
+5. **Verifica che gpg sia installato** (serve per cifrare, di default):
    ```bash
    gpg --version
    ```
@@ -46,15 +46,21 @@ A questo punto sei pronto per lanciare il backup vero e proprio (vedi sotto).
 ## Uso
 
 ```bash
-./backups/backup.sh              # crea backups/YYYYMMDD_HHMM/ con tutto dentro
-./backups/backup.sh --encrypt    # come sopra, poi comprime e cifra in un unico
-                                  # backups/YYYYMMDD_HHMM.tar.gz.gpg (chiede una
-                                  # passphrase) e cancella la cartella in chiaro
+./backups/backup.sh              # crea backups/YYYYMMDD_HHMM/, poi comprime e cifra
+                                  # in backups/YYYYMMDD_HHMM.tar.gz.gpg (chiede una
+                                  # passphrase a te scelta) e cancella cartella+tar.gz
+                                  # in chiaro
+./backups/backup.sh --no-encrypt # come sopra ma lascia solo il tar.gz in chiaro
+                                  # (nessuna passphrase richiesta)
 ```
 
-Ogni esecuzione crea una cartella nuova con timestamp: non sovrascrive backup
-precedenti. Non c'è pulizia automatica dei vecchi backup — cancellali a mano
-quando non servono più.
+La passphrase non è salvata da nessuna parte: la scegli tu al momento (gpg la
+chiede due volte, per conferma) e ti serve identica per decifrare in seguito —
+se la perdi, il backup cifrato è irrecuperabile. Tienila in un password manager.
+
+Ogni esecuzione crea una cartella/archivio nuovo con timestamp: non sovrascrive
+backup precedenti. Non c'è pulizia automatica dei vecchi backup — cancellali a
+mano quando non servono più.
 
 Se un passaggio fallisce (un dump o anche un solo file dello storage non scaricato),
 lo script si ferma con un errore e **non** stampa «Backup completato»: un backup
@@ -70,6 +76,23 @@ Il backup contiene:
 | `data_auth.sql`     | utenti reali, incluso l'hash della password                                                                |
 | `storage/`          | tutti i file dei bucket (`avatar-giocatori`, `profili-giocatore`: foto, documenti d'identità, certificati) |
 
+## Decomprimere
+
+Archivio cifrato (caso di default), chiede la passphrase scelta al momento
+del backup:
+
+```bash
+gpg -d backups/AAAAMMGG_hhmm.tar.gz.gpg | tar xz -C backups/
+```
+
+Ricrea `backups/AAAAMMGG_hhmm/` con dentro i file elencati sopra.
+
+Archivio non cifrato (generato con `--no-encrypt`):
+
+```bash
+tar xzf backups/AAAAMMGG_hhmm.tar.gz -C backups/
+```
+
 ## Ripristino
 
 1. Nuovo progetto Supabase (o `supabase start` in locale via Docker).
@@ -82,8 +105,6 @@ Il backup contiene:
    backup — vedi sotto).
 5. Redeploy dal repo git (il codice non serve backupparlo qui, è già su
    GitHub e Gitea).
-
-Per un archivio cifrato: `gpg -d backups/AAAAMMGG_hhmm.tar.gz.gpg | tar xz`.
 
 ## Cosa NON è incluso
 
@@ -98,8 +119,8 @@ personali reali. Per questo:
 
 - la cartella `backups/` è in `.gitignore` (tranne questo README e gli script:
   quelli sì restano in git) — **non committare mai i dati generati**;
-- se sposti un backup fuori da questo host, usa sempre `--encrypt` o cifra tu
-  l'archivio a mano;
+- se sposti un backup fuori da questo host, usa l'archivio cifrato (default)
+  invece del tar.gz in chiaro generato con `--no-encrypt`;
 - cancella i backup in chiaro quando non ti servono più.
 
 ## File di questa cartella
