@@ -1456,7 +1456,7 @@ fonte di bug, passare alla tabella `staff` separata.
 ### DD-035 — Avviso certificati: calcolato in Home, visibile solo al titolare e agli admin
 
 **Data:** 24 settembre 2026  
-**Stato:** Accettata (da implementare)
+**Stato:** Accettata (implementata, versione 1.1.0)
 
 **Contesto**  
 Il certificato medico ha una data di scadenza (`profili_giocatore.certificato_scadenza`), ma

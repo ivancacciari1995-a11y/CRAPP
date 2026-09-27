@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 24/09/2026
+Ultimo aggiornamento: 27/09/2026
 
 ## Stato generale
 
@@ -178,11 +178,9 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-**Avviso certificati in scadenza** (27/09/2026, branch `develop`): codice scritto secondo la
-specifica in [docs/modules/profilo-giocatore.md](docs/modules/profilo-giocatore.md#avviso-certificati)
-(decisione DD-035), non ancora rilasciato in una versione. Solo client: nessuna migration e
-nessuna push. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto
-«Prossimo».
+Niente di assegnato: l'avviso certificati in scadenza (DD-035) è implementato e versione
+1.1.0 (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
+[docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---
 

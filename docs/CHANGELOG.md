@@ -13,6 +13,16 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.1.0] - 2026-09-27
+
+### Aggiunto
+
+- **Avviso certificati in scadenza** — in Home, giallo nei 7 giorni prima e nero dopo la
+  scadenza del certificato medico. Gli admin vedono i nomi di tutta la rosa (non
+  cliccabile); il giocatore interessato vede solo il proprio e il tap apre
+  `/profilo?tab=documenti`. Calcolato al volo da `certificato_scadenza`: nessuna migration,
+  nessuna push (DD-035).
+
 ## [1.0.0] - 2026-09-24
 
 Prima versione stabile. Oltre al ruolo allenatore riunisce il lavoro fatto dalla 0.9.2:
