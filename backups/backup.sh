@@ -5,7 +5,8 @@
 #   ./backups/backup.sh --no-encrypt come sopra ma lascia solo il tar.gz in chiaro
 #
 # Richiede: essere già collegati al progetto Supabase (supabase login + link, già fatto
-# in questo repo) e avere .env con VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.
+# in questo repo), avere .env con VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY, e bun
+# installato (esegue download-storage.mjs, che importa un modulo .ts).
 
 set -euo pipefail
 
@@ -29,7 +30,7 @@ echo "==> Dump dati auth (utenti)"
 npx supabase db dump --linked --schema auth --data-only -f "$RUN_DIR/data_auth.sql"
 
 echo "==> Download file storage (bucket)"
-node "$SCRIPT_DIR/download-storage.mjs" "$RUN_DIR/storage"
+bun "$SCRIPT_DIR/download-storage.mjs" "$RUN_DIR/storage"
 
 echo "==> Backup completato: $RUN_DIR"
 
