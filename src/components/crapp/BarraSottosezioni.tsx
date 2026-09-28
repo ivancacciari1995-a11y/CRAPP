@@ -149,13 +149,14 @@ export function BarraSottosezioni({
           // Sui device deboli lo swipe orizzontale (pointer listener + hit-testing
           // ad ogni frame) resta disattivato: si cambia tab solo toccando la barra.
           drag={ridotto ? false : "x"}
-          // Blocca il gesto sull'asse dominante iniziale: uno scroll verticale veloce
-          // (con la solita deriva orizzontale del dito) non deve far scattare il cambio tab.
-          dragDirectionLock
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.12}
           dragMomentum={false}
           onDragEnd={(_, info) => {
+            // Uno scroll verticale (anche veloce) ha sempre offset.y ben maggiore di
+            // offset.x: la velocity.x, invece, può essere rumorosa su gesti rapidi e da
+            // sola non basta a distinguere uno swipe reale da un semplice scroll in giù.
+            if (Math.abs(info.offset.x) <= Math.abs(info.offset.y)) return;
             const arrivo = info.offset.x + proietta(info.velocity.x);
             if (arrivo < -60) vaiA(indice + 1);
             else if (arrivo > 60) vaiA(indice - 1);
