@@ -149,6 +149,9 @@ export function BarraSottosezioni({
           // Sui device deboli lo swipe orizzontale (pointer listener + hit-testing
           // ad ogni frame) resta disattivato: si cambia tab solo toccando la barra.
           drag={ridotto ? false : "x"}
+          // Blocca il gesto sull'asse dominante iniziale: uno scroll verticale veloce
+          // (con la solita deriva orizzontale del dito) non deve far scattare il cambio tab.
+          dragDirectionLock
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.12}
           dragMomentum={false}

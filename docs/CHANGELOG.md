@@ -13,6 +13,29 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.1.1] - 2026-09-28
+
+### Aggiunto
+
+- **Keepalive giornaliero** — un Vercel Cron Job chiama `/api/public/keepalive` una volta
+  al giorno con una lettura minima, per evitare che il progetto Supabase free tier vada in
+  pausa dopo 7 giorni senza richieste API.
+
+### Modificato
+
+- **Backup completo** — la cifratura (gpg, `tar.gz.gpg`) è ora il comportamento di default
+  invece che opt-in con `--encrypt`, dato che i dump contengono dati sensibili (hash
+  password, documenti d'identità); si disattiva con `--no-encrypt`. Aggiunte le istruzioni
+  di decompressione nel README.
+
+### Corretto
+
+- **Squadra** — la card dell'allenatore nella Rosa è collassata come quella dei giocatori
+  (nome e ruolo in riga chiusa, data di nascita solo aprendo il dettaglio) invece di
+  mostrare subito tutto.
+- **Squadra** — uno scroll verticale veloce nella tab Stats non fa più scattare per errore
+  il cambio tab verso Obiettivi.
+
 ## [1.1.0] - 2026-09-27
 
 ### Aggiunto
