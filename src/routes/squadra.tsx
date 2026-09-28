@@ -130,31 +130,47 @@ function Squadra() {
   const contenutoRosa = useMemo(
     () => (
       <div className="space-y-2">
-        {allenatori.map((a) => (
-          <article
-            key={a.id}
-            className="flex min-h-11 items-center gap-3 rounded-3xl bg-card p-3 shadow-card"
-          >
-            <Avatar
-              id={a.id}
-              fallback={inizialiDa(nomeCompleto(a))}
-              className="h-11 w-11 text-lg"
-            />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-bold leading-tight">
-                {nomeCompleto(a)}
-              </span>
-              <span className="mt-1 flex items-center gap-2">
-                <RuoloBadge ruolo={ruoloVisibile(a)} />
-                {a.nascita ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Cake className="h-3.5 w-3.5" /> {formatData(a.nascita)}
+        {allenatori.map((a) => {
+          const isOpen = aperto === a.id;
+          return (
+            <article key={a.id} className="overflow-hidden rounded-3xl bg-card shadow-card">
+              <button
+                type="button"
+                onClick={() => setAperto(isOpen ? null : a.id)}
+                className="flex min-h-11 w-full items-center gap-3 p-3 text-left active:scale-[0.99]"
+                aria-expanded={isOpen}
+              >
+                <Avatar
+                  id={a.id}
+                  fallback={inizialiDa(nomeCompleto(a))}
+                  className="h-11 w-11 text-lg"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold leading-tight">
+                    {nomeCompleto(a)}
                   </span>
-                ) : null}
-              </span>
-            </span>
-          </article>
-        ))}
+                  <span className="mt-1 flex items-center gap-2">
+                    <RuoloBadge ruolo={ruoloVisibile(a)} />
+                  </span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    isOpen && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {isOpen && a.nascita ? (
+                <div className="border-t border-border px-4 pb-4 pt-3">
+                  <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Cake className="h-3.5 w-3.5" /> {formatData(a.nascita)}
+                  </p>
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
         {rosa.map((g) => {
           const stati = badgeGiocatore(g);
           const sbloccati = sonoAllenatore
