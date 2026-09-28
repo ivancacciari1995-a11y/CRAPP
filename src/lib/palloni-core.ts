@@ -8,10 +8,10 @@ export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: st
 /** Candidato al turno palloni: solo id e nome bastano per assegnare e ordinare. */
 export type CandidatoTurno = { id: string; nome: string };
 
-/** Eventi che richiedono i palloni (allenamenti, partite, extra), in ordine di data. */
+/** Eventi che richiedono i palloni (solo allenamenti e partite), in ordine di data. */
 export function eventiPalloni(eventi: Evento[]): Evento[] {
   return eventi
-    .filter((e) => e.tipo !== "compleanno")
+    .filter((e) => e.tipo === "allenamento" || e.tipo === "partita")
     .slice()
     .sort((a, b) => a.data.localeCompare(b.data));
 }
@@ -21,7 +21,7 @@ export function eventiPalloni(eventi: Evento[]): Evento[] {
  * meno volte (a parità, chi non lo fa da più tempo).
  *
  * Gli **allenamenti** non vengono proposti: restano «da assegnare» finché qualcuno
- * non conferma un incaricato a mano. Su partite ed eventi extra la rotazione resta.
+ * non conferma un incaricato a mano. Sulle partite la rotazione resta.
  */
 export function completaTurni(
   turni: Record<string, string>,

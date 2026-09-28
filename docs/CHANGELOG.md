@@ -35,6 +35,9 @@ versioni `0.y.z` erano pre-release.
   mostrare subito tutto.
 - **Squadra** — uno scroll verticale veloce nella tab Stats non fa più scattare per errore
   il cambio tab verso Obiettivi.
+- **Turno palloni** — gli eventi generici (es. cena di squadra) non entrano più nel turno
+  palloni: niente più proposta automatica, promemoria push o conteggio per eventi che non
+  sono allenamenti o partite.
 
 ## [1.1.0] - 2026-09-27
 
