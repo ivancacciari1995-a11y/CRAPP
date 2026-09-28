@@ -20,6 +20,11 @@ versioni `0.y.z` erano pre-release.
 - **Keepalive giornaliero** — un Vercel Cron Job chiama `/api/public/keepalive` una volta
   al giorno con una lettura minima, per evitare che il progetto Supabase free tier vada in
   pausa dopo 7 giorni senza richieste API.
+- **Scheda evento** — gli eventi extra-campo (es. cena di squadra) hanno ora una pagina di
+  dettaglio propria, come allenamenti e partite, con l'elenco nominativo di chi ha risposto
+  presente/assente/forse invece del solo conteggio in card. "Infortunato" non compare più
+  tra le opzioni né nei badge/riepiloghi per questi eventi, dato che non è una risposta
+  pertinente.
 
 ### Modificato
 

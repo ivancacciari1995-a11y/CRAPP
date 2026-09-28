@@ -19,6 +19,7 @@ import { Route as ProfiloRouteImport } from './routes/profilo'
 import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SquadraRouteImport } from './routes/squadra'
 import { Route as AllenamentoIdRouteImport } from './routes/allenamento.$id'
+import { Route as EventoIdRouteImport } from './routes/evento.$id'
 import { Route as PartitaCsiIdRouteImport } from './routes/partita-csi.$id'
 import { Route as PartitaIdRouteImport } from './routes/partita.$id'
 import { Route as ApiPublicApriSondaggioRouteImport } from './routes/api/public/apri-sondaggio'
@@ -80,6 +81,11 @@ const SquadraRoute = SquadraRouteImport.update({
 const AllenamentoIdRoute = AllenamentoIdRouteImport.update({
   id: '/allenamento/$id',
   path: '/allenamento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventoIdRoute = EventoIdRouteImport.update({
+  id: '/evento/$id',
+  path: '/evento/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartitaCsiIdRoute = PartitaCsiIdRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/evento/$id': typeof EventoIdRoute
   '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/evento/$id': typeof EventoIdRoute
   '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/scout': typeof ScoutRoute
   '/squadra': typeof SquadraRoute
   '/allenamento/$id': typeof AllenamentoIdRoute
+  '/evento/$id': typeof EventoIdRoute
   '/partita-csi/$id': typeof PartitaCsiIdRoute
   '/partita/$id': typeof PartitaIdRoute
   '/api/public/apri-sondaggio': typeof ApiPublicApriSondaggioRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/evento/$id'
     | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/evento/$id'
     | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/scout'
     | '/squadra'
     | '/allenamento/$id'
+    | '/evento/$id'
     | '/partita-csi/$id'
     | '/partita/$id'
     | '/api/public/apri-sondaggio'
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   ScoutRoute: typeof ScoutRoute
   SquadraRoute: typeof SquadraRoute
   AllenamentoIdRoute: typeof AllenamentoIdRoute
+  EventoIdRoute: typeof EventoIdRoute
   PartitaCsiIdRoute: typeof PartitaCsiIdRoute
   PartitaIdRoute: typeof PartitaIdRoute
   ApiPublicApriSondaggioRoute: typeof ApiPublicApriSondaggioRoute
@@ -390,6 +403,13 @@ declare module '@tanstack/react-router' {
       path: '/allenamento/$id'
       fullPath: '/allenamento/$id'
       preLoaderRoute: typeof AllenamentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evento/$id': {
+      id: '/evento/$id'
+      path: '/evento/$id'
+      fullPath: '/evento/$id'
+      preLoaderRoute: typeof EventoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partita-csi/$id': {
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScoutRoute: ScoutRoute,
   SquadraRoute: SquadraRoute,
   AllenamentoIdRoute: AllenamentoIdRoute,
+  EventoIdRoute: EventoIdRoute,
   PartitaCsiIdRoute: PartitaCsiIdRoute,
   PartitaIdRoute: PartitaIdRoute,
   ApiPublicApriSondaggioRoute: ApiPublicApriSondaggioRoute,

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Stato } from "./crapp-data";
-import type { Evento } from "./eventi";
+import type { Evento, EventoTipo } from "./eventi";
 import { inRosa, type TipoMembro } from "./giocatori-squadra";
 import { aggiornaSerie } from "./serie";
 import { dataOggi } from "./scout-live";
@@ -69,6 +69,16 @@ export function totaliEventiGiocatore(
   oggi: string = dataOggi(),
 ): number {
   return eventiContanoPresenze(eventi, giocatoreId, oggi).length;
+}
+
+/**
+ * Se "infortunato" va offerto come risposta: sì per allenamenti e partite, no per gli
+ * eventi extra-campo (`"evento"`, es. cena di squadra), dove l'infortunio non è una
+ * risposta pertinente. Resta comunque visibile a chi ce l'ha già (dati storici, o un
+ * evento cambiato tipo dopo la risposta), così può ancora toglierla.
+ */
+export function includeInfortunato(tipo: EventoTipo, statoAttuale?: Stato | null): boolean {
+  return tipo !== "evento" || statoAttuale === "infortunato";
 }
 
 /**

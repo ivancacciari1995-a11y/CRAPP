@@ -1,37 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MapPin, Clock, Users, Dumbbell, CalendarDays } from "lucide-react";
+import { MapPin, Clock, Users, PartyPopper } from "lucide-react";
 import { PageHeader, Section } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
-import { TurnoPalloni } from "@/components/crapp/TurnoPalloni";
 import { RosaPresenze } from "@/components/crapp/RosaPresenze";
 import { usePresenzeEvento } from "@/lib/presenze";
 
-export const Route = createFileRoute("/allenamento/$id")({
+export const Route = createFileRoute("/evento/$id")({
   head: () => {
-    const titolo = "Dettaglio allenamento";
+    const titolo = "Dettaglio evento";
     return {
       meta: [
         { title: `${titolo} — CrAPP` },
         {
           name: "description",
-          content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley.",
+          content: "Dettaglio evento extra-campo, orario, luogo e presenze del CRAP Volley.",
         },
         { property: "og:title", content: `${titolo} — CrAPP` },
         {
           property: "og:description",
-          content: "Dettaglio allenamento, orario, luogo e presenze del CRAP Volley.",
+          content: "Dettaglio evento extra-campo, orario, luogo e presenze del CRAP Volley.",
         },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
       ],
     };
   },
-  component: AllenamentoDetail,
+  component: EventoDetail,
 });
 
-function AllenamentoDetail() {
+function EventoDetail() {
   const { id } = Route.useParams();
   const { evento } = useEvento(id);
   const { risposte } = usePresenzeEvento(id);
@@ -43,24 +42,24 @@ function AllenamentoDetail() {
   if (!evento) {
     return (
       <div className="px-5 pt-8">
-        <p className="mt-8 text-center text-sm text-muted-foreground">Allenamento non trovato</p>
+        <p className="mt-8 text-center text-sm text-muted-foreground">Evento non trovato</p>
       </div>
     );
   }
 
   return (
     <>
-      <PageHeader titolo="Allenamento" sottotitolo={formatData(evento.data)} />
+      <PageHeader titolo="Evento" sottotitolo={formatData(evento.data)} />
 
       <Section titolo={evento.titolo}>
         <div className="rounded-3xl bg-card p-5 shadow-card">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
-              <Dumbbell className="h-6 w-6" />
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-warning/15 text-warning">
+              <PartyPopper className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                Allenamento di squadra
+                Evento extra-campo
               </p>
               <p className="truncate text-lg font-bold leading-tight">{evento.titolo}</p>
             </div>
@@ -85,8 +84,6 @@ function AllenamentoDetail() {
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocatiEvento(evento, rosa).length}
           </div>
-
-          <TurnoPalloni eventoId={evento.id} />
         </div>
       </Section>
 

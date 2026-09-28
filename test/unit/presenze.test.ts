@@ -6,6 +6,7 @@ import {
   contaPartiteGiocate,
   contaPresenzeGiocatore,
   destinatariSollecito,
+  includeInfortunato,
   serieConferme,
   serieConsecutiva,
   totaliEventiGiocatore,
@@ -294,5 +295,25 @@ const conAltri2 = conRisposta(
 );
 assert.equal(conAltri2.presenze["e1"]?.["g1"], "presente", "l'altro evento resta in cache");
 assert.equal(conAltri2.tempi["e2"]?.["g2"], POI);
+
+// --- includeInfortunato: "infortunato" fuori per gli eventi extra-campo -------
+assert.equal(includeInfortunato("allenamento"), true, "allenamento: infortunato è un'opzione");
+assert.equal(includeInfortunato("partita"), true, "partita: infortunato è un'opzione");
+assert.equal(includeInfortunato("evento"), false, "evento extra-campo: niente infortunato");
+assert.equal(
+  includeInfortunato("evento", "infortunato"),
+  true,
+  "chi ha già risposto infortunato lo vede ancora, per poterlo togliere",
+);
+assert.equal(
+  includeInfortunato("evento", "presente"),
+  false,
+  "un'altra risposta esistente non riapre l'opzione",
+);
+assert.equal(
+  includeInfortunato("evento", undefined),
+  false,
+  "nessuna risposta: l'opzione resta chiusa per gli eventi extra-campo",
+);
 
 console.log("presenze: ok");

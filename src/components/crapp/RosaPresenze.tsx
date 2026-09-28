@@ -6,6 +6,7 @@ import { Card } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
 import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
+import type { EventoTipo } from "@/lib/eventi";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useAnagraficaRosa } from "@/lib/rosa";
 import { useGiocatoreBase, useGiocatoreInCampo } from "@/lib/user-store";
@@ -15,7 +16,16 @@ import { dataOggi } from "@/lib/scout-live";
 
 const ordine: Stato[] = ["presente", "ritardo", "forse", "infortunato", "assente"];
 
-export function RosaPresenze({ eventoId, data }: { eventoId: string; data: string }) {
+export function RosaPresenze({
+  eventoId,
+  data,
+  tipo = "allenamento",
+}: {
+  eventoId: string;
+  data: string;
+  /** Negli eventi extra-campo "infortunato" non è pertinente: niente badge né opzione. */
+  tipo?: EventoTipo;
+}) {
   const { risposte, isPending } = usePresenzeEvento(eventoId);
   const salva = useSalvaPresenza();
   // Solo `.id`/`.nome` servono qui: `useGiocatoreBase`/`useAnagraficaRosa` bastano,
@@ -32,6 +42,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
   const risposteN = rosa.length - mancanti.length;
   const perc = rosa.length ? Math.round((risposteN / rosa.length) * 100) : 0;
   const daSollecitare = mancanti.length + rosa.filter((g) => risposte[g.id] === "forse").length;
+  const ordineVisibile = tipo === "evento" ? ordine.filter((s) => s !== "infortunato") : ordine;
 
   async function sollecita() {
     setSollecito(true);
@@ -67,7 +78,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
         <Barra percentuale={perc} altezza="h-1.5" trackClassName="mt-2" />
 
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {ordine.map((s) => {
+          {ordineVisibile.map((s) => {
             const n = rosa.filter((g) => risposte[g.id] === s).length;
             return (
               <span
@@ -92,7 +103,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
               La tua risposta
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {ordine.map((s) => {
+              {ordineVisibile.map((s) => {
                 const attivo = risposte[io.id] === s;
                 return (
                   <button
@@ -140,7 +151,7 @@ export function RosaPresenze({ eventoId, data }: { eventoId: string; data: strin
         </p>
       ) : null}
 
-      {ordine.map((s) => {
+      {ordineVisibile.map((s) => {
         const lista = rosa.filter((g) => risposte[g.id] === s);
         if (lista.length === 0) return null;
         return (

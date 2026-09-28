@@ -11,7 +11,8 @@
 
 Gestire un turno a rotazione condiviso per chi porta e riporta i palloni ad allenamenti e
 partite, con proposta automatica, possibilità di modifica manuale e promemoria push il
-giorno stesso.
+giorno stesso. Gli eventi extra-campo (`tipo === "evento"`, es. cena di squadra) e i
+compleanni non c'entrano: non richiedono palloni.
 
 ---
 
@@ -25,11 +26,14 @@ compaiono.
 
 ## Implementazione
 
-- `completaTurni()` (`palloni-core.ts`) propone, per ogni **partita** o evento extra senza
-  turno già salvato, il candidato con meno turni fatti, poi quello che non lo fa da più
-  tempo, poi per ordine alfabetico — un algoritmo greedy, non un ordine fisso né solo per
-  data. Gli **allenamenti** non ricevono proposta automatica: restano «da assegnare» finché
-  qualcuno non sceglie un incaricato in `TurnoPalloni` (scelta della squadra).
+- `eventiPalloni()` (`palloni-core.ts`) è il filtro comune a tutta la pipeline (proposte,
+  conteggi, serie, promemoria): include solo `tipo === "partita"` e `tipo === "allenamento"`,
+  scarta eventi extra-campo e compleanni.
+- `completaTurni()` (`palloni-core.ts`) propone, per ogni **partita** senza turno già salvato,
+  il candidato con meno turni fatti, poi quello che non lo fa da più tempo, poi per ordine
+  alfabetico — un algoritmo greedy, non un ordine fisso né solo per data. Gli **allenamenti**
+  non ricevono proposta automatica: restano «da assegnare» finché qualcuno non sceglie un
+  incaricato in `TurnoPalloni` (scelta della squadra).
 - `useAssegnaTurno()` (`palloni.ts`) conferma una proposta o riassegna manualmente, con
   upsert su `evento_id`.
 - Il conteggio "quante volte hai portato i palloni" mostrato nel profilo e nei badge è
@@ -71,10 +75,12 @@ nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
   "assente" o "infortunato" per quell'evento.
 - **`conteggioTurni()` non filtra per tipo evento** (a differenza di `eventiPalloni()`, che
-  scarta i compleanni): guarda solo `e.data < oggi`. Un turno registrato per errore su un
-  evento fuori dal dominio "richiede i palloni" conterebbe comunque per il badge Sherpa dei
-  palloni (`badge.md` § Problemi noti). Rischio basso — l'UI non offre questa combinazione — ma
-  il comportamento attuale è pinnato da un test dedicato in `palloni-core.test.ts`.
+  include solo partite e allenamenti): guarda solo `e.data < oggi`. Un turno registrato per
+  errore su un evento fuori dal dominio "richiede i palloni" conterebbe comunque per il badge
+  Sherpa dei palloni (`badge.md` § Problemi noti). Rischio basso — l'UI non offre questa
+  combinazione, dato che né `TurnoPalloni` né i promemoria automatici propongono più un turno
+  per eventi extra-campo o compleanni — ma il comportamento attuale è pinnato da un test
+  dedicato in `palloni-core.test.ts`.
 
 ---
 

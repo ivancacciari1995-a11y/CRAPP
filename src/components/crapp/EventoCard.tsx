@@ -15,7 +15,7 @@ import { Card } from "@/components/crapp/ui-bits";
 import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { inRosa, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
-import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
+import { includeInfortunato, usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreInCampo } from "@/lib/user-store";
 import { dataOggi } from "@/lib/scout-live";
 
@@ -26,9 +26,7 @@ const tipoMeta = {
   compleanno: { label: "Compleanno", className: "bg-success text-success-foreground" },
 } as const;
 
-const statiSportivi: Stato[] = ["presente", "forse", "ritardo", "assente", "infortunato"];
-/** Eventi extra-campo (pizze, uscite…): l'infortunio non è una risposta pertinente. */
-const statiEventoExtra: Stato[] = ["presente", "forse", "ritardo", "assente"];
+const statiBase: Stato[] = ["presente", "forse", "ritardo", "assente"];
 
 /** Icone compatte per la riga unica dei controlli presenza (mockup). */
 const iconeStato: Record<Stato, typeof Check> = {
@@ -50,6 +48,9 @@ export function linkPerEvento(e: Evento) {
       params: { id: e.id },
       label: "Dettaglio allenamento",
     };
+  }
+  if (e.tipo === "evento") {
+    return { to: "/evento/$id" as const, params: { id: e.id }, label: "Dettaglio evento" };
   }
   return undefined;
 }
@@ -87,15 +88,11 @@ export function EventoCard({
   const isCompleanno = evento.tipo === "compleanno";
   const passato = evento.data < dataOggi();
   const cliccabile = Boolean(linkTo);
-  /** Solo gli eventi extra-campo non hanno scheda dedicata: le note restano sulla card. */
+  /** Anteprima delle note anche in card per gli eventi extra-campo (oltre al dettaglio). */
   const noteCard = evento.tipo === "evento" ? evento.note.trim() : "";
-  const stati =
-    evento.tipo === "evento"
-      ? // Se resta un vecchio "infortunato", mostra il bottone solo per poterlo togliere.
-        stato === "infortunato"
-        ? [...statiEventoExtra, "infortunato" as const]
-        : statiEventoExtra
-      : statiSportivi;
+  const stati = includeInfortunato(evento.tipo, stato)
+    ? [...statiBase, "infortunato" as const]
+    : statiBase;
 
   if (isCompleanno) {
     return (

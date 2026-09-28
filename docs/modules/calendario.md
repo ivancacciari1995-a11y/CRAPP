@@ -4,7 +4,8 @@
 **File principali:** `src/lib/eventi.ts`, `src/lib/eventi.server.ts`, `src/lib/calendario.ts`
 (griglia mensile condivisa), `src/routes/calendario.tsx` (vista mensile, tutti),
 `src/routes/eventi.tsx` (creazione/modifica, admin e allenatori), `src/components/crapp/EventoCard.tsx`
-(card condivisa)
+(card condivisa), `src/routes/allenamento.$id.tsx`, `src/routes/partita.$id.tsx`,
+`src/routes/evento.$id.tsx` (schede di dettaglio, una per tipo)
 **Test:** `test/unit/eventi.test.ts`, `test/unit/calendario.test.ts`
 
 ---
@@ -44,8 +45,15 @@ Entrambe leggono la stessa cache (`useEventi()`, `EVENTI_KEY`, `staleTime` 10 mi
 calendario cambia raramente). `EventoCard.tsx` è la card riusata da entrambe le schermate;
 `linkPerEvento()` decide dove porta il click — `/partita/$id` per una partita (con
 `/partita-csi/$id` come alternativa "solo CSI" quando non c'è un evento collegato, vedi
-`collegamento-csi.md`), `/allenamento/$id` per un allenamento, nessun link per eventi ed
-eventi virtuali (compleanni).
+`collegamento-csi.md`), `/allenamento/$id` per un allenamento, `/evento/$id` per un evento
+extra-campo, nessun link per gli eventi virtuali (compleanni), che non hanno una riga in
+`eventi_app`.
+
+Le tre schede di dettaglio (`allenamento.$id.tsx`, `partita.$id.tsx`, `evento.$id.tsx`)
+condividono la stessa struttura — intestazione, note, conferme, `RosaPresenze` per l'elenco
+nominativo di chi ha risposto — con `TurnoPalloni` in più per allenamenti e partite (vedi
+`palloni.md`, non pertinente per gli eventi extra-campo) e lo stato `infortunato` escluso
+dalle risposte solo sulla scheda evento (vedi `presenze.md`).
 
 ## Lettura lato server
 

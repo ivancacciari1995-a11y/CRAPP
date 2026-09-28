@@ -408,11 +408,12 @@ meccanismo:
   `scritture.test.ts`). Non sfruttabile da un utente normale (l'app manda solo le 5 categorie
   valide), stesso tipo di gap "solo applicativo, non a DB" del punto sotto sul votato/convocato.
 - **`conteggioTurni()` non filtra per tipo evento** (`palloni-core.ts:70-82`), a differenza di
-  `eventiPalloni()` che scarta i compleanni. Un turno registrato per errore su un evento fuori
-  dal dominio "richiede i palloni" conterebbe comunque per il badge Sherpa dei palloni. Rischio
-  teorico basso (l'UI non offre questa combinazione), comportamento pinnato da un test dedicato
-  in `palloni-core.test.ts` così che un domani, se serve stringere, non lo si scopra rompendo un
-  test esistente ma leggendo perché quel test lo dimostrava apposta.
+  `eventiPalloni()` che include solo partite e allenamenti. Un turno registrato per errore su
+  un evento fuori dal dominio "richiede i palloni" conterebbe comunque per il badge Sherpa dei
+  palloni. Rischio teorico basso — l'UI non offre questa combinazione, dato che
+  `TurnoPalloni`/`completaTurni()`/i promemoria ora si fermano a `eventiPalloni()` — comportamento
+  pinnato da un test dedicato in `palloni-core.test.ts` così che un domani, se serve stringere,
+  non lo si scopra rompendo un test esistente ma leggendo perché quel test lo dimostrava apposta.
 
 ---
 
