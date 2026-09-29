@@ -24,7 +24,7 @@ ordina mettendo i completati in coda e gli altri per progresso decrescente.
 Non c'è nessuno stato da tenere sincronizzato quando un evento viene cancellato: gli obiettivi
 sono ricalcolati da zero a ogni render partendo dall'elenco eventi corrente, quindi un evento
 sparito da `eventi_app` smette semplicemente di contare, senza bisogno di nessuna pulizia
-esplicita. Il problema che *sembrava* riguardare gli obiettivi era in realtà nelle tabelle
+esplicita. Il problema che _sembrava_ riguardare gli obiettivi era in realtà nelle tabelle
 collegate a un evento (presenze, pagelle, MVP, ecc.), che restavano orfane a database dopo la
 cancellazione: risolto a livello database con un trigger (migration
 `m14_pulizia_dati_evento_cancellato`, DD-029), non nel modulo Obiettivi.
@@ -37,18 +37,18 @@ corrente dinamico (vedi sotto).
 
 ## Obiettivi definiti
 
-| id    | Obiettivo                          | Calcolo                                              | Target                 | Fonte                                     |
-| ----- | ----------------------------------- | ----------------------------------------------------- | ----------------------- | ------------------------------------------ |
-| `o1`  | 90% presenze del mese               | risposte presente/ritardo su partite+allenamenti del mese corrente (dinamico) | 90% | `risposte_presenze` |
-| `o2`  | Tutti rispondono alle convocazioni  | risposte totali / eventi possibili (esclusi i compleanni) | 90%                  | `risposte_presenze`                        |
-| `o7`  | 250 presenze complessive            | somma presenze di tutta la rosa, stagione intera       | 250                     | aggregato da `useRosa()`                   |
-| `o12` | Media pagelle da 7.5                | media di tutti i voti, arrotondata a una cifra decimale | 7.5                   | `pagelle_voti`                             |
-| `o13` | 200 pagelle compilate               | conteggio voti                                         | 200                     | `pagelle_voti`                             |
-| `o11` | Continuità di squadra               | giocatori con ≥3 allenamenti consecutivi               | 12 (min. per un 6vs6)   | `serieAllenamenti`                         |
-| `o3`  | Prima vittoria del campionato       | `min(vittorie, 1)`                                     | 1                       | JSON partite CSI (vedi sotto)              |
-| `o4`  | 5 vittorie in campionato            | `min(vittorie, 5)`                                     | 5                       | JSON partite CSI                           |
-| `o5`  | 10 vittorie in campionato           | `min(vittorie, 10)`                                    | 10                      | JSON partite CSI                           |
-| `o6`  | 1 evento di squadra al mese         | eventi di tipo "evento" nel mese corrente (dinamico)   | 1                       | `eventi_app`                               |
+| id    | Obiettivo                          | Calcolo                                                                       | Target                | Fonte                         |
+| ----- | ---------------------------------- | ----------------------------------------------------------------------------- | --------------------- | ----------------------------- |
+| `o1`  | 90% presenze del mese              | risposte presente/ritardo su partite+allenamenti del mese corrente (dinamico) | 90%                   | `risposte_presenze`           |
+| `o2`  | Tutti rispondono alle convocazioni | risposte totali / eventi possibili (esclusi i compleanni)                     | 90%                   | `risposte_presenze`           |
+| `o7`  | 250 presenze complessive           | somma presenze di tutta la rosa, stagione intera                              | 250                   | aggregato da `useRosa()`      |
+| `o12` | Media pagelle da 7.5               | media di tutti i voti, arrotondata a una cifra decimale                       | 7.5                   | `pagelle_voti`                |
+| `o13` | 200 pagelle compilate              | conteggio voti                                                                | 200                   | `pagelle_voti`                |
+| `o11` | Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi                                      | 12 (min. per un 6vs6) | `serieAllenamenti`            |
+| `o3`  | Prima vittoria del campionato      | `min(vittorie, 1)`                                                            | 1                     | JSON partite CSI (vedi sotto) |
+| `o4`  | 5 vittorie in campionato           | `min(vittorie, 5)`                                                            | 5                     | JSON partite CSI              |
+| `o5`  | 10 vittorie in campionato          | `min(vittorie, 10)`                                                           | 10                    | JSON partite CSI              |
+| `o6`  | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente (dinamico)                          | 1                     | `eventi_app`                  |
 
 Mostrati in `squadra.tsx` (elenco completo con barra di progresso) e in `index.tsx` (home: il
 primo obiettivo non completato). Un obiettivo che supera il 90% genera anche una notifica
@@ -104,7 +104,7 @@ regex non troverebbe corrispondenza e la partita risulterebbe "non ancora giocat
 errori**. Se la risposta cambiasse forma radicalmente (non più un array), `partiteDaEventi()`
 torna `[]`. In entrambi i casi `o3`/`o4`/`o5` restano bloccati a 0% anche a fronte di vittorie
 reali, e il fallback della route (`/api/public/csi`) non se ne accorgerebbe da solo: lancia un
-errore solo se *sia* la classifica *sia* le partite sono vuote insieme, quindi se si rompe solo
+errore solo se _sia_ la classifica _sia_ le partite sono vuote insieme, quindi se si rompe solo
 il JSON delle partite mentre la classifica HTML continua a funzionare, la route risponde
 comunque `200` con `partite: []`.
 
@@ -144,13 +144,13 @@ Dettagli completi (endpoint, identificativi di stagione, altri limiti del colleg
 Tutti e 10 gli obiettivi hanno unit test **e** integration test end-to-end (dati scritti/letti
 da un backend reale, non solo funzione pura con contesto costruito a mano).
 
-| Obiettivi   | Unit test                     | Integration test                                         |
-| ------------ | -------------------------------- | ------------------------------------------------------------ |
-| o1, o2, o6   | `test/unit/obiettivi.test.ts`    | `test/integration/obiettivi.test.ts` (Supabase locale)       |
-| o7           | `test/unit/obiettivi.test.ts`    | `test/integration/obiettivi.test.ts` (Supabase locale)       |
-| o11          | `test/unit/obiettivi.test.ts`    | `test/integration/obiettivi.test.ts` (Supabase locale)       |
-| o12, o13     | `test/unit/obiettivi.test.ts`    | `test/integration/obiettivi.test.ts` (Supabase locale)       |
-| o3, o4, o5   | `test/unit/obiettivi.test.ts`    | `test/integration/api.test.ts` (CSI reale in produzione)     |
+| Obiettivi  | Unit test                     | Integration test                                         |
+| ---------- | ----------------------------- | -------------------------------------------------------- |
+| o1, o2, o6 | `test/unit/obiettivi.test.ts` | `test/integration/obiettivi.test.ts` (Supabase locale)   |
+| o7         | `test/unit/obiettivi.test.ts` | `test/integration/obiettivi.test.ts` (Supabase locale)   |
+| o11        | `test/unit/obiettivi.test.ts` | `test/integration/obiettivi.test.ts` (Supabase locale)   |
+| o12, o13   | `test/unit/obiettivi.test.ts` | `test/integration/obiettivi.test.ts` (Supabase locale)   |
+| o3, o4, o5 | `test/unit/obiettivi.test.ts` | `test/integration/api.test.ts` (CSI reale in produzione) |
 
 - **o1/o2/o6** (Supabase locale): scrive eventi e risposte veri su `eventi_app`/
   `risposte_presenze`, li rilegge con `leggiEventi()` (la stessa funzione server dell'app) e una

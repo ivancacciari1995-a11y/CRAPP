@@ -31,14 +31,14 @@ un `project_id`), nessun codice le chiama direttamente.
 ### Identificativi (stagione 2025/26)
 
 | Cosa                  | Valore                                 |
-| ---------------------- | ---------------------------------------- |
-| Campionato             | PVM - Campionato Open Misto Eccellenza |
-| `project_id` (girone)  | `767`                                  |
-| Coppa                  | PVM Coppa CSI Misto Silver             |
-| `project_id` (coppa)   | `848`                                  |
-| Squadra sul portale    | `C.R.A.P. Volley` (con i punti)        |
-| `team_id`              | `3359`                                 |
-| Girone                 | B                                      |
+| --------------------- | -------------------------------------- |
+| Campionato            | PVM - Campionato Open Misto Eccellenza |
+| `project_id` (girone) | `767`                                  |
+| Coppa                 | PVM Coppa CSI Misto Silver             |
+| `project_id` (coppa)  | `848`                                  |
+| Squadra sul portale   | `C.R.A.P. Volley` (con i punti)        |
+| `team_id`             | `3359`                                 |
+| Girone                | B                                      |
 
 `project_id` (767), `CSI_COPPA_PROJECT_ID` (848) e `team_id` (3359) sono costanti in
 `src/lib/csi-core.ts`.
@@ -61,11 +61,11 @@ verificato chiamando l'endpoint direttamente, che oggi restituisce sia
 
 ### Endpoint usati dall'app
 
-| Endpoint                                          | Formato | Uso                                | Pagina "umana" corrispondente     |
-| -------------------------------------------------- | ------- | ------------------------------------ | ------------------------------------ |
-| `components/project-sheets.php?project_id=767`    | HTML    | Classifica completa dei due gironi di campionato | `league_details.php?project_id=767` (tab "Classifica") |
-| `components/project-sheets.php?project_id=848`    | HTML    | Classifica del girone di Coppa (solo fase a gironi, vedi limite 4) | `league_details.php?project_id=848` (tab "Classifica") |
-| `assets/json/getEventsByTeamId.php?team_id=3359`  | JSON    | Tutte le gare della squadra        | `team_details.php?team_id=3359` (tab "Calendario", `team-calendar.php`) |
+| Endpoint                                         | Formato | Uso                                                                | Pagina "umana" corrispondente                                           |
+| ------------------------------------------------ | ------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `components/project-sheets.php?project_id=767`   | HTML    | Classifica completa dei due gironi di campionato                   | `league_details.php?project_id=767` (tab "Classifica")                  |
+| `components/project-sheets.php?project_id=848`   | HTML    | Classifica del girone di Coppa (solo fase a gironi, vedi limite 4) | `league_details.php?project_id=848` (tab "Classifica")                  |
+| `assets/json/getEventsByTeamId.php?team_id=3359` | JSON    | Tutte le gare della squadra                                        | `team_details.php?team_id=3359` (tab "Calendario", `team-calendar.php`) |
 
 **Formato di `project-sheets.php`** — tabella HTML per girone (una per `<table>`,
 `parseClassifica()` in `csi-core.ts` prende quella che contiene il nome della squadra).
@@ -104,11 +104,11 @@ Il referto di ogni gara sul portale (`match_details.php?id=<matchId>`, dove `mat
 stesso `id` restituito da `getEventsByTeamId.php`) carica a sua volta tre componenti via
 `assets/js/match.js`:
 
-| Endpoint                                      | Formato | Uso                                                    |
-| ----------------------------------------------- | ------- | --------------------------------------------------------- |
-| `components/match-main.php?match_id=<id>`     | HTML    | Giornata e una nota libera sotto l'impianto            |
-| `components/match-players.php?match_id=<id>`  | HTML    | Formazioni: titolari, panchina, staff di entrambe le squadre |
-| `components/match-stats.php?match_id=<id>`    | HTML    | Storico scontri diretti e probabilità di vittoria calcolata dal CSI |
+| Endpoint                                     | Formato | Uso                                                                 |
+| -------------------------------------------- | ------- | ------------------------------------------------------------------- |
+| `components/match-main.php?match_id=<id>`    | HTML    | Giornata e una nota libera sotto l'impianto                         |
+| `components/match-players.php?match_id=<id>` | HTML    | Formazioni: titolari, panchina, staff di entrambe le squadre        |
+| `components/match-stats.php?match_id=<id>`   | HTML    | Storico scontri diretti e probabilità di vittoria calcolata dal CSI |
 
 Altri due componenti della stessa pagina non sono usati: `match-live.php` (diretta testuale
 punto-per-punto, utile solo a gara in corso) e la lista dettagliata dei precedenti dentro
@@ -262,7 +262,7 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    endpoint sopra): risponde con tutte le gare di `C.R.A.P. Volley`. Il campo `project`
    distingue le due nel JSON grezzo, ma `partiteDaEventi()` (`csi-core.ts`) oggi non lo usa
    per filtrare: tutte le gare finiscono in `DatiCsi.partite` senza distinzione (`storico
-   partite` in `/classifica` le mostra tutte insieme). Se in futuro servisse separarle, il
+partite` in `/classifica` le mostra tutte insieme). Se in futuro servisse separarle, il
    filtro va aggiunto su `evento.project` in `partiteDaEventi()`.
    **La classifica della Coppa, invece, è mostrata** (sopra quella del girone in
    `/classifica`): `project-sheets.php?project_id=848` (`CSI_COPPA_PROJECT_ID`) ha la stessa
@@ -289,7 +289,7 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    obiettivi o3/o4/o5) dipendono da `partiteGiocate(csi.partite)` — se il parsing delle partite
    si rompe così, questi tre obiettivi restano bloccati a 0% anche a fronte di vittorie reali.
    **Il fallback della route non se ne accorgerebbe da solo**: `/api/public/csi` lancia un
-   errore solo se *sia* la classifica *sia* le partite sono vuote insieme
+   errore solo se _sia_ la classifica _sia_ le partite sono vuote insieme
    (`classifica.length === 0 && partite.length === 0`); se si rompe solo il parsing delle
    partite mentre la classifica HTML continua a funzionare, la route risponde comunque `200`
    con `partite: []`. Per questo `leggiCsi()` confronta il JSON grezzo con il risultato di
@@ -312,7 +312,7 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    errore SQL del loro backend in chiaro al posto del JSON
    (`Query non valida (getProjectTeams): Table 'uqc2os2x_livescore.seasons' doesn't exist`,
    verificato con `curl` diretto sul loro dominio). `leggiCsi()` (`src/routes/api/public/
-   csi.ts`) intercetta l'eccezione di `JSON.parse` nel `try/catch` della route e risponde
+csi.ts`) intercetta l'eccezione di `JSON.parse` nel `try/catch` della route e risponde
    `503 "CSI non raggiungibile"` (o serve la cache se ce n'è una) — nessun crash, ma nessun
    dato nuovo finché il portale non torna. **Effetto sulla suite test**: i test di
    `test/integration/api.test.ts` che leggono il CSI reale sondano `/api/public/csi` una
