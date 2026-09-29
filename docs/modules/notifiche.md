@@ -216,6 +216,7 @@ ritrova per sempre nell'elenco, solo segnata come letta.
 
 ## Evoluzioni possibili
 
+- Canale email, progettato ma non ancora implementato: [notifiche-email.md](notifiche-email.md).
 - Preferenze per canale (palloni, solleciti, smart), se servono davvero alla squadra.
 - Eliminare `promemoria_push` con una migrazione.
 - Gestire esplicitamente il caso iOS (messaggio se l'app non è installata da Home).

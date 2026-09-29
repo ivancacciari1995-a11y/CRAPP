@@ -54,9 +54,10 @@ Serve a rispondere a domande del tipo:
 
 **In valutazione**
 
-| ID                                                               | Titolo                |
-| ---------------------------------------------------------------- | --------------------- |
-| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
+| ID                                                                                | Titolo                    |
+| --------------------------------------------------------------------------------- | ------------------------- |
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)                  | Convergenza schema DB     |
+| [DD-036](#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa) | Notifiche email via Gmail |
 
 **Sostituite**
 
@@ -1510,3 +1511,68 @@ certificato viene rinnovato. Specifica completa in
 Se gli avvisi in Home non bastano (certificati che scadono comunque senza essere rinnovati),
 valutare una push, legata a un cron o a un invio manuale dell'admin come per i palloni. Se 7
 giorni si rivelano pochi per prenotare una visita, alzare la costante o renderla regolabile.
+
+### DD-036 — Notifiche email via Gmail, da un worker Docker sull'host di casa
+
+**Data:** 29 settembre 2026  
+**Stato:** In valutazione
+
+**Contesto**  
+Le notifiche di CrAPP arrivano solo con la push (che dipende da Chrome vivo in background,
+vedi i limiti in `docs/modules/notifiche.md`) e nel centro notifiche in-app, che si vede solo
+aprendo l'app. Chi non ha attivato la push o ha un telefono aggressivo sul risparmio
+energetico non riceve nulla ad app chiusa. Serve un canale che arrivi comunque, **gratis**, ai
+giocatori registrati, che sono tutti su Gmail perché l'accesso è con Google. L'app gira su
+Vercel, che non esegue container né processi sempre attivi.
+
+**Decisione**  
+Le email partono da un **worker Docker sull'host di casa** che legge una coda su Supabase e
+invia tramite `smtp.gmail.com` con un account Gmail dedicato e una password per app.
+
+- La coda è `notifiche_email_coda`, riempita da un trigger su `notifiche_utente`: ogni
+  notifica già esistente, di qualunque tipo e per qualunque destinatario (admin compresi,
+  con la stessa logica degli altri), diventa anche una mail. Le sorgenti di M17 non cambiano,
+  non ne nascono di nuove e l'app non conosce le email. Il certificato in scadenza resta
+  fuori: è una card in Home, non una notifica (DD-035).
+- Il worker fa solo polling **in uscita** con la service role: nessuna porta aperta sull'host.
+- La coda è una tabella a parte, con RLS senza policy, perché la policy `UPDATE` di
+  `notifiche_utente` lascerebbe a un client la possibilità di rimettere in coda una mail.
+- Canale **opt-out**: acceso di default per tutti, con un interruttore per account in
+  Profilo → Opzioni. La preferenza sta in una tabella nuova, `preferenze_utente`, una riga
+  per account (non per slot); l'assenza di riga vale «acceso».
+- Specifica completa in [notifiche-email.md](modules/notifiche-email.md).
+
+**Alternative scartate**
+
+- Inviare direttamente dal proprio IP con un MTA (Postfix) → scartata: porta 25 bloccata dai
+  provider residenziali, IP nelle blocklist, niente reverse DNS; le mail finirebbero in spam o
+  sarebbero rifiutate.
+- Relay Brevo o Resend → scartati per ora: il piano gratuito funziona ma per una buona
+  consegna richiede un dominio con SPF/DKIM/DMARC, che oggi non c'è. Restano l'alternativa
+  se servirà un mittente della squadra.
+- Supabase Edge Function con `pg_cron` e un relay → scartata su richiesta esplicita di un
+  servizio dockerizzato sull'host; resta la strada senza host acceso, ma dipende comunque da un
+  relay esterno.
+- Vercel Cron → scartato: sul piano gratuito gira al massimo una volta al giorno, troppo poco
+  per i promemoria a 24h e 3h.
+- Chiamare l'host dall'app (webhook verso casa) → scartato: richiederebbe un IP pubblico o un
+  tunnel e una superficie d'attacco in più; il polling in uscita non ne ha.
+- Colonne di stato sulla riga di `notifiche_utente` → scartate per la RLS spiegata sopra.
+
+**Conseguenze**
+
+- Costo zero, ma il canale email dipende da un host acceso: se è spento le mail arrivano in
+  ritardo (mai perse). Consegna _almeno una volta_: in caso di crash tra invio e
+  registrazione può arrivare un doppione.
+- Il tetto di circa 500 destinatari al giorno di Gmail è largo per una squadra, ma è un limite
+  reale: con molte squadre o riepiloghi frequenti andrebbe rivisto.
+- Nuova migration, nuova cartella `mailer/` e un segreto in più (la service role sull'host).
+- Le email dei giocatori si usano per un secondo scopo oltre al login: da qui l'opt-out e
+  l'indicazione in ogni mail su come disattivarlo.
+- Una tabella in più, `preferenze_utente`, pensata per accogliere in futuro anche le
+  preferenze per tipo di notifica senza toccare `giocatori_squadra`.
+
+**Riesame**  
+Se serve un mittente col dominio della squadra, se si supera il tetto giornaliero di Gmail, o
+se l'host di casa si rivela poco affidabile: passare a un relay con dominio e, in quel caso,
+valutare Edge Function più `pg_cron` al posto del container.

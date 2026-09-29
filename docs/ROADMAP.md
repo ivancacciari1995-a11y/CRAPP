@@ -44,6 +44,9 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 
 ## Prossimo
 
+- [ ] Notifiche email — le notifiche già in `notifiche_utente` inviate anche per email ai
+      giocatori, da un worker Docker sull'host di casa via Gmail
+      ([specifica](modules/notifiche-email.md), DD-036)
 - [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
       Campionato usa solo quelle giocate
 - [ ] Database esercizi
