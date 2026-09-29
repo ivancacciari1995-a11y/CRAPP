@@ -24,8 +24,10 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 33 migration in `supabase/migrations/`, fino a `m22_notifiche_email` (29/09/2026), tutte
-  applicate in produzione (verificato con `npx supabase migration list` il 29/09/2026)
+- 35 migration in `supabase/migrations/`, fino a `m24_push_promemoria_e_sondaggio` (29/09/2026).
+  Le prime 33 (fino a `m22_notifiche_email`) sono applicate in produzione, verificato con
+  `npx supabase migration list` il 29/09/2026; **`m23` e `m24` sono verificate solo in locale e non
+  ancora applicate in produzione**
 - Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
   29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
   [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
@@ -59,6 +61,18 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
   backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
   in `npx supabase migration list` del 24/09/2026)
+- Migration `m24_push_promemoria_e_sondaggio` (29/09/2026, DD-038): tabella `notifiche_push_coda`
+  con trigger e due funzioni per il worker (la push dei promemoria a 24 e 3 ore), e nuovo tipo
+  `sondaggio_cacche` in `notifiche_utente` (il sondaggio pre-partita compare in-app e per email).
+  Additiva; verificata in locale con `npx supabase db reset`, i test di integrazione e una prova
+  end-to-end del worker con un servizio push finto, **non ancora in produzione**. Richiede il
+  worker ricostruito e le chiavi VAPID nel suo `.env` (vedi `docs/WORKER_EMAIL.md`)
+- Migration `m23_promemoria_gia_generati` (29/09/2026, DD-037): tabella
+  `promemoria_eventi_generati` e nuova `genera_promemoria_eventi()`, così un promemoria a 24 o 3
+  ore eliminato dal centro notifiche non viene più rigenerato dal cron (e non riaccoda mail).
+  Corregge un difetto presente dalla `m17`, emerso con l'arrivo delle email. Additiva; verificata
+  in locale con `npx supabase db reset` e `test/integration/promemoria-eventi.test.ts`, **non
+  ancora in produzione**
 - Migration `m22_notifiche_email` (29/09/2026, DD-036): tabelle `notifiche_email_coda` e
   `preferenze_utente`, trigger che accoda ogni notifica di `notifiche_utente` e tre funzioni
   RPC riservate alla service role, per il worker email. Additiva: non tocca lo schema

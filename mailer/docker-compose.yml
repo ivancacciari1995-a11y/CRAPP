@@ -1,6 +1,8 @@
 services:
   mailer:
-    build: .
+    build:
+      context: ..
+      dockerfile: mailer/Dockerfile
     restart: unless-stopped
     env_file: .env
     healthcheck:

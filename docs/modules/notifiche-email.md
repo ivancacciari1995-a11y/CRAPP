@@ -50,9 +50,13 @@ App su Vercel ──scrive──▶ notifiche_utente ──trigger──▶ noti
 ## Quali notifiche e a chi
 
 **Ogni riga nuova di `notifiche_utente` genera una mail**: messaggio admin, promemoria a 24 ore e a
-3 ore, turno palloni, sollecito presenze. Un tipo nuovo che in futuro finisse in quella tabella
+3 ore, turno palloni, sollecito presenze, sondaggio pre-partita. Un tipo nuovo che in futuro finisse in quella tabella
 viaggerebbe per email senza altro lavoro. Le notifiche già presenti quando si applica la migration
 **non** vengono inviate: il trigger non ha backfill.
+
+Il [catalogo delle notifiche](notifiche.md#catalogo-delle-notifiche) elenca cosa fa partire ciascuna
+e i suoi canali: tutte le notifiche generate dal server passano da `notifiche_utente` e quindi
+arrivano anche per email (DD-038).
 
 **Chi le riceve:** chi ha la riga in `notifiche_utente`, con la stessa logica delle notifiche
 in-app. Gli admin e gli allenatori non hanno un percorso a parte: ricevono ciò che riceverebbero
@@ -121,7 +125,7 @@ modificare solo in parte (DD-016).
 
 1. Una sorgente M17 inserisce (o aggiorna con `upsert`) una riga in `notifiche_utente`.
 2. Il trigger `notifiche_utente_accoda_email` (`AFTER INSERT OR UPDATE OF creato_il`) la mette in
-   `notifiche_email_coda`. L'`upsert` di turno palloni e sollecito presenze riscrive `creato_il`: è
+   `notifiche_email_coda`. L'`upsert` di turno palloni, sollecito presenze e sondaggio riscrive `creato_il`: è
    un rinvio voluto e rimette in coda anche la mail. Segnare come letta e l'`ON CONFLICT DO NOTHING`
    dei cron non toccano quella colonna e non accodano nulla.
 3. Ogni `POLL_SECONDI` (30) il worker conta le mail delle ultime 24 ore, ne chiede al massimo quante

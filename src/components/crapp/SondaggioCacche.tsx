@@ -69,7 +69,7 @@ export function SondaggioCacche({
       toast.success(
         dati.inviate > 0
           ? `Notifica inviata a ${dati.inviate} dispositivi`
-          : "Nessun dispositivo con le notifiche attive",
+          : "Avviso inviato in app e per email (nessun dispositivo con le notifiche attive)",
       );
     } catch {
       toast.error("Non sono riuscito a inviare la notifica");

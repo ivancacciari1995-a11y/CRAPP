@@ -4,7 +4,7 @@ import { useGiocatoreId } from "./user-store";
 
 /**
  * Centro notifiche in-app (M17): pallino sull'avatar del profilo, con il numero delle non
- * lette. Quattro sorgenti riempiono `notifiche_utente` (lato database, mai dal client): un
+ * lette. Cinque sorgenti riempiono `notifiche_utente` (lato database, mai dal client): un
  * messaggio libero dell'admin, un promemoria automatico prima di un evento (24h e 3h), il
  * turno palloni e il sollecito presenze (questi due avviati a mano da un admin, in
  * parallelo alla push esistente). Qui si legge e si segna come letto, con
@@ -16,7 +16,8 @@ export type TipoNotifica =
   | "evento_promemoria_24h"
   | "evento_promemoria_3h"
   | "turno_palloni"
-  | "sollecita_presenze";
+  | "sollecita_presenze"
+  | "sondaggio_cacche";
 
 export type NotificaUtente = {
   id: string;

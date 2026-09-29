@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import {
   MAX_TENTATIVI,
   classificaErroreSmtp,
+  classificaStatoPush,
   componiMail,
   descriviErrore,
   elaboraCiclo,
+  elaboraCicloPush,
   escapeHtml,
   invioConsentiti,
   leggiConfig,
@@ -15,9 +17,13 @@ import {
   ritardoRiprova,
   staSano,
   type Dipendenze,
+  type DipendenzePush,
   type EsitoInvio,
+  type EsitoPush,
+  type IscrizionePush,
   type MailComposta,
   type NotificaEmail,
+  type PushDaInviare,
 } from "../../mailer/mailer-core.ts";
 import { prova, riepilogo } from "../helpers/prova";
 
@@ -401,6 +407,226 @@ await prova("ciclo: i log non contengono indirizzi né testi", async () => {
   assert.ok(!tutto.includes("mario@gmail.com"));
   assert.ok(!tutto.includes("30/09/2026"));
   assert.ok(!tutto.includes("Allenamento"));
+});
+
+// --- Configurazione VAPID (M24) -----------------------------------------------
+await prova("senza chiavi VAPID il worker parte e manda solo le email", () => {
+  const r = leggiConfig(ENV_BASE);
+  assert.ok("config" in r);
+  assert.equal(r.config.vapid, null);
+});
+
+await prova("con le chiavi VAPID la push dei promemoria è attiva", () => {
+  const r = leggiConfig({
+    ...ENV_BASE,
+    VAPID_PUBLIC_KEY: "pub",
+    VAPID_PRIVATE_KEY: "priv",
+    VAPID_SUBJECT: "mailto:a@b.it",
+  });
+  assert.ok("config" in r);
+  assert.deepEqual(r.config.vapid, {
+    publicKey: "pub",
+    privateKey: "priv",
+    subject: "mailto:a@b.it",
+  });
+});
+
+await prova("le chiavi VAPID vanno impostate insieme", () => {
+  for (const env of [{ VAPID_PUBLIC_KEY: "pub" }, { VAPID_PRIVATE_KEY: "priv" }]) {
+    const r = leggiConfig({ ...ENV_BASE, ...env });
+    assert.ok("errori" in r);
+    assert.deepEqual(r.errori, ["VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY vanno impostate insieme"]);
+  }
+});
+
+// --- classificaStatoPush ------------------------------------------------------
+await prova("stato HTTP del servizio push: accettata, scaduta, temporanea, permanente", () => {
+  for (const s of [200, 201, 202]) assert.equal(classificaStatoPush(s), "ok", String(s));
+  for (const s of [404, 410]) assert.equal(classificaStatoPush(s), "scaduta", String(s));
+  for (const s of [429, 500, 502, 503])
+    assert.equal(classificaStatoPush(s), "temporaneo", String(s));
+  for (const s of [400, 401, 403, 413])
+    assert.equal(classificaStatoPush(s), "permanente", String(s));
+});
+
+// --- elaboraCicloPush ---------------------------------------------------------
+const disp = (n: number): IscrizionePush[] =>
+  Array.from({ length: n }, (_, i) => ({
+    endpoint: `https://push.example/${i}`,
+    p256dh: "k",
+    auth: "a",
+  }));
+const pushDa = (extra: Partial<PushDaInviare> = {}): PushDaInviare => ({
+  id_notifica: "p-1",
+  oggetto: "Promemoria: Allenamento",
+  testo: "30/09/2026 alle 20:30",
+  tentativi_fatti: 0,
+  iscrizioni: disp(1),
+  ...extra,
+});
+
+type ChiamataPush = { id: string; esito: EsitoPush; errore?: string; prossimo?: Date };
+
+function ambientePush(opzioni: {
+  lotto?: PushDaInviare[];
+  risposta?: (iscrizione: IscrizionePush) => Promise<{ stato: number }>;
+  elimina?: (endpoint: string) => Promise<void>;
+}) {
+  const chiamate: ChiamataPush[] = [];
+  const inviate: Array<{ endpoint: string; titolo: string; testo: string }> = [];
+  const eliminate: string[] = [];
+  const log: string[] = [];
+  const ADESSO = new Date("2026-09-29T10:00:00Z");
+  const dip: DipendenzePush = {
+    prendi: async () => opzioni.lotto ?? [],
+    segna: async (id, esito, errore, prossimo) => {
+      chiamate.push({
+        id,
+        esito,
+        ...(errore !== undefined ? { errore } : {}),
+        ...(prossimo ? { prossimo } : {}),
+      });
+    },
+    invia: async (iscrizione, titolo, testo) => {
+      inviate.push({ endpoint: iscrizione.endpoint, titolo, testo });
+      return opzioni.risposta ? opzioni.risposta(iscrizione) : { stato: 201 };
+    },
+    elimina:
+      opzioni.elimina ??
+      (async (endpoint) => {
+        eliminate.push(endpoint);
+      }),
+    adesso: () => ADESSO,
+    log: (m) => log.push(m),
+  };
+  return { dip, chiamate, inviate, eliminate, log, ADESSO };
+}
+
+await prova("push: manda titolo e testo a tutti i dispositivi e segna 'inviata'", async () => {
+  const a = ambientePush({ lotto: [pushDa({ iscrizioni: disp(2) })] });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.inviate, 1);
+  assert.equal(a.inviate.length, 2);
+  assert.equal(a.inviate[0]?.titolo, "Promemoria: Allenamento");
+  assert.equal(a.inviate[0]?.testo, "30/09/2026 alle 20:30");
+  assert.deepEqual(
+    a.chiamate.map((c) => [c.id, c.esito]),
+    [["p-1", "inviata"]],
+  );
+});
+
+await prova("push: basta un dispositivo che accetta, quello scaduto viene eliminato", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ iscrizioni: disp(2) })],
+    risposta: async (i) => ({ stato: i.endpoint.endsWith("/0") ? 410 : 201 }),
+  });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.inviate, 1);
+  assert.equal(r.iscrizioniRimosse, 1);
+  assert.deepEqual(a.eliminate, ["https://push.example/0"]);
+  assert.equal(a.chiamate[0]?.esito, "inviata");
+});
+
+await prova("push: tutte le iscrizioni scadute vuol dire 'saltata', non un errore", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ iscrizioni: disp(2) })],
+    risposta: async () => ({ stato: 404 }),
+  });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.saltate, 1);
+  assert.equal(r.iscrizioniRimosse, 2);
+  assert.equal(a.chiamate[0]?.esito, "saltata");
+});
+
+await prova("push: nessuna iscrizione nella riga, 'saltata' senza chiamate", async () => {
+  const a = ambientePush({ lotto: [pushDa({ iscrizioni: [] })] });
+  await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(a.inviate.length, 0);
+  assert.equal(a.chiamate[0]?.esito, "saltata");
+});
+
+await prova("push: errore temporaneo, riprova con backoff sul numero di tentativi", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ tentativi_fatti: 1 })],
+    risposta: async () => ({ stato: 503 }),
+  });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.riprovate, 1);
+  assert.equal(a.chiamate[0]?.esito, "riprova");
+  assert.equal(a.chiamate[0]?.errore, "503");
+  assert.equal(a.chiamate[0]?.prossimo?.getTime(), a.ADESSO.getTime() + 5 * 60_000);
+});
+
+await prova("push: rete giù, riprova; all'ultimo tentativo 'fallita'", async () => {
+  const giu = async () => {
+    throw new Error("rete");
+  };
+  const a = ambientePush({ lotto: [pushDa({ tentativi_fatti: 0 })], risposta: giu });
+  await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(a.chiamate[0]?.esito, "riprova");
+  assert.equal(a.chiamate[0]?.errore, "rete");
+  const b = ambientePush({ lotto: [pushDa({ tentativi_fatti: 4 })], risposta: giu });
+  const r = await elaboraCicloPush(b.dip, { lotto: 10 });
+  assert.equal(r.fallite, 1);
+  assert.equal(b.chiamate[0]?.esito, "fallita");
+});
+
+await prova("push: rifiuto permanente (chiavi VAPID sbagliate) è subito 'fallita'", async () => {
+  const a = ambientePush({ lotto: [pushDa()], risposta: async () => ({ stato: 403 }) });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.fallite, 1);
+  assert.equal(a.chiamate[0]?.esito, "fallita");
+  assert.equal(a.chiamate[0]?.errore, "403");
+});
+
+await prova("push: una notifica che fallisce non ferma le successive", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ id_notifica: "p-1" }), pushDa({ id_notifica: "p-2", iscrizioni: disp(1) })],
+    risposta: async () => ({ stato: 201 }),
+  });
+  a.dip.invia = async (_i, _t, _x) => {
+    if (a.inviate.length === 0) {
+      a.inviate.push({ endpoint: "x", titolo: "", testo: "" });
+      throw new Error("rete");
+    }
+    return { stato: 201 };
+  };
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.riprovate, 1);
+  assert.equal(r.inviate, 1);
+});
+
+await prova("push: se l'eliminazione dell'iscrizione fallisce, il resto prosegue", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ iscrizioni: disp(2) })],
+    risposta: async (i) => ({ stato: i.endpoint.endsWith("/0") ? 410 : 201 }),
+    elimina: async () => {
+      throw new Error("db giù");
+    },
+  });
+  const r = await elaboraCicloPush(a.dip, { lotto: 10 });
+  assert.equal(r.inviate, 1);
+  assert.equal(r.iscrizioniRimosse, 0);
+});
+
+await prova("push: la registrazione dell'esito che fallisce interrompe il ciclo", async () => {
+  const a = ambientePush({ lotto: [pushDa()] });
+  a.dip.segna = async () => {
+    throw new Error("rete giù");
+  };
+  await assert.rejects(elaboraCicloPush(a.dip, { lotto: 10 }), /rete giù/);
+});
+
+await prova("push: i log non contengono endpoint né testi dei promemoria", async () => {
+  const a = ambientePush({
+    lotto: [pushDa({ iscrizioni: disp(2) }), pushDa({ id_notifica: "p-2" })],
+    risposta: async (i) => ({ stato: i.endpoint.endsWith("/0") ? 410 : 503 }),
+  });
+  await elaboraCicloPush(a.dip, { lotto: 10 });
+  const tutto = a.log.join("\n");
+  assert.ok(!tutto.includes("push.example"));
+  assert.ok(!tutto.includes("Allenamento"));
+  assert.ok(!tutto.includes("20:30"));
 });
 
 riepilogo("mailer-core");

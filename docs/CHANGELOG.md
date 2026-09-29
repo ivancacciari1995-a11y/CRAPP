@@ -13,6 +13,22 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- **Ogni notifica arriva su tutti e tre i canali** (DD-038): i promemoria a 24 e 3 ore, che
+  arrivavano solo in-app e per email, partono ora anche come push, mandata dal worker `mailer/`
+  (migration `m24_push_promemoria_e_sondaggio`). Il sondaggio pre-partita, che era solo push,
+  compare anche nel centro notifiche e arriva per email ai giocatori attivi (non agli allenatori).
+  Il worker va ricostruito e configurato con le chiavi VAPID dell'app; senza, manda solo le email.
+
+### Corretto
+
+- **I promemoria dell'evento non ricompaiono più se li elimini** — il promemoria a 24 e a 3 ore
+  eliminato dal centro notifiche veniva rigenerato dal job automatico al giro successivo, come non
+  letto e, con le email, con una nuova mail a ogni giro fino all'inizio dell'evento. Ora il job
+  ricorda ciò che ha già generato (migration `m23_promemoria_gia_generati`, DD-037). Il difetto
+  esisteva dal centro notifiche (`m17`) e si è notato con l'arrivo delle email.
+
 ### Aggiunto
 
 - **Notifiche email** — ogni notifica del centro notifiche in-app (messaggi dello staff,

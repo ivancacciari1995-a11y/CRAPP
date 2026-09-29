@@ -14,7 +14,8 @@ centro notifiche in-app indipendente, con un pallino sull'avatar del profilo
 Tenere aggiornati i giocatori senza che debbano aprire l'app, con due meccanismi
 indipendenti:
 
-- **Push VAPID** — arrivano anche ad app chiusa (turno palloni, sollecito presenze).
+- **Push VAPID** — arrivano anche ad app chiusa (messaggi dello staff, turno palloni, sollecito
+  presenze, sondaggio pre-partita: elenco completo nel [catalogo](#catalogo-delle-notifiche)).
 - **Notifiche smart** — notifiche locali mostrate solo ad app aperta, generate da badge,
   serie e obiettivi appena raggiunti; non è un canale push separato.
 
@@ -22,6 +23,71 @@ Gli avvisi fissi in Home (turno palloni, certificati in scadenza) non passano da
 due: sono card calcolate dai dati, che spariscono da sole quando la condizione finisce. In
 particolare il certificato in scadenza **non** genera push né voci nel centro notifiche
 (DD-035, specifica in [profilo-giocatore.md](profilo-giocatore.md#avviso-certificati)).
+
+---
+
+## Catalogo delle notifiche
+
+Cosa fa partire una notifica, a chi arriva e su quali canali. Sono i canali indipendenti descritti
+più sotto: **push** (solo ai dispositivi che hanno attivato «Notifiche»), **centro notifiche
+in-app** (storico in `notifiche_utente`, per tutti i giocatori) ed **email**
+([notifiche-email.md](notifiche-email.md): ogni riga di `notifiche_utente` genera una mail, quindi
+la colonna Email coincide con la colonna In-app).
+
+| #   | Notifica                                                                                                                         | Cosa la fa partire                                                                                                                                                        | Destinatari                                                                                                                                                                              | Push             | In-app | Email |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------ | ----- |
+| 1   | **Promemoria a 24 ore** — «Promemoria: _titolo_», corpo «data alle ora»                                                          | Job `pg_cron` `promemoria-eventi-24h`, ogni ora, per gli eventi che iniziano entro le prossime 24 ore. Tipo `evento_promemoria_24h`. La push la manda il worker (M24).    | I convocati dell'evento, o tutta la rosa attiva se `convocati` è vuoto; gli allenatori attivi sempre, convocati o no.                                                                    | sì (worker)      | sì     | sì    |
+| 2   | **Promemoria a 3 ore** — stesso testo                                                                                            | Job `pg_cron` `promemoria-eventi-3h`, ogni 15 minuti, per gli eventi che iniziano entro le prossime 3 ore. Tipo `evento_promemoria_3h`. La push la manda il worker (M24). | Come il promemoria a 24 ore.                                                                                                                                                             | sì (worker)      | sì     | sì    |
+| 3   | **Messaggio dello staff** — titolo fisso «Messaggio dallo staff», corpo il testo scritto (max 300 caratteri)                     | Un admin, dalla tab «Notifiche» della dashboard: «Invia messaggio a tutti» o il pulsante della riga di un giocatore. Route `notifica-personalizzata`, tipo `admin`.       | Push: tutti i dispositivi iscritti, o quelli del giocatore scelto. In-app ed email: tutta la rosa attiva (allenatori compresi, anche senza dispositivi iscritti), o il giocatore scelto. | sì               | sì     | sì    |
+| 4   | **Turno palloni** — «Tocca a te prendere i palloni» / «Porta i palloni»                                                          | Un admin, con il pulsante nella pagina dell'evento. Solo eventi di tipo allenamento o partita. Route `promemoria-palloni`, tipo `turno_palloni`.                          | L'incaricato del turno di quell'evento e, se è un'altra persona, chi aveva i palloni all'evento precedente. Se per l'evento non c'è un incaricato non parte nulla.                       | sì               | sì     | sì    |
+| 5   | **Sollecito presenze** — «Manca la tua risposta»                                                                                 | Un admin o un allenatore, con il pulsante nella pagina dell'evento. Route `sollecita-presenze`, tipo `sollecita_presenze`.                                                | I giocatori attivi (mai gli allenatori) che non hanno ancora risposto o hanno risposto «forse».                                                                                          | sì               | sì     | sì    |
+| 6   | **Sondaggio pre-partita** — «💩 Sondaggio pre-partita aperto»                                                                    | Un admin, dalla pagina della partita. Route `apri-sondaggio` (vedi [Scout Live](scout-live.md)).                                                                          | Push: tutti i dispositivi iscritti, tranne quelli degli allenatori. In-app ed email (tipo `sondaggio_cacche`): i giocatori attivi, allenatori esclusi, anche senza dispositivi iscritti. | sì               | sì     | sì    |
+| 7   | **Notifiche smart** — badge appena sbloccato, serie a un traguardo, obiettivo di squadra tra il 90 e il 100%, badge social vinto | L'app, mentre è aperta: sono calcolate in locale da `calcolaNotifiche()`.                                                                                                 | Chi ha l'app aperta; nessun invio verso altri dispositivi.                                                                                                                               | no (solo locale) | no     | no    |
+
+Tutte le notifiche generate dal server (righe 1-6) hanno tutti e tre i canali (DD-038). La
+differenza sta in come parte la push: quelle dei pulsanti (3-6) la mandano le route dell'app, quelle
+dei promemoria (1 e 2) nascono nel database e la manda il worker `mailer/` (vedi «Push dei
+promemoria»). Le righe 4 e 5 riscrivono la notifica esistente se l'admin preme di nuovo il pulsante
+per lo stesso evento, e lo stesso fa il sondaggio (vedi «Centro notifiche in-app»).
+
+### Cosa non genera nessuna notifica
+
+- Creare, spostare, modificare o cancellare un evento: contano solo i promemoria prima
+  dell'inizio (DD-030).
+- L'arrivo di un risultato, di una pagella o di un voto MVP.
+- Un giocatore che risponde a un evento: nessun avviso a chi gestisce gli eventi.
+- Assenze e infortuni.
+- La registrazione o il collegamento di un nuovo giocatore.
+- Il certificato in scadenza: resta una card in Home (DD-035).
+
+### Comportamenti da conoscere
+
+Sono l'effetto attuale della logica, non scelte documentate altrove:
+
+- **I promemoria (1 e 2) non distinguono il tipo di evento:** scattano per allenamenti, partite ed
+  eventi extra-campo (per esempio una cena). Il turno palloni (4), invece, esiste solo per
+  allenamenti e partite.
+- **Un evento creato a poche ore dall'inizio riceve subito i promemoria che gli spettano:** se
+  mancano meno di 24 ore parte il promemoria «24 ore» al primo giro del job orario, e se ne
+  mancano meno di 3 anche quello «3 ore», a distanza di pochi minuti.
+- **Ogni promemoria si genera una sola volta per giocatore, evento e tipo, anche se il giocatore
+  lo elimina** (M23, DD-037): il job registra ciò che ha generato in `promemoria_eventi_generati`,
+  una tabella indipendente da `notifiche_utente`. Eliminare la notifica dal centro notifiche non
+  la fa tornare e non accoda una nuova mail. Prima di M23 tornava: la riga eliminata veniva
+  rigenerata al giro successivo del job, con una nuova mail a ogni giro fino all'inizio
+  dell'evento.
+- **Il registro non segue le modifiche all'evento:** se un evento viene spostato dopo che il
+  promemoria è partito, non ne parte uno nuovo per la data nuova. Chi viene aggiunto ai convocati
+  dopo riceve invece il suo promemoria, perché il registro è per giocatore.
+- **Le notifiche 3, 4 e 5, una volta eliminate, non tornano da sole:** riappaiono solo se un admin
+  rimanda il messaggio o ripreme il pulsante.
+- **Un evento già iniziato non genera più promemoria.**
+- **Quattro notifiche su sei dipendono da un gesto manuale** (3, 4, 5 e 6): se nessuno preme il
+  pulsante, nessuno viene avvisato. Gli unici automatismi sono i due promemoria.
+- **Per ogni evento i giocatori ricevono al massimo due mail automatiche** (24 e 3 ore prima),
+  più quelle dei pulsanti manuali.
+- **Non esistono preferenze per tipo di notifica:** un solo interruttore per la push («Notifiche»)
+  e uno per le email («Email»). Il centro notifiche in-app non si può spegnere.
 
 ---
 
@@ -62,9 +128,10 @@ copre in particolare le sessioni lunghe della webapp (vedi il
 
 - **`push-config`** — espone la sola chiave pubblica VAPID.
 - **`push-subscribe`** — registra o rimuove l'iscrizione di un dispositivo.
-- **`apri-sondaggio`** — premuto da un admin dalla pagina partita: manda a **tutti** i
-  dispositivi iscritti l'avviso di apertura del sondaggio pre-partita (vedi
-  [Scout Live](scout-live.md)).
+- **`apri-sondaggio`** — premuto da un admin dalla pagina partita: manda a tutti i dispositivi
+  iscritti (allenatori esclusi) l'avviso di apertura del sondaggio pre-partita e lo scrive anche in
+  `notifiche_utente` per i giocatori attivi, così compare nel centro notifiche e parte per email
+  (DD-038; vedi [Scout Live](scout-live.md)).
 
 L'invio effettivo (`src/lib/webpush.server.ts`, funzione `inviaPush`) firma un JWT VAPID
 (ECDSA P-256), cifra `{title, body}` per il dispositivo destinatario e fa una POST
@@ -131,23 +198,27 @@ non richiede che il dispositivo abbia attivato «Notifiche», ha uno storico per
 `notifiche_utente` (vedi [DATABASE.md](../DATABASE.md)) con stato letto/non letto, e non è la
 stessa cosa delle notifiche smart (quelle restano locali, non salvate a database).
 
-Quattro sorgenti scrivono in `notifiche_utente`, mai il client:
+Cinque sorgenti scrivono in `notifiche_utente`, mai il client:
 
 1. **Messaggio admin** — `notifica-personalizzata.ts` inserisce una riga per destinatario
    in parallelo all'invio push esistente (a tutta la rosa attiva se `giocatoreId` è omesso).
 2. **Promemoria evento** — due job `pg_cron` (ogni ora per la finestra delle 24h, ogni 15
    minuti per quella delle 3h) generano una notifica per evento imminente, per i convocati
-   (o tutta la rosa attiva se l'evento non ne specifica), deduplicata da un vincolo
-   `UNIQUE (giocatore_id, evento_id, tipo)` così un cron che gira più volte non manda
-   doppioni. Volutamente non c'è una notifica sulla sola creazione dell'evento: conta
+   (o tutta la rosa attiva se l'evento non ne specifica), deduplicata dal registro
+   `promemoria_eventi_generati` (M23, DD-037; il vincolo `UNIQUE (giocatore_id, evento_id, tipo)`
+   di `notifiche_utente` resta come seconda difesa) così un cron che gira più volte non manda
+   doppioni, nemmeno se il giocatore elimina la notifica. Volutamente non c'è una notifica sulla sola creazione dell'evento: conta
    l'avvicinarsi della data, non il momento in cui è stato messo in calendario.
 3. **Turno palloni** — `promemoria-palloni.ts` (bottone riservato agli admin sulla pagina
    evento, vedi [Turno palloni](palloni.md)) inserisce una riga per ciascun avviso calcolato
    da `avvisiPalloniEvento()`, in parallelo alla push.
 4. **Sollecito presenze** — `sollecita-presenze.ts` (stesso innesco manuale) inserisce una
    riga per ciascun giocatore che non ha ancora risposto, in parallelo alla push.
+5. **Sondaggio pre-partita** — `apri-sondaggio.ts` (pulsante riservato agli admin sulla pagina
+   della partita) inserisce una riga di tipo `sondaggio_cacche` per ciascun giocatore attivo,
+   allenatori esclusi (`destinatariSondaggio()`), in parallelo alla push (M24, DD-038).
 
-Turno palloni e sollecito presenze usano un `upsert` su `(giocatore_id, evento_id, tipo)`
+Turno palloni, sollecito presenze e sondaggio usano un `upsert` su `(giocatore_id, evento_id, tipo)`
 invece di un semplice insert: se l'admin preme di nuovo il pulsante per lo stesso evento, la
 notifica esistente viene aggiornata (testo e `creato_il` freschi, `letta` riportata a false)
 invece di duplicarsi o fallire per il vincolo `UNIQUE`.
@@ -164,12 +235,36 @@ sparire per sempre è eliminarle una per una, con uno swipe verso sinistra sulla
 × che compare sopra ogni riga per chi non è su touch. Chi non tocca mai una notifica se la
 ritrova per sempre nell'elenco, solo segnata come letta.
 
+## Push dei promemoria (M24)
+
+I promemoria a 24 e 3 ore nascono nel database (job `pg_cron`), che non può firmare né cifrare una
+push Web: la manda il worker `mailer/`, lo stesso che invia le email ([WORKER_EMAIL.md](../WORKER_EMAIL.md),
+DD-038).
+
+1. Quando il job crea un promemoria, un trigger lo accoda in `notifiche_push_coda` (solo i tipi
+   `evento_promemoria_24h` e `evento_promemoria_3h`: le altre notifiche mandano già la push
+   dall'app, e una seconda sarebbe un doppione).
+2. Il worker, a ogni giro, chiama `prendi_push_promemoria()`, che restituisce testo e dispositivi
+   iscritti del giocatore, e manda la push a **tutti** i suoi dispositivi con lo stesso modulo
+   dell'app (`src/lib/webpush.server.ts`), quindi con le stesse regole di cifratura, urgenza e TTL.
+3. Un solo esito per notifica: `inviata` se almeno un dispositivo accetta; `riprova` con backoff
+   1 · 5 · 30 · 120 minuti sugli errori temporanei (429, 5xx, rete), poi `fallita`; `fallita`
+   subito su un rifiuto permanente (400, 401, 403, 413: tipicamente chiavi VAPID sbagliate);
+   `saltata` se le iscrizioni erano tutte scadute o il giocatore non ne ha.
+4. Le iscrizioni che rispondono 404 o 410 vengono eliminate da `push_subscriptions`, come fanno le
+   route.
+5. Una push in coda da oltre 3 ore dalla creazione del promemoria si scarta (`saltata`): a evento
+   ormai iniziato sarebbe solo rumore. Vale se il worker resta fermo a lungo.
+
+La push dei promemoria dipende solo dai dispositivi iscritti, non dall'interruttore «Email». Se il
+worker non ha le chiavi VAPID parte lo stesso e manda solo le email, segnalandolo nel log.
+
 ## Canale email (M22)
 
 Ogni riga di `notifiche_utente` viene inviata anche per email da un worker esterno, con
 un interruttore «Email» per account in Profilo → Opzioni: [notifiche-email.md](notifiche-email.md).
 Non cambia nulla di quanto descritto sopra: push, notifiche smart e centro notifiche restano
-indipendenti e le quattro sorgenti scrivono `notifiche_utente` come prima. Il certificato in
+indipendenti e le sorgenti scrivono `notifiche_utente` come prima. Il certificato in
 scadenza resta una card in Home e non genera mail (DD-035).
 
 ## Limiti noti

@@ -39,6 +39,8 @@ export type Config = {
   from: string;
   fromName: string;
   appUrl: string;
+  /** Chiavi VAPID per la push dei promemoria (M24); `null` = solo email. */
+  vapid: { publicKey: string; privateKey: string; subject: string | null } | null;
   pollSecondi: number;
   limiteGiorno: number;
   lotto: number;
@@ -78,6 +80,11 @@ export function leggiConfig(env: Record<string, string | undefined>): LetturaCon
   if (Boolean(user) !== Boolean(pass)) errori.push("SMTP_USER e SMTP_PASS vanno impostati insieme");
   const from = testo("MAIL_FROM") || user;
   if (!from) errori.push("MAIL_FROM mancante (o SMTP_USER)");
+  const vapidPubblica = testo("VAPID_PUBLIC_KEY");
+  const vapidPrivata = testo("VAPID_PRIVATE_KEY");
+  if (Boolean(vapidPubblica) !== Boolean(vapidPrivata)) {
+    errori.push("VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY vanno impostate insieme");
+  }
   const porta = intero("SMTP_PORT", 587);
   const pollSecondi = intero("POLL_SECONDI", 30);
   const limiteGiorno = intero("MAIL_LIMITE_GIORNO", 400);
@@ -97,6 +104,14 @@ export function leggiConfig(env: Record<string, string | undefined>): LetturaCon
       from,
       fromName: testo("MAIL_FROM_NAME") || "CrAPP",
       appUrl,
+      vapid:
+        vapidPubblica && vapidPrivata
+          ? {
+              publicKey: vapidPubblica,
+              privateKey: vapidPrivata,
+              subject: testo("VAPID_SUBJECT") || null,
+            }
+          : null,
       pollSecondi,
       limiteGiorno,
       lotto,
@@ -330,6 +345,136 @@ export async function elaboraCiclo(d: Dipendenze, o: OpzioniCiclo): Promise<Risu
       await d.segna(notifica.id_notifica, "riprova", motivo, dopoMinuti(d.adesso(), ritardo));
       risultato.riprovate += 1;
       d.log(`da riprovare ${notifica.id_notifica} tra ${ritardo} min (${motivo})`);
+    }
+  }
+  return risultato;
+}
+
+// --- Push dei promemoria (M24) ----------------------------------------------------------------
+
+/** Un dispositivo iscritto alla push (riga di `push_subscriptions`). */
+export type IscrizionePush = { endpoint: string; p256dh: string; auth: string };
+
+/** Riga restituita da `prendi_push_promemoria()`. */
+export type PushDaInviare = {
+  id_notifica: string;
+  oggetto: string;
+  testo: string;
+  tentativi_fatti: number;
+  iscrizioni: IscrizionePush[];
+};
+
+export type EsitoPush = "inviata" | "riprova" | "fallita" | "saltata";
+
+export type EsitoStatoPush = "ok" | "scaduta" | "temporaneo" | "permanente";
+
+/**
+ * Cosa vuol dire la risposta del servizio push per quel dispositivo: 2xx accettata; 404 e 410
+ * iscrizione scaduta (va eliminata); 429 e 5xx errore temporaneo; ogni altro 4xx (400, 401, 403,
+ * 413) rifiuto permanente, tipicamente chiavi VAPID sbagliate o payload non valido.
+ */
+export function classificaStatoPush(stato: number): EsitoStatoPush {
+  if (stato >= 200 && stato < 300) return "ok";
+  if (stato === 404 || stato === 410) return "scaduta";
+  if (stato === 429 || stato >= 500) return "temporaneo";
+  return "permanente";
+}
+
+export type DipendenzePush = {
+  prendi: (max: number) => Promise<PushDaInviare[]>;
+  segna: (id: string, esito: EsitoPush, errore?: string, prossimo?: Date) => Promise<void>;
+  invia: (iscrizione: IscrizionePush, titolo: string, testo: string) => Promise<{ stato: number }>;
+  elimina: (endpoint: string) => Promise<void>;
+  adesso: () => Date;
+  log: (messaggio: string) => void;
+};
+
+export type RisultatoCicloPush = {
+  inviate: number;
+  riprovate: number;
+  fallite: number;
+  saltate: number;
+  iscrizioniRimosse: number;
+};
+
+/**
+ * Un giro delle push dei promemoria: prende un lotto e manda ogni notifica a tutti i dispositivi
+ * del giocatore. L'esito è uno solo per notifica: `inviata` se almeno un dispositivo ha accettato;
+ * altrimenti `riprova` (con backoff, poi `fallita`) se qualcuno ha dato un errore temporaneo o è
+ * fallita la rete; `fallita` se c'è stato solo un rifiuto permanente; `saltata` se le iscrizioni
+ * erano tutte scadute. I log riportano solo id e numeri: mai gli endpoint, che identificano il
+ * dispositivo.
+ */
+export async function elaboraCicloPush(
+  d: DipendenzePush,
+  opzioni: { lotto: number },
+): Promise<RisultatoCicloPush> {
+  const risultato: RisultatoCicloPush = {
+    inviate: 0,
+    riprovate: 0,
+    fallite: 0,
+    saltate: 0,
+    iscrizioniRimosse: 0,
+  };
+
+  for (const push of await d.prendi(opzioni.lotto)) {
+    let accettate = 0;
+    let temporanei = 0;
+    let permanenti = 0;
+    const codici: string[] = [];
+
+    for (const iscrizione of push.iscrizioni) {
+      let stato: number | null = null;
+      try {
+        stato = (await d.invia(iscrizione, push.oggetto, push.testo)).stato;
+      } catch {
+        temporanei += 1;
+        codici.push("rete");
+        continue;
+      }
+      const tipo = classificaStatoPush(stato);
+      if (tipo === "ok") accettate += 1;
+      else {
+        codici.push(String(stato));
+        if (tipo === "temporaneo") temporanei += 1;
+        else if (tipo === "permanente") permanenti += 1;
+        else {
+          try {
+            await d.elimina(iscrizione.endpoint);
+            risultato.iscrizioniRimosse += 1;
+          } catch {
+            d.log(`iscrizione scaduta non eliminata (notifica ${push.id_notifica})`);
+          }
+        }
+      }
+    }
+
+    const motivo = codici.join(",") || undefined;
+    if (accettate > 0) {
+      await d.segna(push.id_notifica, "inviata");
+      risultato.inviate += 1;
+      d.log(
+        `push inviata ${push.id_notifica} (${accettate}/${push.iscrizioni.length} dispositivi)`,
+      );
+    } else if (temporanei > 0) {
+      const ritardo = ritardoRiprova(push.tentativi_fatti);
+      if (ritardo === null) {
+        await d.segna(push.id_notifica, "fallita", motivo);
+        risultato.fallite += 1;
+        d.log(`push fallita ${push.id_notifica} (tentativi finiti, ${motivo})`);
+      } else {
+        await d.segna(push.id_notifica, "riprova", motivo, dopoMinuti(d.adesso(), ritardo));
+        risultato.riprovate += 1;
+        d.log(`push da riprovare ${push.id_notifica} tra ${ritardo} min (${motivo})`);
+      }
+    } else if (permanenti > 0) {
+      await d.segna(push.id_notifica, "fallita", motivo);
+      risultato.fallite += 1;
+      d.log(`push fallita ${push.id_notifica} (${motivo})`);
+    } else {
+      await d.segna(push.id_notifica, "saltata", motivo);
+      risultato.saltate += 1;
+      d.log(`push saltata ${push.id_notifica} (nessun dispositivo utile)`);
     }
   }
   return risultato;
