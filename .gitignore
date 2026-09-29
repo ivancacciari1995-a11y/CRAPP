@@ -49,3 +49,5 @@ backups/*
 !backups/download-storage.mjs
 !backups/storage-core.ts
 !backups/README.md
+# Automazioni operative locali (backup cifrati, playbook con dati sensibili)
+ops/
