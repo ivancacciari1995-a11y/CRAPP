@@ -1,6 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { inRosa, type TipoMembro } from "./giocatori-squadra";
 import { oggiISO } from "./palloni-core";
+
+/**
+ * Avviso «sondaggio pre-partita aperto» (push, centro notifiche ed email, DD-038): stesso testo su
+ * tutti e tre i canali.
+ */
+export function avvisoSondaggio(partita: { titolo: string; ora: string }): {
+  titolo: string;
+  testo: string;
+} {
+  return {
+    titolo: "💩 Sondaggio pre-partita aperto",
+    testo: `${partita.titolo} · ore ${partita.ora}. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.`,
+  };
+}
+
+/**
+ * Chi riceve l'avviso in-app e per email: i giocatori attivi, mai gli allenatori, che il sondaggio
+ * non riguarda (DD-034). Non dipende dai dispositivi iscritti alla push: l'avviso in-app e la mail
+ * arrivano anche a chi non ha attivato le notifiche.
+ */
+export function destinatariSondaggio(
+  squadra: Array<{ id: string; attivo: boolean; tipo: TipoMembro }>,
+): string[] {
+  return squadra.filter(inRosa).map((g) => g.id);
+}
 
 /** Ora di apertura del sondaggio, il giorno stesso della partita. */
 export const ORA_APERTURA_SONDAGGIO = 8;

@@ -284,21 +284,37 @@ if (!locale) {
       assert.ok(!votato.ok, `l'allenatore non si vota (${votato.status})`);
     });
 
-    await prova("i promemoria evento arrivano anche all'allenatore non convocato", async () => {
-      await rest(`eventi_app?id=eq.${EVENTO}`, tokenAdmin, {
-        method: "PATCH",
-        body: JSON.stringify({ convocati: [GIOCATORE] }),
-      });
-      const res = await rest("rpc/giocatori_destinatari_evento", SERVIZIO, {
-        method: "POST",
-        body: JSON.stringify({ p_evento_id: EVENTO }),
-      });
-      assert.equal(res.status, 200);
-      const destinatari = ((await res.json()) as Array<string | Record<string, string>>).map((d) =>
-        typeof d === "string" ? d : Object.values(d)[0],
-      );
-      assert.deepEqual([...destinatari].sort(), [GIOCATORE, SLOT].sort());
-    });
+    await prova(
+      "i promemoria evento non arrivano all'allenatore, convocato o no (DD-039)",
+      async () => {
+        const destinatari = async () => {
+          const res = await rest("rpc/giocatori_destinatari_evento", SERVIZIO, {
+            method: "POST",
+            body: JSON.stringify({ p_evento_id: EVENTO }),
+          });
+          assert.equal(res.status, 200);
+          return ((await res.json()) as Array<string | Record<string, string>>).map((d) =>
+            typeof d === "string" ? d : Object.values(d)[0],
+          );
+        };
+
+        // Con i convocati: solo quelli, allenatore escluso anche se attivo.
+        await rest(`eventi_app?id=eq.${EVENTO}`, tokenAdmin, {
+          method: "PATCH",
+          body: JSON.stringify({ convocati: [GIOCATORE] }),
+        });
+        assert.deepEqual(await destinatari(), [GIOCATORE]);
+
+        // Senza convocati (tutta la rosa): i giocatori attivi, mai l'allenatore.
+        await rest(`eventi_app?id=eq.${EVENTO}`, tokenAdmin, {
+          method: "PATCH",
+          body: JSON.stringify({ convocati: [] }),
+        });
+        const tutti = await destinatari();
+        assert.ok(tutti.includes(GIOCATORE), "il giocatore attivo è tra i destinatari");
+        assert.ok(!tutti.includes(SLOT), "l'allenatore non è tra i destinatari");
+      },
+    );
 
     await prova("scollegare l'account toglie il ruolo", async () => {
       const res = await rest(`giocatori_squadra?id=eq.${SLOT}`, tokenAdmin, {

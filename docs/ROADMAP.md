@@ -41,6 +41,9 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Avviso certificati in scadenza — in Home, giallo nei 7 giorni prima e nero dopo la
       scadenza: agli admin con i nomi dei giocatori, al giocatore solo per il proprio
       ([specifica](modules/profilo-giocatore.md#avviso-certificati), DD-035)
+- [x] Notifiche email — ogni notifica in-app inviata anche per email agli account registrati,
+      da un worker Docker sull'host di casa via Gmail, con interruttore «Email» in Profilo
+      ([specifica](modules/notifiche-email.md), DD-036)
 
 ## Prossimo
 

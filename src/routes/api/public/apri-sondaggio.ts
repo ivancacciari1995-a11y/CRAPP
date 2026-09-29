@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediAdmin } from "@/lib/auth-route.server";
+import { avvisoSondaggio, destinatariSondaggio } from "@/lib/cacche";
 import { leggiEventi } from "@/lib/eventi.server";
 import { inviaPush } from "@/lib/webpush.server";
 import { isAllenatore } from "@/lib/giocatori-squadra";
@@ -27,14 +29,30 @@ export const Route = createFileRoute("/api/public/apri-sondaggio")({
         const { data: tutte } = await supabaseAdmin
           .from("push_subscriptions")
           .select("endpoint, p256dh, auth, giocatore_id");
+        const squadra = await leggiGiocatoriSquadra();
         // Il sondaggio cacche non riguarda l'allenatore, che non le vede (DD-034).
-        const allenatori = new Set(
-          (await leggiGiocatoriSquadra()).filter(isAllenatore).map((g) => g.id),
-        );
+        const allenatori = new Set(squadra.filter(isAllenatore).map((g) => g.id));
         const iscrizioni = (tutte ?? []).filter((i) => !allenatori.has(i.giocatore_id));
 
-        const titolo = "💩 Sondaggio pre-partita aperto";
-        const testo = `${partita.titolo} · ore ${partita.ora}. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.`;
+        const { titolo, testo } = avvisoSondaggio(partita);
+
+        // Storico in-app ed email (DD-038): indipendente dai dispositivi iscritti alla push. Un
+        // upsert perché ripremere il pulsante per la stessa partita deve riportare la notifica a
+        // non letta, non fallire per il vincolo UNIQUE; la mail riparte dal trigger di M22.
+        // `types.ts` non include ancora `notifiche_utente`, stesso aggiramento delle altre route.
+        const client = supabaseAdmin as unknown as SupabaseClient;
+        await client.from("notifiche_utente").upsert(
+          destinatariSondaggio(squadra).map((giocatoreId) => ({
+            giocatore_id: giocatoreId,
+            tipo: "sondaggio_cacche",
+            titolo,
+            corpo: testo,
+            evento_id: partita.id,
+            letta: false,
+            creato_il: new Date().toISOString(),
+          })),
+          { onConflict: "giocatore_id,evento_id,tipo" },
+        );
 
         let inviate = 0;
         for (const iscrizione of iscrizioni) {

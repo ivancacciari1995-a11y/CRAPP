@@ -1,6 +1,8 @@
 /** Check del sondaggio cacche: `bun test/unit/cacche.test.ts`. */
 import assert from "node:assert/strict";
 import {
+  avvisoSondaggio,
+  destinatariSondaggio,
   mediaPartita,
   mediaStagione,
   recordStagione,
@@ -117,5 +119,25 @@ assert.equal(
   true,
   "partita passata: terminato",
 );
+
+// --- Avviso del sondaggio (DD-038) ---------------------------------------------
+assert.deepEqual(avvisoSondaggio({ titolo: "Juve - CRAP", ora: "21:00" }), {
+  titolo: "💩 Sondaggio pre-partita aperto",
+  testo: "Juve - CRAP · ore 21:00. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.",
+});
+
+// Destinatari in-app ed email: giocatori attivi, mai gli allenatori né chi non è più attivo,
+// a prescindere dai dispositivi iscritti alla push.
+assert.deepEqual(
+  destinatariSondaggio([
+    { id: "g1", attivo: true, tipo: "giocatore" },
+    { id: "g2", attivo: false, tipo: "giocatore" },
+    { id: "g3", attivo: true, tipo: "allenatore" },
+    { id: "g4", attivo: true, tipo: "giocatore" },
+  ]),
+  ["g1", "g4"],
+  "solo i giocatori attivi",
+);
+assert.deepEqual(destinatariSondaggio([]), [], "rosa vuota: nessun destinatario");
 
 console.log("cacche: ok");

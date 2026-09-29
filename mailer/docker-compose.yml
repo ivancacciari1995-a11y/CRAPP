@@ -1,0 +1,18 @@
+services:
+  mailer:
+    build:
+      context: ..
+      dockerfile: mailer/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "bun", "healthcheck.mjs"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

@@ -1,0 +1,11 @@
+# Il contesto di build è la radice del repository (serve src/lib/webpush.server.ts, lo stesso modulo
+# push dell'app): si esclude tutto e si ammettono solo i file che l'immagine usa. Così non finiscono
+# nel contesto né il .env né il resto del progetto.
+*
+!mailer/package.json
+!mailer/bun.lock
+!mailer/bunfig.toml
+!mailer/mailer.mjs
+!mailer/mailer-core.ts
+!mailer/healthcheck.mjs
+!src/lib/webpush.server.ts

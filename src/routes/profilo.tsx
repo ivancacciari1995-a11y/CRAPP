@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Flame, Trash2, Bell, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
+import { Flame, Trash2, Bell, Mail, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
@@ -34,6 +34,7 @@ import {
 } from "@/lib/giocatori-squadra";
 import { esci } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/ruoli";
+import { useEmailNotifiche } from "@/lib/preferenze-utente";
 import { Reveal } from "@/components/motion/Reveal";
 import { version as APP_VERSION } from "../../package.json";
 
@@ -255,6 +256,7 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
   const [notifiche, setNotifiche] = useState(false);
   const [inCorso, setInCorso] = useState(false);
   const [supportate, setSupportate] = useState(true);
+  const email = useEmailNotifiche();
 
   useEffect(() => {
     setSupportate(pushSupportato());
@@ -280,6 +282,17 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
       toast.error(error instanceof Error ? error.message : "Notifiche non disponibili");
     } finally {
       setInCorso(false);
+    }
+  }
+
+  async function cambiaEmail() {
+    if (email.imposta.isPending) return;
+    const attive = !email.attive;
+    try {
+      await email.imposta.mutateAsync(attive);
+      toast.success(attive ? "Email attive" : "Email disattivate");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossibile salvare la preferenza");
     }
   }
 
@@ -320,6 +333,31 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
             )}
           >
             <Bell className="h-4 w-4" />
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={cambiaEmail}
+          disabled={!email.pronta || email.imposta.isPending}
+          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+        >
+          <span className="min-w-0">
+            <span className="block truncate">Email</span>
+            <span className="block text-xs text-muted-foreground">
+              {email.attive
+                ? "Le notifiche arrivano anche via email"
+                : "Nessuna email, solo notifiche in app"}
+            </span>
+          </span>
+          <span
+            className={cn(
+              "grid h-8 w-8 shrink-0 place-items-center rounded-xl",
+              email.attive
+                ? "bg-accent-grad text-accent-foreground"
+                : "bg-secondary text-muted-foreground",
+            )}
+          >
+            <Mail className="h-4 w-4" />
           </span>
         </button>
         {admin ? (

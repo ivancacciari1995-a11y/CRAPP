@@ -51,6 +51,10 @@ Serve a rispondere a domande del tipo:
 | [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
 | [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)        | Ruolo allenatore                      |
 | [DD-035](#dd-035--avviso-certificati-calcolato-in-home-visibile-solo-al-titolare-e-agli-admin)   | Avviso certificati in Home            |
+| [DD-036](#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa)                | Notifiche email via Gmail             |
+| [DD-037](#dd-037--i-promemoria-evento-ricordano-di-essere-già-stati-generati)                    | Promemoria evento senza ritorni       |
+| [DD-038](#dd-038--ogni-notifica-ha-tre-canali-la-push-dei-promemoria-parte-dal-worker)           | Tre canali per ogni notifica          |
+| [DD-039](#dd-039--lallenatore-non-riceve-i-promemoria-degli-eventi)                              | Niente promemoria all'allenatore      |
 
 **In valutazione**
 
@@ -1446,7 +1450,8 @@ collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando
   immediato e non aspetta la query dei ruoli.
 - L'allenatore non vede le tab Stagione e Badge del Profilo, né Obiettivi e Badge di Squadra.
 - In Squadra compare nella tab Rosa con «Allenatore» al posto del ruolo, ricavato da `tipo`;
-  riceve i promemoria degli eventi e può sollecitare le presenze, non il turno palloni.
+  riceve i promemoria degli eventi (dal 29/09/2026 non più: DD-039) e può sollecitare le presenze,
+  non il turno palloni.
 - Non vede badge né classifiche o sondaggi sulle cacche, in nessuna schermata.
 
 **Riesame**  
@@ -1510,3 +1515,243 @@ certificato viene rinnovato. Specifica completa in
 Se gli avvisi in Home non bastano (certificati che scadono comunque senza essere rinnovati),
 valutare una push, legata a un cron o a un invio manuale dell'admin come per i palloni. Se 7
 giorni si rivelano pochi per prenotare una visita, alzare la costante o renderla regolabile.
+
+### DD-036 — Notifiche email via Gmail, da un worker Docker sull'host di casa
+
+**Data:** 29 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Le notifiche di CrAPP arrivano solo con la push (che dipende da Chrome vivo in background,
+vedi i limiti in `docs/modules/notifiche.md`) e nel centro notifiche in-app, che si vede solo
+aprendo l'app. Chi non ha attivato la push o ha un telefono aggressivo sul risparmio
+energetico non riceve nulla ad app chiusa. Serve un canale che arrivi comunque, **gratis**, ai
+giocatori registrati, che sono tutti su Gmail perché l'accesso è con Google. L'app gira su
+Vercel, che non esegue container né processi sempre attivi.
+
+**Decisione**  
+Le email partono da un **worker Docker sull'host di casa** che legge una coda su Supabase e
+invia tramite `smtp.gmail.com` con un account Gmail dedicato e una password per app.
+
+- La coda è `notifiche_email_coda`, riempita da un trigger su `notifiche_utente`: ogni
+  notifica già esistente, di qualunque tipo e per qualunque destinatario (admin compresi,
+  con la stessa logica degli altri), diventa anche una mail. Le sorgenti di M17 non cambiano,
+  non ne nascono di nuove e l'app non conosce le email. Il certificato in scadenza resta
+  fuori: è una card in Home, non una notifica (DD-035).
+- Il worker fa solo polling **in uscita** con la service role: nessuna porta aperta sull'host.
+- La coda è una tabella a parte, con RLS senza policy, perché la policy `UPDATE` di
+  `notifiche_utente` lascerebbe a un client la possibilità di rimettere in coda una mail.
+- Canale **opt-out**: acceso di default per tutti, con un interruttore per account in
+  Profilo → Opzioni. La preferenza sta in una tabella nuova, `preferenze_utente`, una riga
+  per account (non per slot); l'assenza di riga vale «acceso».
+- Specifica completa in [notifiche-email.md](modules/notifiche-email.md); installazione e
+  gestione in [WORKER_EMAIL.md](WORKER_EMAIL.md).
+
+**Alternative scartate**
+
+- Inviare direttamente dal proprio IP con un MTA (Postfix) → scartata: porta 25 bloccata dai
+  provider residenziali, IP nelle blocklist, niente reverse DNS; le mail finirebbero in spam o
+  sarebbero rifiutate.
+- Relay Brevo o Resend → scartati per ora: il piano gratuito funziona ma per una buona
+  consegna richiede un dominio con SPF/DKIM/DMARC, che oggi non c'è. Restano l'alternativa
+  se servirà un mittente della squadra.
+- Supabase Edge Function con `pg_cron` e un relay → scartata su richiesta esplicita di un
+  servizio dockerizzato sull'host; resta la strada senza host acceso, ma dipende comunque da un
+  relay esterno.
+- Vercel Cron → scartato: sul piano gratuito gira al massimo una volta al giorno, troppo poco
+  per i promemoria a 24h e 3h.
+- Chiamare l'host dall'app (webhook verso casa) → scartato: richiederebbe un IP pubblico o un
+  tunnel e una superficie d'attacco in più; il polling in uscita non ne ha.
+- Colonne di stato sulla riga di `notifiche_utente` → scartate per la RLS spiegata sopra.
+
+**Conseguenze**
+
+- Costo zero, ma il canale email dipende da un host acceso: se è spento le mail arrivano in
+  ritardo (mai perse). Consegna _almeno una volta_: in caso di crash tra invio e
+  registrazione può arrivare un doppione.
+- Il tetto di circa 500 destinatari al giorno di Gmail è largo per una squadra, ma è un limite
+  reale: con molte squadre o riepiloghi frequenti andrebbe rivisto.
+- Nuova migration (`m22_notifiche_email`), nuova cartella `mailer/` (worker bun con la sola
+  dipendenza `nodemailer`, separato dall'app) e un segreto in più (la service role sull'host).
+  L'app non guadagna nessuna dipendenza e le route di M17 non cambiano.
+- Il certificato in scadenza resta fuori dalle email: non è una notifica (DD-035), quindi non
+  passa da `notifiche_utente`. Renderlo una notifica sarebbe una decisione a parte.
+- Il tetto giornaliero è una finestra mobile di 24 ore, `MAIL_LIMITE_GIORNO` (400 di default,
+  sotto i circa 500 di Gmail).
+- Le email dei giocatori si usano per un secondo scopo oltre al login: da qui l'opt-out e
+  l'indicazione in ogni mail su come disattivarlo.
+- Una tabella in più, `preferenze_utente`, pensata per accogliere in futuro anche le
+  preferenze per tipo di notifica senza toccare `giocatori_squadra`.
+- In produzione dal 29/09/2026 (migration e worker su un Raspberry Pi). Dalla prova reale: la
+  prima mail, da un account Gmail nuovo, è arrivata ma nella cartella spam, e la password per app
+  non era disponibile finché l'account aveva le sole passkey come secondo passaggio (dettagli in
+  [WORKER_EMAIL.md](WORKER_EMAIL.md#account-gmail-e-password-per-app)).
+
+**Riesame**  
+Se serve un mittente col dominio della squadra, se le mail finiscono in spam anche dopo qualche
+giorno di uso, se si supera il tetto giornaliero di Gmail, o se l'host di casa si rivela poco
+affidabile: passare a un relay con dominio e, in quel caso, valutare Edge Function più `pg_cron`
+al posto del container.
+
+### DD-037 — I promemoria evento ricordano di essere già stati generati
+
+**Data:** 29 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+I promemoria a 24 e a 3 ore (M17, DD-030) evitavano i doppioni con `ON CONFLICT DO NOTHING` sul
+vincolo `UNIQUE (giocatore_id, evento_id, tipo)` di `notifiche_utente`: la riga della notifica
+era l'unica traccia che il promemoria fosse già stato generato. Il giocatore però può eliminarla
+(swipe o ×, DD-030). Senza più la riga, al giro successivo del job (ogni ora per il promemoria a
+24 ore, ogni 15 minuti per quello a 3 ore, finché l'evento non inizia) il promemoria veniva
+rigenerato come non letto. Con il canale email (DD-036) ogni rigenerazione accodava anche una
+mail nuova: un giocatore che eliminava un promemoria ne riceveva una ogni ora fino all'inizio
+dell'evento. Il difetto è stato trovato controllando la logica il 29/09/2026, il giorno in cui il
+worker email è entrato in produzione, e riprodotto sul database locale.
+
+**Decisione**  
+Un registro separato, `promemoria_eventi_generati` (migration `m23_promemoria_gia_generati`), con
+una riga per `(giocatore_id, evento_id, tipo)` scritta dalla funzione `genera_promemoria_eventi()`.
+La notifica in-app si crea solo per le righe **appena registrate**, quindi eliminarla non fa
+ripartire nulla. Il registro è indipendente da `notifiche_utente`, senza policy per i client, e
+sparisce con l'evento o con il giocatore (`ON DELETE CASCADE`). I promemoria già presenti al
+momento della migration sono stati registrati come generati, altrimenti la prima notifica
+eliminata dopo la migration sarebbe tornata come prima. Il vincolo `UNIQUE` di `notifiche_utente`
+resta come seconda difesa. Cron, criteri di selezione, testi e destinatari sono invariati.
+
+**Alternative scartate**
+
+- Non eliminare davvero la notifica (nasconderla con un flag) → scartata: cambia il significato
+  dell'eliminazione per tutte le sorgenti, tocca la RLS e le query del client, e la tabella
+  crescerebbe di righe che il giocatore non vede più.
+- Togliere l'eliminazione dai soli promemoria, lasciando «segna come letta» → scartata: a un
+  giocatore che vuole ripulire l'elenco resterebbero notifiche non eliminabili, incoerenti con
+  le altre.
+- Un flag «già generato» sulla riga dell'evento → scartata: il promemoria è per giocatore, e chi
+  viene aggiunto ai convocati dopo deve comunque riceverlo.
+- Confrontare `creato_il` o lo stato «letta» per capire se ricrearlo → scartata: non distingue
+  una notifica mai generata da una eliminata.
+
+**Conseguenze**
+
+- Eliminare un promemoria lo fa sparire per sempre, e non parte nessuna mail in più. Il numero
+  massimo di mail automatiche per giocatore ed evento resta due (24 e 3 ore).
+- Una tabella in più, che cresce di una riga per giocatore, evento e tipo e si svuota con
+  l'evento.
+- Se un evento viene spostato dopo che il promemoria è partito, non ne parte uno nuovo per la
+  data nuova: è lo stesso comportamento di prima, ora esplicito.
+- `test/integration/promemoria-eventi.test.ts` è la definizione eseguibile: il promemoria
+  eliminato non ricompare, non riaccoda mail, i due tipi sono indipendenti, un convocato aggiunto
+  dopo lo riceve comunque, il registro non è leggibile né scrivibile da un client e sparisce con
+  l'evento. Sul database con la funzione vecchia il test fallisce.
+
+**Riesame**  
+Se gli eventi potessero essere spostati con frequenza e servisse un nuovo promemoria per la data
+nuova, il registro va agganciato anche alla data di inizio, oltre a giocatore, evento e tipo.
+
+### DD-038 — Ogni notifica ha tre canali: la push dei promemoria parte dal worker
+
+**Data:** 29 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+Il requisito è che ogni notifica arrivi su tutti e tre i canali: push, centro notifiche in-app ed
+email. Due casi non lo rispettavano ([catalogo](modules/notifiche.md#catalogo-delle-notifiche)):
+
+- i **promemoria a 24 e 3 ore** nascono dentro il database (job `pg_cron`, M17), che non può
+  firmare né cifrare una push Web (VAPID, RFC 8291): arrivavano solo in-app e per email;
+- il **sondaggio pre-partita** partiva solo come push e non scriveva in `notifiche_utente`, quindi
+  non compariva in-app e, dato che le email nascono da quella tabella (DD-036), non arrivava per
+  email.
+
+Le altre notifiche (messaggio dello staff, turno palloni, sollecito presenze) partono dall'app su
+Vercel e avevano già i tre canali.
+
+**Decisione**
+
+1. **Sondaggio pre-partita:** la route `apri-sondaggio` scrive anche `notifiche_utente` (tipo
+   nuovo `sondaggio_cacche`, un `upsert` per giocatore ed evento come le altre), per i giocatori
+   attivi che non sono allenatori. La mail parte dal trigger di M22 senza altro lavoro. La push
+   resta com'è. Il vincolo `CHECK` sul tipo si estende con la migration `m24`.
+2. **Push dei promemoria:** la manda il **worker `mailer/`**, con un secondo canale accanto alle
+   email. Un trigger accoda ogni promemoria a 24 o 3 ore in `notifiche_push_coda` (stessa
+   struttura di `notifiche_email_coda`); il worker prende il lotto con `FOR UPDATE SKIP LOCKED`,
+   manda la push a tutti i dispositivi iscritti del giocatore e registra l'esito. Usa **lo stesso
+   modulo dell'app** (`src/lib/webpush.server.ts`, senza dipendenze) invece di una copia: il
+   container si costruisce dalla radice del repository. Le iscrizioni che rispondono 404 o 410
+   vengono eliminate, come nelle route. Le push in coda da oltre 3 ore si scartano: un promemoria
+   arrivato a evento iniziato è solo rumore.
+3. La push dei promemoria non dipende dall'interruttore «Email»: dipende solo dai dispositivi
+   iscritti, come le altre push.
+
+**Alternative scartate**
+
+- Far chiamare all'app dal database (`pg_net`, già abilitata) una route che manda la push →
+  scartata: il database dipenderebbe dall'indirizzo pubblico di Vercel e da un segreto condiviso,
+  e `pg_net` è un'estensione del provider (regola 4 di [PORTABILITA.md](PORTABILITA.md)).
+- Vercel Cron → scartato: sul piano gratuito gira una volta al giorno, come già notato in DD-036.
+- Copiare il modulo push nel worker → scartata: due versioni da tenere allineate per codice che
+  cifra e firma.
+- Mandare dal worker la push di tutte le notifiche → scartata: le altre partono già dall'app, si
+  avrebbero push doppie.
+- Un unico stato di coda per email e push → scartata: le due consegne hanno esiti, tentativi e
+  destinatari diversi (una push per dispositivo, un'email per giocatore).
+
+**Conseguenze**
+
+- Il worker non fa più solo email: gestisce due canali (il documento operativo resta
+  [WORKER_EMAIL.md](WORKER_EMAIL.md)). Serve la chiave VAPID privata anche sull'host, un segreto in
+  più. Senza le chiavi il worker parte lo stesso e manda solo le email, segnalandolo nel log.
+- La push dei promemoria dipende dall'host di casa acceso, come le email: se è spento parte alla
+  ripartenza, ma non oltre le 3 ore dalla creazione.
+- Una tabella nuova (`notifiche_push_coda`) e una migration (`m24_push_promemoria_e_sondaggio`).
+- Il sondaggio compare nel centro notifiche e arriva per email ai giocatori attivi, non agli
+  allenatori; la push continua ad andare a tutti i dispositivi iscritti tranne quelli degli
+  allenatori, anche di giocatori non più attivi.
+- Le altre notifiche non cambiano canali e non ricevono push doppie.
+
+**Riesame**  
+Se l'host di casa si rivela poco affidabile per una notifica sensibile al tempo come la push, o se
+il database dovesse comunque chiamare l'app per altro, valutare di nuovo la chiamata dal database
+all'app.
+
+### DD-039 — L'allenatore non riceve i promemoria degli eventi
+
+**Data:** 29 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+DD-034 stabilì che l'allenatore riceve i promemoria a 24 e 3 ore prima di un evento, sempre, convocato
+o no (`giocatori_destinatari_evento()` riscritta da M21). Ma un promemoria serve a ricordare di
+esserci, e l'allenatore non può rispondere alle presenze, non è convocabile e non compare tra i
+partecipanti (DD-034). L'incoerenza si vede negli eventi extra-campo, come una cena di squadra:
+riceveva l'avviso (in-app, per email e, dopo M24, come push) senza poter dire se ci sarebbe stato né
+comparire nell'elenco.
+
+**Decisione**  
+I destinatari dei promemoria sono i **giocatori attivi**: i convocati, o tutta la rosa se
+`convocati` è vuoto. L'allenatore non li riceve, per nessun tipo di evento. Cambia solo la funzione
+SQL (migration `m25_promemoria_solo_giocatori`, `g.tipo = 'giocatore'` al posto di «o allenatore
+sempre»); cron, criteri di selezione, registro dei promemoria (DD-037), code email e push e testi
+restano invariati.
+
+**Alternative scartate**
+
+- Toglierli solo per gli eventi extra-campo → scartata su indicazione esplicita di toglierli per
+  gli eventi in generale: anche per un allenamento o una partita l'allenatore non è tra i
+  partecipanti.
+- Farlo rispondere agli eventi extra-campo, così da tenere il promemoria → scartata: servono
+  risposte presenze e regole del database per una categoria nuova, e il conteggio dei presenti.
+
+**Conseguenze**
+
+- Le notifiche che l'allenatore riceve dal server sono i **messaggi dello staff** e nient'altro
+  (sollecito, turno palloni, sondaggio e notifiche smart non lo riguardano già).
+- I promemoria già generati per un allenatore prima della migration non si toccano.
+- Un allenatore non è avvisato dell'inizio di un evento che gestisce: sa quando è perché lo ha
+  creato lui o lo vede in Calendario.
+- Sostituisce la parte di DD-034 sui promemoria; il resto di DD-034 resta valido.
+
+**Riesame**  
+Se l'allenatore dovesse poter partecipare a certi eventi (per esempio la cena), si riapre insieme
+alla sua possibilità di rispondere.

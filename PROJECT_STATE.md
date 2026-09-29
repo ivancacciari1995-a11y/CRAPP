@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 27/09/2026
+Ultimo aggiornamento: 29/09/2026
 
 ## Stato generale
 
@@ -10,8 +10,9 @@ Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
 amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
-reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0
-con il ruolo allenatore, è pronta ma non ancora pubblicata (vedi `docs/CHANGELOG.md`).
+reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0, ha
+portato il ruolo allenatore. La versione corrente è la 1.2.0: notifiche su tre canali (push, in-app
+ed email) e promemoria che non si ripetono (vedi `docs/CHANGELOG.md`).
 Cancellare un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane
 da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
@@ -24,8 +25,14 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 32 migration in `supabase/migrations/`, fino a `m21_ruolo_allenatore` (24/09/2026), tutte
-  applicate in produzione (verificato con `npx supabase migration list` il 24/09/2026)
+- 36 migration in `supabase/migrations/`, fino a `m25_promemoria_solo_giocatori` (29/09/2026).
+  Le prime 33 (fino a `m22_notifiche_email`) sono applicate in produzione, verificato con
+  `npx supabase migration list` il 29/09/2026; **`m23`, `m24` e `m25` sono verificate solo in locale
+  e non ancora applicate in produzione**
+- Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
+  29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
+  [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
+  su `develop`, non ancora su `main`
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -55,6 +62,28 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
   backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
   in `npx supabase migration list` del 24/09/2026)
+- Migration `m25_promemoria_solo_giocatori` (29/09/2026, DD-039): `giocatori_destinatari_evento()`
+  include solo i giocatori attivi, quindi l'allenatore non riceve più i promemoria degli eventi
+  (li riceveva sempre dalla `m21`). Cambia solo quella funzione; verificata in locale con
+  `npx supabase db reset` e i test di integrazione, **non ancora in produzione**
+- Migration `m24_push_promemoria_e_sondaggio` (29/09/2026, DD-038): tabella `notifiche_push_coda`
+  con trigger e due funzioni per il worker (la push dei promemoria a 24 e 3 ore), e nuovo tipo
+  `sondaggio_cacche` in `notifiche_utente` (il sondaggio pre-partita compare in-app e per email).
+  Additiva; verificata in locale con `npx supabase db reset`, i test di integrazione e una prova
+  end-to-end del worker con un servizio push finto, **non ancora in produzione**. Richiede il
+  worker ricostruito e le chiavi VAPID nel suo `.env` (vedi `docs/WORKER_EMAIL.md`)
+- Migration `m23_promemoria_gia_generati` (29/09/2026, DD-037): tabella
+  `promemoria_eventi_generati` e nuova `genera_promemoria_eventi()`, così un promemoria a 24 o 3
+  ore eliminato dal centro notifiche non viene più rigenerato dal cron (e non riaccoda mail).
+  Corregge un difetto presente dalla `m17`, emerso con l'arrivo delle email. Additiva; verificata
+  in locale con `npx supabase db reset` e `test/integration/promemoria-eventi.test.ts`, **non
+  ancora in produzione**
+- Migration `m22_notifiche_email` (29/09/2026, DD-036): tabelle `notifiche_email_coda` e
+  `preferenze_utente`, trigger che accoda ogni notifica di `notifiche_utente` e tre funzioni
+  RPC riservate alla service role, per il worker email. Additiva: non tocca lo schema
+  esistente. Verificata in locale con `npx supabase db reset`, test unit e di integrazione e
+  una prova end-to-end con il worker in Docker contro Mailpit, poi **in produzione** dal
+  29/09/2026 (`supabase db push`) con il worker in funzione
 - Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (24/09/2026, DD-034): ruolo
   allenatore (colonna `giocatori_squadra.tipo`, valore `allenatore` di `app_role`, policy e
   trigger) — verificate in locale con `npx supabase db reset` e `npm run test:all`, **in
@@ -178,8 +207,8 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: l'avviso certificati in scadenza (DD-035) è implementato e versione
-1.1.0 (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
+Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0) e le notifiche su tre
+canali (DD-036–DD-039, 1.2.0) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---

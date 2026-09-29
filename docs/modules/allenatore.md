@@ -122,47 +122,65 @@ risposte presenze altrui, gestione dei ruoli.
 
 ## Notifiche
 
-L'allenatore riceve i promemoria automatici degli eventi (24h e 3h prima, centro notifiche
-in-app di M17) come i giocatori, anche se non è convocato: `giocatori_destinatari_evento()`
-lo include sempre. Riceve anche i messaggi dell'admin, e può attivare le push dal proprio
-Profilo. Non riceve il sollecito presenze, il turno palloni né il sondaggio cacche, che
-riguardano chi gioca.
+Cosa riceve l'allenatore, notifica per notifica (il catalogo completo, con i canali di tutti, sta in
+[notifiche.md](notifiche.md#catalogo-delle-notifiche)):
+
+| Notifica                                          | L'allenatore la riceve? | Note                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Promemoria a 24 e 3 ore prima di un evento        | **no**                  | Dal 29/09/2026 (m25, DD-039) `giocatori_destinatari_evento()` include solo i giocatori attivi: l'allenatore non può rispondere alle presenze né essere convocato, quindi il promemoria non gli chiederebbe nulla che possa fare (per esempio una cena di squadra). Prima gli arrivava sempre, convocato o no (m21). |
+| Messaggio dello staff                             | **sì**                  | In-app ed email vanno a tutta la rosa attiva, allenatori compresi; la push ai suoi dispositivi iscritti, o solo a lui se il messaggio è per lui.                                                                                                                                                                    |
+| Sollecito presenze                                | no                      | L'allenatore non risponde alle presenze (DD-034). Può invece **far partire** il sollecito.                                                                                                                                                                                                                          |
+| Turno palloni                                     | no                      | I turni riguardano solo i giocatori.                                                                                                                                                                                                                                                                                |
+| Sondaggio pre-partita                             | no                      | Né la push né l'avviso in-app e per email (DD-038): il sondaggio non lo riguarda.                                                                                                                                                                                                                                   |
+| Notifiche smart (badge, serie, obiettivi, social) | **no**                  | Le mostra `CelebrazioneBadge` per il giocatore selezionato, letto da `useIo()`, che cerca l'id in `useRosa()`, da cui l'allenatore è escluso: per lui `useIo()` è `null` e `useNotificheSmart()` non fa nulla. Non ha statistiche da cui calcolarle.                                                                |
+
+Le email arrivano solo se il suo slot ha un account collegato e un'email registrata e se non ha
+spento l'interruttore «Email»; la push solo sui dispositivi su cui ha attivato «Notifiche» dal
+proprio Profilo (l'interruttore è identico a quello dei giocatori). Il centro notifiche in-app
+funziona come per i giocatori, con i soli messaggi dello staff.
 
 ## Esclusione dalla rosa
 
 L'allenatore ha uno slot in `giocatori_squadra` (DD-034), quindi ogni lettura della "rosa di
 gioco" lo esclude con `inRosa()` (`attivo` e `tipo = giocatore`) al posto del vecchio filtro
 su `attivo`. Fanno eccezione la tab Rosa di Squadra, i compleanni del Calendario
-(`useAnagraficaRosa({ conAllenatori: true })`), i destinatari dei promemoria evento e dei
-messaggi admin, che lo includono.
+(`useAnagraficaRosa({ conAllenatori: true })`) e i destinatari dei messaggi admin, che lo
+includono.
 
-| Livello  | Dove si esclude l'allenatore                                                                                                                                                     |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| client   | `useRosa()`, `useAnagraficaRosa()`, `useTurniPalloni()`, `usePresenzeUltimoMeseTutti()`, form convocati di `/eventi`, `EventoCard`, `TurnoPalloni`, `VotazioneMvp`, `VotoSocial` |
-| identità | `useGiocatoreInCampo()` è `null` per l'allenatore: niente risposta presenze, voti, pagelle, cacche, promemoria palloni                                                           |
-| server   | `destinatariSollecito()`, `promemoria-palloni.ts`, `apri-sondaggio.ts`                                                                                                           |
-| database | policy presenze e cacche «la propria riga» solo per `tipo = giocatore`; `evento_permette_voto()` rifiuta votante o votato allenatore                                             |
-| admin    | tab Squadra (conteggi, export CSI) e Profili (allenatori in un gruppo a parte, senza documenti né tesseramento)                                                                  |
+| Livello  | Dove si esclude l'allenatore                                                                                                                                                                                                                       |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| client   | `useRosa()`, `useAnagraficaRosa()`, `useTurniPalloni()`, `usePresenzeUltimoMeseTutti()`, form convocati di `/eventi`, `EventoCard`, `TurnoPalloni`, `VotazioneMvp`, `VotoSocial`, `useIo()` e `useGiocatoreCorrente()` (quindi le notifiche smart) |
+| identità | `useGiocatoreInCampo()` è `null` per l'allenatore: niente risposta presenze, voti, pagelle, cacche, promemoria palloni                                                                                                                             |
+| server   | `destinatariSollecito()`, `promemoria-palloni.ts`, `apri-sondaggio.ts`                                                                                                                                                                             |
+| database | policy presenze e cacche «la propria riga» solo per `tipo = giocatore`; `evento_permette_voto()` rifiuta votante o votato allenatore                                                                                                               |
+| admin    | tab Squadra (conteggi, export CSI) e Profili (allenatori in un gruppo a parte, senza documenti né tesseramento)                                                                                                                                    |
 
 Il compleanno dell'allenatore resta visibile in Calendario (è un membro della squadra, non un
 giocatore).
 
 ## Permessi (riepilogo)
 
-| Azione                                          | Giocatore  | Allenatore         | Admin              |
-| ----------------------------------------------- | ---------- | ------------------ | ------------------ |
-| Modificare nome e cognome                       | no         | sì, i propri       | tutti              |
-| Dati personali e foto profilo                   | i propri   | i propri (ridotti) | tutti (non i file) |
-| Documento, certificato, foto tessera            | i propri   | —                  | lettura/download   |
-| Avviso certificati in Home                      | il proprio | no                 | tutta la rosa      |
-| Creare/modificare/eliminare eventi, convocati   | no         | sì                 | sì                 |
-| Sollecitare le presenze                         | no         | sì                 | sì                 |
-| Promemoria palloni, notifica personalizzata     | no         | no                 | sì                 |
-| Rispondere alle presenze, votare, essere votato | sì         | no                 | sì (se giocatore)  |
-| Tab Stagione e Badge del profilo                | sì         | no                 | sì                 |
-| Tab Obiettivi e Badge di Squadra                | sì         | no                 | sì                 |
-| Badge e classifiche/dati sulle cacche           | sì         | no                 | sì                 |
-| Dashboard `/admin`                              | no         | no                 | sì                 |
+| Azione                                                              | Giocatore  | Allenatore         | Admin                               |
+| ------------------------------------------------------------------- | ---------- | ------------------ | ----------------------------------- |
+| Modificare nome e cognome                                           | no         | sì, i propri       | tutti                               |
+| Dati personali e foto profilo                                       | i propri   | i propri (ridotti) | tutti (non i file)                  |
+| Documento, certificato, foto tessera                                | i propri   | —                  | lettura/download                    |
+| Avviso certificati in Home                                          | il proprio | no                 | tutta la rosa                       |
+| Creare/modificare/eliminare eventi, convocati                       | no         | sì                 | sì                                  |
+| Sollecitare le presenze                                             | no         | sì                 | sì                                  |
+| Promemoria palloni, notifica personalizzata                         | no         | no                 | sì                                  |
+| Ricevere i promemoria automatici degli eventi (in-app, email, push) | sì         | no (DD-039)        | secondo il proprio slot             |
+| Ricevere i messaggi dello staff                                     | sì         | sì                 | secondo il proprio slot             |
+| Ricevere sollecito presenze, turno palloni, sondaggio cacche        | sì         | no                 | solo con uno slot giocatore in rosa |
+| Ricevere le notifiche smart (badge, serie, obiettivi)               | sì         | no                 | solo con uno slot giocatore in rosa |
+| Rispondere alle presenze, votare, essere votato                     | sì         | no                 | sì (se giocatore)                   |
+| Tab Stagione e Badge del profilo                                    | sì         | no                 | sì                                  |
+| Tab Obiettivi e Badge di Squadra                                    | sì         | no                 | sì                                  |
+| Badge e classifiche/dati sulle cacche                               | sì         | no                 | sì                                  |
+| Dashboard `/admin`                                                  | no         | no                 | sì                                  |
+
+Le notifiche sono legate allo **slot** (`giocatori_squadra`), non al ruolo di admin: chi è admin le riceve
+secondo il proprio slot, come giocatore o come allenatore, e non ne riceve se non ha uno slot.
 
 ## Implementazione
 
@@ -174,7 +192,7 @@ giocatore).
   del proprio allenatore; policy «L'allenatore aggiorna il proprio slot»; trigger
   `sincronizza_ruolo_allenatore` che aggiunge o toglie la riga `allenatore` in `user_roles` al
   collegamento, scollegamento, disattivazione o cambio di tipo; policy `eventi_app` admin o
-  allenatore; presenze, cacche e voti chiusi all'allenatore; promemoria evento aperti.
+  allenatore; presenze, cacche e voti chiusi all'allenatore.
 - **Client**: nell'app `numero` resta un `number` (0 per l'allenatore, NULL a database). I
   permessi (eventi, sollecito) leggono `user_roles` con `usePuoGestireEventi()`; cosa si vede
   dipende dal tipo del proprio slot (`useSonoAllenatore()`), che è immediato.
@@ -183,7 +201,8 @@ giocatore).
 
 ## Scelte confermate
 
-- Riceve i promemoria degli eventi: sì.
+- Non riceve i promemoria degli eventi (DD-039; fino alla m24 li riceveva sempre, DD-034). Riceve i
+  messaggi dello staff.
 - Sollecita le presenze: sì. Promemoria palloni: no.
 - Badge e cacche: mai visibili all'allenatore, né classifiche né sondaggio.
 - In Squadra: nessuna sezione Staff; compare in Rosa come gli altri, con «Allenatore» al

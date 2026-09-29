@@ -14,6 +14,7 @@ ancora e va **prima documentata** (vedi [DD-002](DESIGN_DECISIONS.md#dd-002--svi
 | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Perché abbiamo scelto così, cosa abbiamo escluso e quando riaprire la scelta                                  |
 | [PORTABILITA.md](PORTABILITA.md)           | Cosa lega l'app a un fornitore e cosa no, come spostarla su server proprio (backup/disaster recovery incluso) |
 | [EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md) | Come tenere basso il consumo cloud: cache, query, push                                                        |
+| [WORKER_EMAIL.md](WORKER_EMAIL.md)         | Come si installa, si gestisce e si diagnostica il worker che invia le notifiche per email                     |
 | [CHANGELOG.md](CHANGELOG.md)               | Cosa è cambiato e quando                                                                                      |
 | [modules/](modules/)                       | Specifica funzionale di ogni modulo, una per file                                                             |
 
