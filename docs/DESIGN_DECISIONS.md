@@ -51,13 +51,13 @@ Serve a rispondere a domande del tipo:
 | [DD-033](#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)                      | Gestione eventi solo da calendario    |
 | [DD-034](#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)        | Ruolo allenatore                      |
 | [DD-035](#dd-035--avviso-certificati-calcolato-in-home-visibile-solo-al-titolare-e-agli-admin)   | Avviso certificati in Home            |
+| [DD-036](#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa)                | Notifiche email via Gmail             |
 
 **In valutazione**
 
-| ID                                                                                | Titolo                    |
-| --------------------------------------------------------------------------------- | ------------------------- |
-| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze)                  | Convergenza schema DB     |
-| [DD-036](#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa) | Notifiche email via Gmail |
+| ID                                                               | Titolo                |
+| ---------------------------------------------------------------- | --------------------- |
+| [DD-014](#dd-014--convergenza-schema-database-eventi-e-presenze) | Convergenza schema DB |
 
 **Sostituite**
 
@@ -1515,7 +1515,7 @@ giorni si rivelano pochi per prenotare una visita, alzare la costante o renderla
 ### DD-036 — Notifiche email via Gmail, da un worker Docker sull'host di casa
 
 **Data:** 29 settembre 2026  
-**Stato:** In valutazione
+**Stato:** Accettata
 
 **Contesto**  
 Le notifiche di CrAPP arrivano solo con la push (che dipende da Chrome vivo in background,
@@ -1566,7 +1566,13 @@ invia tramite `smtp.gmail.com` con un account Gmail dedicato e una password per 
   registrazione può arrivare un doppione.
 - Il tetto di circa 500 destinatari al giorno di Gmail è largo per una squadra, ma è un limite
   reale: con molte squadre o riepiloghi frequenti andrebbe rivisto.
-- Nuova migration, nuova cartella `mailer/` e un segreto in più (la service role sull'host).
+- Nuova migration (`m22_notifiche_email`), nuova cartella `mailer/` (worker bun con la sola
+  dipendenza `nodemailer`, separato dall'app) e un segreto in più (la service role sull'host).
+  L'app non guadagna nessuna dipendenza e le route di M17 non cambiano.
+- Il certificato in scadenza resta fuori dalle email: non è una notifica (DD-035), quindi non
+  passa da `notifiche_utente`. Renderlo una notifica sarebbe una decisione a parte.
+- Il tetto giornaliero è una finestra mobile di 24 ore, `MAIL_LIMITE_GIORNO` (400 di default,
+  sotto i circa 500 di Gmail).
 - Le email dei giocatori si usano per un secondo scopo oltre al login: da qui l'opt-out e
   l'indicazione in ogni mail su come disattivarlo.
 - Una tabella in più, `preferenze_utente`, pensata per accogliere in futuro anche le

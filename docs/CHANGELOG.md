@@ -13,6 +13,17 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Aggiunto
+
+- **Notifiche email** — ogni notifica del centro notifiche in-app (messaggi dello staff,
+  promemoria a 24 e 3 ore, turno palloni, sollecito presenze) arriva anche per email
+  all'indirizzo Gmail con cui il giocatore si è registrato, gratis e senza aprire porte sul
+  router: un worker Docker (`mailer/`) sull'host di casa legge una coda su Supabase (migration
+  `m22_notifiche_email`) e invia tramite un account Gmail dedicato. In Profilo → Opzioni c'è
+  l'interruttore «Email», acceso di default. Il worker va messo in funzione a parte (vedi
+  [notifiche-email.md](modules/notifiche-email.md#messa-in-funzione)): finché la migration non è
+  applicata in produzione e il container non gira, non parte nessuna mail (DD-036).
+
 ## [1.1.1] - 2026-09-28
 
 ### Aggiunto

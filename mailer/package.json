@@ -1,0 +1,12 @@
+{
+  "name": "crapp-mailer",
+  "private": true,
+  "type": "module",
+  "description": "Worker delle notifiche email di CrAPP (M22, DD-036)",
+  "scripts": {
+    "start": "bun mailer.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.11"
+  }
+}

@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 27/09/2026
+Ultimo aggiornamento: 29/09/2026
 
 ## Stato generale
 
@@ -24,8 +24,13 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 32 migration in `supabase/migrations/`, fino a `m21_ruolo_allenatore` (24/09/2026), tutte
-  applicate in produzione (verificato con `npx supabase migration list` il 24/09/2026)
+- 33 migration in `supabase/migrations/`, fino a `m22_notifiche_email` (29/09/2026). Le prime
+  32 (fino a `m21_ruolo_allenatore`) sono applicate in produzione, verificato con
+  `npx supabase migration list` il 24/09/2026; **`m22` è verificata solo in locale e non ancora
+  applicata in produzione**
+- Il worker delle notifiche email (`mailer/`) non è ancora in funzione su nessun host: la messa
+  in funzione (account Gmail dedicato, `.env`, `docker compose up`) sta in
+  [docs/modules/notifiche-email.md](docs/modules/notifiche-email.md#messa-in-funzione)
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -55,6 +60,11 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
   backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
   in `npx supabase migration list` del 24/09/2026)
+- Migration `m22_notifiche_email` (29/09/2026, DD-036): tabelle `notifiche_email_coda` e
+  `preferenze_utente`, trigger che accoda ogni notifica di `notifiche_utente` e tre funzioni
+  RPC riservate alla service role, per il worker email. Additiva: non tocca lo schema
+  esistente. Verificata in locale con `npx supabase db reset`, test unit e di integrazione e
+  una prova end-to-end con il worker in Docker contro Mailpit; **non ancora in produzione**
 - Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (24/09/2026, DD-034): ruolo
   allenatore (colonna `giocatori_squadra.tipo`, valore `allenatore` di `app_role`, policy e
   trigger) — verificate in locale con `npx supabase db reset` e `npm run test:all`, **in

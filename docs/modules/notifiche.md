@@ -164,6 +164,14 @@ sparire per sempre è eliminarle una per una, con uno swipe verso sinistra sulla
 × che compare sopra ogni riga per chi non è su touch. Chi non tocca mai una notifica se la
 ritrova per sempre nell'elenco, solo segnata come letta.
 
+## Canale email (M22)
+
+Ogni riga di `notifiche_utente` viene inviata anche per email da un worker esterno, con
+un interruttore «Email» per account in Profilo → Opzioni: [notifiche-email.md](notifiche-email.md).
+Non cambia nulla di quanto descritto sopra: push, notifiche smart e centro notifiche restano
+indipendenti e le quattro sorgenti scrivono `notifiche_utente` come prima. Il certificato in
+scadenza resta una card in Home e non genera mail (DD-035).
+
 ## Limiti noti
 
 - Non ci sono preferenze granulari (solo palloni / solo presenze / solo smart): un dispositivo
@@ -216,7 +224,6 @@ ritrova per sempre nell'elenco, solo segnata come letta.
 
 ## Evoluzioni possibili
 
-- Canale email, progettato ma non ancora implementato: [notifiche-email.md](notifiche-email.md).
 - Preferenze per canale (palloni, solleciti, smart), se servono davvero alla squadra.
 - Eliminare `promemoria_push` con una migrazione.
 - Gestire esplicitamente il caso iOS (messaggio se l'app non è installata da Home).

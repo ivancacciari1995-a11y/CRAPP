@@ -1,23 +1,27 @@
 # Modulo — Notifiche email
 
-**Stato:** progettato, non implementato (DD-036, in valutazione)
-**File previsti:** `mailer/` (worker Node + `Dockerfile` + `docker-compose.yml`), una migration
-`m22_…` per la coda e la preferenza, `src/lib/notifiche-email-core.ts` (logica pura, testata)
+**Stato:** implementato e verificato in locale (migration `m22`, worker in `mailer/`); non ancora
+applicato in produzione né messo in funzione sull'host (vedi [Messa in funzione](#messa-in-funzione))
+**File principali:** `supabase/migrations/20260929120000_m22_notifiche_email.sql`,
+`mailer/mailer.mjs`, `mailer/mailer-core.ts`, `mailer/healthcheck.mjs`, `mailer/Dockerfile`,
+`mailer/docker-compose.yml`, `src/lib/preferenze-utente.ts`, `src/routes/profilo.tsx`
+(interruttore «Email»)
 
 ## Obiettivo
 
 Far arrivare le notifiche di CrAPP anche per email, all'indirizzo Gmail con cui il giocatore
-si è registrato, **a costo zero** e senza affidarsi a un servizio a pagamento. È un terzo
-canale accanto alla push e al centro notifiche in-app ([notifiche.md](notifiche.md)): non li
-sostituisce, e non introduce nuovi eventi. Manda per email ciò che già finisce in
-`notifiche_utente`.
+si è registrato, **a costo zero**. È un terzo canale accanto alla push e al centro notifiche
+in-app ([notifiche.md](notifiche.md)): non li sostituisce e non introduce eventi nuovi. Manda
+per email **ogni notifica che finisce già in `notifiche_utente`**, di qualunque tipo e per
+qualunque destinatario. Le motivazioni delle scelte stanno in
+[DD-036](../DESIGN_DECISIONS.md#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa).
 
 ## Architettura
 
 ```
 App su Vercel ──scrive──▶ notifiche_utente ──trigger──▶ notifiche_email_coda   (Supabase)
                                                               ▲
-                                            polling in uscita │ service role
+                                            polling in uscita │ RPC con service role
                                                               │
                                      Container Docker sul tuo host  (mailer)
                                                               │ SMTP 587 (STARTTLS)
@@ -25,201 +29,255 @@ App su Vercel ──scrive──▶ notifiche_utente ──trigger──▶ noti
                                        smtp.gmail.com ──▶ casella Gmail del giocatore
 ```
 
-- **Vercel non ospita Docker**, quindi il worker gira sull'host di casa. Sta **solo in
+- **Vercel non ospita Docker**, quindi il worker gira sull'host di casa e sta **solo in
   uscita**: interroga Supabase e parla con Gmail. Nessuna porta aperta sul router, nessun IP
-  pubblico, nessun DNS dinamico, nessun tunnel.
-- **L'app non invia mai email direttamente.** Continua a scrivere `notifiche_utente` come oggi
-  (le quattro sorgenti di M17 restano invariate). Se l'host è spento le mail restano in coda
-  e partono alla ripartenza: la consegna è in ritardo, mai persa.
-- **Tutta la logica di accodamento sta nel database**, così vale per ogni sorgente, cron
-  `pg_cron` compresi, senza toccare le route esistenti.
+  pubblico, nessun tunnel.
+- **L'app non invia mai email direttamente.** Continua a scrivere `notifiche_utente` come
+  prima: le route e i cron di M17 non sono stati toccati. Se l'host è spento le mail restano in
+  coda e partono alla ripartenza: consegna in ritardo, mai persa.
+- **L'accodamento sta nel database** (un trigger), quindi vale per ogni sorgente, cron
+  `pg_cron` compresi.
+- Il worker gira con **bun** (immagine `oven/bun:1-alpine`, come il resto del progetto) e ha una
+  sola dipendenza, `nodemailer`. Parla con Supabase via `fetch` sulle funzioni RPC di PostgREST,
+  senza `@supabase/supabase-js`. Ha un proprio `package.json` e `bun.lock`, separati da quelli
+  dell'app, che non guadagna nessuna dipendenza.
+
+## Quali notifiche e a chi
+
+**Ogni riga nuova di `notifiche_utente` genera una mail**: messaggio admin, promemoria a 24 ore
+e a 3 ore, turno palloni, sollecito presenze. Un tipo nuovo che in futuro finisse in quella
+tabella viaggerebbe per email senza altro lavoro. Le notifiche già presenti quando si applica
+la migration **non** vengono inviate: il trigger non ha backfill.
+
+**Chi le riceve:** chi ha la riga in `notifiche_utente`, con la stessa logica delle notifiche
+in-app. Gli admin e gli allenatori non hanno un percorso a parte: ricevono ciò che riceverebbero
+come giocatori, secondo i destinatari già definiti in M17 e DD-034.
+
+Il certificato in scadenza **non genera mail**: non è una notifica ma una card calcolata in Home
+(DD-035). Se un giorno lo si volesse anche per email sarebbe una sorgente nuova di
+`notifiche_utente`, da decidere a parte.
+
+**Indirizzo:** `giocatori_squadra.email`, la stessa colonna che collega account e giocatore
+(DD-018). Uno slot senza `auth_user_id` (giocatore non ancora registrato), senza email o il cui
+account ha spento le email non riceve nulla: la riga in coda passa a `saltata`, senza errore.
 
 ## Mittente: Gmail con password per app
 
-Il worker invia con un **account Gmail dedicato** (es. `crapp.notifiche@gmail.com`, non
-quello personale) tramite `smtp.gmail.com:587`, autenticandosi con una **password per app**.
+Il worker invia con un **account Gmail dedicato** (es. `crapp.notifiche@gmail.com`, non quello
+personale) tramite `smtp.gmail.com:587`, autenticandosi con una **password per app**.
 
 | Requisito                | Dettaglio                                                                                                                           |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Verifica in due passaggi | Obbligatoria sull'account: senza, Google non permette di creare le password per app.                                                |
 | Password per app         | Da myaccount.google.com → Sicurezza → Password per le app. 16 caratteri, revocabile senza cambiare la password dell'account.        |
-| Limite di invio          | Circa 500 destinatari al giorno per un account gratuito (verificare il valore corrente). Una squadra ne usa poche decine al giorno. |
-| Intestazione `From`      | Gmail la riscrive con l'indirizzo dell'account: il nome visibile può essere «CrAPP», l'indirizzo no.                                |
+| Limite di invio          | Circa 500 destinatari al giorno per un account gratuito (verificare il valore corrente); il worker si ferma a `MAIL_LIMITE_GIORNO`. |
+| Intestazione `From`      | Gmail la riscrive con l'indirizzo dell'account: il nome visibile è «CrAPP», l'indirizzo no.                                         |
 | Porta                    | 587 in uscita. La 25 è bloccata dai provider residenziali e non serve.                                                              |
 
-Perché Gmail e non un relay come Brevo o Resend: i destinatari sono già su Gmail, quindi la
-mail parte e arriva dentro la stessa infrastruttura, con SPF e DKIM già a posto e senza dover
-comprare né configurare un dominio. Un relay dedicato ha senso solo se un giorno si vorrà un
-mittente col dominio della squadra (vedi Riesame in DD-036). **Non si invia mai direttamente
-dal proprio IP di casa**: gli IP residenziali sono nelle blocklist e senza reverse DNS le mail
-finiscono in spam o vengono rifiutate.
+Perché Gmail e non un relay come Brevo o Resend: i destinatari sono già su Gmail, quindi la mail
+parte e arriva dentro la stessa infrastruttura, con SPF e DKIM già a posto e senza comprare né
+configurare un dominio. **Non si invia mai direttamente dal proprio IP di casa**: gli IP
+residenziali sono nelle blocklist e senza reverse DNS le mail finiscono in spam o vengono
+rifiutate.
 
-## Dati (bozza, non ancora in `DATABASE.md`)
+## Dati
 
-Lo schema si documenta in [DATABASE.md](../DATABASE.md) nella stessa modifica che crea la
-migration. La bozza:
+Lo schema completo, con permessi e note, sta in [DATABASE.md](../DATABASE.md); qui il quadro
+funzionale.
 
-**`notifiche_email_coda`** — una riga per notifica da mandare.
+**`notifiche_email_coda`** — una riga per notifica da mandare (`notifica_id` è chiave primaria e
+chiave esterna con `ON DELETE CASCADE`: cancellare la notifica, per esempio con lo swipe,
+toglie anche la mail non ancora partita).
 
-| Colonna              | Tipo                | Note                                                                  |
-| -------------------- | ------------------- | --------------------------------------------------------------------- |
-| `notifica_id`        | uuid PK, FK cascade | `notifiche_utente(id)`: cancellata la notifica sparisce anche la riga |
-| `stato`              | text                | `in_coda` · `in_invio` · `inviata` · `fallita` · `saltata`            |
-| `tentativi`          | int                 | incrementato a ogni invio fallito                                     |
-| `prossimo_tentativo` | timestamptz         | il worker la prende solo se `<= now()` (backoff)                      |
-| `errore`             | text                | ultimo messaggio d'errore SMTP                                        |
-| `inviata_il`         | timestamptz         | valorizzato a invio riuscito                                          |
+| Colonna              | Note                                                                    |
+| -------------------- | ----------------------------------------------------------------------- |
+| `stato`              | `in_coda` · `in_invio` · `inviata` · `fallita` · `saltata`              |
+| `tentativi`          | invii falliti finora; non cresce per i rinvii «differiti» (vedi sotto)  |
+| `prossimo_tentativo` | il worker prende la riga solo se `<= now()` (backoff)                   |
+| `errore`             | solo i codici SMTP dell'ultimo errore, mai il testo delle mail          |
+| `inviata_il`         | valorizzato a invio riuscito; alimenta il conteggio delle ultime 24 ore |
+| `aggiornata_il`      | serve a riconoscere le righe rimaste `in_invio` per un worker morto     |
 
-Perché una tabella a parte e non colonne su `notifiche_utente`: quella tabella ha una policy
-`UPDATE` per il giocatore su tutta la riga, quindi un client potrebbe riportare a `in_coda` una
-mail già partita. La coda invece ha RLS attiva **senza nessuna policy**: la vede e la scrive
-solo la service role (il worker), mai un client.
+È una tabella a parte e non colonne su `notifiche_utente` perché quella ha una policy `UPDATE`
+per il giocatore su tutta la riga: un client potrebbe riportare a `in_coda` una mail già partita.
+La coda ha la RLS attiva **senza alcuna policy** e i permessi tolti a `anon` e `authenticated`:
+la legge e la scrive solo la service role, cioè il worker.
 
-**`preferenze_utente`** — tabella nuova, una riga per **account** (`auth_user_id` PK, FK su
-`auth.users` con cascade), non per slot giocatore. Per ora ha una sola colonna,
-`email_notifiche boolean NOT NULL DEFAULT true`. RLS: ognuno legge e scrive solo la propria
-riga (`auth_user_id = auth.uid()`), il worker la legge con la service role. **Nessuna riga
-significa acceso**: la riga nasce solo quando il giocatore tocca l'interruttore (upsert), e
-la funzione `prendi_notifiche_email` tratta l'assenza come `true`. Non va su
-`giocatori_squadra`, che ha una riga per slot e il giocatore può modificare solo in parte
-(DD-016).
+**`preferenze_utente`** — una riga per **account** (`auth_user_id`, non lo slot giocatore), per
+ora con la sola colonna `email_notifiche` (default `true`). **Nessuna riga significa email
+attive**: la riga nasce solo quando il giocatore tocca l'interruttore, con un upsert; ognuno
+legge e scrive solo la propria, per RLS. Non sta su `giocatori_squadra`, che ha una riga per slot
+e il giocatore può modificare solo in parte (DD-016).
 
-**Indirizzo destinatario** — `giocatori_squadra.email`, già usata per il collegamento
-automatico account↔giocatore (DD-018). Niente lettura di `auth.users`.
+**Funzioni RPC** — tutte `SECURITY DEFINER` e con `EXECUTE` solo alla service role:
+
+| Funzione                                       | Cosa fa                                                                                                                                                |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `prendi_notifiche_email(p_max)`                | Prende fino a `p_max` righe `in_coda` scadute con `FOR UPDATE SKIP LOCKED`, le marca `in_invio` e restituisce indirizzo, oggetto, testo, evento, tipo. |
+| `esito_notifica_email(id, esito, errore, ora)` | Registra `inviata`, `riprova`, `differita` o `fallita`; agisce solo su righe `in_invio`, così un esito in ritardo non ne sovrascrive uno già deciso.   |
+| `email_inviate_ultime_24h()`                   | Conta le mail inviate nelle ultime 24 ore, per restare sotto il tetto.                                                                                 |
 
 ## Flusso
 
-1. Una sorgente M17 inserisce (o aggiorna via `upsert`) una riga in `notifiche_utente`.
-2. Un trigger `AFTER INSERT OR UPDATE OF creato_il` la accoda in `notifiche_email_coda`,
-   L'`upsert` di turno palloni e sollecito
-   presenze aggiorna `creato_il`: è un rinvio voluto, e rimette in coda anche la mail.
-3. Il worker ogni ~30 secondi chiama la funzione RPC `prendi_notifiche_email(n)`, riservata
-   alla service role. Seleziona fino a `n` righe `in_coda` con `FOR UPDATE SKIP LOCKED`, le
-   marca `in_invio` e restituisce titolo, corpo, `evento_id` e indirizzo, già filtrate per
-   preferenza attiva e slot con `auth_user_id` valorizzato. Con `SKIP LOCKED` due worker
-   avviati per errore non mandano la stessa mail due volte.
-4. Il worker invia con `nodemailer`, poi segna `inviata` o `fallita`.
-5. Riga senza destinatario (slot non ancora collegato a un account, preferenza spenta,
-   email assente): `saltata`, senza errore.
+1. Una sorgente M17 inserisce (o aggiorna con `upsert`) una riga in `notifiche_utente`.
+2. Il trigger `notifiche_utente_accoda_email` (`AFTER INSERT OR UPDATE OF creato_il`) la mette in
+   `notifiche_email_coda`. L'`upsert` di turno palloni e sollecito presenze riscrive `creato_il`:
+   è un rinvio voluto e rimette in coda anche la mail. Segnare come letta e l'`ON CONFLICT DO NOTHING`
+   dei cron non toccano quella colonna e non accodano nulla.
+3. Ogni `POLL_SECONDI` (30) il worker conta le mail delle ultime 24 ore, ne chiede al massimo
+   quante ne restano sotto il tetto (al più `MAIL_LOTTO`) a `prendi_notifiche_email` e le invia
+   una a una. Prima di prendere il lotto la funzione SQL fa due pulizie: riporta a `in_coda` le
+   righe ferme `in_invio` da più di 10 minuti (worker morto a metà) e segna `saltata` quelle
+   senza destinatario o con le email spente.
+4. Ogni invio registra l'esito con `esito_notifica_email`.
 
-**Ogni notifica presente in `notifiche_utente` genera una mail**, di qualunque tipo:
-`admin`, `evento_promemoria_24h`, `evento_promemoria_3h`, `turno_palloni`,
-`sollecita_presenze`. Il modulo non aggiunge sorgenti né cambia la logica di M17: un tipo
-nuovo che in futuro finisse in `notifiche_utente` viaggerebbe per email senza altro lavoro.
-
-**Chi le riceve.** Con la stessa logica delle notifiche in-app: la mail va a chi ha la riga in
-`notifiche_utente`, admin e allenatori compresi. Non c'è un percorso separato per gli admin: un
-admin riceve ciò che riceverebbe come giocatore (i destinatari di ogni sorgente restano quelli
-già definiti in M17 e DD-034).
-
-Il certificato in scadenza **non genera mail**: non è una notifica ma una card calcolata in
-Home (DD-035), e questo modulo non la trasforma in una. Se un giorno la si volesse anche per
-email, sarebbe una sorgente nuova di `notifiche_utente` da decidere a parte.
+La preferenza è valutata **al momento dell'invio**, non dell'accodamento: spegnere l'interruttore
+ferma anche le mail già in coda.
 
 ## Affidabilità
 
-| Situazione                            | Comportamento                                                                                                          |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Errore temporaneo (rete, 4xx SMTP)    | Backoff 1 · 5 · 30 · 120 min, poi `fallita` dopo 5 tentativi.                                                          |
-| Errore permanente (5xx, indirizzo KO) | `fallita` subito, senza altri tentativi.                                                                               |
-| Worker fermo o host spento            | Le mail restano `in_coda`; partono alla ripartenza.                                                                    |
-| Crash tra l'invio e l'aggiornamento   | Possibile un doppione: la consegna è _almeno una volta_. Il `Message-ID` è deterministico (derivato da `notifica_id`). |
-| Righe `in_invio` orfane               | All'avvio il worker riporta a `in_coda` quelle ferme da più di 10 minuti.                                              |
-| Limite giornaliero Gmail raggiunto    | Il worker si ferma fino a mezzanotte (fuso Europe/Rome) e riprende; nessuna riga viene scartata.                       |
+Il worker classifica l'errore SMTP (`classificaErroreSmtp`):
 
-## Worker (`mailer/`)
+| Tipo             | Esempi                                                     | Cosa succede                                                                              |
+| ---------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `temporaneo`     | 4xx, timeout, connessione caduta                           | Riprova con backoff 1 · 5 · 30 · 120 min; al quinto invio fallito passa a `fallita`.      |
+| `permanente`     | 5xx sul destinatario o sul messaggio, indirizzo non valido | `fallita` subito, senza altri tentativi.                                                  |
+| `limite`         | `550 5.4.5 Daily user sending quota exceeded`              | Tutto il lotto torna in coda tra un'ora **senza consumare tentativi**; il ciclo si ferma. |
+| `configurazione` | credenziali SMTP rifiutate (535, 534, 530, `EAUTH`)        | Come sopra ma tra 15 minuti, e il container **non** risulta più sano (vedi sotto).        |
 
-Servizio Node piccolo: `@supabase/supabase-js` e `nodemailer`. Le dipendenze passano dal
-controllo `minimumReleaseAge` di `bunfig.toml` come per il resto del progetto.
+Altre situazioni:
 
-```yaml
-# mailer/docker-compose.yml (bozza)
-services:
-  mailer:
-    build: .
-    restart: unless-stopped
-    env_file: .env
-    healthcheck:
-      test: ["CMD", "node", "healthcheck.js"]
-      interval: 60s
-      retries: 3
-```
+| Situazione                            | Comportamento                                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Worker fermo o host spento            | Le mail restano `in_coda` e partono alla ripartenza.                                                                                             |
+| Crash tra l'invio e la registrazione  | Consegna _almeno una volta_: la riga resta `in_invio`, dopo 10 minuti torna in coda e la mail può arrivare due volte. Mai una perdita.           |
+| Errore nella registrazione dell'esito | Non si tratta come errore SMTP (non parte un secondo invio): il ciclo si interrompe e la riga viene recuperata come sopra.                       |
+| Tetto giornaliero raggiunto           | Finestra mobile di 24 ore su `inviata_il`, non «fino a mezzanotte»: il worker riprende da solo quando le mail più vecchie escono dalla finestra. |
 
-Variabili d'ambiente, mai committate (il `.env` sta nel `.gitignore`):
+`MAIL_LIMITE_GIORNO` vale 400 di default, sotto i circa 500 di Gmail, per lasciare margine ai
+messaggi che l'account dedicato potesse mandare per altre vie.
 
-| Variabile                   | Contenuto                                                        |
-| --------------------------- | ---------------------------------------------------------------- |
-| `SUPABASE_URL`              | URL del progetto                                                 |
-| `SUPABASE_SERVICE_ROLE_KEY` | chiave service role: salta la RLS, va trattata come una password |
-| `SMTP_USER`, `SMTP_PASS`    | account Gmail dedicato e relativa password per app               |
-| `MAIL_FROM_NAME`            | nome visibile, es. «CrAPP»                                       |
-| `POLL_SECONDI`              | intervallo di polling, default 30                                |
-| `APP_URL`                   | base dei link nelle mail (es. `/evento/<id>`)                    |
-
-`healthcheck.js` segnala non sano il container se l'ultimo ciclo di polling riuscito è più
-vecchio di qualche minuto. Il log dice solo id, tipo e esito: **mai indirizzi o testi**.
+**Salute del container.** `mailer.mjs` scrive un timestamp in `/tmp/mailer-ok` a ogni ciclo
+riuscito; `healthcheck.mjs` (eseguito da Docker ogni minuto) segnala non sano il container se
+l'ultimo è più vecchio di 5 minuti. Un ciclo fermato dalle credenziali SMTP rifiutate **non**
+aggiorna il file, così dopo qualche minuto `docker ps` mostra `unhealthy` invece di far credere
+che tutto funzioni. Un ciclo fermato dal solo tetto giornaliero è normale e resta sano.
 
 ## Contenuto delle mail
 
-Sobrio, testo semplice più una versione HTML minima, leggibile da smartphone: oggetto = titolo
-della notifica, corpo = corpo della notifica, un pulsante «Apri CrAPP» verso l'evento quando
-`evento_id` c'è. In fondo una riga che spiega come disattivare le email (Profilo → Opzioni).
-Nessuna immagine remota, nessun tracciamento delle aperture.
-
-## Privacy e sicurezza
-
-- Le email personali dei giocatori non lasciano Supabase se non verso Gmail, che è già dove
-  stanno. Il worker legge solo l'indirizzo dei destinatari del lotto, non l'intera rosa.
-- La service role sta solo sull'host, in un `.env` con permessi `600`; non passa da Vercel.
-- La password per app si può revocare da Google senza toccare l'account.
-- Il canale è **opt-out**: acceso di default, spegnibile dal giocatore. Un interruttore
-  unico, come per la push (nessuna preferenza per tipo).
+Sobrio, in testo semplice più una versione HTML minima leggibile da smartphone: oggetto = titolo
+della notifica (su una riga sola, massimo 200 caratteri), corpo = corpo della notifica, un
+pulsante «Apri CrAPP» verso `/evento/<id>` quando la notifica riguarda un evento e verso la home
+altrimenti. In fondo una riga che spiega come disattivare le email (Profilo → Opzioni → Email).
+Nessuna immagine remota, nessun tracciamento delle aperture. Il testo scritto dall'admin viene
+sempre escapato nell'HTML. Il `Message-ID` è derivato dall'id della notifica.
 
 ## Interfaccia
 
-Un solo cambio: in Profilo → Opzioni, sotto «Notifiche», un interruttore «Email» che scrive la
-preferenza per account. Nessuna schermata nuova. Nella tab «Notifiche» della dashboard admin
-si può aggiungere in un secondo momento uno stato per giocatore (email attive o no), come già
-fa la campana per la push.
+Un solo cambio: in Profilo → Opzioni, sotto «Notifiche», un interruttore **«Email»** (icona
+busta) che scrive `preferenze_utente` per l'account, con lo stesso stile dell'interruttore
+«Notifiche» (`useEmailNotifiche()` in `src/lib/preferenze-utente.ts`). Vale per tutti gli slot
+dell'account. Nessuna schermata nuova.
+
+## Privacy e sicurezza
+
+- Le email personali dei giocatori non lasciano Supabase se non verso Gmail. Il worker legge solo
+  l'indirizzo dei destinatari del lotto che sta spedendo, non l'intera rosa.
+- La service role sta solo sull'host, in un `.env` con permessi `600`; non passa da Vercel.
+- La password per app si può revocare da Google senza toccare l'account.
+- I log del worker riportano solo id notifica, tipo ed esito: **mai indirizzi né testi**, e degli
+  errori SMTP solo i codici. Il log del container è limitato a 3 file da 5 MB.
+- Il canale è **opt-out**: acceso di default, spegnibile dal giocatore. Un interruttore unico,
+  come per la push (nessuna preferenza per tipo).
+
+## Messa in funzione
+
+Da fare una volta, sull'host che deve far girare il worker (serve Docker).
+
+1. **Account Gmail dedicato.** Creane uno nuovo, attiva la verifica in due passaggi e genera una
+   password per app (vedi la tabella sopra).
+2. **Applica la migration in produzione**, solo dopo aver verificato tutto in locale:
+   `npx supabase db push`. È additiva (due tabelle, un trigger, tre funzioni): non modifica nulla
+   di esistente e non invia mail finché il worker non parte. Dal momento in cui è applicata, le
+   nuove notifiche si accodano: **avvia il worker nella stessa sessione**, altrimenti al primo
+   avvio partirebbero tutte insieme anche mail ormai vecchie (per esempio un promemoria di giorni
+   prima).
+3. **Configura il worker.** In `mailer/`: `cp .env.example .env`, `chmod 600 .env` e compila
+   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SMTP_USER`, `SMTP_PASS` e `APP_URL`. Le altre
+   variabili hanno un default:
+
+   | Variabile                               | Default                        | Contenuto                                                        |
+   | --------------------------------------- | ------------------------------ | ---------------------------------------------------------------- |
+   | `SUPABASE_URL`                          | —                              | URL del progetto                                                 |
+   | `SUPABASE_SERVICE_ROLE_KEY`             | —                              | chiave service role: salta la RLS, va trattata come una password |
+   | `SMTP_USER`, `SMTP_PASS`                | —                              | account Gmail dedicato e password per app (vanno insieme)        |
+   | `APP_URL`                               | —                              | base dei link nelle mail                                         |
+   | `MAIL_FROM`, `MAIL_FROM_NAME`           | `SMTP_USER`, `CrAPP`           | indirizzo e nome del mittente                                    |
+   | `POLL_SECONDI`                          | 30                             | intervallo di polling                                            |
+   | `MAIL_LIMITE_GIORNO`                    | 400                            | tetto delle ultime 24 ore                                        |
+   | `MAIL_LOTTO`                            | 10                             | mail prese a ogni giro                                           |
+   | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | `smtp.gmail.com`, 587, `false` | server SMTP (`true` solo per la 465)                             |
+
+4. **Avvia:** `docker compose up -d --build` dentro `mailer/`. Il container ha
+   `restart: unless-stopped`, quindi riparte da solo dopo un riavvio dell'host.
+5. **Verifica:** `docker compose logs -f` deve mostrare «SMTP raggiungibile e credenziali
+   accettate»; poi manda un messaggio a un giocatore dalla dashboard admin e controlla che la
+   riga in coda passi a `inviata` e la mail arrivi. `docker ps` deve mostrare `healthy`.
+
+**Aggiornare il worker:** `git pull`, poi `docker compose up -d --build` in `mailer/`.
+
+**Diagnosi rapida:** `SELECT stato, count(*) FROM notifiche_email_coda GROUP BY stato;` mostra a
+colpo d'occhio se qualcosa si accumula in `in_coda` (worker fermo o tetto raggiunto) o in `fallita`
+(leggere `errore`).
+
+## Prova in locale, senza Gmail
+
+`npx supabase start` avvia anche Mailpit (interfaccia su http://127.0.0.1:54324): le mail non
+escono dalla macchina. Il worker si punta al database locale e a Mailpit con un `.env` senza
+credenziali SMTP (`SMTP_USER`/`SMTP_PASS` assenti, `MAIL_FROM` e `SMTP_HOST` impostati, porta 1025).
+Se il worker gira in un container va collegato alla rete Docker di Supabase
+(`supabase_network_<project_id>`) e usa come host `supabase_kong_<project_id>:8000` per il
+database e `supabase_inbucket_<project_id>` per l'SMTP. Con uno slot collegato a un account e con
+l'email valorizzata, una riga inserita in `notifiche_utente` compare in Mailpit entro un ciclo di
+polling.
+
+## Test
+
+- **Unit** — [test/unit/mailer-core.test.ts](../../test/unit/mailer-core.test.ts): configurazione,
+  classificazione degli errori SMTP, backoff, tetto giornaliero, composizione della mail (escape,
+  oggetto, link, `Message-ID`), salute, e il ciclo di invio con dipendenze finte (esiti, fermata su
+  tetto e credenziali, registrazione dell'esito che fallisce, log senza dati personali).
+  [test/unit/preferenze-utente.test.ts](../../test/unit/preferenze-utente.test.ts): il default
+  «acceso» senza riga.
+- **Integrazione** — [test/integration/notifiche-email.test.ts](../../test/integration/notifiche-email.test.ts),
+  sul database locale: trigger su ogni tipo, rinvio da `upsert`, cron che non accoda due volte,
+  cascata alla cancellazione, `prendi_notifiche_email` (destinatario, una sola volta, chiamate
+  concorrenti senza doppioni, slot senza account o senza email, righe orfane recuperate),
+  preferenza (default, spenta, riaccesa, RLS sulle righe altrui), tutti gli esiti, e i permessi (un
+  giocatore o un admin non vedono la coda né chiamano le funzioni del worker).
+- Nessun test spedisce mail vere: il trasporto SMTP è sostituito da un finto nei test unitari, e
+  nella prova end-to-end si usa Mailpit.
 
 ## Limiti noti
 
 - Il canale email dipende da un host di casa acceso: non c'è alta disponibilità.
 - Un 250 da Gmail vuol dire «accettata», non «letta»: non c'è conferma di lettura e non se ne
   vuole una.
-- Gmail può finire in spam se il testo è promozionale o se l'account nuovo invia subito
-  molti messaggi: si parte con pochi invii e si tiene il tono di servizio.
-- Un account collegato a più slot giocatore (`auth_user_id` ripetuto) riceve una mail per
-  slot, dato che `notifiche_utente` ha una riga per `giocatore_id`.
-- Cambiare l'indirizzo in `giocatori_squadra.email` cambia dove vanno le mail future; le
-  righe già `inviata` non si toccano.
-
-## Test previsti
-
-Come da [AGENTS.md](../../AGENTS.md), le funzioni si scrivono con il loro test.
-
-- **Unit** (`test/unit/`, su `notifiche-email-core.ts`): calcolo
-  del backoff, classificazione errore temporaneo/permanente, composizione di oggetto e corpo,
-  `Message-ID` deterministico.
-- **Integrazione** (`test/integration/`, contro il database locale): il trigger accoda ogni
-  nuova notifica; `upsert` rimette in coda; RLS senza policy (un client non legge né scrive
-  la coda); `prendi_notifiche_email` non restituisce due volte la stessa riga con due chiamate
-  concorrenti, salta chi ha la preferenza spenta o non ha un account collegato.
-- Il transport SMTP si sostituisce con un finto nei test: nessun invio reale in CI.
-
-## Piano di realizzazione
-
-1. Migration `m22_…`: coda, preferenza, trigger, funzione RPC, RLS (poi `DATABASE.md`).
-2. `notifiche-email-core.ts` con i test unitari.
-3. Worker `mailer/` con `Dockerfile`, compose, healthcheck.
-4. Interruttore in Profilo → Opzioni.
-5. Prova end-to-end su `npx supabase start` con un server SMTP di prova (es. Mailpit in
-   Docker), poi con l'account Gmail vero.
-6. `CHANGELOG.md`, `ROADMAP.md` (spunta), `PROJECT_STATE.md`, `notifiche.md` (rimando qui).
+- Gmail può mandare in spam un account nuovo che invia subito molti messaggi o un testo
+  promozionale: si tiene un tono di servizio e i volumi di una squadra sono bassi.
+- Un account collegato a più slot giocatore (`auth_user_id` ripetuto) riceve una mail per slot,
+  dato che `notifiche_utente` ha una riga per `giocatore_id`.
+- Cambiare l'indirizzo in `giocatori_squadra.email` cambia dove vanno le mail future; le righe già
+  `inviata` non si toccano.
+- Nessun test automatico ha inviato una mail a Gmail: la prova con l'account vero fa parte della
+  messa in funzione.
+- `notifiche_email_coda` non ha pulizia automatica, come `notifiche_utente` (DD-030): le righe
+  spariscono quando la notifica viene eliminata.
 
 ## Evoluzioni possibili
 
-- Un relay con dominio proprio (Brevo, Resend) se serve un mittente della squadra o si supera
-  il tetto di Gmail.
+- Un relay con dominio proprio (Brevo, Resend) se serve un mittente della squadra o si supera il
+  tetto di Gmail.
 - Riepilogo settimanale unico al posto di una mail per notifica.
-- Preferenze per tipo di notifica, insieme a quelle della push.
+- Preferenze per tipo di notifica, nella stessa `preferenze_utente`, insieme a quelle della push.
+- Rendere il certificato in scadenza una notifica vera (sorgente nuova di `notifiche_utente`).
