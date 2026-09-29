@@ -10,8 +10,9 @@ Backend migrato al nuovo Supabase proprietario. Autenticazione Google, dashboard
 amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzione su `main`.
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
-reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0
-con il ruolo allenatore, è pronta ma non ancora pubblicata (vedi `docs/CHANGELOG.md`).
+reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0, ha
+portato il ruolo allenatore. La versione corrente è la 1.2.0: notifiche su tre canali (push, in-app
+ed email) e promemoria che non si ripetono (vedi `docs/CHANGELOG.md`).
 Cancellare un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane
 da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
@@ -206,8 +207,8 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: l'avviso certificati in scadenza (DD-035) è implementato e versione
-1.1.0 (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
+Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0) e le notifiche su tre
+canali (DD-036–DD-039, 1.2.0) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ---

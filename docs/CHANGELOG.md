@@ -13,18 +13,48 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.2.0] - 2026-09-29
+
+Le notifiche arrivano su tre canali (push, centro notifiche in-app ed email) e non si ripetono più.
+Le migration `m22`–`m25` sono già in produzione dal 29/09/2026 e il worker delle email è in funzione;
+questa versione porta il codice dell'app che le usa.
+
+### Aggiunto
+
+- **Notifiche email** — ogni notifica del centro notifiche in-app (messaggi dello staff, promemoria
+  a 24 e 3 ore, turno palloni, sollecito presenze, sondaggio pre-partita) arriva anche per email
+  all'indirizzo Gmail con cui il giocatore si è registrato, gratis e senza aprire porte sul
+  router: un worker Docker (`mailer/`) sull'host di casa legge una coda su Supabase (migration
+  `m22_notifiche_email`) e invia tramite un account Gmail dedicato, con nuovi tentativi in caso di
+  errore e un tetto giornaliero sotto il limite di Gmail. In Profilo → Opzioni c'è l'interruttore
+  «Email», acceso di default, per account (tabella `preferenze_utente`; DD-036).
+- **Push dei promemoria** — i promemoria a 24 e 3 ore, che arrivavano solo in-app e per email,
+  partono ora anche come push a tutti i dispositivi iscritti del giocatore. Nascono nel database,
+  che non può firmare una push, quindi la manda lo stesso worker con lo stesso modulo dell'app
+  (migration `m24_push_promemoria_e_sondaggio`, DD-038). Le iscrizioni scadute vengono eliminate e
+  una push rimasta in coda oltre 3 ore si scarta. Il worker va ricostruito e configurato con le chiavi
+  VAPID dell'app (vedi [WORKER_EMAIL.md](WORKER_EMAIL.md)); senza, manda solo le email.
+- **Sondaggio pre-partita nel centro notifiche e per email** — prima era solo una push. Ora compare
+  anche tra le notifiche in-app e arriva per email ai giocatori attivi, allenatori esclusi (DD-038).
+- **Documentazione e test** — nuovo [WORKER_EMAIL.md](WORKER_EMAIL.md) (installazione, gestione,
+  diagnosi, prova in locale, spostamento su un altro host); catalogo delle notifiche in
+  [notifiche.md](modules/notifiche.md), con cosa le fa partire, a chi arrivano e su quali canali;
+  tabella delle notifiche dell'allenatore in [allenatore.md](modules/allenatore.md); decisioni
+  DD-036, DD-037, DD-038 e DD-039. Nuovi test di integrazione per la coda delle email, il registro
+  dei promemoria, la coda push, il sondaggio e i destinatari per ruolo (promemoria, messaggio dello
+  staff, sondaggio, sollecito e turno palloni con allenatore e giocatore), più i test unitari del
+  worker.
+
 ### Modificato
 
 - **L'allenatore non riceve più i promemoria degli eventi** (24 e 3 ore prima, DD-039): per lui non
   c'è nulla da confermare, dato che non risponde alle presenze e non è convocabile, e per una cena di
   squadra il promemoria non aveva senso. Riceve ancora i messaggi dello staff. Migration
   `m25_promemoria_solo_giocatori`.
-
-- **Ogni notifica arriva su tutti e tre i canali** (DD-038): i promemoria a 24 e 3 ore, che
-  arrivavano solo in-app e per email, partono ora anche come push, mandata dal worker `mailer/`
-  (migration `m24_push_promemoria_e_sondaggio`). Il sondaggio pre-partita, che era solo push,
-  compare anche nel centro notifiche e arriva per email ai giocatori attivi (non agli allenatori).
-  Il worker va ricostruito e configurato con le chiavi VAPID dell'app; senza, manda solo le email.
+- **Messaggio del pulsante «Sondaggio»** — se nessun dispositivo ha le notifiche attive dice che
+  l'avviso è stato inviato in app e per email, invece di «Nessun dispositivo con le notifiche
+  attive».
+- **`ops/` fuori da git** — il playbook Ansible locale per il backup cifrato non è più tracciato.
 
 ### Corretto
 
@@ -33,18 +63,6 @@ versioni `0.y.z` erano pre-release.
   letto e, con le email, con una nuova mail a ogni giro fino all'inizio dell'evento. Ora il job
   ricorda ciò che ha già generato (migration `m23_promemoria_gia_generati`, DD-037). Il difetto
   esisteva dal centro notifiche (`m17`) e si è notato con l'arrivo delle email.
-
-### Aggiunto
-
-- **Notifiche email** — ogni notifica del centro notifiche in-app (messaggi dello staff,
-  promemoria a 24 e 3 ore, turno palloni, sollecito presenze) arriva anche per email
-  all'indirizzo Gmail con cui il giocatore si è registrato, gratis e senza aprire porte sul
-  router: un worker Docker (`mailer/`) sull'host di casa legge una coda su Supabase (migration
-  `m22_notifiche_email`) e invia tramite un account Gmail dedicato. In Profilo → Opzioni c'è
-  l'interruttore «Email», acceso di default (DD-036). Migration e worker sono in produzione dal
-  29/09/2026; l'interruttore compare con la prossima versione dell'app che lo include. Specifica in
-  [notifiche-email.md](modules/notifiche-email.md), installazione e gestione in
-  [WORKER_EMAIL.md](WORKER_EMAIL.md).
 
 ## [1.1.1] - 2026-09-28
 
