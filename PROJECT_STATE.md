@@ -24,13 +24,12 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 33 migration in `supabase/migrations/`, fino a `m22_notifiche_email` (29/09/2026). Le prime
-  32 (fino a `m21_ruolo_allenatore`) sono applicate in produzione, verificato con
-  `npx supabase migration list` il 24/09/2026; **`m22` è verificata solo in locale e non ancora
-  applicata in produzione**
-- Il worker delle notifiche email (`mailer/`) non è ancora in funzione su nessun host: la messa
-  in funzione (account Gmail dedicato, `.env`, `docker compose up`) sta in
-  [docs/modules/notifiche-email.md](docs/modules/notifiche-email.md#messa-in-funzione)
+- 33 migration in `supabase/migrations/`, fino a `m22_notifiche_email` (29/09/2026), tutte
+  applicate in produzione (verificato con `npx supabase migration list` il 29/09/2026)
+- Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
+  29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
+  [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
+  su `develop`, non ancora su `main`
 - Sviluppo locale verificato con il nuovo Supabase
 
 ---
@@ -64,7 +63,8 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
   `preferenze_utente`, trigger che accoda ogni notifica di `notifiche_utente` e tre funzioni
   RPC riservate alla service role, per il worker email. Additiva: non tocca lo schema
   esistente. Verificata in locale con `npx supabase db reset`, test unit e di integrazione e
-  una prova end-to-end con il worker in Docker contro Mailpit; **non ancora in produzione**
+  una prova end-to-end con il worker in Docker contro Mailpit, poi **in produzione** dal
+  29/09/2026 (`supabase db push`) con il worker in funzione
 - Migration `m20_ruolo_allenatore_enum` e `m21_ruolo_allenatore` (24/09/2026, DD-034): ruolo
   allenatore (colonna `giocatori_squadra.tipo`, valore `allenatore` di `app_role`, policy e
   trigger) — verificate in locale con `npx supabase db reset` e `npm run test:all`, **in

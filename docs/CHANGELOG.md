@@ -20,9 +20,10 @@ versioni `0.y.z` erano pre-release.
   all'indirizzo Gmail con cui il giocatore si è registrato, gratis e senza aprire porte sul
   router: un worker Docker (`mailer/`) sull'host di casa legge una coda su Supabase (migration
   `m22_notifiche_email`) e invia tramite un account Gmail dedicato. In Profilo → Opzioni c'è
-  l'interruttore «Email», acceso di default. Il worker va messo in funzione a parte (vedi
-  [notifiche-email.md](modules/notifiche-email.md#messa-in-funzione)): finché la migration non è
-  applicata in produzione e il container non gira, non parte nessuna mail (DD-036).
+  l'interruttore «Email», acceso di default (DD-036). Migration e worker sono in produzione dal
+  29/09/2026; l'interruttore compare con la prossima versione dell'app che lo include. Specifica in
+  [notifiche-email.md](modules/notifiche-email.md), installazione e gestione in
+  [WORKER_EMAIL.md](WORKER_EMAIL.md).
 
 ## [1.1.1] - 2026-09-28
 

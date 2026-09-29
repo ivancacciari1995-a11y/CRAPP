@@ -1540,7 +1540,8 @@ invia tramite `smtp.gmail.com` con un account Gmail dedicato e una password per 
 - Canale **opt-out**: acceso di default per tutti, con un interruttore per account in
   Profilo → Opzioni. La preferenza sta in una tabella nuova, `preferenze_utente`, una riga
   per account (non per slot); l'assenza di riga vale «acceso».
-- Specifica completa in [notifiche-email.md](modules/notifiche-email.md).
+- Specifica completa in [notifiche-email.md](modules/notifiche-email.md); installazione e
+  gestione in [WORKER_EMAIL.md](WORKER_EMAIL.md).
 
 **Alternative scartate**
 
@@ -1577,8 +1578,13 @@ invia tramite `smtp.gmail.com` con un account Gmail dedicato e una password per 
   l'indicazione in ogni mail su come disattivarlo.
 - Una tabella in più, `preferenze_utente`, pensata per accogliere in futuro anche le
   preferenze per tipo di notifica senza toccare `giocatori_squadra`.
+- In produzione dal 29/09/2026 (migration e worker su un Raspberry Pi). Dalla prova reale: la
+  prima mail, da un account Gmail nuovo, è arrivata ma nella cartella spam, e la password per app
+  non era disponibile finché l'account aveva le sole passkey come secondo passaggio (dettagli in
+  [WORKER_EMAIL.md](WORKER_EMAIL.md#account-gmail-e-password-per-app)).
 
 **Riesame**  
-Se serve un mittente col dominio della squadra, se si supera il tetto giornaliero di Gmail, o
-se l'host di casa si rivela poco affidabile: passare a un relay con dominio e, in quel caso,
-valutare Edge Function più `pg_cron` al posto del container.
+Se serve un mittente col dominio della squadra, se le mail finiscono in spam anche dopo qualche
+giorno di uso, se si supera il tetto giornaliero di Gmail, o se l'host di casa si rivela poco
+affidabile: passare a un relay con dominio e, in quel caso, valutare Edge Function più `pg_cron`
+al posto del container.
