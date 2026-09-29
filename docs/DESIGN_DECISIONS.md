@@ -54,6 +54,7 @@ Serve a rispondere a domande del tipo:
 | [DD-036](#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa)                | Notifiche email via Gmail             |
 | [DD-037](#dd-037--i-promemoria-evento-ricordano-di-essere-già-stati-generati)                    | Promemoria evento senza ritorni       |
 | [DD-038](#dd-038--ogni-notifica-ha-tre-canali-la-push-dei-promemoria-parte-dal-worker)           | Tre canali per ogni notifica          |
+| [DD-039](#dd-039--lallenatore-non-riceve-i-promemoria-degli-eventi)                              | Niente promemoria all'allenatore      |
 
 **In valutazione**
 
@@ -1449,7 +1450,8 @@ collega uno slot di tipo allenatore: è quindi l'admin a concederlo, registrando
   immediato e non aspetta la query dei ruoli.
 - L'allenatore non vede le tab Stagione e Badge del Profilo, né Obiettivi e Badge di Squadra.
 - In Squadra compare nella tab Rosa con «Allenatore» al posto del ruolo, ricavato da `tipo`;
-  riceve i promemoria degli eventi e può sollecitare le presenze, non il turno palloni.
+  riceve i promemoria degli eventi (dal 29/09/2026 non più: DD-039) e può sollecitare le presenze,
+  non il turno palloni.
 - Non vede badge né classifiche o sondaggi sulle cacche, in nessuna schermata.
 
 **Riesame**  
@@ -1712,3 +1714,44 @@ Vercel e avevano già i tre canali.
 Se l'host di casa si rivela poco affidabile per una notifica sensibile al tempo come la push, o se
 il database dovesse comunque chiamare l'app per altro, valutare di nuovo la chiamata dal database
 all'app.
+
+### DD-039 — L'allenatore non riceve i promemoria degli eventi
+
+**Data:** 29 settembre 2026  
+**Stato:** Accettata
+
+**Contesto**  
+DD-034 stabilì che l'allenatore riceve i promemoria a 24 e 3 ore prima di un evento, sempre, convocato
+o no (`giocatori_destinatari_evento()` riscritta da M21). Ma un promemoria serve a ricordare di
+esserci, e l'allenatore non può rispondere alle presenze, non è convocabile e non compare tra i
+partecipanti (DD-034). L'incoerenza si vede negli eventi extra-campo, come una cena di squadra:
+riceveva l'avviso (in-app, per email e, dopo M24, come push) senza poter dire se ci sarebbe stato né
+comparire nell'elenco.
+
+**Decisione**  
+I destinatari dei promemoria sono i **giocatori attivi**: i convocati, o tutta la rosa se
+`convocati` è vuoto. L'allenatore non li riceve, per nessun tipo di evento. Cambia solo la funzione
+SQL (migration `m25_promemoria_solo_giocatori`, `g.tipo = 'giocatore'` al posto di «o allenatore
+sempre»); cron, criteri di selezione, registro dei promemoria (DD-037), code email e push e testi
+restano invariati.
+
+**Alternative scartate**
+
+- Toglierli solo per gli eventi extra-campo → scartata su indicazione esplicita di toglierli per
+  gli eventi in generale: anche per un allenamento o una partita l'allenatore non è tra i
+  partecipanti.
+- Farlo rispondere agli eventi extra-campo, così da tenere il promemoria → scartata: servono
+  risposte presenze e regole del database per una categoria nuova, e il conteggio dei presenti.
+
+**Conseguenze**
+
+- Le notifiche che l'allenatore riceve dal server sono i **messaggi dello staff** e nient'altro
+  (sollecito, turno palloni, sondaggio e notifiche smart non lo riguardano già).
+- I promemoria già generati per un allenatore prima della migration non si toccano.
+- Un allenatore non è avvisato dell'inizio di un evento che gestisce: sa quando è perché lo ha
+  creato lui o lo vede in Calendario.
+- Sostituisce la parte di DD-034 sui promemoria; il resto di DD-034 resta valido.
+
+**Riesame**  
+Se l'allenatore dovesse poter partecipare a certi eventi (per esempio la cena), si riapre insieme
+alla sua possibilità di rispondere.

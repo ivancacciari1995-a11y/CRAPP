@@ -24,10 +24,10 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 35 migration in `supabase/migrations/`, fino a `m24_push_promemoria_e_sondaggio` (29/09/2026).
+- 36 migration in `supabase/migrations/`, fino a `m25_promemoria_solo_giocatori` (29/09/2026).
   Le prime 33 (fino a `m22_notifiche_email`) sono applicate in produzione, verificato con
-  `npx supabase migration list` il 29/09/2026; **`m23` e `m24` sono verificate solo in locale e non
-  ancora applicate in produzione**
+  `npx supabase migration list` il 29/09/2026; **`m23`, `m24` e `m25` sono verificate solo in locale
+  e non ancora applicate in produzione**
 - Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
   29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
   [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
@@ -61,6 +61,10 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Migration `m19_backfill_nascita_da_profili_esistenti` (15/09/2026, DD-031): completa il
   backfill di M18 per tutti i profili già esistenti — **in produzione** (risulta applicata
   in `npx supabase migration list` del 24/09/2026)
+- Migration `m25_promemoria_solo_giocatori` (29/09/2026, DD-039): `giocatori_destinatari_evento()`
+  include solo i giocatori attivi, quindi l'allenatore non riceve più i promemoria degli eventi
+  (li riceveva sempre dalla `m21`). Cambia solo quella funzione; verificata in locale con
+  `npx supabase db reset` e i test di integrazione, **non ancora in produzione**
 - Migration `m24_push_promemoria_e_sondaggio` (29/09/2026, DD-038): tabella `notifiche_push_coda`
   con trigger e due funzioni per il worker (la push dei promemoria a 24 e 3 ore), e nuovo tipo
   `sondaggio_cacche` in `notifiche_utente` (il sondaggio pre-partita compare in-app e per email).

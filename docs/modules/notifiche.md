@@ -36,19 +36,21 @@ la colonna Email coincide con la colonna In-app).
 
 | #   | Notifica                                                                                                                         | Cosa la fa partire                                                                                                                                                        | Destinatari                                                                                                                                                                              | Push             | In-app | Email |
 | --- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------ | ----- |
-| 1   | **Promemoria a 24 ore** — «Promemoria: _titolo_», corpo «data alle ora»                                                          | Job `pg_cron` `promemoria-eventi-24h`, ogni ora, per gli eventi che iniziano entro le prossime 24 ore. Tipo `evento_promemoria_24h`. La push la manda il worker (M24).    | I convocati dell'evento, o tutta la rosa attiva se `convocati` è vuoto; gli allenatori attivi sempre, convocati o no.                                                                    | sì (worker)      | sì     | sì    |
+| 1   | **Promemoria a 24 ore** — «Promemoria: _titolo_», corpo «data alle ora»                                                          | Job `pg_cron` `promemoria-eventi-24h`, ogni ora, per gli eventi che iniziano entro le prossime 24 ore. Tipo `evento_promemoria_24h`. La push la manda il worker (M24).    | I convocati dell'evento, o tutta la rosa attiva se `convocati` è vuoto; mai gli allenatori (DD-039).                                                                                     | sì (worker)      | sì     | sì    |
 | 2   | **Promemoria a 3 ore** — stesso testo                                                                                            | Job `pg_cron` `promemoria-eventi-3h`, ogni 15 minuti, per gli eventi che iniziano entro le prossime 3 ore. Tipo `evento_promemoria_3h`. La push la manda il worker (M24). | Come il promemoria a 24 ore.                                                                                                                                                             | sì (worker)      | sì     | sì    |
 | 3   | **Messaggio dello staff** — titolo fisso «Messaggio dallo staff», corpo il testo scritto (max 300 caratteri)                     | Un admin, dalla tab «Notifiche» della dashboard: «Invia messaggio a tutti» o il pulsante della riga di un giocatore. Route `notifica-personalizzata`, tipo `admin`.       | Push: tutti i dispositivi iscritti, o quelli del giocatore scelto. In-app ed email: tutta la rosa attiva (allenatori compresi, anche senza dispositivi iscritti), o il giocatore scelto. | sì               | sì     | sì    |
 | 4   | **Turno palloni** — «Tocca a te prendere i palloni» / «Porta i palloni»                                                          | Un admin, con il pulsante nella pagina dell'evento. Solo eventi di tipo allenamento o partita. Route `promemoria-palloni`, tipo `turno_palloni`.                          | L'incaricato del turno di quell'evento e, se è un'altra persona, chi aveva i palloni all'evento precedente. Se per l'evento non c'è un incaricato non parte nulla.                       | sì               | sì     | sì    |
 | 5   | **Sollecito presenze** — «Manca la tua risposta»                                                                                 | Un admin o un allenatore, con il pulsante nella pagina dell'evento. Route `sollecita-presenze`, tipo `sollecita_presenze`.                                                | I giocatori attivi (mai gli allenatori) che non hanno ancora risposto o hanno risposto «forse».                                                                                          | sì               | sì     | sì    |
 | 6   | **Sondaggio pre-partita** — «💩 Sondaggio pre-partita aperto»                                                                    | Un admin, dalla pagina della partita. Route `apri-sondaggio` (vedi [Scout Live](scout-live.md)).                                                                          | Push: tutti i dispositivi iscritti, tranne quelli degli allenatori. In-app ed email (tipo `sondaggio_cacche`): i giocatori attivi, allenatori esclusi, anche senza dispositivi iscritti. | sì               | sì     | sì    |
-| 7   | **Notifiche smart** — badge appena sbloccato, serie a un traguardo, obiettivo di squadra tra il 90 e il 100%, badge social vinto | L'app, mentre è aperta: sono calcolate in locale da `calcolaNotifiche()`.                                                                                                 | Chi ha l'app aperta; nessun invio verso altri dispositivi.                                                                                                                               | no (solo locale) | no     | no    |
+| 7   | **Notifiche smart** — badge appena sbloccato, serie a un traguardo, obiettivo di squadra tra il 90 e il 100%, badge social vinto | L'app, mentre è aperta: sono calcolate in locale da `calcolaNotifiche()`.                                                                                                 | Chi ha l'app aperta con uno slot giocatore in rosa selezionato; **mai l'allenatore**. Nessun invio verso altri dispositivi.                                                              | no (solo locale) | no     | no    |
 
 Tutte le notifiche generate dal server (righe 1-6) hanno tutti e tre i canali (DD-038). La
 differenza sta in come parte la push: quelle dei pulsanti (3-6) la mandano le route dell'app, quelle
 dei promemoria (1 e 2) nascono nel database e la manda il worker `mailer/` (vedi «Push dei
 promemoria»). Le righe 4 e 5 riscrivono la notifica esistente se l'admin preme di nuovo il pulsante
 per lo stesso evento, e lo stesso fa il sondaggio (vedi «Centro notifiche in-app»).
+
+Cosa riceve l'allenatore, notifica per notifica: [allenatore.md](allenatore.md#notifiche).
 
 ### Cosa non genera nessuna notifica
 
@@ -88,6 +90,23 @@ Sono l'effetto attuale della logica, non scelte documentate altrove:
   più quelle dei pulsanti manuali.
 - **Non esistono preferenze per tipo di notifica:** un solo interruttore per la push («Notifiche»)
   e uno per le email («Email»). Il centro notifiche in-app non si può spegnere.
+
+### Test che verificano il catalogo
+
+| Cosa                                                                                                                                                           | Test                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Promemoria 24 e 3 ore: destinatari (convocati, tutti i giocatori attivi se `convocati` è vuoto, mai l'allenatore), deduplica, eliminazione, coda push ed email | `test/integration/destinatari-notifiche.test.ts`, `promemoria-eventi.test.ts`, `push-promemoria.test.ts`, `notifiche-email.test.ts` |
+| Messaggio dello staff: push a tutti i dispositivi (allenatore compreso) o a uno solo, in-app a tutta la rosa attiva, riservato agli admin                      | `destinatari-notifiche.test.ts`, `notifiche-utente.test.ts`                                                                         |
+| Turno palloni: incaricato e chi li aveva prima, solo allenamenti e partite, riservato agli admin                                                               | `destinatari-notifiche.test.ts`, `unit/palloni-core.test.ts`                                                                        |
+| Sollecito presenze: chi non ha risposto o ha detto «forse», mai l'allenatore; permesso ad allenatore e admin, non ai giocatori                                 | `destinatari-notifiche.test.ts`, `unit/presenze.test.ts`                                                                            |
+| Sondaggio pre-partita: push senza allenatori, avviso in-app ed email ai giocatori attivi, `upsert`, riservato agli admin                                       | `destinatari-notifiche.test.ts`, `sondaggio-notifiche.test.ts`, `unit/cacche.test.ts`                                               |
+| Worker: esiti, backoff, tetto giornaliero, iscrizioni scadute                                                                                                  | `unit/mailer-core.test.ts`                                                                                                          |
+| L'allenatore è fuori dalla rosa di gioco                                                                                                                       | `unit/giocatori-squadra.test.ts` (`inRosa`)                                                                                         |
+
+Le push dei test vanno a un servizio push finto in locale: si verifica **a chi** arrivano, non la
+consegna su un telefono. Non ha un test l'esclusione dell'allenatore dalle **notifiche smart**: la
+catena `useIo()` → `useRosa()` → `useNotificheSmart()` è fatta di hook e si conosce dalla lettura del
+codice; l'unico pezzo puro, `inRosa`, è coperto.
 
 ---
 
@@ -183,6 +202,13 @@ reale": badge appena sbloccato, "sei a un passo" da un traguardo, serie che ragg
 traguardo esatto, obiettivo di squadra tra il 90 e il 100%, badge social vinto. Ogni notifica
 ha un id deterministico; quelli già mostrati sono salvati in `localStorage` per non
 ripetersi — deduplica puramente locale al dispositivo, non sincronizzata.
+
+**Chi le riceve.** Solo chi ha selezionato sul dispositivo uno slot **giocatore in rosa**:
+`CelebrazioneBadge` (montato una volta in `__root.tsx`) passa a `useNotificheSmart()` il giocatore
+letto da `useGiocatoreCorrente()`, cioè `useIo()`, che lo cerca in `useRosa()`. Quell'elenco esclude
+gli allenatori (`inRosa`, DD-034), che non hanno statistiche: per loro `useIo()` è `null` e
+`useNotificheSmart()` esce subito, senza calcolare nulla né mostrare la card celebrativa o la
+notifica del sistema. Vedi [allenatore.md](allenatore.md#notifiche).
 
 ---
 

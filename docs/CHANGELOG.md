@@ -15,6 +15,11 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **L'allenatore non riceve più i promemoria degli eventi** (24 e 3 ore prima, DD-039): per lui non
+  c'è nulla da confermare, dato che non risponde alle presenze e non è convocabile, e per una cena di
+  squadra il promemoria non aveva senso. Riceve ancora i messaggi dello staff. Migration
+  `m25_promemoria_solo_giocatori`.
+
 - **Ogni notifica arriva su tutti e tre i canali** (DD-038): i promemoria a 24 e 3 ore, che
   arrivavano solo in-app e per email, partono ora anche come push, mandata dal worker `mailer/`
   (migration `m24_push_promemoria_e_sondaggio`). Il sondaggio pre-partita, che era solo push,

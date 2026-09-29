@@ -59,8 +59,9 @@ e i suoi canali: tutte le notifiche generate dal server passano da `notifiche_ut
 arrivano anche per email (DD-038).
 
 **Chi le riceve:** chi ha la riga in `notifiche_utente`, con la stessa logica delle notifiche
-in-app. Gli admin e gli allenatori non hanno un percorso a parte: ricevono ciò che riceverebbero
-come giocatori, secondo i destinatari già definiti in M17 e DD-034.
+in-app. Gli admin non hanno un percorso a parte: ricevono ciò che riceverebbero secondo il proprio
+slot. L'allenatore riceve solo i messaggi dello staff, non i promemoria degli eventi (DD-039), né il
+sollecito, il turno palloni e il sondaggio (DD-034, DD-038).
 
 Il certificato in scadenza **non genera mail**: non è una notifica ma una card calcolata in Home
 (DD-035). Se un giorno lo si volesse anche per email sarebbe una sorgente nuova di
