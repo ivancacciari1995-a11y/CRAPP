@@ -211,6 +211,11 @@ Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0) e le notif
 canali (DD-036–DD-039, 1.2.0) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
+Specificato ma non ancora implementato: notifiche automatiche per turno palloni (12, 6 e 3 ore
+prima, senza email, con revoca dell'incarico), solleciti presenze (24, 12 e 6 ore prima) e promemoria con
+«oggi/domani» (DD-040, migration `m26` da scrivere). I pulsanti «Avvisa chi è di turno» e «Sollecita»
+restano.
+
 ---
 
 ## Note

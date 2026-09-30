@@ -76,6 +76,13 @@ src/routes/api/public/sollecita-presenze.ts
       └─ elimina le iscrizioni push scadute (404/410)
 ```
 
+> **Sollecito automatico (DD-040, non ancora implementato).** Il pulsante «Sollecita» e la route
+> **restano**, ma `destinatariSollecito()` passa a guardare anche i convocati (convocati che non hanno
+> risposto o hanno risposto «forse», o tutta la rosa se `convocati` è vuoto); in più un job `pg_cron` manda il sollecito **24, 12 e 6 ore prima** dell'evento a chi in
+> quel momento non ha risposto o ha risposto «forse», tra i destinatari dell'evento (convocati, o
+> tutta la rosa attiva; mai l'allenatore). Testo e finestre nel [catalogo](notifiche.md#catalogo-delle-notifiche).
+> Il diagramma sopra descrive lo stato attuale.
+
 Un evento conta ai fini delle statistiche di presenza solo se è di tipo `partita` o
 `allenamento` e il giocatore è tra i convocati (o non ci sono convocati specificati, cioè
 vale per tutta la rosa) — `eventiContanoPresenze()` in `presenze.ts`.
@@ -86,7 +93,7 @@ vale per tutta la rosa) — `eventiContanoPresenze()` in `presenze.ts`.
 
 - Aggiornamento ottimistico della cache locale dopo ogni salvataggio: nessuna rilettura dal
   server, la UI risponde subito.
-- Il sollecito è **manuale**: nessun cron nel repository lo richiama automaticamente, parte
+- Il sollecito è **manuale** (da DD-040 si aggiungono tre solleciti automatici, che non lo sostituiscono): nessun cron nel repository lo richiama automaticamente, parte
   solo dal bottone admin, e la route verifica il ruolo lato server con `richiediAdmin`
   (DD-024).
 - Ognuno risponde **solo per sé**, e non è più una regola della sola interfaccia: dalla

@@ -55,6 +55,13 @@ oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un al
 
 ## Route API pubblica `/api/public/promemoria-palloni`
 
+> **Affiancata da un invio automatico (DD-040, non ancora implementato).** Oltre al pulsante, un job
+> `pg_cron` ogni 15 minuti manda l'avviso **12, 6 e 3 ore prima** dell'evento, solo se per l'evento c'è un
+> incaricato confermato in `turni_palloni`. Il pulsante e la route **restano**, con tipo
+> `turno_palloni` e push dalla route. I due destinatari e i testi nuovi («incarico assegnato» /
+> «riconsegna», validi per il pulsante e per i job, più la revoca se l'incaricato cambia) sono nel
+> [catalogo](notifiche.md#testi-delle-notifiche). Il resto della sezione descrive lo stato attuale.
+
 La fa partire un **amministratore** dal pulsante «Avvisa chi è di turno» dentro il riquadro
 palloni dell'evento (`TurnoPalloni.tsx`), riservato agli admin (DD-025). Riceve l'`eventoId`,
 e `avvisiPalloniEvento()` calcola i due destinatari di _quell'evento_: chi deve **prendere** i
@@ -69,7 +76,7 @@ nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
 
 ## Limiti noti
 
-- **L'invio è manuale**: nessun cron manda il promemoria da solo, se l'admin non preme il
+- **L'invio è manuale** (DD-040 aggiunge un invio automatico 12, 6 e 3 ore prima, senza toglierlo): nessun cron manda il promemoria da solo, se l'admin non preme il
   pulsante non parte niente (DD-025). `destinatariPromemoriaPalloni()` — la versione "chi è di
   turno oggi" — resta in `palloni-core.ts` ma non la chiama più nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
