@@ -1763,8 +1763,8 @@ alla sua possibilità di rispondere.
 ### DD-040 — Promemoria con «oggi» o «domani», turno palloni e solleciti automatici
 
 **Data:** 30 settembre 2026  
-**Stato:** Accettata (solo documentata: codice e migration `m26` non ancora scritti; fino al rilascio
-l'app si comporta come in 1.2.0)
+**Stato:** Accettata (implementata e verificata in locale: migration `m26`, job, route e test; la
+migration non è ancora applicata in produzione)
 
 **Contesto**  
 Quattro notifiche su sei partivano da un pulsante premuto da un admin (DD-025 per i palloni): se nessuno
@@ -1791,8 +1791,10 @@ dell'evento, e che i testi siano più formali e completi. I testi nuovi sono nel
    - **Incaricato cambiato dopo un avviso.** Il nuovo incaricato riceve il suo avviso al giro successivo,
      con il tipo della finestra in cui cade. Chi aveva già ricevuto un avviso e non è più destinatario
      riceve **una sola volta** «Turno palloni: incarico revocato» (`turno_palloni_revocato`), se
-     l'evento non è iniziato. Il job lo scopre confrontando i destinatari attuali con le notifiche
-     `turno_palloni*` già scritte per l'evento, senza trigger su `turni_palloni`.
+     l'evento non è iniziato. Il job lo scopre confrontando i destinatari attuali con il **registro** degli
+     avvisi automatici già generati (non con le notifiche, che il giocatore può aver eliminato), senza
+     trigger su `turni_palloni`. Gli avvisi del pulsante non contano: possono riguardare una proposta non
+     confermata.
    - **Niente email.** Gli avvisi palloni (automatici, revoca e pulsante) arrivano come push e nel centro
      notifiche, **non per email**: il trigger `notifiche_utente_accoda_email` salta i tipi
      `turno_palloni`, `turno_palloni_12h`, `_6h`, `_3h` e `turno_palloni_revocato`. È un'eccezione a
@@ -1836,10 +1838,11 @@ dell'evento, e che i testi siano più formali e completi. I testi nuovi sono nel
 - Cambia la regola «quattro notifiche su sei dipendono da un gesto manuale»: restano solo manuali il
   messaggio dello staff e il sondaggio pre-partita; per turno palloni e sollecito gli automatici si
   aggiungono ai pulsanti, e un giocatore può ricevere lo stesso avviso due volte.
-- **Logica duplicata:** «evento precedente» e «evento successivo» per i palloni, oggi in `palloni-core.ts`
-  (usato dal pulsante e dalla schermata), vengono riscritti in SQL per i job. Se si cambia una regola in
-  una sola delle due versioni, pulsante e job danno risposte diverse: un test di integrazione le confronta
-  sugli stessi dati.
+- **Logica duplicata:** «evento precedente» e «evento successivo» per i palloni, in `palloni-core.ts`
+  (usato dal pulsante e dalla schermata), sono riscritti in SQL per i job (`genera_avvisi_palloni_fascia`).
+  Ordine comune: data, ora, id. Se si cambia una regola in una sola delle due versioni, pulsante e job danno
+  risposte diverse: `notifiche-automatiche.test.ts` confronta testi e destinatari sugli stessi dati, anche a
+  parità di data e ora.
 - `destinatariSollecito()` riceve anche i convocati e serve al sollecito manuale; un giocatore non
   convocato non è più sollecitato. `avvisiPalloniEvento()` resta come riferimento per i test finché il SQL
   non la sostituisce del tutto.

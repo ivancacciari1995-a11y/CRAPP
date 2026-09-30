@@ -68,20 +68,21 @@ compresi) sarebbe fuorviante lì, perché l'MVP si vota solo alle partite.
 Bottone "Sollecita" (RosaPresenze.tsx) → POST /api/public/sollecita-presenze
       ↓
 src/routes/api/public/sollecita-presenze.ts
-      ├─ legge l'evento (eventi_app) e le risposte già date
+      ├─ legge l'evento (eventi_app, con i convocati) e le risposte già date
       ├─ destinatariSollecito()  → src/lib/presenze.ts
-      │  (attivi senza risposta o con "forse"; funzione pura, testata in unit)
+      │  (convocati, o tutta la rosa se vuoti, senza risposta o con "forse"; funzione pura)
+      ├─ testoSollecito() per ciascuno (risposta attuale e «Richiesta di»)
       ├─ per ciascuno invia una push col testo cifrato nel payload
       │  (src/lib/webpush.server.ts)
       └─ elimina le iscrizioni push scadute (404/410)
 ```
 
-> **Sollecito automatico (DD-040, non ancora implementato).** Il pulsante «Sollecita» e la route
+> **Sollecito automatico (DD-040, migration `m26`).** Il pulsante «Sollecita» e la route
 > **restano**, ma `destinatariSollecito()` passa a guardare anche i convocati (convocati che non hanno
 > risposto o hanno risposto «forse», o tutta la rosa se `convocati` è vuoto); in più un job `pg_cron` manda il sollecito **24, 12 e 6 ore prima** dell'evento a chi in
 > quel momento non ha risposto o ha risposto «forse», tra i destinatari dell'evento (convocati, o
 > tutta la rosa attiva; mai l'allenatore). Testo e finestre nel [catalogo](notifiche.md#catalogo-delle-notifiche).
-> Il diagramma sopra descrive lo stato attuale.
+> Il diagramma sopra è quello del pulsante, che da DD-040 legge anche `convocati` dell'evento.
 
 Un evento conta ai fini delle statistiche di presenza solo se è di tipo `partita` o
 `allenamento` e il giocatore è tra i convocati (o non ci sono convocati specificati, cioè

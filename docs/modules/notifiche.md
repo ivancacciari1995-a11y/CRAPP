@@ -50,10 +50,9 @@ automatiche (1, 2, 4 e 5) nascono nel database e la manda il worker `mailer/` (v
 promemoria»). Il sondaggio riscrive la notifica esistente se l'admin preme di nuovo il pulsante per
 lo stesso evento (vedi «Centro notifiche in-app»).
 
-> **Stato delle righe 1, 2, 4 e 5 (DD-040).** Testi, orari e destinatari sono quelli **decisi** il
-> 30/09/2026, non ancora in codice: mancano la migration `m26` e le funzioni SQL dei job. I pulsanti
-> «Avvisa chi è di turno» e «Sollecita» **restano** e si aggiungono agli avvisi automatici. Fino al rilascio l'app si comporta come in 1.2.0: promemoria
-> con il testo breve, turno palloni e sollecito presenze solo da pulsante. Le sezioni più in basso descrivono lo stato attuale; i testi dei due pulsanti diventano quelli nuovi.
+> **Righe 1, 2, 4 e 5 (DD-040).** Implementate con la migration `m26` (job `pg_cron`, testi, revoca) e
+> verificate in locale; la migration va ancora applicata in produzione. Finché non lo è, l'app si comporta
+> come in 1.2.0: promemoria con il testo breve, turno palloni e sollecito presenze solo da pulsante.
 
 Cosa riceve l'allenatore, notifica per notifica: [allenatore.md](allenatore.md#notifiche).
 
@@ -74,11 +73,13 @@ disattivazione). Tra `<…>` i valori che cambiano a ogni invio; le date sono `G
 | 5   | Sollecito presenze            | `Conferma di partecipazione richiesta: <titolo>`                                   | `Data: <GG/MM/AAAA>`<br>`Ora: <ora>`<br>`Luogo: <luogo>`<br>`Richiesta di: <Nome>` (solo nel sollecito manuale, e solo se il nome c'è)<br>`Risposta attuale: nessuna` (oppure `forse`)<br>`Azione: indicare presente, assente o in ritardo` — stesso testo a 24, 12 e 6 ore |
 | 6   | Sondaggio pre-partita         | `💩 Sondaggio pre-partita aperto`                                                  | `<partita> · ore <ora>. Quante cacche hai fatto? Rispondi prima del fischio d'inizio.`                                                                                                                                                                                      |
 
-Le righe 1-2, 4a, 4b e 5 sono i testi nuovi (DD-040, ancora da implementare): nasceranno nelle
-funzioni SQL della migration `m26`. Quelli in uso oggi sono: promemoria «Promemoria: _titolo_» con corpo
-«_data_ alle _ora_» (migration `m23`, senza luogo e senza «oggi/domani»); turno palloni in
-`palloni-core.ts` (`avvisiPalloniEvento`: «Tocca a te prendere i palloni» / «Porta i palloni»); sollecito in
-`sollecita-presenze.ts` («Manca la tua risposta»). Le righe 3 e 6 non cambiano:
+Le righe 1-2, 4a-4c e 5 nascono nelle funzioni SQL della migration `m26`
+(`genera_promemoria_eventi`, `genera_avvisi_palloni_fascia`, `genera_revoche_palloni`,
+`genera_solleciti_presenze_fascia`); i pulsanti usano gli stessi testi da `palloni-core.ts`
+(`avvisiPalloniEvento`) e `presenze.ts` (`testoSollecito`), e `notifiche-automatiche.test.ts` verifica che siano
+identici. In tutte la riga «Luogo» manca se l'evento non ha un luogo. Fino all'applicazione della `m26` in produzione valgono i testi di 1.2.0: promemoria
+«Promemoria: _titolo_» con corpo «_data_ alle _ora_», turno palloni «Tocca a te prendere i palloni» / «Porta
+i palloni», sollecito «Manca la tua risposta». Le righe 3 e 6 non cambiano:
 `notifica-personalizzata.ts` e `cacche.ts` (`avvisoSondaggio`).
 
 **Notifiche smart (riga 7).** Solo locali: la notifica di sistema ha il titolo preceduto
@@ -145,16 +146,16 @@ Sono l'effetto attuale della logica, non scelte documentate altrove:
 
 ### Test che verificano il catalogo
 
-| Cosa                                                                                                                                                                                                            | Test                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Promemoria 24 e 3 ore: destinatari (convocati, tutti i giocatori attivi se `convocati` è vuoto, mai l'allenatore), deduplica, eliminazione, coda push ed email                                                  | `test/integration/destinatari-notifiche.test.ts`, `promemoria-eventi.test.ts`, `push-promemoria.test.ts`, `notifiche-email.test.ts` |
-| Messaggio dello staff: push a tutti i dispositivi (allenatore compreso) o a uno solo, in-app a tutta la rosa attiva, riservato agli admin                                                                       | `destinatari-notifiche.test.ts`, `notifiche-utente.test.ts`                                                                         |
-| Turno palloni: incaricato e chi li aveva prima, solo allenamenti e partite, riservato agli admin                                                                                                                | `destinatari-notifiche.test.ts`, `unit/palloni-core.test.ts`                                                                        |
-| Sollecito presenze: chi non ha risposto o ha detto «forse», mai l'allenatore; permesso ad allenatore e admin, non ai giocatori                                                                                  | `destinatari-notifiche.test.ts`, `unit/presenze.test.ts`                                                                            |
-| Sondaggio pre-partita: push senza allenatori, avviso in-app ed email ai giocatori attivi, `upsert`, riservato agli admin                                                                                        | `destinatari-notifiche.test.ts`, `sondaggio-notifiche.test.ts`, `unit/cacche.test.ts`                                               |
-| Promemoria con «oggi/domani», turno palloni a 12·6·3 ore e revoca, solleciti a 24·12·6 ore (manuale compreso): finestre, destinatari, una sola volta, registro (DD-040, **previsti**, da scrivere con la `m26`) | `promemoria-eventi.test.ts` (aggiornato), nuovo `notifiche-automatiche.test.ts`, `unit/palloni-core.test.ts`                        |
-| Worker: esiti, backoff, tetto giornaliero, iscrizioni scadute                                                                                                                                                   | `unit/mailer-core.test.ts`                                                                                                          |
-| L'allenatore è fuori dalla rosa di gioco                                                                                                                                                                        | `unit/giocatori-squadra.test.ts` (`inRosa`)                                                                                         |
+| Cosa                                                                                                                                                                           | Test                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Promemoria 24 e 3 ore: destinatari (convocati, tutti i giocatori attivi se `convocati` è vuoto, mai l'allenatore), deduplica, eliminazione, coda push ed email                 | `test/integration/destinatari-notifiche.test.ts`, `promemoria-eventi.test.ts`, `push-promemoria.test.ts`, `notifiche-email.test.ts`                                                                    |
+| Messaggio dello staff: push a tutti i dispositivi (allenatore compreso) o a uno solo, in-app a tutta la rosa attiva, riservato agli admin                                      | `destinatari-notifiche.test.ts`, `notifiche-utente.test.ts`                                                                                                                                            |
+| Turno palloni: incaricato e chi li aveva prima, solo allenamenti e partite, riservato agli admin                                                                               | `destinatari-notifiche.test.ts`, `unit/palloni-core.test.ts`                                                                                                                                           |
+| Sollecito presenze: chi non ha risposto o ha detto «forse», mai l'allenatore; permesso ad allenatore e admin, non ai giocatori                                                 | `destinatari-notifiche.test.ts`, `unit/presenze.test.ts`                                                                                                                                               |
+| Sondaggio pre-partita: push senza allenatori, avviso in-app ed email ai giocatori attivi, `upsert`, riservato agli admin                                                       | `destinatari-notifiche.test.ts`, `sondaggio-notifiche.test.ts`, `unit/cacche.test.ts`                                                                                                                  |
+| Promemoria con «oggi/domani», turno palloni a 12·6·3 ore e revoca, solleciti a 24·12·6 ore (manuale compreso): finestre, destinatari, una sola volta, registro (DD-040, `m26`) | `integration/notifiche-automatiche.test.ts` (nuovo), `promemoria-eventi.test.ts` (testo oggi/domani), `destinatari-notifiche.test.ts` (pulsanti), `unit/palloni-core.test.ts`, `unit/presenze.test.ts` |
+| Worker: esiti, backoff, tetto giornaliero, iscrizioni scadute                                                                                                                  | `unit/mailer-core.test.ts`                                                                                                                                                                             |
+| L'allenatore è fuori dalla rosa di gioco                                                                                                                                       | `unit/giocatori-squadra.test.ts` (`inRosa`)                                                                                                                                                            |
 
 Le push dei test vanno a un servizio push finto in locale: si verifica **a chi** arrivano, non la
 consegna su un telefono. Non ha un test l'esclusione dell'allenatore dalle **notifiche smart**: la
@@ -281,8 +282,8 @@ non richiede che il dispositivo abbia attivato «Notifiche», ha uno storico per
 stessa cosa delle notifiche smart (quelle restano locali, non salvate a database).
 
 Cinque sorgenti scrivono in `notifiche_utente`, mai il client (con DD-040 le sorgenti 3 e 4 hanno in più un
-job `pg_cron` come la 2: turno palloni a 12, 6 e 3 ore, sollecito a 24, 12 e 6 ore; i pulsanti restano;
-l'elenco descrive lo stato attuale):
+job `pg_cron` come la 2, che scrive `turno_palloni_12h`/`_6h`/`_3h`/`_revocato` e `sollecita_presenze_24h`/
+`_12h`/`_6h`; i pulsanti restano e scrivono `turno_palloni` e `sollecita_presenze`):
 
 1. **Messaggio admin** — `notifica-personalizzata.ts` inserisce una riga per destinatario
    in parallelo all'invio push esistente (a tutta la rosa attiva se `giocatoreId` è omesso).
@@ -306,6 +307,9 @@ Turno palloni, sollecito presenze e sondaggio usano un `upsert` su `(giocatore_i
 invece di un semplice insert: se l'admin preme di nuovo il pulsante per lo stesso evento, la
 notifica esistente viene aggiornata (testo e `creato_il` freschi, `letta` riportata a false)
 invece di duplicarsi o fallire per il vincolo `UNIQUE`.
+
+Il corpo delle notifiche automatiche è a righe etichettate (Data, Ora, Luogo…): `RigaNotifica` lo mostra con
+`whitespace-pre-line`, e un test di `unit/notifiche-utente.test.ts` verifica che la classe ci sia.
 
 Lettura, "segna come letta" ed eliminazione passano dal client Supabase autenticato con RLS
 (`useNotificheMie()`/`useSegnaLette()`/`useEliminaNotifica()`), senza una route API dedicata

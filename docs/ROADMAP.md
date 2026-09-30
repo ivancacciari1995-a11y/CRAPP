@@ -44,11 +44,10 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Notifiche email — ogni notifica in-app inviata anche per email agli account registrati,
       da un worker Docker sull'host di casa via Gmail, con interruttore «Email» in Profilo
       ([specifica](modules/notifiche-email.md), DD-036)
+- [x] Notifiche automatiche — promemoria con «oggi/domani», turno palloni 12, 6 e 3 ore prima, sollecito
+      presenze a 24, 12 e 6 ore (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
 
 ## Prossimo
-
-- [ ] Notifiche automatiche — promemoria con «oggi/domani», turno palloni 12, 6 e 3 ore prima, sollecito
-      presenze a 24, 12 e 6 ore (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
 
 - [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
       Campionato usa solo quelle giocate

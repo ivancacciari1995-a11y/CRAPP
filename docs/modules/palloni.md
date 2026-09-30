@@ -26,7 +26,7 @@ compaiono.
 
 ## Implementazione
 
-- `eventiPalloni()` (`palloni-core.ts`) è il filtro comune a tutta la pipeline (proposte,
+- `eventiPalloni()` (`palloni-core.ts`) ordina gli eventi per data, poi ora, poi id (lo stesso ordine dei job SQL di `m26`: «evento precedente» e «successivo» dipendono da qui) ed è il filtro comune a tutta la pipeline (proposte,
   conteggi, serie, promemoria): include solo `tipo === "partita"` e `tipo === "allenamento"`,
   scarta eventi extra-campo e compleanni.
 - `completaTurni()` (`palloni-core.ts`) propone, per ogni **partita** senza turno già salvato,
@@ -55,12 +55,12 @@ oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un al
 
 ## Route API pubblica `/api/public/promemoria-palloni`
 
-> **Affiancata da un invio automatico (DD-040, non ancora implementato).** Oltre al pulsante, un job
+> **Affiancata da un invio automatico (DD-040, migration `m26`).** Oltre al pulsante, un job
 > `pg_cron` ogni 15 minuti manda l'avviso **12, 6 e 3 ore prima** dell'evento, solo se per l'evento c'è un
 > incaricato confermato in `turni_palloni`. Il pulsante e la route **restano**, con tipo
 > `turno_palloni` e push dalla route. I due destinatari e i testi nuovi («incarico assegnato» /
 > «riconsegna», validi per il pulsante e per i job, più la revoca se l'incaricato cambia) sono nel
-> [catalogo](notifiche.md#testi-delle-notifiche). Il resto della sezione descrive lo stato attuale.
+> [catalogo](notifiche.md#testi-delle-notifiche). Il resto della sezione descrive il pulsante.
 
 La fa partire un **amministratore** dal pulsante «Avvisa chi è di turno» dentro il riquadro
 palloni dell'evento (`TurnoPalloni.tsx`), riservato agli admin (DD-025). Riceve l'`eventoId`,

@@ -114,7 +114,7 @@ a lui (`usePuoGestireEventi()`).
 
 Può anche **sollecitare le presenze** di un evento, come l'admin: la route
 `sollecita-presenze.ts` accetta admin o allenatore (`richiediGestoreEventi()`), e il
-sollecito arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso. Con DD-040 (non ancora implementato) si aggiungono solleciti automatici a 24, 12 e 6 ore prima dell'evento, ma il pulsante resta.
+sollecito arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso. Con DD-040 si aggiungono solleciti automatici a 24, 12 e 6 ore prima dell'evento, ma il pulsante resta.
 
 **Restano solo admin:** dashboard `/admin`, dati e documenti dei giocatori, export CSI,
 notifica personalizzata, promemoria palloni, apertura sondaggio cacche, correzione delle

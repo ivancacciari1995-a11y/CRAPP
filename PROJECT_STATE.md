@@ -25,10 +25,10 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 36 migration in `supabase/migrations/`, fino a `m25_promemoria_solo_giocatori` (29/09/2026).
-  Le prime 33 (fino a `m22_notifiche_email`) sono applicate in produzione, verificato con
-  `npx supabase migration list` il 29/09/2026; **`m23`, `m24` e `m25` sono verificate solo in locale
-  e non ancora applicate in produzione**
+- 37 migration in `supabase/migrations/`, fino a `m26_notifiche_automatiche` (30/09/2026).
+  Le prime 36 (fino a `m25_promemoria_solo_giocatori`) sono applicate in produzione, verificato con
+  `npx supabase migration list` il 30/09/2026; **`m26` è verificata solo in locale e non ancora
+  applicata in produzione**
 - Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
   29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
   [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
@@ -211,10 +211,10 @@ Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0) e le notif
 canali (DD-036–DD-039, 1.2.0) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
-Specificato ma non ancora implementato: notifiche automatiche per turno palloni (12, 6 e 3 ore
-prima, senza email, con revoca dell'incarico), solleciti presenze (24, 12 e 6 ore prima) e promemoria con
-«oggi/domani» (DD-040, migration `m26` da scrivere). I pulsanti «Avvisa chi è di turno» e «Sollecita»
-restano.
+Implementato e verificato in locale, non ancora rilasciato: notifiche automatiche per turno palloni
+(12, 6 e 3 ore prima, senza email, con revoca dell'incarico), solleciti presenze (24, 12 e 6 ore prima) e
+promemoria con «oggi/domani» (DD-040, migration `m26`, da applicare in produzione). I pulsanti «Avvisa chi
+è di turno» e «Sollecita» restano.
 
 ---
 
