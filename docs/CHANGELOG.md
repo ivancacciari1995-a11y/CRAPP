@@ -13,28 +13,54 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
-Le notifiche di turno palloni e sollecito presenze partono anche da sole, e i testi sono più formali.
-La migration `m26` è verificata in locale e va applicata in produzione insieme a questa versione (DD-040).
+## [1.2.1] - 2026-09-30
+
+Turno palloni e sollecito presenze partono anche da soli, a orari fissi prima dell'evento, e i testi di
+tutte le notifiche legate agli eventi sono più formali e completi (DD-040). La migration `m26` è applicata in
+produzione dal 30/09/2026; questa versione porta il codice dell'app che la accompagna.
 
 ### Aggiunto
 
 - **Turno palloni automatico** — 12, 6 e 3 ore prima di allenamenti e partite con un incaricato confermato,
-  all'incaricato e a chi aveva i palloni all'evento precedente. Se l'incaricato cambia, chi era stato avvisato
-  riceve una sola volta «Turno palloni: incarico revocato». Arriva come push e nel centro notifiche, non per
-  email.
-- **Sollecito presenze automatico** — 24, 12 e 6 ore prima dell'evento, ai convocati che in quel momento non
-  hanno risposto o hanno risposto «forse»; chi risponde smette di riceverlo. Un evento creato tardi riceve solo
-  il sollecito della sua fascia.
-- Nuovo test di integrazione `notifiche-automatiche` sui job veri del database, più test unitari dei testi e
-  dei destinatari.
+  all'incaricato («incarico assegnato») e a chi aveva i palloni all'evento precedente («riconsegna»), se è
+  un'altra persona. Se l'incaricato cambia, chi era stato avvisato riceve una sola volta «Turno palloni:
+  incarico revocato». Arriva come push e nel centro notifiche, non per email. Il pulsante «Avvisa chi è di
+  turno» resta.
+- **Sollecito presenze automatico** — 24, 12 e 6 ore prima dell'evento, ai convocati (o a tutta la rosa
+  attiva se non ce ne sono) che in quel momento non hanno risposto o hanno risposto «forse», mai
+  all'allenatore; chi risponde smette di riceverlo. Un evento creato tardi riceve solo il sollecito della sua
+  fascia. Push, notifica in app ed email. Il pulsante «Sollecita» resta.
+- **Migration `m26_notifiche_automatiche`** — tipi di notifica nuovi (`turno_palloni_12h`, `_6h`, `_3h`,
+  `turno_palloni_revocato`, `sollecita_presenze_24h`, `_12h`, `_6h`), funzioni SQL dei job e due job
+  `pg_cron` ogni 15 minuti (`avvisi-palloni-automatici`, `solleciti-presenze-automatici`), riservati alla
+  service role. Ogni notifica automatica si genera una sola volta per giocatore, evento e tipo, anche se
+  viene eliminata (registro `promemoria_eventi_generati`). Le fasce sono contigue: un evento creato tardi
+  non riceve tutte le notifiche insieme.
+- **Test** — nuovo test di integrazione `notifiche-automatiche` (26 prove) sui job veri del database:
+  finestre, destinatari, doppioni, revoca, code push ed email, permessi, pianificazione, e confronto con i
+  testi e l'ordine del codice TypeScript. Nuovi test unitari di testi, destinatari, date e a capo delle
+  notifiche; aggiornati i test di promemoria, code push ed email, worker e route dei pulsanti.
+- **Documentazione** — DD-040 in `DESIGN_DECISIONS.md`; sezione «Testi delle notifiche» nel catalogo di
+  `modules/notifiche.md`; tabella delle funzioni SQL e dei job in `DATABASE.md`.
 
 ### Modificato
 
-- **Testi delle notifiche** — promemoria con «domani» o «oggi», data, ora e luogo; turno palloni e sollecito
-  con righe etichettate (Evento, Data, Ora, Luogo, Incarico, Azione). Stessi testi per i pulsanti e per i job.
-- **Sollecito manuale** — il pulsante «Sollecita» ora segue i convocati dell'evento, come l'automatico, invece
-  di tutti i giocatori attivi; il testo dice la risposta attuale e chi lo ha chiesto.
-- Le righe del corpo di una notifica vanno a capo nel centro notifiche.
+- **Testi delle notifiche** — i promemoria a 24 e 3 ore dicono «domani» se l'evento è domani, «oggi»
+  altrimenti, con data, ora e luogo. Turno palloni e sollecito hanno righe etichettate (Evento, Data, Ora,
+  Luogo, Incarico, Azione). Stessi testi per i pulsanti e per i job. I promemoria già generati non cambiano.
+- **Sollecito manuale** — il pulsante «Sollecita» ora segue i convocati dell'evento, come l'automatico,
+  invece di tutti i giocatori attivi; il testo dice la risposta attuale e chi lo ha chiesto. Il turno
+  palloni manuale non parte più per email.
+- **Turno palloni manuale** — senza un incaricato per l'evento non parte più nessun avviso, nemmeno quello
+  di riconsegna, come già descritto nel catalogo.
+- **Ordine degli eventi dei palloni** — data, poi ora, poi id (prima solo la data): «evento precedente» e
+  «successivo» coincidono con quelli dei job del database.
+- **Centro notifiche** — le righe del corpo di una notifica vanno a capo.
+- Il sollecito e il turno palloni non sono più descritti come «solo manuali» nel catalogo delle notifiche.
+
+### Corretto
+
+- `PROJECT_STATE.md` dava `m23`–`m25` come non applicate in produzione: lo sono dal 29/09/2026.
 
 ## [1.2.0] - 2026-09-29
 

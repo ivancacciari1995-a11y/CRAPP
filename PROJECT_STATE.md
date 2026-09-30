@@ -11,8 +11,9 @@ amministratore e Profilo Giocatore (lato giocatore e lato admin) sono in produzi
 Foto profilo (M6) e Scout Live (M7) non dipendono più da `localStorage`: entrambi ora
 sincronizzano tra dispositivi tramite Supabase. Le serie di presenze sono calcolate sui dati
 reali (M9). Prima versione pre-release rilasciata (0.9.0); la prima versione stabile, 1.0.0, ha
-portato il ruolo allenatore. La versione corrente è la 1.2.0: notifiche su tre canali (push, in-app
-ed email) e promemoria che non si ripetono (vedi `docs/CHANGELOG.md`).
+portato il ruolo allenatore. La versione corrente è la 1.2.1: notifiche su tre canali (push, in-app
+ed email), promemoria che non si ripetono, turno palloni e solleciti presenze automatici (vedi
+`docs/CHANGELOG.md`).
 Cancellare un evento pulisce ora a cascata tutte le tabelle collegate (M14) e le righe orfane
 da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 
@@ -25,10 +26,8 @@ da cancellazioni precedenti a M14 sono state bonificate una tantum (M15/M16).
 - Cursor e Claude Code come ambienti di sviluppo
 - Vercel configurato; Environment Variables aggiornate al nuovo Supabase (Preview e Production)
 - Supabase proprietario attivo — Project Ref: `kfkcldwncxqaixetsjes`
-- 37 migration in `supabase/migrations/`, fino a `m26_notifiche_automatiche` (30/09/2026).
-  Le prime 36 (fino a `m25_promemoria_solo_giocatori`) sono applicate in produzione, verificato con
-  `npx supabase migration list` il 30/09/2026; **`m26` è verificata solo in locale e non ancora
-  applicata in produzione**
+- 37 migration in `supabase/migrations/`, fino a `m26_notifiche_automatiche` (30/09/2026), tutte
+  applicate in produzione, verificato con `npx supabase migration list` il 30/09/2026
 - Worker delle notifiche email (`mailer/`) in funzione su un Raspberry Pi con Docker dal
   29/09/2026: invia via Gmail le notifiche di `notifiche_utente`. Installazione e gestione in
   [docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md); il codice con l'interruttore «Email» in Profilo è
@@ -207,14 +206,9 @@ collega uno slot lo occupa anche in produzione, e va liberato da un admin.
 
 ## Prossimo sviluppo
 
-Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0) e le notifiche su tre
-canali (DD-036–DD-039, 1.2.0) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
+Niente di assegnato: l'avviso certificati in scadenza (DD-035, 1.1.0), le notifiche su tre
+canali (DD-036–DD-039, 1.2.0) e quelle automatiche di palloni e solleciti (DD-040, 1.2.1) sono implementati (vedi `docs/CHANGELOG.md`). Le voci ancora aperte stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
-
-Implementato e verificato in locale, non ancora rilasciato: notifiche automatiche per turno palloni
-(12, 6 e 3 ore prima, senza email, con revoca dell'incarico), solleciti presenze (24, 12 e 6 ore prima) e
-promemoria con «oggi/domani» (DD-040, migration `m26`, da applicare in produzione). I pulsanti «Avvisa chi
-è di turno» e «Sollecita» restano.
 
 ---
 
