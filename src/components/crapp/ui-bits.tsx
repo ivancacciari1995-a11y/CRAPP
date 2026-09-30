@@ -110,7 +110,9 @@ function RigaNotifica({
         className="touch-pan-y bg-card p-3 pr-8 text-sm"
       >
         <p className="font-semibold">{notifica.titolo}</p>
-        {notifica.corpo ? <p className="mt-0.5 text-muted-foreground">{notifica.corpo}</p> : null}
+        {notifica.corpo ? (
+          <p className="mt-0.5 whitespace-pre-line text-muted-foreground">{notifica.corpo}</p>
+        ) : null}
         <p className="mt-1 text-xs text-muted-foreground">{tempoRelativo(notifica.creataIl)}</p>
       </motion.div>
       <button

@@ -1,4 +1,4 @@
-import { formatData } from "./crapp-data";
+import { formatDataNumerica } from "./crapp-data";
 import type { Evento } from "./eventi";
 import { dataOggi } from "./scout-live";
 import { aggiornaSerie } from "./serie";
@@ -8,12 +8,19 @@ export type Turno = { evento_id: string; giocatore_id: string; aggiornato_da: st
 /** Candidato al turno palloni: solo id e nome bastano per assegnare e ordinare. */
 export type CandidatoTurno = { id: string; nome: string };
 
-/** Eventi che richiedono i palloni (solo allenamenti e partite), in ordine di data. */
+/**
+ * Eventi che richiedono i palloni (solo allenamenti e partite), in ordine di data e, a parità,
+ * di ora. Lo stesso ordine lo usa il database per i job automatici (M26, DD-040).
+ */
 export function eventiPalloni(eventi: Evento[]): Evento[] {
   return eventi
     .filter((e) => e.tipo === "allenamento" || e.tipo === "partita")
     .slice()
-    .sort((a, b) => a.data.localeCompare(b.data));
+    .sort((a, b) => {
+      if (a.data !== b.data) return a.data < b.data ? -1 : 1;
+      if (a.ora !== b.ora) return a.ora < b.ora ? -1 : 1;
+      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
 }
 
 /**
@@ -139,11 +146,12 @@ export function destinatariPromemoriaPalloni(
 }
 
 /**
- * Avvisi da mandare per un evento preciso, con il testo già pronto (DD-025).
+ * Avvisi da mandare per un evento preciso, con il testo già pronto (DD-025, DD-040).
  *
- * Diverso da `destinatariPromemoriaPalloni`, che guarda la giornata di oggi: qui l'admin
- * sceglie l'evento dalla sua pagina, quindi il messaggio nomina quell'evento e non "oggi".
- * Il testo viaggia cifrato dentro la push, quindi il service worker lo mostra senza rete.
+ * Sono gli stessi testi dei job automatici del database (migration M26): all'incaricato
+ * «incarico assegnato», a chi aveva i palloni all'evento precedente (se è un'altra persona)
+ * «riconsegna». Se per l'evento non c'è un incaricato non parte nulla. Il testo viaggia cifrato
+ * dentro la push, quindi il service worker lo mostra senza rete.
  */
 export function avvisiPalloniEvento(
   turni: Record<string, string>,
@@ -153,29 +161,37 @@ export function avvisiPalloniEvento(
   const evento = eventiPalloni(eventi).find((e) => e.id === eventoId);
   if (!evento) return [];
 
-  const avvisi: Array<{ giocatoreId: string; titolo: string; testo: string }> = [];
-  const quando = `${evento.titolo} · ${formatData(evento.data)} alle ${evento.ora}`;
-
   const incaricato = turni[evento.id];
-  if (incaricato) {
-    const dopo = eventoSuccessivo(eventi, evento.id);
-    avvisi.push({
-      giocatoreId: incaricato,
-      titolo: "Tocca a te prendere i palloni",
-      testo: dopo
-        ? `${quando}: a fine evento porti a casa i palloni e li riporti il ${formatData(dopo.data)}.`
-        : `${quando}: a fine evento porti a casa i palloni.`,
-    });
-  }
+  if (!incaricato) return [];
 
-  // Chi li ha presi la volta scorsa deve ricordarsi di portarli.
+  const avvisi: Array<{ giocatoreId: string; titolo: string; testo: string }> = [];
+  const intestazione = [
+    `Evento: ${evento.titolo}`,
+    `Data: ${formatDataNumerica(evento.data)}, ore ${evento.ora}`,
+  ];
+
+  const dopo = eventoSuccessivo(eventi, evento.id);
+  avvisi.push({
+    giocatoreId: incaricato,
+    titolo: "Turno palloni: incarico assegnato",
+    testo: [
+      ...intestazione,
+      "Incarico: custodia dei palloni al termine dell'evento",
+      ...(dopo ? [`Riconsegna: ${formatDataNumerica(dopo.data)}`] : []),
+    ].join("\n"),
+  });
+
+  // Chi li ha presi la volta scorsa deve ricordarsi di riportarli.
   const prima = eventoPrecedente(eventi, evento.id);
   const precedente = prima ? turni[prima.id] : undefined;
   if (precedente && precedente !== incaricato) {
     avvisi.push({
       giocatoreId: precedente,
-      titolo: "Porta i palloni",
-      testo: `${quando}: i palloni li hai tu dalla volta scorsa.`,
+      titolo: "Turno palloni: riconsegna",
+      testo: [
+        ...intestazione,
+        "Incarico: riconsegna dei palloni in custodia dal turno precedente",
+      ].join("\n"),
     });
   }
 

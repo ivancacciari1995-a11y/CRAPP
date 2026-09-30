@@ -133,6 +133,12 @@ export type RigaClassifica = {
   punti: number;
 };
 
+/** Data numerica `GG/MM/AAAA`, come scritta dai testi delle notifiche (stessa del database). */
+export function formatDataNumerica(iso: string): string {
+  const [anno, mese, giorno] = iso.split("-");
+  return `${giorno}/${mese}/${anno}`;
+}
+
 export function formatData(iso: string) {
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "long" });

@@ -179,18 +179,44 @@ assert.deepEqual(
 );
 
 // --- avvisiPalloniEvento ------------------------------------------------------
-// Il promemoria per un evento scelto dall'admin: due destinatari, con testi diversi.
+// L'avviso per un evento scelto: due destinatari, con testi diversi (DD-040). Gli stessi testi dei
+// job automatici del database: `test/integration/notifiche-automatiche.test.ts` li confronta.
 const avvisi = avvisiPalloniEvento(turniPush, eventiPush, "p2");
 assert.deepEqual(
   avvisi.map((a) => a.giocatoreId),
   ["g2", "g1"],
   "l'incaricato di questo evento, e chi ha i palloni dalla volta prima",
 );
-assert.match(avvisi[0]!.titolo, /prendere i palloni/);
-assert.match(avvisi[1]!.titolo, /Porta i palloni/);
+assert.equal(avvisi[0]!.titolo, "Turno palloni: incarico assegnato");
+assert.equal(avvisi[1]!.titolo, "Turno palloni: riconsegna");
+assert.equal(
+  avvisi[0]!.testo,
+  [
+    "Evento: Evento p2",
+    "Data: 02/02/2026, ore 21:00",
+    "Incarico: custodia dei palloni al termine dell'evento",
+    "Riconsegna: 03/02/2026",
+  ].join("\n"),
+  "incarico: evento, data numerica, incarico e data di riconsegna dell'evento successivo",
+);
+assert.equal(
+  avvisi[1]!.testo,
+  [
+    "Evento: Evento p2",
+    "Data: 02/02/2026, ore 21:00",
+    "Incarico: riconsegna dei palloni in custodia dal turno precedente",
+  ].join("\n"),
+  "riconsegna: nessuna riga «Riconsegna», chi la riceve li riporta",
+);
 assert.ok(
   avvisi.every((a) => !/oggi/i.test(a.testo)),
   "il testo nomina l'evento, non 'oggi': può arrivare giorni prima",
+);
+
+const ultimo = avvisiPalloniEvento(turniPush, eventiPush, "p3");
+assert.ok(
+  ultimo.every((a) => !a.testo.includes("Riconsegna:")),
+  "l'ultimo evento non ha un successivo: la riga «Riconsegna» manca",
 );
 
 assert.deepEqual(
@@ -213,6 +239,26 @@ assert.deepEqual(
   [],
   "senza turni assegnati non c'è nessuno da avvisare",
 );
+assert.deepEqual(
+  avvisiPalloniEvento({ p1: "g1" }, eventiPush, "p2"),
+  [],
+  "senza un incaricato per l'evento non parte nulla, nemmeno la riconsegna (DD-040)",
+);
+
+// --- ordine: a parità di data conta l'ora, poi l'id --------------------------
+const stessoGiorno: Evento[] = [
+  { ...evento("z", "2026-06-01"), ora: "21:00" },
+  { ...evento("y", "2026-06-01"), ora: "18:30" },
+  { ...evento("x", "2026-06-01"), ora: "21:00" },
+  evento("a", "2026-05-31"),
+];
+assert.deepEqual(
+  eventiPalloni(stessoGiorno).map((e) => e.id),
+  ["a", "y", "x", "z"],
+  "data, poi ora, poi id: lo stesso ordine dei job del database",
+);
+assert.equal(eventoPrecedente(stessoGiorno, "x")?.id, "y");
+assert.equal(eventoSuccessivo(stessoGiorno, "y")?.id, "x");
 
 // --- serieConsecutivaPalloni: volte consecutive in cui li ha portati lui -----
 const eventiSerie: Evento[] = [

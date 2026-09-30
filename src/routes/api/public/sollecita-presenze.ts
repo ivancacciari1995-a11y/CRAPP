@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { richiediGestoreEventi } from "@/lib/auth-route.server";
-import { formatData } from "@/lib/crapp-data";
 import { leggiEventi } from "@/lib/eventi.server";
 import { leggiGiocatoriSquadra } from "@/lib/giocatori-squadra.server";
-import { destinatariSollecito } from "@/lib/presenze";
+import { destinatariSollecito, testoSollecito } from "@/lib/presenze";
 import { inviaPush } from "@/lib/webpush.server";
 
 const schema = z.object({
@@ -35,19 +34,24 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
           .eq("evento_id", evento.id);
 
         const squadra = await leggiGiocatoriSquadra();
-        const destinatari = destinatariSollecito(squadra, righe ?? []);
+        const destinatari = destinatariSollecito(squadra, righe ?? [], evento.convocati);
 
         if (destinatari.length === 0) return Response.json({ inviate: 0, destinatari: 0 });
 
         const { data: iscrizioni } = await supabaseAdmin
           .from("push_subscriptions")
-          .select("endpoint, p256dh, auth")
+          .select("endpoint, giocatore_id, p256dh, auth")
           .in("giocatore_id", destinatari);
 
-        const titolo = "Manca la tua risposta";
-        const testo = `${evento.titolo} · ${formatData(evento.data)} ore ${evento.ora}. ${
-          parsed.data.da ? `${parsed.data.da} chiede` : "Serve"
-        } una conferma: presente, assente o in ritardo?`;
+        // Il testo dice se il giocatore non ha risposto o ha risposto «forse» (DD-040): è
+        // quindi per destinatario, e la push porta il testo del proprio destinatario.
+        const stati = new Map((righe ?? []).map((r) => [r.giocatore_id, r.stato]));
+        const testi = new Map(
+          destinatari.map((giocatoreId) => [
+            giocatoreId,
+            testoSollecito(evento, stati.get(giocatoreId), parsed.data.da),
+          ]),
+        );
 
         // Storico in-app (M17): un upsert perché ripremere il pulsante deve riportare la
         // notifica a non letta, non fallire per il vincolo UNIQUE. `types.ts` non include
@@ -57,8 +61,8 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
           destinatari.map((giocatoreId) => ({
             giocatore_id: giocatoreId,
             tipo: "sollecita_presenze",
-            titolo,
-            corpo: testo,
+            titolo: testi.get(giocatoreId)?.titolo,
+            corpo: testi.get(giocatoreId)?.testo,
             evento_id: evento.id,
             letta: false,
             creato_il: new Date().toISOString(),
@@ -68,8 +72,10 @@ export const Route = createFileRoute("/api/public/sollecita-presenze")({
 
         let inviate = 0;
         for (const iscrizione of iscrizioni ?? []) {
+          const avviso = testi.get(iscrizione.giocatore_id);
+          if (!avviso) continue;
           try {
-            const { stato } = await inviaPush(iscrizione, titolo, testo);
+            const { stato } = await inviaPush(iscrizione, avviso.titolo, avviso.testo);
             if (stato === 404 || stato === 410) {
               await supabaseAdmin
                 .from("push_subscriptions")

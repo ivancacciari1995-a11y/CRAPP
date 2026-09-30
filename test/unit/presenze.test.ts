@@ -9,6 +9,7 @@ import {
   includeInfortunato,
   serieConferme,
   serieConsecutiva,
+  testoSollecito,
   totaliEventiGiocatore,
   type MappaPresenze,
   type MappaTempiRisposta,
@@ -157,6 +158,65 @@ assert.deepEqual(
   "quando hanno risposto tutti non parte nessuna push",
 );
 assert.deepEqual(destinatariSollecito([], risposte), [], "rosa vuota, nessun destinatario");
+
+// --- il sollecito segue i convocati (DD-040) ----------------------------------
+assert.deepEqual(
+  destinatariSollecito(squadra, risposte, ["g1", "g2", "g3"]),
+  ["g2", "g3"],
+  "solo i convocati senza risposta o con «forse»: g1 ha risposto, g4 non è convocato",
+);
+assert.deepEqual(
+  destinatariSollecito(squadra, risposte, ["g4"]),
+  [],
+  "l'unico convocato ha risposto: nessun sollecito",
+);
+assert.deepEqual(
+  destinatariSollecito(squadra, [], ["g3", "g5", "g6", "g9"]),
+  ["g3"],
+  "convocati inattivi, allenatori o fuori rosa restano esclusi anche se convocati",
+);
+assert.deepEqual(
+  destinatariSollecito(squadra, risposte, []),
+  ["g2", "g3"],
+  "nessun convocato indicato vale per tutta la rosa, come nel database",
+);
+
+// --- testo del sollecito -----------------------------------------------------
+const eventoSollecito = {
+  titolo: "Allenamento del giovedì",
+  data: "2026-10-01",
+  ora: "21:00",
+  luogo: "PalaCRAP",
+};
+const automatico = testoSollecito(eventoSollecito, undefined);
+assert.equal(automatico.titolo, "Conferma di partecipazione richiesta: Allenamento del giovedì");
+assert.equal(
+  automatico.testo,
+  [
+    "Data: 01/10/2026",
+    "Ora: 21:00",
+    "Luogo: PalaCRAP",
+    "Risposta attuale: nessuna",
+    "Azione: indicare presente, assente o in ritardo",
+  ].join("\n"),
+);
+assert.match(testoSollecito(eventoSollecito, "forse").testo, /Risposta attuale: forse/);
+assert.match(
+  testoSollecito(eventoSollecito, "assente").testo,
+  /Risposta attuale: nessuna/,
+  "qualunque stato diverso da «forse» si legge come nessuna risposta",
+);
+const manuale = testoSollecito(eventoSollecito, undefined, "Mario Rossi");
+assert.equal(
+  manuale.testo.split("\n")[3],
+  "Richiesta di: Mario Rossi",
+  "il sollecito manuale nomina chi lo chiede, tra il luogo e la risposta attuale",
+);
+assert.ok(!automatico.testo.includes("Richiesta di"), "l'automatico non ha un mittente");
+assert.ok(
+  !testoSollecito({ ...eventoSollecito, luogo: "   " }, undefined).testo.includes("Luogo:"),
+  "senza luogo la riga manca",
+);
 
 // --- serie conferme: risposta entro 24h dalla convocazione --------------------
 const convocati = (id: string, data: string, creatoIl?: string): Evento => ({

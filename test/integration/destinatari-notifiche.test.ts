@@ -77,6 +77,7 @@ if (!locale) {
   const ALLENATORE = "g6";
   const PARTITA = `${PREFISSO}-partita`;
   const PRESENZE = `${PREFISSO}-presenze`;
+  const PRESENZE_CONVOCATI = `${PREFISSO}-presenze-convocati`;
   const PALLONI_1 = `${PREFISSO}-palloni-1`;
   const PALLONI_2 = `${PREFISSO}-palloni-2`;
   const GENERICO = `${PREFISSO}-generico`;
@@ -150,10 +151,10 @@ if (!locale) {
   /** A quali slot è arrivata una push dall'ultimo `svuota()`, senza ripetizioni e in ordine. */
   const destinatariPush = () => [...new Set(ricevute)].sort();
 
-  type Notifica = { giocatore_id: string; titolo: string; tipo: string };
+  type Notifica = { giocatore_id: string; titolo: string; corpo: string; tipo: string };
   const notifiche = (filtro: string) =>
     leggi<Notifica>(
-      `notifiche_utente?${filtro}&select=giocatore_id,titolo,tipo&order=giocatore_id`,
+      `notifiche_utente?${filtro}&select=giocatore_id,titolo,corpo,tipo&order=giocatore_id`,
     );
   const slot = (righe: Notifica[]) => righe.map((r) => r.giocatore_id);
 
@@ -191,6 +192,7 @@ if (!locale) {
     for (const [id, tipo, data] of [
       [PARTITA, "partita", "2031-04-01"],
       [PRESENZE, "allenamento", "2031-04-02"],
+      [PRESENZE_CONVOCATI, "partita", "2031-04-03"],
       [PALLONI_1, "allenamento", "2031-05-01"],
       [PALLONI_2, "allenamento", "2031-05-08"],
       [GENERICO, "evento", "2031-05-09"],
@@ -201,7 +203,8 @@ if (!locale) {
         titolo: `${PREFISSO} ${id}`,
         data,
         ora: "20:00",
-        convocati: [],
+        luogo: id === PRESENZE ? "PalaCRAP" : "",
+        convocati: id === PRESENZE_CONVOCATI ? [G_QUATTRO, G_CINQUE] : [],
       });
     }
 
@@ -373,6 +376,72 @@ if (!locale) {
       },
     );
 
+    await prova(
+      "il sollecito manuale ha il testo nuovo, con chi lo chiede e la risposta attuale",
+      async () => {
+        svuota();
+        const res = await chiama("sollecita-presenze", tokenAdmin, {
+          eventoId: PRESENZE,
+          da: "Mario Rossi",
+        });
+        assert.equal(res.status, 200);
+        const righe = await notifiche(`evento_id=eq.${PRESENZE}&tipo=eq.sollecita_presenze`);
+        const cinque = righe.find((r) => r.giocatore_id === G_CINQUE);
+        const altro = righe.find((r) => r.giocatore_id !== G_CINQUE);
+        assert.equal(
+          cinque?.titolo,
+          `Conferma di partecipazione richiesta: ${PREFISSO} ${PRESENZE}`,
+        );
+        assert.equal(
+          cinque?.corpo,
+          [
+            "Data: 02/04/2031",
+            "Ora: 20:00",
+            "Luogo: PalaCRAP",
+            "Richiesta di: Mario Rossi",
+            "Risposta attuale: forse",
+            "Azione: indicare presente, assente o in ritardo",
+          ].join("\n"),
+        );
+        assert.match(altro?.corpo ?? "", /Risposta attuale: nessuna/, "chi non ha risposto");
+        const conId = await leggi<{ id: string }>(
+          `notifiche_utente?evento_id=eq.${PRESENZE}&tipo=eq.sollecita_presenze&select=id`,
+        );
+        const email = await leggi<{ notifica_id: string }>(
+          `notifiche_email_coda?notifica_id=in.(${conId.map((r) => r.id).join(",")})&select=notifica_id`,
+        );
+        assert.equal(email.length, conId.length, "il sollecito manuale parte anche per email");
+        assert.equal(
+          righe.filter((r) => r.giocatore_id === G_CINQUE).length,
+          1,
+          "ripremere il pulsante riscrive la notifica, non la duplica",
+        );
+        assert.deepEqual(destinatariPush(), [G_CINQUE]);
+      },
+    );
+
+    await prova(
+      "il sollecito manuale segue i convocati, come quello automatico (DD-040)",
+      async () => {
+        const res = await chiama("sollecita-presenze", tokenAdmin, {
+          eventoId: PRESENZE_CONVOCATI,
+        });
+        assert.equal(res.status, 200);
+        const righe = await notifiche(
+          `evento_id=eq.${PRESENZE_CONVOCATI}&tipo=eq.sollecita_presenze`,
+        );
+        assert.deepEqual(
+          slot(righe),
+          [G_QUATTRO, G_CINQUE],
+          "solo i convocati: i non convocati non ricevono nulla, nemmeno senza risposta",
+        );
+        assert.ok(
+          !righe[0]!.corpo.includes("Richiesta di"),
+          "senza nome, senza la riga «Richiesta di»",
+        );
+      },
+    );
+
     await prova("un giocatore non può sollecitare le presenze", async () => {
       const res = await chiama("sollecita-presenze", giocatore.token, { eventoId: PRESENZE });
       assert.ok(!res.ok, `stato ${res.status}`);
@@ -390,8 +459,25 @@ if (!locale) {
       const righe = await notifiche(`evento_id=eq.${PALLONI_2}&tipo=eq.turno_palloni`);
       assert.deepEqual(slot(righe), [G_UNO, G_DUE]);
       const per = new Map(righe.map((r) => [r.giocatore_id, r.titolo]));
-      assert.equal(per.get(G_DUE), "Tocca a te prendere i palloni");
-      assert.equal(per.get(G_UNO), "Porta i palloni");
+      assert.equal(per.get(G_DUE), "Turno palloni: incarico assegnato");
+      assert.equal(per.get(G_UNO), "Turno palloni: riconsegna");
+      const corpoDue = righe.find((r) => r.giocatore_id === G_DUE)?.corpo ?? "";
+      assert.match(
+        corpoDue,
+        /^Evento: test-destinatari-notifiche test-destinatari-notifiche-palloni-2\n/,
+      );
+      assert.match(corpoDue, /\nData: 08\/05\/2031, ore 20:00\n/);
+      assert.match(corpoDue, /Incarico: custodia dei palloni al termine dell'evento/);
+
+      // DD-040: il turno palloni arriva come push e in-app, mai per email.
+      const conId = await leggi<{ id: string }>(
+        `notifiche_utente?evento_id=eq.${PALLONI_2}&tipo=eq.turno_palloni&select=id`,
+      );
+      assert.equal(conId.length, righe.length);
+      const email = await leggi<{ notifica_id: string }>(
+        `notifiche_email_coda?notifica_id=in.(${conId.map((r) => r.id).join(",")})&select=notifica_id`,
+      );
+      assert.equal(email.length, 0, "nessuna email per il turno palloni");
     });
 
     await prova(
@@ -427,6 +513,7 @@ if (!locale) {
     for (const id of [
       PARTITA,
       PRESENZE,
+      PRESENZE_CONVOCATI,
       PALLONI_1,
       PALLONI_2,
       GENERICO,

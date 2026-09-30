@@ -16,7 +16,14 @@ export type TipoNotifica =
   | "evento_promemoria_24h"
   | "evento_promemoria_3h"
   | "turno_palloni"
+  | "turno_palloni_12h"
+  | "turno_palloni_6h"
+  | "turno_palloni_3h"
+  | "turno_palloni_revocato"
   | "sollecita_presenze"
+  | "sollecita_presenze_24h"
+  | "sollecita_presenze_12h"
+  | "sollecita_presenze_6h"
   | "sondaggio_cacche";
 
 export type NotificaUtente = {

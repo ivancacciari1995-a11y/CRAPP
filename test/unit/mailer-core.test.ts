@@ -197,6 +197,24 @@ await prova("il testo dell'admin non inietta HTML e conserva gli a-capo", () => 
   assert.equal(escapeHtml(`<&>"'`), "&lt;&amp;&gt;&quot;&#39;");
 });
 
+await prova(
+  "il corpo a righe etichettate delle notifiche automatiche (DD-040) resta leggibile",
+  () => {
+    const corpo = "Data: domani, 01/10/2026\nOra: 21:00\nLuogo: PalaCRAP";
+    const m = componiMail(
+      notifica({
+        oggetto: "Promemoria evento di domani: Allenamento",
+        testo: corpo,
+        id_evento: "ev-1",
+      }),
+      OPZ,
+    );
+    assert.equal(m.subject, "Promemoria evento di domani: Allenamento");
+    assert.ok(m.text.startsWith(`${corpo}\n\nApri CrAPP: `), "in testo semplice le righe restano");
+    assert.match(m.html, /Data: domani, 01\/10\/2026<br>Ora: 21:00<br>Luogo: PalaCRAP/);
+  },
+);
+
 await prova("titolo con HTML: l'intestazione della mail è sempre esclusa dal markup", () => {
   const m = componiMail(notifica({ oggetto: "<b>Ciao</b>" }), OPZ);
   assert.ok(!m.html.includes("<b>"));

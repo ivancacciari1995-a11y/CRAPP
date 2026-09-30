@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Stato } from "./crapp-data";
+import { formatDataNumerica, type Stato } from "./crapp-data";
 import type { Evento, EventoTipo } from "./eventi";
 import { inRosa, type TipoMembro } from "./giocatori-squadra";
 import { aggiornaSerie } from "./serie";
@@ -82,23 +82,50 @@ export function includeInfortunato(tipo: EventoTipo, statoAttuale?: Stato | null
 }
 
 /**
- * Chi va sollecitato per un evento: i giocatori attivi (non gli allenatori) che non hanno ancora risposto, più
- * quelli che hanno risposto «forse». Funzione pura, come `avvisiPalloniEvento()` per i
- * palloni: la route `/api/public/sollecita-presenze` la chiama con i dati che ha già letto.
+ * Chi va sollecitato per un evento (DD-040): i destinatari dell'evento — i convocati, o tutta la
+ * rosa se `convocati` è vuoto — che non hanno ancora risposto o hanno risposto «forse». Mai gli
+ * allenatori (DD-034). Stessa regola del job automatico del database (`giocatori_destinatari_evento`
+ * più `genera_solleciti_presenze`, migration M26): funzione pura, come `avvisiPalloniEvento()` per i
+ * palloni, chiamata dalla route `/api/public/sollecita-presenze` con i dati che ha già letto.
  */
 export function destinatariSollecito(
   squadra: Array<{ id: string; attivo: boolean; tipo: TipoMembro }>,
   risposte: Array<{ giocatore_id: string; stato: string }>,
+  convocati: string[] = [],
 ): string[] {
   const stati = new Map(risposte.map((r) => [r.giocatore_id, r.stato]));
   // L'allenatore non risponde alle presenze, quindi non va sollecitato (DD-034).
   return squadra
     .filter(inRosa)
+    .filter((g) => convocati.length === 0 || convocati.includes(g.id))
     .filter((g) => {
       const stato = stati.get(g.id);
       return stato === undefined || stato === "forse";
     })
     .map((g) => g.id);
+}
+
+/**
+ * Titolo e corpo del sollecito, gli stessi del job automatico (migration M26). `da` è il nome di
+ * chi preme il pulsante: compare solo nel sollecito manuale, come riga «Richiesta di».
+ */
+export function testoSollecito(
+  evento: Pick<Evento, "titolo" | "data" | "ora" | "luogo">,
+  stato: string | undefined,
+  da?: string,
+): { titolo: string; testo: string } {
+  const luogo = evento.luogo.trim();
+  return {
+    titolo: `Conferma di partecipazione richiesta: ${evento.titolo}`,
+    testo: [
+      `Data: ${formatDataNumerica(evento.data)}`,
+      `Ora: ${evento.ora}`,
+      ...(luogo ? [`Luogo: ${luogo}`] : []),
+      ...(da ? [`Richiesta di: ${da}`] : []),
+      `Risposta attuale: ${stato === "forse" ? "forse" : "nessuna"}`,
+      "Azione: indicare presente, assente o in ritardo",
+    ].join("\n"),
+  };
 }
 
 /**

@@ -1,6 +1,6 @@
 /** Check dei dati di base della rosa: `bun test/unit/crapp-data.test.ts`. */
 import assert from "node:assert/strict";
-import { formatData, giocatori, statoMeta } from "@/lib/crapp-data";
+import { formatData, formatDataNumerica, giocatori, statoMeta } from "@/lib/crapp-data";
 
 // --- rosa --------------------------------------------------------------------
 assert.ok(giocatori.length > 0, "la rosa non è vuota");
@@ -29,6 +29,15 @@ for (const g of giocatori) {
 
 // --- formatData --------------------------------------------------------------
 assert.equal(formatData("2026-09-01"), "mar 01 settembre");
+
+// --- formatDataNumerica: la data dei testi delle notifiche, come to_char(…, 'DD/MM/YYYY') ----
+assert.equal(formatDataNumerica("2026-09-01"), "01/09/2026");
+assert.equal(formatDataNumerica("2026-12-31"), "31/12/2026");
+assert.equal(
+  formatDataNumerica("2026-03-29"),
+  "29/03/2026",
+  "nessuna conversione di fuso: il giorno del cambio ora resta quello scritto",
+);
 assert.equal(formatData("2026-01-31"), "sab 31 gennaio");
 assert.ok(
   !formatData("2026-03-29").includes("28"),
