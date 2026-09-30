@@ -10,8 +10,8 @@
 ## Obiettivo
 
 Gestire un turno a rotazione condiviso per chi porta e riporta i palloni ad allenamenti e
-partite, con proposta automatica, possibilità di modifica manuale e promemoria push il
-giorno stesso. Gli eventi extra-campo (`tipo === "evento"`, es. cena di squadra) e i
+partite, con proposta automatica, possibilità di modifica manuale e avvisi push, nel centro
+notifiche e senza email a 12, 6 e 3 ore dall'evento (DD-040). Gli eventi extra-campo (`tipo === "evento"`, es. cena di squadra) e i
 compleanni non c'entrano: non richiedono palloni.
 
 ---
@@ -76,8 +76,9 @@ nessuna chiamata di rete. Stesso meccanismo di `apri-sondaggio` (vedi
 
 ## Limiti noti
 
-- **L'invio è manuale** (DD-040 aggiunge un invio automatico 12, 6 e 3 ore prima, senza toglierlo): nessun cron manda il promemoria da solo, se l'admin non preme il
-  pulsante non parte niente (DD-025). `destinatariPromemoriaPalloni()` — la versione "chi è di
+- **L'avviso automatico parte solo con un incaricato confermato** (DD-040): per una partita la
+  proposta di `completaTurni()` non salvata non basta, e senza incaricato non parte nulla. Il pulsante
+  dell'admin (DD-025) resta per rimandare l'avviso o per una proposta non ancora confermata. `destinatariPromemoriaPalloni()` — la versione "chi è di
   turno oggi" — resta in `palloni-core.ts` ma non la chiama più nessuno.
 - La rotazione non considera le assenze dichiarate: può proporre il turno a chi ha risposto
   "assente" o "infortunato" per quell'evento.

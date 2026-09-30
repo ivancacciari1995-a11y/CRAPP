@@ -94,9 +94,9 @@ vale per tutta la rosa) — `eventiContanoPresenze()` in `presenze.ts`.
 
 - Aggiornamento ottimistico della cache locale dopo ogni salvataggio: nessuna rilettura dal
   server, la UI risponde subito.
-- Il sollecito è **manuale** (da DD-040 si aggiungono tre solleciti automatici, che non lo sostituiscono): nessun cron nel repository lo richiama automaticamente, parte
-  solo dal bottone admin, e la route verifica il ruolo lato server con `richiediAdmin`
-  (DD-024).
+- Il sollecito ha due vie (DD-040): tre solleciti **automatici** (24, 12 e 6 ore prima, job `pg_cron`
+  nel database) e il pulsante **manuale** accanto, che non sostituiscono. La route del pulsante verifica
+  il ruolo lato server con `richiediGestoreEventi` (admin o allenatore, DD-024, DD-034).
 - Ognuno risponde **solo per sé**, e non è più una regola della sola interfaccia: dalla
   migration `m11_scritture_per_ruolo` la policy di `risposte_presenze` lega la riga allo slot
   `giocatori_squadra` collegato all'account, con gli amministratori come sola deroga
