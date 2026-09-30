@@ -218,6 +218,31 @@ if (!locale) {
     });
 
     await prova(
+      "le notifiche automatiche di palloni e solleciti (DD-040) vanno in coda push; i pulsanti no",
+      async () => {
+        const automatiche = [
+          "turno_palloni_12h",
+          "turno_palloni_6h",
+          "turno_palloni_3h",
+          "turno_palloni_revocato",
+          "sollecita_presenze_24h",
+          "sollecita_presenze_12h",
+          "sollecita_presenze_6h",
+        ];
+        for (const tipo of automatiche) {
+          const riga = await coda(await creaNotifica(G4, tipo, EVENTI[2]));
+          assert.equal(riga?.stato, "in_coda", tipo);
+          assert.equal(riga?.tentativi, 0, tipo);
+        }
+        // `turno_palloni` e `sollecita_presenze` restano i tipi dei pulsanti: la push la manda
+        // la route, e una seconda dal worker sarebbe un doppione.
+        for (const tipo of ["turno_palloni", "sollecita_presenze"]) {
+          assert.equal(await coda(await creaNotifica(G4, tipo, EVENTI[2])), undefined, tipo);
+        }
+      },
+    );
+
+    await prova(
       "il sondaggio è un tipo valido, e la sua mail parte dal trigger di M22",
       async () => {
         const id = await creaNotifica(G4, "sondaggio_cacche", EVENTI[1]);

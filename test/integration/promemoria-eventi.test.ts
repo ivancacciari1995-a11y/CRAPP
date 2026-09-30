@@ -27,6 +27,9 @@ if (!locale) {
   const EVENTO = `${PREFISSO}-a`;
   const EVENTO_LONTANO = `${PREFISSO}-lontano`;
   const EVENTO_CASCATA = `${PREFISSO}-cascata`;
+  const EVENTO_DOMANI = `${PREFISSO}-domani`;
+  const EVENTO_OGGI = `${PREFISSO}-oggi`;
+  const EVENTO_SENZA_LUOGO = `${PREFISSO}-senza-luogo`;
   const G4 = "g4";
   const G5 = "g5";
   const G6 = "g6";
@@ -201,6 +204,99 @@ if (!locale) {
       assert.ok(!inserimento.ok, "anon non può scrivere nel registro");
     });
 
+    // --- Testo (DD-040) ------------------------------------------------------------------
+    // «domani» se la data dell'evento è quella di domani a Roma, «oggi» altrimenti. Per non
+    // dipendere dall'ora in cui gira il test: un evento domani a mezzanotte cade sempre nella
+    // finestra delle 24 ore, uno oggi alle 23:59 pure.
+    const oggiRoma = tra(0).data;
+    const domaniRoma = new Date(new Date(`${oggiRoma}T12:00:00Z`).getTime() + 24 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    const gg = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
+    const testoDi = async (evento: string, tipo: string) => {
+      const [n] = await leggi<{ titolo: string; corpo: string }>(
+        `notifiche_utente?evento_id=eq.${evento}&tipo=eq.${tipo}&giocatore_id=eq.${G4}&select=titolo,corpo`,
+      );
+      assert.ok(n, `promemoria ${tipo} di ${evento} non generato`);
+      return n;
+    };
+
+    await prova("evento di domani: titolo e data dicono «domani», con ora e luogo", async () => {
+      await scrivi("eventi_app", "POST", {
+        id: EVENTO_DOMANI,
+        tipo: "partita",
+        titolo: `${PREFISSO} cena`,
+        data: domaniRoma,
+        ora: "00:00",
+        luogo: "  PalaCRAP  ",
+        convocati: [G4],
+      });
+      await cron("evento_promemoria_24h");
+      const n = await testoDi(EVENTO_DOMANI, "evento_promemoria_24h");
+      assert.equal(n.titolo, `Promemoria evento di domani: ${PREFISSO} cena`);
+      assert.equal(
+        n.corpo,
+        `Data: domani, ${gg(domaniRoma)}\nOra: 00:00\nLuogo: PalaCRAP`,
+        "il luogo è ripulito dagli spazi",
+      );
+    });
+
+    await prova("evento di oggi: titolo e data dicono «oggi»", async () => {
+      await scrivi("eventi_app", "POST", {
+        id: EVENTO_OGGI,
+        tipo: "allenamento",
+        titolo: `${PREFISSO} oggi`,
+        data: oggiRoma,
+        ora: "23:59",
+        luogo: "Palestra",
+        convocati: [G4],
+      });
+      await cron("evento_promemoria_24h");
+      const n = await testoDi(EVENTO_OGGI, "evento_promemoria_24h");
+      assert.equal(n.titolo, `Promemoria evento di oggi: ${PREFISSO} oggi`);
+      assert.equal(n.corpo, `Data: oggi, ${gg(oggiRoma)}\nOra: 23:59\nLuogo: Palestra`);
+    });
+
+    await prova("lo stesso testo vale per il promemoria a 3 ore", async () => {
+      const { data, ora } = tra(2);
+      await scrivi("eventi_app", "POST", {
+        id: EVENTO_SENZA_LUOGO,
+        tipo: "evento",
+        titolo: `${PREFISSO} senza luogo`,
+        data,
+        ora,
+        convocati: [G4],
+      });
+      await cron("evento_promemoria_3h");
+      const n = await testoDi(EVENTO_SENZA_LUOGO, "evento_promemoria_3h");
+      const parola = data === domaniRoma ? "domani" : "oggi";
+      assert.equal(
+        n.titolo,
+        `Promemoria evento di ${parola}: ${PREFISSO} senza luogo`,
+        "anche il promemoria a 3 ore di un evento dopo mezzanotte dice «domani»",
+      );
+      assert.equal(
+        n.corpo,
+        `Data: ${parola}, ${gg(data)}\nOra: ${ora}`,
+        "senza luogo la riga «Luogo» manca",
+      );
+    });
+
+    await prova(
+      "il promemoria nuovo parte come push e come email, con lo stesso testo",
+      async () => {
+        const [n] = await leggi<{ id: string }>(
+          `notifiche_utente?evento_id=eq.${EVENTO_DOMANI}&tipo=eq.evento_promemoria_24h&giocatore_id=eq.${G4}&select=id`,
+        );
+        assert.ok(n);
+        assert.equal((await inCoda([n.id])).length, 1, "email in coda");
+        const push = await leggi<{ notifica_id: string }>(
+          `notifiche_push_coda?notifica_id=eq.${n.id}&select=notifica_id`,
+        );
+        assert.equal(push.length, 1, "push in coda");
+      },
+    );
+
     await prova("cancellare l'evento toglie anche il registro", async () => {
       const { data, ora } = { data: tra(2).data, ora: tra(2).ora };
       await scrivi("eventi_app", "POST", {
@@ -217,7 +313,14 @@ if (!locale) {
       assert.equal((await registro(EVENTO_CASCATA)).length, 0);
     });
   } finally {
-    for (const id of [EVENTO, EVENTO_LONTANO, EVENTO_CASCATA]) {
+    for (const id of [
+      EVENTO,
+      EVENTO_LONTANO,
+      EVENTO_CASCATA,
+      EVENTO_DOMANI,
+      EVENTO_OGGI,
+      EVENTO_SENZA_LUOGO,
+    ]) {
       await rest(`eventi_app?id=eq.${id}`, SERVIZIO, { method: "DELETE" });
     }
     riepilogo("promemoria-eventi");

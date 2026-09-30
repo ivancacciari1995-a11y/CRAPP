@@ -217,19 +217,38 @@ if (!locale) {
       assert.equal(riga?.inviata_il, null);
     });
 
-    await prova("ogni tipo di notifica esistente viene accodato", async () => {
-      for (const tipo of ["evento_promemoria_24h", "evento_promemoria_3h", "turno_palloni"]) {
+    await prova("ogni tipo di notifica con email viene accodato", async () => {
+      for (const tipo of [
+        "evento_promemoria_24h",
+        "evento_promemoria_3h",
+        "sollecita_presenze",
+        "sollecita_presenze_24h",
+        "sollecita_presenze_12h",
+        "sollecita_presenze_6h",
+        "sondaggio_cacche",
+      ]) {
         const id = await creaNotifica(SLOT_COLLEGATO, { tipo, evento_id: EVENTO_TIPI });
         creati.push(id);
         assert.equal((await coda(id))?.stato, "in_coda", tipo);
       }
-      const id = await creaNotifica(SLOT_COLLEGATO, {
-        tipo: "sollecita_presenze",
-        evento_id: EVENTO_TIPI,
-      });
-      creati.push(id);
-      assert.equal((await coda(id))?.stato, "in_coda", "sollecita_presenze");
     });
+
+    await prova(
+      "il turno palloni non genera email, in nessuna delle sue forme (DD-040)",
+      async () => {
+        for (const tipo of [
+          "turno_palloni",
+          "turno_palloni_12h",
+          "turno_palloni_6h",
+          "turno_palloni_3h",
+          "turno_palloni_revocato",
+        ]) {
+          const id = await creaNotifica(SLOT_COLLEGATO, { tipo, evento_id: EVENTO_TIPI });
+          creati.push(id);
+          assert.equal(await coda(id), undefined, `${tipo}: nessuna riga nella coda email`);
+        }
+      },
+    );
 
     await prova("segnare come letta non rimette in coda una mail già inviata", async () => {
       const id = await creaNotifica(SLOT_COLLEGATO);
@@ -243,7 +262,7 @@ if (!locale) {
 
     await prova("il rinvio con upsert (creato_il riscritto) rimette in coda la mail", async () => {
       const id = await creaNotifica(SLOT_COLLEGATO, {
-        tipo: "turno_palloni",
+        tipo: "sollecita_presenze",
         evento_id: EVENTO_UPSERT,
       });
       creati.push(id);
@@ -251,7 +270,36 @@ if (!locale) {
       await esito(id, "inviata");
       assert.equal((await coda(id))?.stato, "inviata");
 
-      // Come `promemoria-palloni.ts` e `sollecita-presenze.ts`: stesso (giocatore, evento, tipo).
+      // Come `sollecita-presenze.ts`: stesso (giocatore, evento, tipo).
+      const res = await rest("notifiche_utente?on_conflict=giocatore_id,evento_id,tipo", SERVIZIO, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify({
+          giocatore_id: SLOT_COLLEGATO,
+          tipo: "sollecita_presenze",
+          titolo: `${PREFISSO} aggiornato`,
+          corpo: "nuovo testo",
+          evento_id: EVENTO_UPSERT,
+          letta: false,
+          creato_il: new Date().toISOString(),
+        }),
+      });
+      assert.ok(res.ok, `upsert: ${res.status}`);
+      const riga = await coda(id);
+      assert.equal(riga?.stato, "in_coda");
+      assert.equal(riga?.tentativi, 0);
+      assert.equal(riga?.inviata_il, null);
+    });
+
+    await prova("il rinvio con upsert del turno palloni non accoda nessuna mail", async () => {
+      const id = await creaNotifica(SLOT_COLLEGATO, {
+        tipo: "turno_palloni",
+        evento_id: EVENTO_UPSERT,
+      });
+      creati.push(id);
+      assert.equal(await coda(id), undefined);
+
+      // Come `promemoria-palloni.ts`: stesso (giocatore, evento, tipo), `creato_il` riscritto.
       const res = await rest("notifiche_utente?on_conflict=giocatore_id,evento_id,tipo", SERVIZIO, {
         method: "POST",
         headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
@@ -266,10 +314,7 @@ if (!locale) {
         }),
       });
       assert.ok(res.ok, `upsert: ${res.status}`);
-      const riga = await coda(id);
-      assert.equal(riga?.stato, "in_coda");
-      assert.equal(riga?.tentativi, 0);
-      assert.equal(riga?.inviata_il, null);
+      assert.equal(await coda(id), undefined, "nemmeno dopo il rinvio");
     });
 
     await prova(
