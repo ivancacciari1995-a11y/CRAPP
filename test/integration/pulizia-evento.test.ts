@@ -6,7 +6,7 @@
  * `cacche_partita`, `mvp_voti`, `pagelle_voti`, `badge_social_voti`, `turni_palloni`,
  * `scout_sessioni`, `scout_live`, `scout_partite`), cancella l'evento e verifica che il
  * trigger `eventi_app_pulisci_dati_collegati` le abbia rimosse tutte. Prima di M14 queste
- * righe restavano orfane a database (`docs/DESIGN_DECISIONS.md`, DD-029).
+ * righe restavano orfane a database (`docs/decisions/DD-029.md`).
  *
  * Gira solo sullo stack locale (`npx supabase start`): usa id con il prefisso
  * `test-pulizia-evento`, che nessun dato vero può avere.

@@ -1,7 +1,7 @@
 # Modulo — Ruolo Allenatore
 
 **Stato:** implementato
-**Decisione:** [DD-034](../DESIGN_DECISIONS.md#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)
+**Decisione:** [DD-034](../decisions/DD-034.md)
 **Migration:** `m20_ruolo_allenatore_enum`, `m21_ruolo_allenatore`
 **File principali:** `src/lib/giocatori-squadra.ts` (`tipo`, `inRosa`, `isAllenatore`,
 `ruoloVisibile`), `src/lib/ruoli.ts`, `src/lib/user-store.ts` (`useSonoAllenatore`,

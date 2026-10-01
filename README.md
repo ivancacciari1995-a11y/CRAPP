@@ -49,12 +49,9 @@ committare lo decide chi sviluppa (DD-019).
 
 ## Variabili d'ambiente
 
-Il progetto richiede le seguenti variabili:
-
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+Per far partire l'app servono `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL` e
+`VITE_SUPABASE_PUBLISHABLE_KEY`. L'elenco completo (service role, VAPID, SMTP del worker) sta in
+[docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ## Documentazione
 

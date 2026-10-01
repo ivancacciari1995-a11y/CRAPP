@@ -8,7 +8,7 @@
 
 Questo documento descrive **cosa fa** il canale email. Come si installa, si configura e si
 diagnostica il worker sta in [WORKER_EMAIL.md](../WORKER_EMAIL.md); le motivazioni delle scelte in
-[DD-036](../DESIGN_DECISIONS.md#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa).
+[DD-036](../decisions/DD-036.md).
 
 ## Obiettivo
 

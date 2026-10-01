@@ -12,7 +12,7 @@
 Tenere l'anagrafica della rosa (nome, numero di maglia, ruolo, chi è collegato a quale
 account) in un unico posto — `giocatori_squadra` — e farla usare a tutte le schermate che
 hanno bisogno di sapere "chi c'è in squadra", invece di ciascuna avere la propria copia.
-Prima di [DD-015](../DESIGN_DECISIONS.md#dd-015--rosa-anagrafica-da-codice-hardcoded-a-database)
+Prima di [DD-015](../decisions/DD-015.md)
 la lista viveva hardcoded in `src/lib/crapp-data.ts`: aggiungere o disattivare un
 giocatore dalla dashboard admin non aveva alcun effetto sul resto dell'app.
 
@@ -53,19 +53,19 @@ specifica completa sta in [allenatore.md](allenatore.md).
 
 ## Gestione dati squadra (solo amministratore)
 
-Da `/admin` un amministratore può ([DD-017](../DESIGN_DECISIONS.md#dd-017--lamministratore-può-compilare-i-dati-al-posto-del-giocatore)):
+Da `/admin` un amministratore può ([DD-017](../decisions/DD-017.md)):
 
-| Azione                         | Hook                     | Effetto                                                                                                                                                                          |
-| ------------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modificare dati squadra        | `useSalvaDatiSquadra()`  | Nome, cognome, numero, ruolo, email (usata per il collegamento automatico, non il dato personale del profilo)                                                                    |
-| Aggiungere un giocatore        | `useAggiungiGiocatore()` | Nuova riga con id progressivo `g<N>` (`prossimoIdGiocatore()`), non generato dal database; con tipo «Allenatore» senza numero né ruolo (DD-034)                                  |
-| Attivare/disattivare           | `useImpostaAttivo()`     | Non elimina la riga: la storia della stagione resta intatta                                                                                                                      |
-| Scollegare un account          | `useScollegaAccount()`   | Libera uno slot collegato per errore ([DD-016](../DESIGN_DECISIONS.md#dd-016--schema-dati-profilo-giocatore-f0) regola 2); il giocatore si ricollega al primo accesso successivo |
-| Registrare il tesseramento CSI | `useSalvaTesseramento()` | Numero e data tessera, note solo dopo il tesseramento effettivo (vedi `profilo-giocatore.md`)                                                                                    |
+| Azione                         | Hook                     | Effetto                                                                                                                                         |
+| ------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modificare dati squadra        | `useSalvaDatiSquadra()`  | Nome, cognome, numero, ruolo, email (usata per il collegamento automatico, non il dato personale del profilo)                                   |
+| Aggiungere un giocatore        | `useAggiungiGiocatore()` | Nuova riga con id progressivo `g<N>` (`prossimoIdGiocatore()`), non generato dal database; con tipo «Allenatore» senza numero né ruolo (DD-034) |
+| Attivare/disattivare           | `useImpostaAttivo()`     | Non elimina la riga: la storia della stagione resta intatta                                                                                     |
+| Scollegare un account          | `useScollegaAccount()`   | Libera uno slot collegato per errore ([DD-016](../decisions/DD-016.md) regola 2); il giocatore si ricollega al primo accesso successivo         |
+| Registrare il tesseramento CSI | `useSalvaTesseramento()` | Numero e data tessera, note solo dopo il tesseramento effettivo (vedi `profilo-giocatore.md`)                                                   |
 
 Il collegamento giocatore↔account, invece, non è manuale: avviene in automatico al primo
 accesso con Google, per corrispondenza email
-([DD-018](../DESIGN_DECISIONS.md#dd-018--collegamento-automatico-giocatoreaccount-per-email)).
+([DD-018](../decisions/DD-018.md)).
 `useCollegaGiocatore()` esiste per completare quel flusso, non per una scelta libera
 dell'admin.
 

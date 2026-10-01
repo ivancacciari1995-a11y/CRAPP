@@ -7,7 +7,6 @@ Prima di qualsiasi modifica leggi @AGENTS.md e seguine le regole: sono vincolant
 per intero.
 
 - Non implementare funzionalità non documentate in `docs/`.
-- Lavora su `develop`, mai direttamente su `main`.
 - Codice, commenti e documentazione in italiano.
 
 Non aggiungere regole in questo file: una regola nuova va in `AGENTS.md`, che leggono anche

@@ -40,7 +40,7 @@ produzione dal 30/09/2026; questa versione porta il codice dell'app che la accom
   finestre, destinatari, doppioni, revoca, code push ed email, permessi, pianificazione, e confronto con i
   testi e l'ordine del codice TypeScript. Nuovi test unitari di testi, destinatari, date e a capo delle
   notifiche; aggiornati i test di promemoria, code push ed email, worker e route dei pulsanti.
-- **Documentazione** — DD-040 in `DESIGN_DECISIONS.md`; sezione «Testi delle notifiche» nel catalogo di
+- **Documentazione** — DD-040 in `decisions/`; sezione «Testi delle notifiche» nel catalogo di
   `modules/notifiche.md`; tabella delle funzioni SQL e dei job in `DATABASE.md`.
 
 ### Modificato

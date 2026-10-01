@@ -26,7 +26,7 @@ true })` — ci sono anche gli allenatori, DD-034 — non righe
   vere di `eventi_app`): la spunta della vista `giorniIT`/`mesiIT` colora la cella per tipo
   di evento, i giorni con più eventi si dividono lo spazio.
 - **`/eventi`** — "Gestione eventi", riservata ad amministratori e allenatori
-  (`usePuoGestireEventi()`, [DD-034](../DESIGN_DECISIONS.md#dd-034--lallenatore-è-uno-slot-della-squadra-con-tipo-diverso-non-un-giocatore)):
+  (`usePuoGestireEventi()`, [DD-034](../decisions/DD-034.md)):
   crea, modifica ed elimina un evento, sceglie i convocati tra i soli giocatori
   (`convocatiEvento()`, vuoto = tutta la rosa). Da qui si distingue "partita" da "amichevole" tramite il flag `campionato`
   (`categoriaEvento()`/`daCategoria()` in `eventi.ts` convertono tra la categoria mostrata
@@ -39,7 +39,7 @@ true })` — ci sono anche gli allenatori, DD-034 — non righe
   eliminare passano solo da lì. Nel form il giorno si legge come testo fisso e resta da
   scegliere solo l'ora; il campo data compare solo toccando «Cambia», per spostare l'evento. Fino a 0.9.2 sotto la griglia c'era anche la lista
   cronologica di tutti gli eventi, tolta perché ripeteva il calendario
-  ([DD-033](../DESIGN_DECISIONS.md#dd-033--gestione-eventi-solo-calendario-giorno-fissato-dal-tocco)).
+  ([DD-033](../decisions/DD-033.md)).
 
 Entrambe leggono la stessa cache (`useEventi()`, `EVENTI_KEY`, `staleTime` 10 minuti: il
 calendario cambia raramente). `EventoCard.tsx` è la card riusata da entrambe le schermate;
@@ -68,10 +68,10 @@ dalle risposte solo sulla scheda evento (vedi `presenze.md`).
 
 1. **Cancellare un evento è distruttivo per tutto ciò che vi era agganciato.** Un trigger
    (`m14_pulizia_dati_evento_cancellato`,
-   [DD-029](../DESIGN_DECISIONS.md#dd-029--cancellare-un-evento-pulisce-a-cascata-i-dati-collegati))
+   [DD-029](../decisions/DD-029.md))
    pulisce a cascata presenze, cacche, voti MVP/pagelle/badge social, turni palloni e scout
    di quell'evento: non è recuperabile con un annulla, e prima di M14 quelle righe restavano
-   orfane nel database (bonificate una tantum da M15/M16, vedi `PROJECT_STATE.md`).
+   orfane nel database (bonificate una tantum da M15/M16, vedi [DATABASE.md](../DATABASE.md)).
 2. **Nessuna creazione automatica degli eventi partita dal calendario CSI.** Le gare
    ufficiali arrivano già come dati (`getEventsByTeamId.php`, vedi `collegamento-csi.md`),
    ma un amministratore deve comunque creare a mano l'evento corrispondente in `/eventi`

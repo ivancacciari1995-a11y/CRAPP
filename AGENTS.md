@@ -11,17 +11,22 @@ usabile dallo smartphone anche da chi non è pratico.
 ## Prima di modificare il codice
 
 1. Leggi l'indice [docs/README.md](docs/README.md) e segui l'ordine di lettura che indica; poi
-   il documento del modulo interessato in [docs/modules/](docs/modules/).
+   il documento del modulo interessato in [docs/modules/](docs/modules/). Le decisioni
+   ([docs/decisions/](docs/decisions/README.md)) si leggono una per una, solo quelle che il modulo
+   richiama o che l'indice indica per il tema: non servono tutte. Per i termini del dominio c'è il
+   [glossario](docs/GLOSSARIO.md); le «Trappole note» in
+   [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) vanno lette prima di toccare codice o schema.
 2. Verifica lo stato attuale del repository: commit recenti, modifiche non committate, lavoro
    introdotto da altri collaboratori o da altri assistenti.
 3. Non presumere che il progetto sia come l'hai lasciato nell'ultima sessione: la fonte di
    verità è il repository, non la cronologia della conversazione.
 
 Non implementare funzionalità non documentate: prima si documenta
-([DD-002](docs/DESIGN_DECISIONS.md#dd-002--sviluppo-document-first)), poi si scrive il codice.
+([DD-002](docs/decisions/DD-002.md)), poi si scrive il codice.
 
 ## Comandi
 
+Variabili d'ambiente, ambienti e rilascio sono in [docs/OPERATIONS.md](docs/OPERATIONS.md).
 Le dipendenze si installano con **bun** (`bun.lock`). `bunfig.toml` impone
 `minimumReleaseAge = 24h` come guardia supply-chain: aggiungere un pacchetto a
 `minimumReleaseAgeExcludes` richiede conferma esplicita dell'utente.
@@ -82,9 +87,14 @@ Non committare, non fare push e non aprire PR senza che l'utente lo abbia chiest
 Ogni modifica significativa deve lasciare una traccia leggibile senza la cronologia delle
 conversazioni: commit con messaggio descrittivo, più il documento giusto tra
 [docs/CHANGELOG.md](docs/CHANGELOG.md) (cosa è stato rilasciato e quando),
-[PROJECT_STATE.md](PROJECT_STATE.md) (stato generale del progetto),
-[docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md) (decisioni architetturali, voci `DD-XXX`),
-[docs/ROADMAP.md](docs/ROADMAP.md), [docs/DATABASE.md](docs/DATABASE.md) (se cambia lo schema).
+[PROJECT_STATE.md](PROJECT_STATE.md) (a che punto siamo ora, in una pagina: non il registro delle
+migration né l'elenco delle funzioni),
+[docs/decisions/](docs/decisions/README.md) (decisioni architetturali, un file `DD-XXX.md` ciascuna),
+[docs/ROADMAP.md](docs/ROADMAP.md), [docs/DATABASE.md](docs/DATABASE.md) (se cambia lo schema),
+[docs/OPERATIONS.md](docs/OPERATIONS.md) (se cambiano variabili d'ambiente o procedure di rilascio).
+Una decisione nuova è un file `docs/decisions/DD-XXX.md` copiato da `docs/_template-dd.md`, più la
+riga nell'indice. Per aggiungere una funzione o un modulo segui la checklist in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Quali contenuti vanno in quale file, e le convenzioni di scrittura, stanno nelle regole di
 manutenzione di [docs/README.md](docs/README.md): ogni informazione ha una sola casa, non

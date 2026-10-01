@@ -4,8 +4,8 @@ Come si mette in funzione, si controlla e si diagnostica il worker (`mailer/`) c
 per email e le push delle notifiche che nascono nel database: promemoria a 24 e 3 ore, turno palloni a 12, 6 e 3 ore con revoca, solleciti presenze a 24, 12 e 6 ore (DD-040). Cosa fa il canale email sta in
 [modules/notifiche-email.md](modules/notifiche-email.md), la push dei promemoria in
 [modules/notifiche.md](modules/notifiche.md#push-dei-promemoria-m24); perché è fatto così in
-[DD-036](DESIGN_DECISIONS.md#dd-036--notifiche-email-via-gmail-da-un-worker-docker-sullhost-di-casa)
-e [DD-038](DESIGN_DECISIONS.md#dd-038--ogni-notifica-ha-tre-canali-la-push-dei-promemoria-parte-dal-worker).
+[DD-036](decisions/DD-036.md)
+e [DD-038](decisions/DD-038.md).
 Il nome del documento resta quello delle email, che sono il canale principale.
 
 **Stato in produzione:** migration `m22` applicata e worker delle email in funzione dal 29/09/2026,

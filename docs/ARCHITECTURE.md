@@ -102,6 +102,43 @@ Il movimento usa molle interrompibili di `motion` con i preset in `src/lib/molla
 lanciato, così swipe come quello del calendario atterrano dove il gesto stava andando.
 `src/lib/motion.ts` conserva solo il rilevamento del movimento ridotto e i coriandoli.
 
+## Trappole note
+
+Cose che si scoprono solo rompendole; ognuna ha la sua decisione o il suo documento.
+
+- **Non invalidare la cache**: dopo una mutazione si usa `setQueryData`, non `invalidateQueries`
+  ([EFFICIENZA_CLOUD.md](EFFICIENZA_CLOUD.md)).
+- **Niente database dai componenti**: solo tramite `src/lib/` (DD-013).
+- **Tabelle presenti ma non usate**: `giocatori`, `eventi`, `presenze` (DD-014) e `promemoria_push`.
+  Il modello in uso è `giocatori_squadra`, `eventi_app`, `risposte_presenze`.
+- **Route in `src/routes/api/public/`**: usano la service role e saltano la RLS, quindi chiedono
+  le credenziali (DD-024). Una nuova route che avvisa la squadra deve farlo.
+- **`convocati` vuoto significa tutta la rosa**, non nessuno (DD-027).
+- **L'allenatore non è un giocatore**: è fuori da `inRosa()`, non vota e non riceve i promemoria
+  (DD-034, DD-039).
+- **Cancellare un evento** pulisce a cascata le tabelle collegate; una tabella nuova legata
+  agli eventi va aggiunta al trigger (DD-029).
+- **Dev e produzione condividono lo stesso Supabase**: le prove distruttive si fanno sullo stack
+  locale ([OPERATIONS.md](OPERATIONS.md)). Il seed gira solo in locale.
+- **Migration**: mai riscrivere una già applicata; un `CHECK` sul tipo di `notifiche_utente` va
+  esteso con una migration nuova quando nasce un tipo nuovo.
+- **Dipendenze**: `bunfig.toml` impone `minimumReleaseAge = 24h`; escluderne un pacchetto richiede
+  conferma dell'utente.
+
+## Aggiungere un modulo o una funzione
+
+Nell'ordine, perché il progetto è document-first (DD-002):
+
+1. scheda in `docs/modules/<nome>.md` (stato, file principali, obiettivo, dati, permessi) e riga in
+   [ROADMAP.md](ROADMAP.md); se la scelta è non ovvia, una `DD-XXX` in [decisions/](decisions/README.md);
+2. se serve lo schema: tabella documentata in [DATABASE.md](DATABASE.md), **nuova** migration,
+   permessi di scrittura nella sua tabella e test in `test/integration/permessi.test.ts`;
+3. logica pura in `src/lib/<nome>-core.ts` con test in `test/unit/`; hook e accesso ai dati in
+   `src/lib/<nome>.ts`; componenti in `src/components/crapp/`, riusando quelli esistenti;
+4. se tocca le notifiche: il catalogo in [modules/notifiche.md](modules/notifiche.md);
+5. voce in [CHANGELOG.md](CHANGELOG.md) sotto `[Non rilasciato]` e checklist «Fine lavoro» di
+   [AGENTS.md](../AGENTS.md).
+
 ## Comandi
 
 ```bash
