@@ -15,6 +15,12 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **Turno palloni: un solo avviso, 3 ore prima** — a chi deve portare i palloni e a chi li deve
+  prendere; prima ne partivano tre (12, 6 e 3 ore). Migration `m27_palloni_solo_3h`, applicata in
+  produzione il 01/10/2026 (DD-042).
+
+### Modificato
+
 - **Avviso certificati: giocatore a 30 giorni** — il giocatore vede l'avviso giallo sul proprio
   certificato medico da un mese prima della scadenza (prima 7 giorni). Per gli admin non cambia
   nulla: 7 giorni prima in giallo, nero dopo la scadenza (DD-041).

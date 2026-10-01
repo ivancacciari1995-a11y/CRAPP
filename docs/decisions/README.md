@@ -86,6 +86,7 @@ Una decisione sostituita non si cancella: si cambia il suo **Stato** e si rimand
 | [DD-038](DD-038.md) | Tre canali per ogni notifica              |
 | [DD-039](DD-039.md) | Niente promemoria all'allenatore          |
 | [DD-040](DD-040.md) | Palloni e solleciti automatici            |
+| [DD-042](DD-042.md) | Turno palloni: un solo avviso a 3 ore     |
 | [DD-041](DD-041.md) | Avviso certificati: giocatore a 30 giorni |
 
 **In valutazione**

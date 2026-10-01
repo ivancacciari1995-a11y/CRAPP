@@ -5,7 +5,8 @@
  * Esegue i job veri del database (`genera_avvisi_palloni`, `genera_solleciti_presenze`) su eventi
  * creati con orari relativi a «adesso» e verifica:
  *
- * - le finestre contigue e senza sovrapposizione (palloni 12·6·3 ore, solleciti 24·12·6 ore);
+ * - le finestre (palloni: un solo avviso nelle 3 ore prima; solleciti 24·12·6 ore, contigue e senza
+ *   sovrapposizione);
  * - i destinatari (incaricato e turno precedente; convocati senza risposta o con «forse»; mai
  *   l'allenatore né chi non è più attivo);
  * - una sola generazione per giocatore, evento e tipo, anche se la notifica viene eliminata;
@@ -46,12 +47,14 @@ if (!locale) {
   const INATTIVO = "g9";
   const ALLENATORE = "g10";
 
-  // Palloni: in ordine cronologico PASSATO < PREC < MAIN < EV6 < EV12 < LONTANO.
+  // Palloni: in ordine cronologico PASSATO < PREC < MAIN < SECONDO < TERZO < FUORI4 < FUORI9 < LONTANO.
   const PASSATO = `${PREFISSO}-passato`;
   const PREC = `${PREFISSO}-prec`;
   const MAIN = `${PREFISSO}-main`;
-  const EV6 = `${PREFISSO}-ev6`;
-  const EV12 = `${PREFISSO}-ev12`;
+  const SECONDO = `${PREFISSO}-secondo`;
+  const TERZO = `${PREFISSO}-terzo`;
+  const FUORI4 = `${PREFISSO}-fuori4`;
+  const FUORI9 = `${PREFISSO}-fuori9`;
   const LONTANO = `${PREFISSO}-lontano`;
   const GENERICO = `${PREFISSO}-generico`;
   const COPPIA_A = `${PREFISSO}-coppia-a`;
@@ -68,8 +71,10 @@ if (!locale) {
     PASSATO,
     PREC,
     MAIN,
-    EV6,
-    EV12,
+    SECONDO,
+    TERZO,
+    FUORI4,
+    FUORI9,
     LONTANO,
     GENERICO,
     COPPIA_A,
@@ -266,36 +271,51 @@ if (!locale) {
     );
     await scrivi(`giocatori_squadra?id=eq.${INATTIVO}`, "PATCH", { attivo: false }, tokenAdmin);
 
-    // Palloni. Le ore scelte stanno a più di mezz'ora dai confini delle finestre.
+    // Palloni (DD-042): un solo avviso, nelle 3 ore prima. MAIN, SECONDO e TERZO sono dentro la
+    // finestra; FUORI4 e FUORI9 hanno un incaricato ma sono ancora fuori (tra 4,5 e 9 ore).
+    // Le ore scelte stanno a più di mezz'ora dai confini della finestra.
     await creaEvento(PASSATO, "partita", tra(-60));
     await creaEvento(PREC, "allenamento", tra(-30));
-    await creaEvento(MAIN, "allenamento", tra(2.5));
-    await creaEvento(EV6, "partita", tra(4.5));
-    await creaEvento(EV12, "allenamento", tra(9));
+    await creaEvento(MAIN, "allenamento", tra(0.8));
+    await creaEvento(SECONDO, "partita", tra(1.5));
+    await creaEvento(TERZO, "allenamento", tra(2.2));
+    await creaEvento(FUORI4, "allenamento", tra(4.5));
+    await creaEvento(FUORI9, "allenamento", tra(9));
     await creaEvento(LONTANO, "allenamento", tra(40));
-    await creaEvento(GENERICO, "evento", tra(2.2));
+    await creaEvento(GENERICO, "evento", tra(1.9));
     await assegna(PREC, G5);
     await assegna(MAIN, G4);
-    await assegna(EV6, G7);
-    await assegna(EV12, G8);
+    await assegna(SECONDO, G7);
+    await assegna(TERZO, G8);
+    await assegna(FUORI4, G7);
+    await assegna(FUORI9, G8);
     await assegna(GENERICO, G4); // extra-campo: il turno non conta
 
     // --- Turno palloni: finestre e destinatari ---------------------------------------------
-    await prova("ogni evento riceve l'avviso della sua fascia e di nessun'altra", async () => {
-      await esegui("genera_avvisi_palloni");
-      assert.deepEqual(await destinatari(MAIN, "turno_palloni_3h"), [G4, G5]);
-      assert.deepEqual(await destinatari(EV6, "turno_palloni_6h"), [G4, G7]);
-      assert.deepEqual(await destinatari(EV12, "turno_palloni_12h"), [G7, G8]);
-      for (const [evento, altri] of [
-        [MAIN, ["turno_palloni_6h", "turno_palloni_12h"]],
-        [EV6, ["turno_palloni_3h", "turno_palloni_12h"]],
-        [EV12, ["turno_palloni_3h", "turno_palloni_6h"]],
-      ] as const) {
-        for (const tipo of altri) {
-          assert.equal((await notifiche(evento, tipo)).length, 0, `${evento} non ha ${tipo}`);
+    await prova(
+      "un solo avviso, 3 ore prima, a chi porta i palloni e a chi li prende",
+      async () => {
+        await esegui("genera_avvisi_palloni");
+        assert.deepEqual(await destinatari(MAIN, "turno_palloni_3h"), [G4, G5]);
+        assert.deepEqual(await destinatari(SECONDO, "turno_palloni_3h"), [G4, G7]);
+        assert.deepEqual(await destinatari(TERZO, "turno_palloni_3h"), [G7, G8]);
+        for (const evento of [MAIN, SECONDO, TERZO]) {
+          for (const tipo of ["turno_palloni_12h", "turno_palloni_6h"]) {
+            assert.equal((await notifiche(evento, tipo)).length, 0, `${evento} non ha ${tipo}`);
+          }
         }
-      }
-    });
+      },
+    );
+
+    await prova(
+      "a 4,5 e 9 ore dall'inizio non parte nessun avviso, anche con l'incaricato",
+      async () => {
+        assert.equal((await notifiche(FUORI4)).length, 0, "tra 4,5 ore: prima era la fascia 6 ore");
+        assert.equal((await notifiche(FUORI9)).length, 0, "tra 9 ore: prima era la fascia 12 ore");
+        assert.equal((await registro(FUORI4)).length, 0);
+        assert.equal((await registro(FUORI9)).length, 0);
+      },
+    );
 
     await prova(
       "nessun avviso per eventi lontani, passati, extra-campo o senza incaricato",
@@ -314,8 +334,8 @@ if (!locale) {
         const turni = await turniDelDatabase();
         for (const [evento, tipo] of [
           [MAIN, "turno_palloni_3h"],
-          [EV6, "turno_palloni_6h"],
-          [EV12, "turno_palloni_12h"],
+          [SECONDO, "turno_palloni_3h"],
+          [TERZO, "turno_palloni_3h"],
         ] as const) {
           const attesi = avvisiPalloniEvento(turni, eventi, evento);
           assert.equal(attesi.length, 2, evento);
@@ -330,7 +350,7 @@ if (!locale) {
         const [incarico] = (await notifiche(MAIN, "turno_palloni_3h")).filter(
           (r) => r.giocatore_id === G4,
         );
-        const eventiEv6 = eventi.find((e) => e.id === EV6)!;
+        const eventoSecondo = eventi.find((e) => e.id === SECONDO)!;
         const main = eventi.find((e) => e.id === MAIN)!;
         assert.equal(
           incarico?.corpo,
@@ -338,7 +358,7 @@ if (!locale) {
             `Evento: ${PREFISSO} main`,
             `Data: ${gg(main.data)}, ore ${main.ora}`,
             "Incarico: custodia dei palloni al termine dell'evento",
-            `Riconsegna: ${gg(eventiEv6.data)}`,
+            `Riconsegna: ${gg(eventoSecondo.data)}`,
           ].join("\n"),
           "la riconsegna è la data dell'evento successivo",
         );
@@ -349,8 +369,8 @@ if (!locale) {
       assert.equal((await registro(MAIN, "turno_palloni_3h")).length, 2);
       const righe = [
         ...(await notifiche(MAIN, "turno_palloni_3h")),
-        ...(await notifiche(EV6, "turno_palloni_6h")),
-        ...(await notifiche(EV12, "turno_palloni_12h")),
+        ...(await notifiche(SECONDO, "turno_palloni_3h")),
+        ...(await notifiche(TERZO, "turno_palloni_3h")),
       ];
       const ids = righe.map((r) => r.id);
       assert.equal(ids.length, 6);
@@ -385,13 +405,13 @@ if (!locale) {
           "ora non valida: escluso, senza errori",
         );
 
-        await scrivi(`turni_palloni?evento_id=eq.${EV12}`, "PATCH", { giocatore_id: INATTIVO });
+        await scrivi(`turni_palloni?evento_id=eq.${TERZO}`, "PATCH", { giocatore_id: INATTIVO });
         await esegui("genera_avvisi_palloni");
         assert.ok(
-          !(await destinatari(EV12, "turno_palloni_12h")).includes(INATTIVO),
+          !(await destinatari(TERZO, "turno_palloni_3h")).includes(INATTIVO),
           "chi non è più attivo non riceve nulla",
         );
-        await cambiaTurno(EV12, G8);
+        await cambiaTurno(TERZO, G8);
       },
     );
 
@@ -452,18 +472,19 @@ if (!locale) {
       "turno tolto: chi era stato avvisato, incaricato o riconsegna, viene revocato",
       async () => {
         // La notifica dell'avviso può essere stata eliminata: conta il registro.
-        const [avvisoG7] = (await notifiche(EV6, "turno_palloni_6h")).filter(
+        const [avvisoG7] = (await notifiche(SECONDO, "turno_palloni_3h")).filter(
           (r) => r.giocatore_id === G7,
         );
         await scrivi(`notifiche_utente?id=eq.${avvisoG7!.id}`, "DELETE");
-        await scrivi(`turni_palloni?evento_id=eq.${EV6}`, "DELETE");
+        await scrivi(`turni_palloni?evento_id=eq.${SECONDO}`, "DELETE");
         await esegui("genera_avvisi_palloni");
-        const revocati = await destinatari(EV6, "turno_palloni_revocato");
+        const revocati = await destinatari(SECONDO, "turno_palloni_revocato");
         assert.ok(revocati.includes(G7), "g7 aveva eliminato l'avviso: conta il registro");
         assert.ok(!revocati.includes(G8), "g8 non c'entra con questo evento");
-        // Senza incaricato non parte nulla: nemmeno un nuovo avviso di fascia per nessuno.
-        assert.equal((await notifiche(EV6, "turno_palloni_3h")).length, 0);
-        await assegna(EV6, G7);
+        // Senza incaricato non parte nulla di nuovo: restano g4 e g6, avvisati prima come
+        // «riconsegna» quando il turno di MAIN è passato a g6 e poi tornato a g4.
+        assert.deepEqual(await destinatari(SECONDO, "turno_palloni_3h"), [G4, G6]);
+        await assegna(SECONDO, G7);
       },
     );
 
@@ -511,12 +532,12 @@ if (!locale) {
 
       // Solo i due eventi della coppia cadono nella fascia: 8 giorni ± un giorno.
       await esegui("genera_avvisi_palloni_fascia", {
-        p_tipo: "turno_palloni_12h",
+        p_tipo: "turno_palloni_3h",
         p_da: `${24 * 7} hours`,
         p_a: `${24 * 9} hours`,
       });
       for (const evento of [COPPIA_A, COPPIA_B]) {
-        const righe = await notifiche(evento, "turno_palloni_12h");
+        const righe = await notifiche(evento, "turno_palloni_3h");
         const attesi = avvisiPalloniEvento(turni, eventi, evento);
         assert.equal(righe.length, attesi.length, evento);
         for (const a of attesi) {
