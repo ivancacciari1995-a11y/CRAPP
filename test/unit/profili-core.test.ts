@@ -8,6 +8,7 @@ import {
   completamento,
   completamentoAllenatore,
   csvTesseramento,
+  PESI,
   daRigaProfilo,
   formatDataBreve,
   giorniAllaScadenza,
@@ -41,7 +42,6 @@ const vuoto: Profilo = {
   documentoRetroPath: null,
   certificatoScadenza: null,
   certificatoPath: null,
-  fotoPath: null,
 };
 
 const completo: Profilo = {
@@ -60,18 +60,22 @@ const completo: Profilo = {
   documentoRetroPath: "g1/documento-retro.jpg",
   certificatoScadenza: "2027-06-30",
   certificatoPath: "g1/certificato.pdf",
-  fotoPath: "g1/foto.jpg",
 };
 
 // --- completamento -----------------------------------------------------------
 assert.equal(completamento(null), 0, "profilo inesistente = 0%");
 assert.equal(completamento(vuoto), 0);
 assert.equal(completamento(completo), 100, "tutte le sezioni piene = 100%");
-assert.equal(completamento({ ...completo, fotoPath: null }), 90, "la foto pesa 10");
-assert.equal(completamento({ ...completo, certificatoPath: null }), 70, "il certificato pesa 30");
+assert.equal(
+  Object.values(PESI).reduce((somma, peso) => somma + peso, 0),
+  100,
+  "senza foto tessera (DD-044) i pesi di dati, documento e certificato fanno 100",
+);
+assert.deepEqual(Object.keys(sezioniComplete(completo)), ["dati", "documento", "certificato"]);
+assert.equal(completamento({ ...completo, certificatoPath: null }), 67, "il certificato pesa 33");
 assert.equal(
   completamento({ ...completo, email: null }),
-  70,
+  66,
   "i dati personali sono completi solo tutti insieme",
 );
 
@@ -216,7 +220,7 @@ assert.equal(
     email: "a@b.it",
   }),
   100,
-  "bastano i quattro dati personali: niente indirizzo, documento, certificato, foto",
+  "bastano i quattro dati personali: niente indirizzo, documento, certificato",
 );
 assert.equal(completamentoAllenatore({ ...vuoto, telefono: "   " }), 0, "spazi soli non contano");
 

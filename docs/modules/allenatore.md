@@ -55,8 +55,8 @@ Un link diretto a `/profilo?tab=stagione` o `?tab=badge` apre Documenti.
 | Telefono         | `profili_giocatore.telefono`      |                                                                                                |
 | Foto profilo     | bucket `avatar-giocatori`         | stesso cerchio avatar e stesso upload dei giocatori                                            |
 
-**Non** si mostrano: indirizzo di residenza, documento d'identità, certificato medico, foto
-tessera, tesseramento CSI.
+**Non** si mostrano: indirizzo di residenza, documento d'identità, certificato medico,
+tesseramento CSI.
 
 ### Completamento profilo
 
@@ -164,7 +164,7 @@ giocatore).
 | ------------------------------------------------------------------- | ---------- | ------------------ | ----------------------------------- |
 | Modificare nome e cognome                                           | no         | sì, i propri       | tutti                               |
 | Dati personali e foto profilo                                       | i propri   | i propri (ridotti) | tutti (non i file)                  |
-| Documento, certificato, foto tessera                                | i propri   | —                  | lettura/download                    |
+| Documento, certificato                                              | i propri   | —                  | lettura/download                    |
 | Avviso certificati in Home                                          | il proprio | no                 | tutta la rosa                       |
 | Creare/modificare/eliminare eventi, convocati                       | no         | sì                 | sì                                  |
 | Sollecitare le presenze                                             | no         | sì                 | sì                                  |

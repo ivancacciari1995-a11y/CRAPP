@@ -27,7 +27,7 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Dashboard amministratore
 - [x] Download CSV dati
 - [x] Profilo Giocatore — dati personali, documento d'identità, certificato medico
-      (caricamento, scadenza, stato, download) e foto tessera; lo storico dei certificati
+      (caricamento, scadenza, stato, download); la foto tessera è stata tolta (DD-044); lo storico dei certificati
       resta un'estensione futura
 - [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
       tesserato (numero e data di tessera)

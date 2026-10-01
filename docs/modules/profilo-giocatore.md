@@ -44,7 +44,7 @@ Può:
   riga non viene eliminata, così presenze, voti, pagelle e badge della stagione restano
   agganciati al suo id
 
-Non può caricare o sostituire i file altrui: documento, certificato e foto restano
+Non può caricare o sostituire i file altrui: documento e certificato restano
 responsabilità del giocatore che li fornisce.
 
 ## Flusso utente
@@ -73,7 +73,6 @@ Viene mostrata una barra di avanzamento (esempio: _Profilo completato — 85%_),
 - Dati personali
 - Documento di identità
 - Certificato medico
-- Foto tessera
 
 Quando tutte le sezioni sono complete il widget scompare automaticamente.
 
@@ -273,9 +272,8 @@ Lo storico non viene mantenuto nella prima versione.
 
 ### Foto tessera
 
-Upload di una fotografia formato tessera.
-
-Utilizzata dagli amministratori per il tesseramento CSI.
+**Rimossa** (DD-044, migration `m29`): il profilo non chiede più la foto tessera e la colonna
+`foto_path` non esiste più. I file già caricati sono stati cancellati dal bucket.
 
 ### Statistiche
 
@@ -328,7 +326,6 @@ Per ogni giocatore, nella tab Profili, vengono mostrati.
 - Stato del profilo
 - Certificato medico
 - Documento di identità
-- Foto tessera
 - Stato tesseramento CSI (tesserato / da tesserare)
 
 Azioni disponibili.
@@ -336,7 +333,6 @@ Azioni disponibili.
 - Visualizza profilo (la scheda si apre in linea nell'elenco: nessuna schermata separata)
 - Scarica certificato
 - Scarica documento
-- Scarica foto tessera
 - Modifica dati squadra e dati personali del giocatore (DD-017)
 - Registra numero e data della tessera CSI, una volta arrivata dal comitato
 - Scollega account, per liberare uno slot assegnato per errore
@@ -377,10 +373,9 @@ Ogni sezione contribuisce alla percentuale di completamento.
 
 | Sezione               | Peso |
 | --------------------- | ---- |
-| Dati personali        | 30%  |
-| Documento di identità | 30%  |
-| Certificato medico    | 30%  |
-| Foto tessera          | 10%  |
+| Dati personali        | 34%  |
+| Documento di identità | 33%  |
+| Certificato medico    | 33%  |
 
 Quando tutte le sezioni risultano complete il profilo raggiunge il 100%.
 
@@ -402,7 +397,6 @@ nessun altro ne vede (vedi [Avviso certificati](#avviso-certificati)).
 - Gestione dati personali
 - Documento di identità
 - Certificato medico
-- Foto tessera
 - Dashboard amministratore
 - Esportazione CSV CSI
 

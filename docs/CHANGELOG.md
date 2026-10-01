@@ -15,6 +15,11 @@ versioni `0.y.z` erano pre-release.
 
 ### Rimosso
 
+- **Foto tessera del profilo** — il giocatore non la carica più e l'admin non la vede nella scheda; il
+  completamento del profilo si calcola su dati personali (34%), documento (33%) e certificato (33%). Migration
+  `m29_senza_foto_tessera` (elimina la colonna `foto_path`); i file già caricati sono stati cancellati dal
+  bucket `profili-giocatore` (DD-044). Applicata in produzione il 01/10/2026, con la cancellazione dei 4 file già caricati.
+
 - **Promemoria evento a 24 e 3 ore** — non partono più per nessun evento (allenamenti, partite, extra-campo):
   niente notifica, push né email. Migration `m28_niente_promemoria_evento` (tolti i due job `pg_cron`;
   funzione, tipi e notifiche già generate restano). Applicata in produzione il 01/10/2026 (DD-043).

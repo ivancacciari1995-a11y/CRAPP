@@ -70,7 +70,7 @@ export function useSalvaProfilo() {
   });
 }
 
-export type SezioneFile = "documento-fronte" | "documento-retro" | "certificato" | "foto";
+export type SezioneFile = "documento-fronte" | "documento-retro" | "certificato";
 
 const MAX_BYTE = 8 * 1024 * 1024;
 const TIPI_AMMESSI = ["image/jpeg", "image/png", "image/webp", "application/pdf"];

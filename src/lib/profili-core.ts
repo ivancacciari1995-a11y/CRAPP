@@ -21,7 +21,6 @@ export type Profilo = {
   documentoRetroPath: string | null;
   certificatoScadenza: string | null;
   certificatoPath: string | null;
-  fotoPath: string | null;
 };
 
 export type RigaProfilo = {
@@ -40,11 +39,10 @@ export type RigaProfilo = {
   documento_retro_path: string | null;
   certificato_scadenza: string | null;
   certificato_path: string | null;
-  foto_path: string | null;
 };
 
 export const COLONNE_PROFILO =
-  "giocatore_id, data_nascita, luogo_nascita, indirizzo, telefono, email, documento_tipo, documento_numero, documento_rilasciato_da, documento_emissione, documento_scadenza, documento_fronte_path, documento_retro_path, certificato_scadenza, certificato_path, foto_path";
+  "giocatore_id, data_nascita, luogo_nascita, indirizzo, telefono, email, documento_tipo, documento_numero, documento_rilasciato_da, documento_emissione, documento_scadenza, documento_fronte_path, documento_retro_path, certificato_scadenza, certificato_path";
 
 export function profiloVuoto(giocatoreId: string): Profilo {
   return {
@@ -63,7 +61,6 @@ export function profiloVuoto(giocatoreId: string): Profilo {
     documentoRetroPath: null,
     certificatoScadenza: null,
     certificatoPath: null,
-    fotoPath: null,
   };
 }
 
@@ -84,7 +81,6 @@ export function daRigaProfilo(r: RigaProfilo): Profilo {
     documentoRetroPath: r.documento_retro_path,
     certificatoScadenza: r.certificato_scadenza,
     certificatoPath: r.certificato_path,
-    fotoPath: r.foto_path,
   };
 }
 
@@ -111,12 +107,11 @@ export function aRigaProfilo(p: Profilo): RigaProfilo {
     documento_retro_path: oNull(p.documentoRetroPath),
     certificato_scadenza: oNull(p.certificatoScadenza),
     certificato_path: oNull(p.certificatoPath),
-    foto_path: oNull(p.fotoPath),
   };
 }
 
 /** Pesi delle sezioni del profilo (docs/modules/profilo-giocatore.md). */
-export const PESI = { dati: 30, documento: 30, certificato: 30, foto: 10 } as const;
+export const PESI = { dati: 34, documento: 33, certificato: 33 } as const;
 
 export type Sezione = keyof typeof PESI;
 
@@ -131,7 +126,6 @@ export function sezioniComplete(p: Profilo | null | undefined): Record<Sezione, 
       p.documentoRetroPath
     ),
     certificato: !!(p?.certificatoScadenza && p.certificatoPath),
-    foto: !!p?.fotoPath,
   };
 }
 
@@ -145,8 +139,8 @@ export function completamento(p: Profilo | null | undefined): number {
 }
 
 /**
- * L'allenatore compila solo i dati personali ridotti (DD-034): niente indirizzo, documento,
- * certificato né foto tessera, che servono al tesseramento dei giocatori.
+ * L'allenatore compila solo i dati personali ridotti (DD-034): niente indirizzo, documento
+ * né certificato, che servono al tesseramento dei giocatori.
  */
 export const CAMPI_ALLENATORE = ["dataNascita", "luogoNascita", "telefono", "email"] as const;
 
