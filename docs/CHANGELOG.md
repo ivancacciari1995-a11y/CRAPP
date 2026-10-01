@@ -13,6 +13,12 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Rimosso
+
+- **Promemoria evento a 24 e 3 ore** — non partono più per nessun evento (allenamenti, partite, extra-campo):
+  niente notifica, push né email. Migration `m28_niente_promemoria_evento` (tolti i due job `pg_cron`;
+  funzione, tipi e notifiche già generate restano). Applicata in produzione il 01/10/2026 (DD-043).
+
 ### Modificato
 
 - **Turno palloni: un solo avviso, 3 ore prima** — a chi deve portare i palloni e a chi li deve

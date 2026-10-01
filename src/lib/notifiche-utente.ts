@@ -5,7 +5,7 @@ import { useGiocatoreId } from "./user-store";
 /**
  * Centro notifiche in-app (M17): pallino sull'avatar del profilo, con il numero delle non
  * lette. Cinque sorgenti riempiono `notifiche_utente` (lato database, mai dal client): un
- * messaggio libero dell'admin, un promemoria automatico prima di un evento (24h e 3h), il
+ * messaggio libero dell'admin, un promemoria automatico prima di un evento (24h e 3h, non più generato dalla M28), il
  * turno palloni e il sollecito presenze (questi due avviati a mano da un admin, in
  * parallelo alla push esistente). Qui si legge e si segna come letto, con
  * `supabaseNuoveTabelle` perché `types.ts` non include ancora questa tabella (vedi

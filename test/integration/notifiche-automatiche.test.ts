@@ -5,6 +5,7 @@
  * Esegue i job veri del database (`genera_avvisi_palloni`, `genera_solleciti_presenze`) su eventi
  * creati con orari relativi a «adesso» e verifica:
  *
+ * - che il promemoria a 24 e 3 ore non sia più pianificato (M28, DD-043);
  * - le finestre (palloni: un solo avviso nelle 3 ore prima; solleciti 24·12·6 ore, contigue e senza
  *   sovrapposizione);
  * - i destinatari (incaricato e turno precedente; convocati senza risposta o con «forse»; mai
@@ -793,6 +794,33 @@ if (!locale) {
         righe[1]!,
         /^solleciti-presenze-automatici\|\*\/15 \* \* \* \*\|.*genera_solleciti_presenze\(\)/,
       );
+    });
+
+    await prova("il promemoria a 24 e 3 ore non è più pianificato (M28, DD-043)", async () => {
+      const contenitore = spawnSync(
+        "docker",
+        ["ps", "--filter", "name=supabase_db", "--format", "{{.Names}}"],
+        { encoding: "utf8" },
+      )
+        .stdout.trim()
+        .split("\n")[0];
+      assert.ok(contenitore, "container del database locale non trovato");
+      const esito = spawnSync(
+        "docker",
+        [
+          "exec",
+          contenitore,
+          "psql",
+          "-U",
+          "postgres",
+          "-At",
+          "-c",
+          "select count(*) from cron.job where jobname like 'promemoria-eventi-%'",
+        ],
+        { encoding: "utf8" },
+      );
+      assert.equal(esito.status, 0, esito.stderr);
+      assert.equal(esito.stdout.trim(), "0", "nessun job di promemoria evento");
     });
 
     await prova("cancellare l'evento toglie registro e notifiche collegate", async () => {
