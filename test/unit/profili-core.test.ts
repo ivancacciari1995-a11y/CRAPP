@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   aRigaProfilo,
   avvisiCertificati,
+  avvisiCertificatiUtente,
+  GIORNI_AVVISO_CERTIFICATO_GIOCATORE,
   completamento,
   completamentoAllenatore,
   csvTesseramento,
@@ -332,5 +334,79 @@ assert.deepEqual(
   ["g2", "g1", "g3"],
   "il più vecchio prima, poi alfabetico a parità di data (Alfa prima di Zeta)",
 );
+
+// soglia del giocatore (DD-041): 30 giorni di preavviso invece di 7
+const rosaMese: GiocatoreSquadra[] = [
+  { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Cacciari" },
+  { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Bruni" },
+  { ...squadra[0]!, id: "g3", nome: "Marco", cognome: "Verdi" },
+];
+const profiliMese: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-10-21", certificatoPath: "p1" }, // 31 giorni: fuori
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-10-20", certificatoPath: "p2" }, // 30 giorni: dentro
+  g3: { ...vuoto, giocatoreId: "g3", certificatoScadenza: "2026-09-10", certificatoPath: "p3" }, // scaduto
+};
+assert.equal(GIORNI_AVVISO_CERTIFICATO_GIOCATORE, 30);
+const mese = avvisiCertificati(
+  rosaMese,
+  profiliMese,
+  oggiTest,
+  GIORNI_AVVISO_CERTIFICATO_GIOCATORE,
+);
+assert.deepEqual(
+  mese.inScadenza.map((a) => a.giocatoreId),
+  ["g2"],
+  "31 giorni resta valido, 30 genera l'avviso del giocatore",
+);
+assert.deepEqual(
+  mese.scaduti.map((a) => a.giocatoreId),
+  ["g3"],
+);
+const staffMese = avvisiCertificati(rosaMese, profiliMese, oggiTest);
+assert.equal(staffMese.inScadenza.length, 0, "senza soglia esplicita resta 7 giorni (staff)");
+assert.deepEqual(
+  staffMese.scaduti.map((a) => a.giocatoreId),
+  ["g3"],
+);
+
+// avvisi per utente (DD-041): admin giocatore, admin puro, giocatore semplice
+const rosaUtente: GiocatoreSquadra[] = [
+  { ...squadra[0]!, id: "g1", nome: "Ivan", cognome: "Cacciari" },
+  { ...squadra[0]!, id: "g2", nome: "Anna", cognome: "Bruni" },
+];
+const profiliUtente: Record<string, Profilo> = {
+  g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-10-10", certificatoPath: "p1" }, // 20 giorni
+  g2: { ...vuoto, giocatoreId: "g2", certificatoScadenza: "2026-09-25", certificatoPath: "p2" }, // 5 giorni
+};
+const adminGiocatore = avvisiCertificatiUtente(rosaUtente, profiliUtente, oggiTest, {
+  admin: true,
+  base: rosaUtente[0]!,
+});
+assert.equal(
+  adminGiocatore.personale?.giocatoreId,
+  "g1",
+  "admin giocatore: avviso personale a 30 giorni",
+);
+assert.deepEqual(
+  adminGiocatore.staff?.inScadenza.map((a) => a.giocatoreId),
+  ["g2"],
+  "lo staff non ripete il suo nome",
+);
+const adminPuro = avvisiCertificatiUtente(rosaUtente, profiliUtente, oggiTest, {
+  admin: true,
+  base: null,
+});
+assert.equal(adminPuro.personale, undefined);
+assert.deepEqual(
+  adminPuro.staff?.inScadenza.map((a) => a.giocatoreId),
+  ["g2"],
+  "admin non giocatore: solo staff a 7 giorni (g1 a 20 giorni escluso)",
+);
+const soloGiocatore = avvisiCertificatiUtente(rosaUtente, profiliUtente, oggiTest, {
+  admin: false,
+  base: rosaUtente[0]!,
+});
+assert.equal(soloGiocatore.personale?.giocatoreId, "g1");
+assert.equal(soloGiocatore.staff, null, "il giocatore semplice non vede lo staff");
 
 console.log("profili-core: ok");

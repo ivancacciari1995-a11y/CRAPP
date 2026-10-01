@@ -13,6 +13,12 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- **Avviso certificati: giocatore a 30 giorni** — il giocatore vede l'avviso giallo sul proprio
+  certificato medico da un mese prima della scadenza (prima 7 giorni). Per gli admin non cambia
+  nulla: 7 giorni prima in giallo, nero dopo la scadenza (DD-041).
+
 ## [1.2.1] - 2026-09-30
 
 Turno palloni e sollecito presenze partono anche da soli, a orari fissi prima dell'evento, e i testi di

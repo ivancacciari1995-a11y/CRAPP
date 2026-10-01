@@ -216,8 +216,11 @@ export function etichettaGiocatore(g: GiocatoreSquadra): string {
   return `#${g.numero} ${nomeCompleto(g)}`;
 }
 
-/** Soglia dell'avviso certificati in Home (DD-035). */
+/** Soglia dell'avviso certificati dello staff in Home (DD-035). */
 export const GIORNI_AVVISO_CERTIFICATO = 7;
+
+/** Soglia dell'avviso personale: il giocatore è avvisato un mese prima dello staff (DD-041). */
+export const GIORNI_AVVISO_CERTIFICATO_GIOCATORE = 30;
 
 /** Giorni di calendario tra due date `AAAA-MM-GG` (ora locale): negativo se `scadenza` è passata. */
 export function giorniAllaScadenza(scadenza: string, oggi: string): number {
@@ -258,11 +261,13 @@ function confrontaAvvisi(a: AvvisoCertificato, b: AvvisoCertificato): number {
  * Certificati in scadenza o scaduti nella rosa (DD-035): calcolato al volo da
  * `certificato_scadenza`, niente stato salvato. Esclude chi non è in rosa e chi non ha
  * ancora un certificato caricato (è un problema diverso, non un avviso di scadenza).
+ * `soglia` sono i giorni di preavviso: 7 per lo staff, 30 per il giocatore (DD-041).
  */
 export function avvisiCertificati(
   rosa: GiocatoreSquadra[],
   profili: Record<string, Profilo>,
   oggi: string,
+  soglia: number = GIORNI_AVVISO_CERTIFICATO,
 ): { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } {
   const scaduti: AvvisoCertificato[] = [];
   const inScadenza: AvvisoCertificato[] = [];
@@ -271,7 +276,7 @@ export function avvisiCertificati(
     const p = profili[g.id];
     if (!p?.certificatoScadenza || !p.certificatoPath) continue;
     const giorni = giorniAllaScadenza(p.certificatoScadenza, oggi);
-    if (giorni > GIORNI_AVVISO_CERTIFICATO) continue;
+    if (giorni > soglia) continue;
     const avviso: AvvisoCertificato = {
       giocatoreId: g.id,
       nome: g.nome,
@@ -284,4 +289,33 @@ export function avvisiCertificati(
   scaduti.sort(confrontaAvvisi);
   inScadenza.sort(confrontaAvvisi);
   return { scaduti, inScadenza };
+}
+
+/**
+ * Avvisi certificati per chi guarda la Home (DD-035, DD-041): `personale` è il proprio
+ * certificato (soglia 30 giorni), per chiunque sia un giocatore in rosa; `staff` sono gli
+ * altri della rosa (soglia 7 giorni), solo per l'admin, senza il suo nome perché già nel
+ * personale.
+ */
+export function avvisiCertificatiUtente(
+  rosa: GiocatoreSquadra[],
+  profili: Record<string, Profilo>,
+  oggi: string,
+  utente: { admin: boolean; base: GiocatoreSquadra | null },
+): {
+  personale: AvvisoCertificato | undefined;
+  staff: { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } | null;
+} {
+  const mio = utente.base
+    ? avvisiCertificati([utente.base], profili, oggi, GIORNI_AVVISO_CERTIFICATO_GIOCATORE)
+    : null;
+  const personale = mio ? (mio.scaduti[0] ?? mio.inScadenza[0]) : undefined;
+  const staff = utente.admin
+    ? avvisiCertificati(
+        rosa.filter((g) => g.id !== utente.base?.id),
+        profili,
+        oggi,
+      )
+    : null;
+  return { personale, staff };
 }

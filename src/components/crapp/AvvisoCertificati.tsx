@@ -2,7 +2,7 @@ import { AlertCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useProfili } from "@/lib/profili";
 import {
-  avvisiCertificati,
+  avvisiCertificatiUtente,
   formatDataBreve,
   testoScadenza,
   type AvvisoCertificato,
@@ -49,7 +49,10 @@ function Card({
   );
 }
 
-/** Avviso certificati in scadenza/scaduti (DD-035): calcolato al volo, niente push. */
+/**
+ * Avviso certificati in scadenza/scaduti (DD-035, DD-041): calcolato al volo, niente push.
+ * Il giocatore lo vede da 30 giorni prima della scadenza, lo staff da 7.
+ */
 export function AvvisoCertificati() {
   const admin = useIsAdmin();
   const ruoliPronti = useRuoliPronti();
@@ -61,50 +64,48 @@ export function AvvisoCertificati() {
 
   const oggi = oggiISO();
 
-  if (admin) {
-    const { scaduti, inScadenza } = avvisiCertificati(rosa, profili, oggi);
-    if (scaduti.length === 0 && inScadenza.length === 0) return null;
-    return (
-      <>
-        {scaduti.length > 0 ? (
-          <Card
-            colore="primary"
-            titolo="Certificati scaduti"
-            righe={scaduti.map((a) => rigaStaff(a, `scaduto il ${formatDataBreve(a.scadenza)}`))}
-          />
-        ) : null}
-        {inScadenza.length > 0 ? (
-          <Card
-            colore="warning"
-            titolo="Certificati in scadenza"
-            righe={inScadenza.map((a) => rigaStaff(a, testoScadenza(a.giorni)))}
-          />
-        ) : null}
-      </>
-    );
-  }
+  // Admin che è anche giocatore: vede il proprio avviso a 30 giorni e quello dello staff (DD-041).
+  const { personale, staff } = avvisiCertificatiUtente(rosa, profili, oggi, { admin, base });
+  const cardPersonale = personale ? (
+    personale.giorni < 0 ? (
+      <Card
+        colore="primary"
+        titolo="Certificato scaduto"
+        cliccabile
+        righe={[
+          `Il tuo certificato medico è scaduto il ${formatDataBreve(personale.scadenza)}: caricane uno nuovo`,
+        ]}
+      />
+    ) : (
+      <Card
+        colore="warning"
+        titolo="Certificato in scadenza"
+        cliccabile
+        righe={[`Il tuo certificato medico ${testoScadenza(personale.giorni)}`]}
+      />
+    )
+  ) : null;
 
-  if (!base) return null;
-  const { scaduti, inScadenza } = avvisiCertificati([base], profili, oggi);
-  const mio = scaduti[0] ?? inScadenza[0];
-  if (!mio) return null;
-
-  return mio.giorni < 0 ? (
-    <Card
-      colore="primary"
-      titolo="Certificato scaduto"
-      cliccabile
-      righe={[
-        `Il tuo certificato medico è scaduto il ${formatDataBreve(mio.scadenza)}: caricane uno nuovo`,
-      ]}
-    />
-  ) : (
-    <Card
-      colore="warning"
-      titolo="Certificato in scadenza"
-      cliccabile
-      righe={[`Il tuo certificato medico ${testoScadenza(mio.giorni)}`]}
-    />
+  if (!staff) return cardPersonale;
+  const { scaduti, inScadenza } = staff;
+  return (
+    <>
+      {cardPersonale}
+      {scaduti.length > 0 ? (
+        <Card
+          colore="primary"
+          titolo="Certificati scaduti"
+          righe={scaduti.map((a) => rigaStaff(a, `scaduto il ${formatDataBreve(a.scadenza)}`))}
+        />
+      ) : null}
+      {inScadenza.length > 0 ? (
+        <Card
+          colore="warning"
+          titolo="Certificati in scadenza"
+          righe={inScadenza.map((a) => rigaStaff(a, testoScadenza(a.giorni)))}
+        />
+      ) : null}
+    </>
   );
 }
 
