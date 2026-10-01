@@ -6,8 +6,7 @@
  * creati con orari relativi a «adesso» e verifica:
  *
  * - che il promemoria a 24 e 3 ore non sia più pianificato (M28, DD-043);
- * - le finestre (palloni: un solo avviso nelle 3 ore prima; solleciti 24·12·6 ore, contigue e senza
- *   sovrapposizione);
+ * - le finestre (palloni: un solo avviso nelle 3 ore prima; solleciti: un solo avviso nelle 24 ore prima, DD-045);
  * - i destinatari (incaricato e turno precedente; convocati senza risposta o con «forse»; mai
  *   l'allenatore né chi non è più attivo);
  * - una sola generazione per giocatore, evento e tipo, anche se la notifica viene eliminata;
@@ -567,7 +566,7 @@ if (!locale) {
         .sort();
 
     await prova(
-      "ogni evento riceve il sollecito della sua fascia, a chi deve rispondere",
+      "un solo sollecito, entro 24 ore dall'inizio, a chi deve rispondere (DD-045)",
       async () => {
         await esegui("genera_solleciti_presenze");
         assert.deepEqual(
@@ -577,21 +576,18 @@ if (!locale) {
         );
         const senzaRisposta = (await tuttiGiocatoriAttivi()).filter((g) => g !== G4);
         assert.deepEqual(
-          await destinatari(S12, "sollecita_presenze_12h"),
+          await destinatari(S12, "sollecita_presenze_24h"),
           senzaRisposta,
           "convocati vuoto: tutta la rosa attiva, meno chi ha risposto; g5 («forse») resta",
         );
         assert.deepEqual(
-          await destinatari(S6, "sollecita_presenze_6h"),
+          await destinatari(S6, "sollecita_presenze_24h"),
           (await tuttiGiocatoriAttivi()).filter((g) => g !== G4),
+          "anche a 4 ore dall'inizio: il sollecito è uno solo, non uno per fascia",
         );
-        assert.equal((await notifiche(S_FUORI)).length, 0, "tra 30 ore: fuori da ogni fascia");
-        for (const [evento, altri] of [
-          [S24, ["sollecita_presenze_12h", "sollecita_presenze_6h"]],
-          [S12, ["sollecita_presenze_24h", "sollecita_presenze_6h"]],
-          [S6, ["sollecita_presenze_24h", "sollecita_presenze_12h"]],
-        ] as const) {
-          for (const tipo of altri) {
+        assert.equal((await notifiche(S_FUORI)).length, 0, "tra 30 ore: non ancora");
+        for (const evento of [S24, S12, S6]) {
+          for (const tipo of ["sollecita_presenze_12h", "sollecita_presenze_6h"]) {
             assert.equal((await notifiche(evento, tipo)).length, 0, `${evento} non ha ${tipo}`);
           }
         }
@@ -615,8 +611,8 @@ if (!locale) {
       }>("giocatori_squadra?select=id,attivo,tipo");
       for (const [id, tipo] of [
         [S24, "sollecita_presenze_24h"],
-        [S12, "sollecita_presenze_12h"],
-        [S6, "sollecita_presenze_6h"],
+        [S12, "sollecita_presenze_24h"],
+        [S6, "sollecita_presenze_24h"],
       ] as const) {
         const evento = eventi.find((e) => e.id === id)!;
         const risposte = await leggi<{ giocatore_id: string; stato: string }>(
@@ -656,41 +652,33 @@ if (!locale) {
     });
 
     await prova(
-      "chi risponde smette di riceverli, chi resta su «forse» li riceve tutti e tre",
+      "chi resta su «forse» riceve il sollecito una sola volta, non a ogni fascia",
       async () => {
         await creaEvento(S_FORSE, "evento", tra(18), { convocati: [G4, G5, G8] });
         await rispondi(S_FORSE, G5, "forse");
         await esegui("genera_solleciti_presenze");
         assert.deepEqual(await destinatari(S_FORSE, "sollecita_presenze_24h"), [G4, G5, G8]);
 
-        await rispondi(S_FORSE, G4, "presente"); // risponde dopo il primo sollecito
-        await spostaEvento(S_FORSE, 9); // entra nella fascia delle 12 ore
+        await rispondi(S_FORSE, G4, "presente");
+        await spostaEvento(S_FORSE, 9);
         await esegui("genera_solleciti_presenze");
-        assert.deepEqual(
-          await destinatari(S_FORSE, "sollecita_presenze_12h"),
-          [G5, G8],
-          "g4 ha risposto: niente secondo sollecito; «forse» e nessuna risposta sì",
-        );
-
-        await rispondi(S_FORSE, G8, "assente");
         await spostaEvento(S_FORSE, 4);
         await esegui("genera_solleciti_presenze");
-        assert.deepEqual(await destinatari(S_FORSE, "sollecita_presenze_6h"), [G5]);
-        assert.equal(
-          (await notifiche(S_FORSE)).filter((r) => r.giocatore_id === G5).length,
-          3,
-          "g5, sempre «forse»: 24, 12 e 6 ore",
+        assert.deepEqual(
+          (await notifiche(S_FORSE)).map((r) => r.tipo),
+          ["sollecita_presenze_24h", "sollecita_presenze_24h", "sollecita_presenze_24h"],
+          "nessun secondo sollecito avvicinandosi all'evento, nemmeno a g5 («forse»)",
         );
       },
     );
 
-    await prova("un evento creato tardi riceve solo il sollecito della sua fascia", async () => {
+    await prova("un evento creato tardi riceve comunque un solo sollecito", async () => {
       await creaEvento(S_TARDI, "evento", tra(5), { convocati: [G4] });
+      await esegui("genera_solleciti_presenze");
       await esegui("genera_solleciti_presenze");
       assert.deepEqual(
         (await notifiche(S_TARDI)).map((r) => r.tipo),
-        ["sollecita_presenze_6h"],
-        "non tre solleciti insieme",
+        ["sollecita_presenze_24h"],
       );
     });
 

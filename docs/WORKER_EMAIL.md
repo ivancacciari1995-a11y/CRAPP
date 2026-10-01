@@ -1,7 +1,7 @@
 # Worker email: installazione e gestione
 
 Come si mette in funzione, si controlla e si diagnostica il worker (`mailer/`) che invia le notifiche
-per email e le push delle notifiche che nascono nel database: turno palloni a 3 ore con revoca, solleciti presenze a 24, 12 e 6 ore (DD-040). Cosa fa il canale email sta in
+per email e le push delle notifiche che nascono nel database: turno palloni a 3 ore con revoca, sollecito presenze a 24 ore (DD-040). Cosa fa il canale email sta in
 [modules/notifiche-email.md](modules/notifiche-email.md), la push dei promemoria in
 [modules/notifiche.md](modules/notifiche.md#push-dei-promemoria-m24); perché è fatto così in
 [DD-036](decisions/DD-036.md)

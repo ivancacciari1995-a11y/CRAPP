@@ -45,7 +45,7 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
       da un worker Docker sull'host di casa via Gmail, con interruttore «Email» in Profilo
       ([specifica](modules/notifiche-email.md), DD-036)
 - [x] Notifiche automatiche — turno palloni 3 ore prima, sollecito
-      presenze a 24, 12 e 6 ore (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano; il promemoria a 24 e 3 ore è stato tolto, DD-043) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
+      presenze 24 ore prima (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano; il promemoria a 24 e 3 ore è stato tolto, DD-043) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
 
 ## Prossimo
 

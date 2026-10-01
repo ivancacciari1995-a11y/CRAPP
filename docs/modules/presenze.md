@@ -79,7 +79,7 @@ src/routes/api/public/sollecita-presenze.ts
 
 > **Sollecito automatico (DD-040, migration `m26`).** Il pulsante «Sollecita» e la route
 > **restano**, ma `destinatariSollecito()` passa a guardare anche i convocati (convocati che non hanno
-> risposto o hanno risposto «forse», o tutta la rosa se `convocati` è vuoto); in più un job `pg_cron` manda il sollecito **24, 12 e 6 ore prima** dell'evento a chi in
+> risposto o hanno risposto «forse», o tutta la rosa se `convocati` è vuoto); in più un job `pg_cron` manda il sollecito **una sola volta, 24 ore prima** dell'evento (DD-045, migration `m30`) a chi in
 > quel momento non ha risposto o ha risposto «forse», tra i destinatari dell'evento (convocati, o
 > tutta la rosa attiva; mai l'allenatore). Testo e finestre nel [catalogo](notifiche.md#catalogo-delle-notifiche).
 > Il diagramma sopra è quello del pulsante, che da DD-040 legge anche `convocati` dell'evento.
@@ -94,7 +94,7 @@ vale per tutta la rosa) — `eventiContanoPresenze()` in `presenze.ts`.
 
 - Aggiornamento ottimistico della cache locale dopo ogni salvataggio: nessuna rilettura dal
   server, la UI risponde subito.
-- Il sollecito ha due vie (DD-040): tre solleciti **automatici** (24, 12 e 6 ore prima, job `pg_cron`
+- Il sollecito ha due vie (DD-040): un sollecito **automatico** (24 ore prima, job `pg_cron`
   nel database) e il pulsante **manuale** accanto, che non sostituiscono. La route del pulsante verifica
   il ruolo lato server con `richiediGestoreEventi` (admin o allenatore, DD-024, DD-034).
 - Ognuno risponde **solo per sé**, e non è più una regola della sola interfaccia: dalla
