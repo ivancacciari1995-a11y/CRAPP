@@ -13,6 +13,14 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.2.2] - 2026-10-01
+
+Meno notifiche automatiche e un profilo più snello: gli avvisi dei palloni e delle presenze partono una sola volta, il
+promemoria degli eventi non c'è più, la foto tessera è stata tolta e l'avviso del certificato medico arriva al
+giocatore un mese prima. Le migration `m27`–`m30` sono applicate in produzione dal 01/10/2026; questa versione porta il
+codice dell'app che le accompagna, da rilasciare subito: la `m29` ha tolto la colonna `foto_path` che la versione
+precedente ancora legge.
+
 ### Rimosso
 
 - **Foto tessera del profilo** — il giocatore non la carica più e l'admin non la vede nella scheda; il
