@@ -14,11 +14,11 @@ await assert.rejects(
 );
 
 // --- file troppo grande: rifiutato anche con un formato valido ---------------
-const troppoGrande = new File([new Uint8Array(8 * 1024 * 1024 + 1)], "foto.jpg", {
+const troppoGrande = new File([new Uint8Array(8 * 1024 * 1024 + 1)], "certificato.jpg", {
   type: "image/jpeg",
 });
 await assert.rejects(
-  () => caricaFile("g1", "foto", troppoGrande),
+  () => caricaFile("g1", "certificato", troppoGrande),
   /File troppo grande: massimo 8 MB\./,
 );
 

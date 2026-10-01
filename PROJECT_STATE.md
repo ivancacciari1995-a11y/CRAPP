@@ -9,12 +9,14 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione in produzione:** 1.2.1 su `main` — notifiche su tre canali (push, in-app, email),
-  promemoria che non si ripetono, turno palloni e solleciti presenze automatici.
+- **Versione:** 1.2.2 su `develop` (su `main`, in produzione, resta la 1.2.1 fino al merge) — notifiche
+  su tre canali, avvisi di palloni (3 ore prima) e presenze (24 ore prima) una sola volta, niente
+  promemoria evento, niente foto tessera, avviso certificato a 30 giorni per il giocatore.
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 37 file in `supabase/migrations/`, fino a `m26_notifiche_automatiche`, tutte
-  applicate in produzione (verificato con `npx supabase migration list` il 30/09/2026).
+- **Migration:** 41 file in `supabase/migrations/`, fino a `m30_sollecito_solo_24h`, tutte
+  applicate in produzione (verificato con `npx supabase migration list` il 01/10/2026). La `m29` toglie
+  `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo
   è su `develop`, non ancora su `main`.

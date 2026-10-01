@@ -31,7 +31,7 @@ export const Route = createFileRoute("/calendario")({
       { property: "og:title", content: "Calendario squadra — CrAPP" },
       {
         property: "og:description",
-        content: "Vista mensile e prossimi eventi con promemoria per la squadra.",
+        content: "Vista mensile e prossimi eventi per la squadra.",
       },
     ],
   }),

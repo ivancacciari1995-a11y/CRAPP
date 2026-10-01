@@ -55,8 +55,8 @@ Un link diretto a `/profilo?tab=stagione` o `?tab=badge` apre Documenti.
 | Telefono         | `profili_giocatore.telefono`      |                                                                                                |
 | Foto profilo     | bucket `avatar-giocatori`         | stesso cerchio avatar e stesso upload dei giocatori                                            |
 
-**Non** si mostrano: indirizzo di residenza, documento d'identità, certificato medico, foto
-tessera, tesseramento CSI.
+**Non** si mostrano: indirizzo di residenza, documento d'identità, certificato medico,
+tesseramento CSI.
 
 ### Completamento profilo
 
@@ -114,7 +114,7 @@ a lui (`usePuoGestireEventi()`).
 
 Può anche **sollecitare le presenze** di un evento, come l'admin: la route
 `sollecita-presenze.ts` accetta admin o allenatore (`richiediGestoreEventi()`), e il
-sollecito arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso. Con DD-040 si aggiungono solleciti automatici a 24, 12 e 6 ore prima dell'evento, ma il pulsante resta.
+sollecito arriva solo ai giocatori che non hanno risposto, mai all'allenatore stesso. Con DD-040 si aggiungono un sollecito automatico 24 ore prima dell'evento, ma il pulsante resta.
 
 **Restano solo admin:** dashboard `/admin`, dati e documenti dei giocatori, export CSI,
 notifica personalizzata, promemoria palloni, apertura sondaggio cacche, correzione delle
@@ -125,14 +125,14 @@ risposte presenze altrui, gestione dei ruoli.
 Cosa riceve l'allenatore, notifica per notifica (il catalogo completo, con i canali di tutti, sta in
 [notifiche.md](notifiche.md#catalogo-delle-notifiche)):
 
-| Notifica                                          | L'allenatore la riceve? | Note                                                                                                                                                                                                                                                                                                                |
-| ------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Promemoria a 24 e 3 ore prima di un evento        | **no**                  | Dal 29/09/2026 (m25, DD-039) `giocatori_destinatari_evento()` include solo i giocatori attivi: l'allenatore non può rispondere alle presenze né essere convocato, quindi il promemoria non gli chiederebbe nulla che possa fare (per esempio una cena di squadra). Prima gli arrivava sempre, convocato o no (m21). |
-| Messaggio dello staff                             | **sì**                  | In-app ed email vanno a tutta la rosa attiva, allenatori compresi; la push ai suoi dispositivi iscritti, o solo a lui se il messaggio è per lui.                                                                                                                                                                    |
-| Sollecito presenze                                | no                      | L'allenatore non risponde alle presenze (DD-034). Può invece **far partire** il sollecito .                                                                                                                                                                                                                         |
-| Turno palloni                                     | no                      | I turni riguardano solo i giocatori.                                                                                                                                                                                                                                                                                |
-| Sondaggio pre-partita                             | no                      | Né la push né l'avviso in-app e per email (DD-038): il sondaggio non lo riguarda.                                                                                                                                                                                                                                   |
-| Notifiche smart (badge, serie, obiettivi, social) | **no**                  | Le mostra `CelebrazioneBadge` per il giocatore selezionato, letto da `useIo()`, che cerca l'id in `useRosa()`, da cui l'allenatore è escluso: per lui `useIo()` è `null` e `useNotificheSmart()` non fa nulla. Non ha statistiche da cui calcolarle.                                                                |
+| Notifica                                                     | L'allenatore la riceve? | Note                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Promemoria a 24 e 3 ore prima di un evento (rimosso, DD-043) | **no**                  | Dal 29/09/2026 (m25, DD-039) `giocatori_destinatari_evento()` include solo i giocatori attivi: l'allenatore non può rispondere alle presenze né essere convocato, quindi il promemoria non gli chiederebbe nulla che possa fare (per esempio una cena di squadra). Prima gli arrivava sempre, convocato o no (m21). |
+| Messaggio dello staff                                        | **sì**                  | In-app ed email vanno a tutta la rosa attiva, allenatori compresi; la push ai suoi dispositivi iscritti, o solo a lui se il messaggio è per lui.                                                                                                                                                                    |
+| Sollecito presenze                                           | no                      | L'allenatore non risponde alle presenze (DD-034). Può invece **far partire** il sollecito .                                                                                                                                                                                                                         |
+| Turno palloni                                                | no                      | I turni riguardano solo i giocatori.                                                                                                                                                                                                                                                                                |
+| Sondaggio pre-partita                                        | no                      | Né la push né l'avviso in-app e per email (DD-038): il sondaggio non lo riguarda.                                                                                                                                                                                                                                   |
+| Notifiche smart (badge, serie, obiettivi, social)            | **no**                  | Le mostra `CelebrazioneBadge` per il giocatore selezionato, letto da `useIo()`, che cerca l'id in `useRosa()`, da cui l'allenatore è escluso: per lui `useIo()` è `null` e `useNotificheSmart()` non fa nulla. Non ha statistiche da cui calcolarle.                                                                |
 
 Le email arrivano solo se il suo slot ha un account collegato e un'email registrata e se non ha
 spento l'interruttore «Email»; la push solo sui dispositivi su cui ha attivato «Notifiche» dal
@@ -164,7 +164,7 @@ giocatore).
 | ------------------------------------------------------------------- | ---------- | ------------------ | ----------------------------------- |
 | Modificare nome e cognome                                           | no         | sì, i propri       | tutti                               |
 | Dati personali e foto profilo                                       | i propri   | i propri (ridotti) | tutti (non i file)                  |
-| Documento, certificato, foto tessera                                | i propri   | —                  | lettura/download                    |
+| Documento, certificato                                              | i propri   | —                  | lettura/download                    |
 | Avviso certificati in Home                                          | il proprio | no                 | tutta la rosa                       |
 | Creare/modificare/eliminare eventi, convocati                       | no         | sì                 | sì                                  |
 | Sollecitare le presenze                                             | no         | sì                 | sì                                  |

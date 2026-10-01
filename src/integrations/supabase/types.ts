@@ -375,7 +375,6 @@ export type Database = {
           documento_scadenza: string | null;
           documento_tipo: string | null;
           email: string | null;
-          foto_path: string | null;
           giocatore_id: string;
           indirizzo: string | null;
           luogo_nascita: string | null;
@@ -395,7 +394,6 @@ export type Database = {
           documento_scadenza?: string | null;
           documento_tipo?: string | null;
           email?: string | null;
-          foto_path?: string | null;
           giocatore_id: string;
           indirizzo?: string | null;
           luogo_nascita?: string | null;
@@ -415,7 +413,6 @@ export type Database = {
           documento_scadenza?: string | null;
           documento_tipo?: string | null;
           email?: string | null;
-          foto_path?: string | null;
           giocatore_id?: string;
           indirizzo?: string | null;
           luogo_nascita?: string | null;

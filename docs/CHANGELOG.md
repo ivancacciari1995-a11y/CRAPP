@@ -13,6 +13,39 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.2.2] - 2026-10-01
+
+Meno notifiche automatiche e un profilo più snello: gli avvisi dei palloni e delle presenze partono una sola volta, il
+promemoria degli eventi non c'è più, la foto tessera è stata tolta e l'avviso del certificato medico arriva al
+giocatore un mese prima. Le migration `m27`–`m30` sono applicate in produzione dal 01/10/2026; questa versione porta il
+codice dell'app che le accompagna, da rilasciare subito: la `m29` ha tolto la colonna `foto_path` che la versione
+precedente ancora legge.
+
+### Rimosso
+
+- **Foto tessera del profilo** — il giocatore non la carica più e l'admin non la vede nella scheda; il
+  completamento del profilo si calcola su dati personali (34%), documento (33%) e certificato (33%). Migration
+  `m29_senza_foto_tessera` (elimina la colonna `foto_path`); i file già caricati sono stati cancellati dal
+  bucket `profili-giocatore` (DD-044). Applicata in produzione il 01/10/2026, con la cancellazione dei 4 file già caricati.
+
+- **Promemoria evento a 24 e 3 ore** — non partono più per nessun evento (allenamenti, partite, extra-campo):
+  niente notifica, push né email. Migration `m28_niente_promemoria_evento` (tolti i due job `pg_cron`;
+  funzione, tipi e notifiche già generate restano). Applicata in produzione il 01/10/2026 (DD-043).
+
+### Modificato
+
+- **Sollecito presenze: un solo avviso automatico, 24 ore prima** — a chi non ha risposto o ha risposto
+  «forse»; prima ne partivano tre (24, 12 e 6 ore). Il pulsante «Sollecita» non cambia. Migration
+  `m30_sollecito_solo_24h`, applicata in produzione il 01/10/2026 (DD-045).
+
+- **Turno palloni: un solo avviso, 3 ore prima** — a chi deve portare i palloni e a chi li deve
+  prendere; prima ne partivano tre (12, 6 e 3 ore). Migration `m27_palloni_solo_3h`, applicata in
+  produzione il 01/10/2026 (DD-042).
+
+- **Avviso certificati: giocatore a 30 giorni** — il giocatore vede l'avviso giallo sul proprio
+  certificato medico da un mese prima della scadenza (prima 7 giorni). Per gli admin non cambia
+  nulla: 7 giorni prima in giallo, nero dopo la scadenza (DD-041).
+
 ## [1.2.1] - 2026-09-30
 
 Turno palloni e sollecito presenze partono anche da soli, a orari fissi prima dell'evento, e i testi di

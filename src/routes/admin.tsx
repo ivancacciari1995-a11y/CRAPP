@@ -8,7 +8,6 @@ import {
   Download,
   FileText,
   IdCard,
-  Image,
   Loader2,
   Lock,
   Send,
@@ -486,12 +485,6 @@ function SchedaGiocatore({
             label="Certificato"
             stato={certificato}
             path={profilo?.certificatoPath ?? null}
-          />
-          <Documento
-            icona={<Image className="h-3.5 w-3.5" />}
-            label="Foto"
-            stato={sezioni.foto ? "presente" : "assente"}
-            path={profilo?.fotoPath ?? null}
           />
           <span
             className={cn(

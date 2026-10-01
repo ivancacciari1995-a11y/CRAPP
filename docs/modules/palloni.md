@@ -11,7 +11,7 @@
 
 Gestire un turno a rotazione condiviso per chi porta e riporta i palloni ad allenamenti e
 partite, con proposta automatica, possibilità di modifica manuale e avvisi push, nel centro
-notifiche e senza email a 12, 6 e 3 ore dall'evento (DD-040). Gli eventi extra-campo (`tipo === "evento"`, es. cena di squadra) e i
+notifiche e senza email 3 ore prima dell'evento (DD-040, DD-042). Gli eventi extra-campo (`tipo === "evento"`, es. cena di squadra) e i
 compleanni non c'entrano: non richiedono palloni.
 
 ---
@@ -56,7 +56,7 @@ oggi`, stesso criterio delle presenze): un turno assegnato in anticipo per un al
 ## Route API pubblica `/api/public/promemoria-palloni`
 
 > **Affiancata da un invio automatico (DD-040, migration `m26`).** Oltre al pulsante, un job
-> `pg_cron` ogni 15 minuti manda l'avviso **12, 6 e 3 ore prima** dell'evento, solo se per l'evento c'è un
+> `pg_cron` ogni 15 minuti manda l'avviso **una sola volta, 3 ore prima** dell'evento (DD-042, migration `m27`), solo se per l'evento c'è un
 > incaricato confermato in `turni_palloni`. Il pulsante e la route **restano**, con tipo
 > `turno_palloni` e push dalla route. I due destinatari e i testi nuovi («incarico assegnato» /
 > «riconsegna», validi per il pulsante e per i job, più la revoca se l'incaricato cambia) sono nel

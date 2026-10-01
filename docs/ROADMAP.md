@@ -27,7 +27,7 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Dashboard amministratore
 - [x] Download CSV dati
 - [x] Profilo Giocatore — dati personali, documento d'identità, certificato medico
-      (caricamento, scadenza, stato, download) e foto tessera; lo storico dei certificati
+      (caricamento, scadenza, stato, download); la foto tessera è stata tolta (DD-044); lo storico dei certificati
       resta un'estensione futura
 - [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
       tesserato (numero e data di tessera)
@@ -44,8 +44,8 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Notifiche email — ogni notifica in-app inviata anche per email agli account registrati,
       da un worker Docker sull'host di casa via Gmail, con interruttore «Email» in Profilo
       ([specifica](modules/notifiche-email.md), DD-036)
-- [x] Notifiche automatiche — promemoria con «oggi/domani», turno palloni 12, 6 e 3 ore prima, sollecito
-      presenze a 24, 12 e 6 ore (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
+- [x] Notifiche automatiche — turno palloni 3 ore prima, sollecito
+      presenze 24 ore prima (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano; il promemoria a 24 e 3 ore è stato tolto, DD-043) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
 
 ## Prossimo
 

@@ -21,7 +21,6 @@ export type Profilo = {
   documentoRetroPath: string | null;
   certificatoScadenza: string | null;
   certificatoPath: string | null;
-  fotoPath: string | null;
 };
 
 export type RigaProfilo = {
@@ -40,11 +39,10 @@ export type RigaProfilo = {
   documento_retro_path: string | null;
   certificato_scadenza: string | null;
   certificato_path: string | null;
-  foto_path: string | null;
 };
 
 export const COLONNE_PROFILO =
-  "giocatore_id, data_nascita, luogo_nascita, indirizzo, telefono, email, documento_tipo, documento_numero, documento_rilasciato_da, documento_emissione, documento_scadenza, documento_fronte_path, documento_retro_path, certificato_scadenza, certificato_path, foto_path";
+  "giocatore_id, data_nascita, luogo_nascita, indirizzo, telefono, email, documento_tipo, documento_numero, documento_rilasciato_da, documento_emissione, documento_scadenza, documento_fronte_path, documento_retro_path, certificato_scadenza, certificato_path";
 
 export function profiloVuoto(giocatoreId: string): Profilo {
   return {
@@ -63,7 +61,6 @@ export function profiloVuoto(giocatoreId: string): Profilo {
     documentoRetroPath: null,
     certificatoScadenza: null,
     certificatoPath: null,
-    fotoPath: null,
   };
 }
 
@@ -84,7 +81,6 @@ export function daRigaProfilo(r: RigaProfilo): Profilo {
     documentoRetroPath: r.documento_retro_path,
     certificatoScadenza: r.certificato_scadenza,
     certificatoPath: r.certificato_path,
-    fotoPath: r.foto_path,
   };
 }
 
@@ -111,12 +107,11 @@ export function aRigaProfilo(p: Profilo): RigaProfilo {
     documento_retro_path: oNull(p.documentoRetroPath),
     certificato_scadenza: oNull(p.certificatoScadenza),
     certificato_path: oNull(p.certificatoPath),
-    foto_path: oNull(p.fotoPath),
   };
 }
 
 /** Pesi delle sezioni del profilo (docs/modules/profilo-giocatore.md). */
-export const PESI = { dati: 30, documento: 30, certificato: 30, foto: 10 } as const;
+export const PESI = { dati: 34, documento: 33, certificato: 33 } as const;
 
 export type Sezione = keyof typeof PESI;
 
@@ -131,7 +126,6 @@ export function sezioniComplete(p: Profilo | null | undefined): Record<Sezione, 
       p.documentoRetroPath
     ),
     certificato: !!(p?.certificatoScadenza && p.certificatoPath),
-    foto: !!p?.fotoPath,
   };
 }
 
@@ -145,8 +139,8 @@ export function completamento(p: Profilo | null | undefined): number {
 }
 
 /**
- * L'allenatore compila solo i dati personali ridotti (DD-034): niente indirizzo, documento,
- * certificato né foto tessera, che servono al tesseramento dei giocatori.
+ * L'allenatore compila solo i dati personali ridotti (DD-034): niente indirizzo, documento
+ * né certificato, che servono al tesseramento dei giocatori.
  */
 export const CAMPI_ALLENATORE = ["dataNascita", "luogoNascita", "telefono", "email"] as const;
 
@@ -216,8 +210,11 @@ export function etichettaGiocatore(g: GiocatoreSquadra): string {
   return `#${g.numero} ${nomeCompleto(g)}`;
 }
 
-/** Soglia dell'avviso certificati in Home (DD-035). */
+/** Soglia dell'avviso certificati dello staff in Home (DD-035). */
 export const GIORNI_AVVISO_CERTIFICATO = 7;
+
+/** Soglia dell'avviso personale: il giocatore è avvisato un mese prima dello staff (DD-041). */
+export const GIORNI_AVVISO_CERTIFICATO_GIOCATORE = 30;
 
 /** Giorni di calendario tra due date `AAAA-MM-GG` (ora locale): negativo se `scadenza` è passata. */
 export function giorniAllaScadenza(scadenza: string, oggi: string): number {
@@ -258,11 +255,13 @@ function confrontaAvvisi(a: AvvisoCertificato, b: AvvisoCertificato): number {
  * Certificati in scadenza o scaduti nella rosa (DD-035): calcolato al volo da
  * `certificato_scadenza`, niente stato salvato. Esclude chi non è in rosa e chi non ha
  * ancora un certificato caricato (è un problema diverso, non un avviso di scadenza).
+ * `soglia` sono i giorni di preavviso: 7 per lo staff, 30 per il giocatore (DD-041).
  */
 export function avvisiCertificati(
   rosa: GiocatoreSquadra[],
   profili: Record<string, Profilo>,
   oggi: string,
+  soglia: number = GIORNI_AVVISO_CERTIFICATO,
 ): { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } {
   const scaduti: AvvisoCertificato[] = [];
   const inScadenza: AvvisoCertificato[] = [];
@@ -271,7 +270,7 @@ export function avvisiCertificati(
     const p = profili[g.id];
     if (!p?.certificatoScadenza || !p.certificatoPath) continue;
     const giorni = giorniAllaScadenza(p.certificatoScadenza, oggi);
-    if (giorni > GIORNI_AVVISO_CERTIFICATO) continue;
+    if (giorni > soglia) continue;
     const avviso: AvvisoCertificato = {
       giocatoreId: g.id,
       nome: g.nome,
@@ -284,4 +283,33 @@ export function avvisiCertificati(
   scaduti.sort(confrontaAvvisi);
   inScadenza.sort(confrontaAvvisi);
   return { scaduti, inScadenza };
+}
+
+/**
+ * Avvisi certificati per chi guarda la Home (DD-035, DD-041): `personale` è il proprio
+ * certificato (soglia 30 giorni), per chiunque sia un giocatore in rosa; `staff` sono gli
+ * altri della rosa (soglia 7 giorni), solo per l'admin, senza il suo nome perché già nel
+ * personale.
+ */
+export function avvisiCertificatiUtente(
+  rosa: GiocatoreSquadra[],
+  profili: Record<string, Profilo>,
+  oggi: string,
+  utente: { admin: boolean; base: GiocatoreSquadra | null },
+): {
+  personale: AvvisoCertificato | undefined;
+  staff: { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } | null;
+} {
+  const mio = utente.base
+    ? avvisiCertificati([utente.base], profili, oggi, GIORNI_AVVISO_CERTIFICATO_GIOCATORE)
+    : null;
+  const personale = mio ? (mio.scaduti[0] ?? mio.inScadenza[0]) : undefined;
+  const staff = utente.admin
+    ? avvisiCertificati(
+        rosa.filter((g) => g.id !== utente.base?.id),
+        profili,
+        oggi,
+      )
+    : null;
+  return { personale, staff };
 }

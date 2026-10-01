@@ -19,7 +19,7 @@ Query, traffico e invocazioni vanno tenuti al minimo **per costruzione**, non ot
    si ricalcolano a ogni apertura di pagina. I badge restano calcolati a runtime dai dati già
    in cache, senza query aggiuntive (DD-007): `src/lib/rosa.ts` aggrega ciò che è già stato
    letto.
-6. **Push solo per eventi importanti**: convocazioni, promemoria allenamento/partita, turno
+6. **Push solo per eventi importanti**: convocazioni, turno
    palloni, esito finale.
 7. **Niente funzionalità pesanti**: foto, video, chat.
 8. **Indici** sui campi usati per filtri e relazioni in ogni nuova migration.

@@ -120,14 +120,12 @@ export function CampiProfilo({
   sezioni,
   fileDocumento,
   fileCertificato,
-  fileFoto,
 }: {
   corrente: Profilo;
   aggiorna: (patch: Partial<Profilo>) => void;
   sezioni: Record<Sezione, boolean>;
   fileDocumento?: React.ReactNode;
   fileCertificato?: React.ReactNode;
-  fileFoto?: React.ReactNode;
 }) {
   return (
     <>
@@ -241,14 +239,13 @@ export function CampiProfilo({
         />
       </Campo>
       {fileCertificato}
-      {fileFoto}
     </>
   );
 }
 
 /**
  * I dati personali dell'allenatore (DD-034): gli stessi campi di `profili_giocatore`, meno
- * indirizzo, documento, certificato e foto tessera. Condivisi tra Profilo e dashboard admin.
+ * indirizzo, documento e certificato. Condivisi tra Profilo e dashboard admin.
  */
 export function CampiAllenatore({
   corrente,
@@ -469,18 +466,6 @@ export function ProfiloAmministrativo({
             onCaricato={caricato("certificatoPath")}
           />
         }
-        fileFoto={
-          <>
-            <Intestazione titolo="Foto tessera" completa={sezioni.foto} />
-            <CampoFile
-              label="Foto tessera"
-              path={corrente.fotoPath}
-              sezione="foto"
-              giocatoreId={giocatoreId}
-              onCaricato={caricato("fotoPath")}
-            />
-          </>
-        }
       />
 
       <button
@@ -550,7 +535,7 @@ export function CompletaProfilo({
         <p className="mt-2 text-[13px] text-muted-foreground">
           {allenatore
             ? "Data e luogo di nascita, telefono ed email."
-            : "Documento, certificato medico e foto tessera servono per il tesseramento CSI."}
+            : "Documento e certificato medico servono per il tesseramento CSI."}
         </p>
       </Link>
     </Reveal>
