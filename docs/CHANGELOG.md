@@ -13,6 +13,19 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.2.3] - 2026-10-04
+
+Nella Home si vede anche chi non ha caricato il certificato medico, e le dipendenze sono aggiornate perché Vercel bloccava il deploy. Nessuna migration.
+
+### Modificato
+
+- **Avviso certificati mancanti** — nella Home chi non ha caricato il certificato medico compare in una card rossa:
+  il giocatore vede il proprio avviso, l'admin l'elenco di chi manca, sopra scaduti e in scadenza (DD-046).
+
+### Sicurezza
+
+- **Dipendenze aggiornate** — `@tanstack/react-start` dalla 1.168.34 alla 1.168.60 (con `react-router`, `router-plugin` e `react-query`): Vercel bloccava il deploy per la versione precedente. `npm audit fix` chiude anche le tre vulnerabilità alte di `brace-expansion` e `nanoid`; `npm audit` segnala 0 vulnerabilità.
+
 ## [1.2.2] - 2026-10-01
 
 Meno notifiche automatiche e un profilo più snello: gli avvisi dei palloni e delle presenze partono una sola volta, il

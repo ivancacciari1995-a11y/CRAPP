@@ -262,15 +262,31 @@ assert.deepEqual(
   ["g1"],
 );
 
-assert.equal(
-  avvisiCertificati(
-    [{ ...squadra[0]!, id: "g6" }],
-    { g6: { ...vuoto, giocatoreId: "g6", certificatoScadenza: null, certificatoPath: null } },
-    oggiTest,
-  ).inScadenza.length,
-  0,
-  "certificato mancante: nessun avviso",
+const senzaCertificato = avvisiCertificati(
+  [{ ...squadra[0]!, id: "g6" }],
+  { g6: { ...vuoto, giocatoreId: "g6", certificatoScadenza: null, certificatoPath: null } },
+  oggiTest,
 );
+assert.equal(senzaCertificato.inScadenza.length + senzaCertificato.scaduti.length, 0);
+assert.deepEqual(
+  senzaCertificato.mancanti.map((m) => m.giocatoreId),
+  ["g6"],
+  "certificato mancante (DD-046): in `mancanti`, non tra scadenze",
+);
+// DD-046: profilo assente e scadenza senza file valgono come mancante; fuori rosa e allenatori no
+const mancantiRosa = avvisiCertificati(
+  [
+    ...rosaCertificati,
+    { ...squadra[0]!, id: "g7", nome: "Zeno", cognome: "Zeta", attivo: true, tipo: "giocatore" },
+    { ...squadra[0]!, id: "g8", nome: "Aldo", cognome: "Alfa", attivo: true, tipo: "giocatore" },
+  ],
+  {
+    ...profiliCertificati,
+    g8: { ...vuoto, giocatoreId: "g8", certificatoScadenza: "2026-12-01", certificatoPath: null },
+  },
+  oggiTest,
+).mancanti.map((m) => m.giocatoreId);
+assert.deepEqual(mancantiRosa, ["g8", "g7"], "g7 senza profilo, g8 senza file; ordine per cognome");
 
 const dueInScadenza: Record<string, Profilo> = {
   g1: { ...vuoto, giocatoreId: "g1", certificatoScadenza: "2026-09-27", certificatoPath: "p1" }, // 7 giorni, più lontano
@@ -412,5 +428,24 @@ const soloGiocatore = avvisiCertificatiUtente(rosaUtente, profiliUtente, oggiTes
 });
 assert.equal(soloGiocatore.personale?.giocatoreId, "g1");
 assert.equal(soloGiocatore.staff, null, "il giocatore semplice non vede lo staff");
+assert.equal(soloGiocatore.personaleMancante, false);
+
+// DD-046: chi non ha caricato il certificato lo vede nel personale; l'admin lo vede anche per gli altri
+const adminSenzaFile = avvisiCertificatiUtente(rosaUtente, {}, oggiTest, {
+  admin: true,
+  base: rosaUtente[0]!,
+});
+assert.equal(adminSenzaFile.personaleMancante, true);
+assert.equal(adminSenzaFile.personale, undefined);
+assert.deepEqual(
+  adminSenzaFile.staff?.mancanti.map((m) => m.giocatoreId),
+  ["g2"],
+  "lo staff non ripete il suo nome tra i mancanti",
+);
+assert.equal(
+  avvisiCertificatiUtente(rosaUtente, {}, oggiTest, { admin: true, base: null }).personaleMancante,
+  false,
+  "admin non giocatore: nessun avviso personale",
+);
 
 console.log("profili-core: ok");

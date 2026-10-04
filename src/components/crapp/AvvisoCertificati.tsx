@@ -18,7 +18,7 @@ function Card({
   righe,
   cliccabile,
 }: {
-  colore: "warning" | "primary";
+  colore: "warning" | "primary" | "destructive";
   titolo: string;
   righe: string[];
   cliccabile?: boolean;
@@ -26,7 +26,9 @@ function Card({
   const classi = `mx-5 mt-4 block rounded-3xl p-4 shadow-pop ${
     colore === "warning"
       ? "bg-warning text-warning-foreground"
-      : "bg-primary text-primary-foreground"
+      : colore === "destructive"
+        ? "bg-destructive text-destructive-foreground"
+        : "bg-primary text-primary-foreground"
   } ${cliccabile ? "premi" : ""}`;
   const contenuto = (
     <>
@@ -50,7 +52,7 @@ function Card({
 }
 
 /**
- * Avviso certificati in scadenza/scaduti (DD-035, DD-041): calcolato al volo, niente push.
+ * Avviso certificati mancanti/scaduti/in scadenza (DD-035, DD-041, DD-046): calcolato al volo, niente push.
  * Il giocatore lo vede da 30 giorni prima della scadenza, lo staff da 7.
  */
 export function AvvisoCertificati() {
@@ -65,8 +67,18 @@ export function AvvisoCertificati() {
   const oggi = oggiISO();
 
   // Admin che è anche giocatore: vede il proprio avviso a 30 giorni e quello dello staff (DD-041).
-  const { personale, staff } = avvisiCertificatiUtente(rosa, profili, oggi, { admin, base });
-  const cardPersonale = personale ? (
+  const { personale, personaleMancante, staff } = avvisiCertificatiUtente(rosa, profili, oggi, {
+    admin,
+    base,
+  });
+  const cardPersonale = personaleMancante ? (
+    <Card
+      colore="destructive"
+      titolo="Certificato mancante"
+      cliccabile
+      righe={["Non hai ancora caricato il certificato medico: caricalo nei documenti"]}
+    />
+  ) : personale ? (
     personale.giorni < 0 ? (
       <Card
         colore="primary"
@@ -87,10 +99,17 @@ export function AvvisoCertificati() {
   ) : null;
 
   if (!staff) return cardPersonale;
-  const { scaduti, inScadenza } = staff;
+  const { scaduti, inScadenza, mancanti } = staff;
   return (
     <>
       {cardPersonale}
+      {mancanti.length > 0 ? (
+        <Card
+          colore="destructive"
+          titolo="Certificati mancanti"
+          righe={mancanti.map((m) => `${m.nome} ${m.cognome} — non caricato`)}
+        />
+      ) : null}
       {scaduti.length > 0 ? (
         <Card
           colore="primary"

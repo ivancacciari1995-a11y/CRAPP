@@ -1,6 +1,6 @@
 {
   "name": "crapp",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -20,10 +20,10 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
     "@tailwindcss/vite": "^4.2.1",
-    "@tanstack/react-query": "^5.101.1",
-    "@tanstack/react-router": "^1.170.18",
-    "@tanstack/react-start": "^1.168.32",
-    "@tanstack/router-plugin": "^1.168.23",
+    "@tanstack/react-query": "^5.104.1",
+    "@tanstack/react-router": "^1.170.41",
+    "@tanstack/react-start": "^1.168.60",
+    "@tanstack/router-plugin": "^1.168.42",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "lucide-react": "^0.575.0",

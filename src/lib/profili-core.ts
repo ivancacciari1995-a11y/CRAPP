@@ -247,14 +247,17 @@ export type AvvisoCertificato = {
   giorni: number;
 };
 
+/** Giocatore in rosa senza certificato caricato (DD-046). */
+export type CertificatoMancante = Pick<AvvisoCertificato, "giocatoreId" | "nome" | "cognome">;
+
 function confrontaAvvisi(a: AvvisoCertificato, b: AvvisoCertificato): number {
   return a.giorni - b.giorni || a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome);
 }
 
 /**
  * Certificati in scadenza o scaduti nella rosa (DD-035): calcolato al volo da
- * `certificato_scadenza`, niente stato salvato. Esclude chi non è in rosa e chi non ha
- * ancora un certificato caricato (è un problema diverso, non un avviso di scadenza).
+ * `certificato_scadenza`, niente stato salvato. Esclude chi non è in rosa. Chi non ha
+ * ancora un certificato caricato non ha una scadenza: finisce in `mancanti` (DD-046).
  * `soglia` sono i giorni di preavviso: 7 per lo staff, 30 per il giocatore (DD-041).
  */
 export function avvisiCertificati(
@@ -262,13 +265,21 @@ export function avvisiCertificati(
   profili: Record<string, Profilo>,
   oggi: string,
   soglia: number = GIORNI_AVVISO_CERTIFICATO,
-): { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } {
+): {
+  scaduti: AvvisoCertificato[];
+  inScadenza: AvvisoCertificato[];
+  mancanti: CertificatoMancante[];
+} {
   const scaduti: AvvisoCertificato[] = [];
   const inScadenza: AvvisoCertificato[] = [];
+  const mancanti: CertificatoMancante[] = [];
   for (const g of rosa) {
     if (!inRosa(g)) continue;
     const p = profili[g.id];
-    if (!p?.certificatoScadenza || !p.certificatoPath) continue;
+    if (!p?.certificatoScadenza || !p.certificatoPath) {
+      mancanti.push({ giocatoreId: g.id, nome: g.nome, cognome: g.cognome });
+      continue;
+    }
     const giorni = giorniAllaScadenza(p.certificatoScadenza, oggi);
     if (giorni > soglia) continue;
     const avviso: AvvisoCertificato = {
@@ -282,14 +293,15 @@ export function avvisiCertificati(
   }
   scaduti.sort(confrontaAvvisi);
   inScadenza.sort(confrontaAvvisi);
-  return { scaduti, inScadenza };
+  mancanti.sort((a, b) => a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome));
+  return { scaduti, inScadenza, mancanti };
 }
 
 /**
  * Avvisi certificati per chi guarda la Home (DD-035, DD-041): `personale` è il proprio
- * certificato (soglia 30 giorni), per chiunque sia un giocatore in rosa; `staff` sono gli
- * altri della rosa (soglia 7 giorni), solo per l'admin, senza il suo nome perché già nel
- * personale.
+ * certificato (soglia 30 giorni), per chiunque sia un giocatore in rosa, e `personaleMancante`
+ * dice che non l'ha ancora caricato (DD-046); `staff` sono gli altri della rosa (soglia 7
+ * giorni), solo per l'admin, senza il suo nome perché già nel personale.
  */
 export function avvisiCertificatiUtente(
   rosa: GiocatoreSquadra[],
@@ -298,7 +310,8 @@ export function avvisiCertificatiUtente(
   utente: { admin: boolean; base: GiocatoreSquadra | null },
 ): {
   personale: AvvisoCertificato | undefined;
-  staff: { scaduti: AvvisoCertificato[]; inScadenza: AvvisoCertificato[] } | null;
+  personaleMancante: boolean;
+  staff: ReturnType<typeof avvisiCertificati> | null;
 } {
   const mio = utente.base
     ? avvisiCertificati([utente.base], profili, oggi, GIORNI_AVVISO_CERTIFICATO_GIOCATORE)
@@ -311,5 +324,5 @@ export function avvisiCertificatiUtente(
         oggi,
       )
     : null;
-  return { personale, staff };
+  return { personale, personaleMancante: !!mio && mio.mancanti.length > 0, staff };
 }

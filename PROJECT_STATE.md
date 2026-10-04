@@ -9,9 +9,9 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.2.2 su `develop` (su `main`, in produzione, resta la 1.2.1 fino al merge) — notifiche
-  su tre canali, avvisi di palloni (3 ore prima) e presenze (24 ore prima) una sola volta, niente
-  promemoria evento, niente foto tessera, avviso certificato a 30 giorni per il giocatore.
+- **Versione:** 1.2.3 (in produzione su `main` la 1.2.2) — notifiche su tre canali, avvisi di palloni
+  (3 ore prima) e presenze (24 ore prima) una sola volta, niente promemoria evento, niente foto
+  tessera, avviso certificato a 30 giorni per il giocatore, avviso rosso per chi non l'ha caricato.
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
 - **Migration:** 41 file in `supabase/migrations/`, fino a `m30_sollecito_solo_24h`, tutte

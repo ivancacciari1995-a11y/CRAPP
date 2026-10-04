@@ -117,12 +117,12 @@ staff.
 | Giocatore  | `GIORNI_AVVISO_CERTIFICATO_GIOCATORE = 30` |
 | Admin      | `GIORNI_AVVISO_CERTIFICATO = 7`            |
 
-| Condizione            | Stato       | Avviso             |
-| --------------------- | ----------- | ------------------ |
-| `giorni > soglia`     | valido      | nessuno            |
-| `0 ≤ giorni ≤ soglia` | in scadenza | giallo (`warning`) |
-| `giorni < 0`          | scaduto     | nero (`primary`)   |
-| data o file mancanti  | mancante    | nessuno            |
+| Condizione            | Stato       | Avviso                         |
+| --------------------- | ----------- | ------------------------------ |
+| `giorni > soglia`     | valido      | nessuno                        |
+| `0 ≤ giorni ≤ soglia` | in scadenza | giallo (`warning`)             |
+| `giorni < 0`          | scaduto     | nero (`primary`)               |
+| data o file mancanti  | mancante    | rosso (`destructive`) (DD-046) |
 
 Esempio: scadenza il 5 ottobre 2026. Dal 5 settembre l'avviso giallo compare solo al
 giocatore; dal 28 settembre anche agli admin; dal 6 ottobre è nero per entrambi.
@@ -130,8 +130,10 @@ giocatore; dal 28 settembre anche agli admin; dal 6 ottobre è nero per entrambi
 - Il giorno della scadenza il certificato vale ancora, coerente con `statoScadenza()`: il
   giocatore compare nel giallo con «scade oggi» e passa al nero dal giorno dopo.
 - L'avviso nero resta finché il giocatore non aggiorna la data: non c'è un limite di tempo.
-- Il certificato **mancante** non genera avviso: è un problema diverso, già visibile nella
-  tab Profili di `/admin` e nel widget di completamento del giocatore.
+- Il certificato **mancante** (nessuna data o nessun file) ha un avviso rosso, più grave dello
+  scaduto (DD-046): il giocatore vede «Certificato mancante» (cliccabile, porta ai documenti),
+  l'admin la card «Certificati mancanti» con l'elenco, in cima alle altre, senza il proprio
+  nome. Non ha soglie: resta finché il file non è caricato.
 - Sono esclusi i giocatori disattivati e gli allenatori: conta solo la rosa (`inRosa()`,
   cioè `attivo` e `tipo = 'giocatore'`).
 
@@ -190,16 +192,16 @@ la Home non deve rompersi per un dato accessorio.
 
 #### Implementazione
 
-| Pezzo                                                  | Ruolo                                                                                                                                                         |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GIORNI_AVVISO_CERTIFICATO` (`profili-core.ts`)        | la soglia dello staff, 7                                                                                                                                      |
-| `GIORNI_AVVISO_CERTIFICATO_GIOCATORE`                  | la soglia del giocatore, 30 (DD-041)                                                                                                                          |
-| `giorniAllaScadenza(scadenza, oggi)`                   | differenza in giorni di calendario tra due date `AAAA-MM-GG`, negativa se scaduto                                                                             |
-| `avvisiCertificati(rosa, profili, oggi, soglia)`       | funzione pura (`soglia` di default 7): restituisce `{ scaduti, inScadenza }`, ognuno una lista ordinata di `{ giocatoreId, nome, cognome, scadenza, giorni }` |
-| `avvisiCertificatiUtente(rosa, profili, oggi, utente)` | funzione pura: `{ personale, staff }` per chi guarda; l'admin giocatore ha entrambi, senza il suo nome nello staff (DD-041)                                   |
-| `testoScadenza(giorni)`                                | «scade oggi» / «scade domani» / «scade tra N giorni»                                                                                                          |
-| `src/components/crapp/AvvisoCertificati.tsx`           | legge `useGiocatoriSquadra()`, `useProfili()`, `useIsAdmin()` e l'utente corrente; sceglie avviso dello staff o personale e disegna le card                   |
-| `src/routes/index.tsx`                                 | monta `<AvvisoCertificati />` subito dopo `<PromemoriaPalloni />`                                                                                             |
+| Pezzo                                                  | Ruolo                                                                                                                                                                                                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GIORNI_AVVISO_CERTIFICATO` (`profili-core.ts`)        | la soglia dello staff, 7                                                                                                                                                                                                                |
+| `GIORNI_AVVISO_CERTIFICATO_GIOCATORE`                  | la soglia del giocatore, 30 (DD-041)                                                                                                                                                                                                    |
+| `giorniAllaScadenza(scadenza, oggi)`                   | differenza in giorni di calendario tra due date `AAAA-MM-GG`, negativa se scaduto                                                                                                                                                       |
+| `avvisiCertificati(rosa, profili, oggi, soglia)`       | funzione pura (`soglia` di default 7): restituisce `{ scaduti, inScadenza, mancanti }`; le prime due sono liste ordinate di `{ giocatoreId, nome, cognome, scadenza, giorni }`, `mancanti` di `{ giocatoreId, nome, cognome }` (DD-046) |
+| `avvisiCertificatiUtente(rosa, profili, oggi, utente)` | funzione pura: `{ personale, personaleMancante, staff }` per chi guarda; l'admin giocatore ha entrambi, senza il suo nome nello staff (DD-041)                                                                                          |
+| `testoScadenza(giorni)`                                | «scade oggi» / «scade domani» / «scade tra N giorni»                                                                                                                                                                                    |
+| `src/components/crapp/AvvisoCertificati.tsx`           | legge `useGiocatoriSquadra()`, `useProfili()`, `useIsAdmin()` e l'utente corrente; sceglie avviso dello staff o personale e disegna le card                                                                                             |
+| `src/routes/index.tsx`                                 | monta `<AvvisoCertificati />` subito dopo `<PromemoriaPalloni />`                                                                                                                                                                       |
 
 - "Oggi" viene da `oggiISO()` (`palloni-core.ts`), in ora locale. Non da
   `new Date().toISOString()`, che è in UTC e tra mezzanotte e le 2 darebbe il giorno prima.
