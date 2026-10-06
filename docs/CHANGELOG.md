@@ -25,6 +25,10 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **Avvisi in Home più leggibili** — certificati e turno palloni usano lo stesso componente (`Avviso`): icona
+  propria per ogni caso (non solo il colore), titolo e testo più grandi, elenchi di persone in righe con il dettaglio
+  a destra e il conteggio, freccia dove la card porta ai documenti, comparsa graduale. Solo aspetto: testi e regole
+  di quando compaiono non cambiano. Nessuna migration.
 - **Tessera CSI tolta dalla dashboard** — in Profili spariscono il blocco «Tesseramento CSI» (numero e data
   tessera), il badge «Tesserato»/«Da tesserare» e il riquadro «Tesserati» della tab Squadra. L'export CSV non
   cambia. Le colonne a database restano, non più usate (DD-048). Nessuna migration.
