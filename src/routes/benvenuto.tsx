@@ -107,34 +107,34 @@ function Benvenuto() {
 
       {!pronta ? null : !utenteId ? (
         <>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-center text-[15px] text-muted-foreground">
             Accedi con il tuo account Google per collegare il profilo giocatore.
           </p>
           <button
             type="button"
             onClick={accedi}
             disabled={inCorso}
-            className="premi mt-8 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3.5 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-60"
+            className="premi mt-8 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3.5 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-60"
           >
             <LogIn className="h-4 w-4" /> Accedi con Google
           </button>
         </>
       ) : erroreCollegamento ? (
         <>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          <p className="mt-2 text-center text-[15px] text-muted-foreground">
             Nessun profilo trovato per la tua email. Contatta un amministratore per collegare il tuo
             account.
           </p>
           <button
             type="button"
             onClick={() => void esciERiprova()}
-            className="premi mt-8 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl bg-secondary py-3.5 text-sm font-bold uppercase shadow-card"
+            className="premi mt-8 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl bg-secondary py-3.5 text-[15px] font-bold uppercase shadow-card"
           >
             <LogOut className="h-4 w-4" /> Esci
           </button>
         </>
       ) : inAttesaCollegamento ? (
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <p className="mt-2 text-center text-[15px] text-muted-foreground">
           Ti stiamo collegando al tuo profilo...
         </p>
       ) : null}

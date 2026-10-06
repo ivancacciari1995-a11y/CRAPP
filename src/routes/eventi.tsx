@@ -91,7 +91,7 @@ function GestioneEventi() {
       <>
         <PageHeader titolo="Gestione eventi" sottotitolo="Area riservata" />
         <div className="px-5">
-          <p className="rounded-3xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+          <p className="rounded-3xl bg-card p-5 text-center text-[15px] text-muted-foreground shadow-card">
             Solo i referenti della squadra possono creare o modificare gli eventi.
           </p>
         </div>
@@ -207,7 +207,7 @@ function GestioneEventi() {
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
+          <div className="grid grid-cols-7 gap-1 text-center text-[13px] font-bold text-muted-foreground">
             {giorniIT.map((g, i) => (
               <span key={i}>{g}</span>
             ))}
@@ -248,7 +248,7 @@ function GestioneEventi() {
                       type="button"
                       onClick={() => apriGiorno(giorno)}
                       className={cn(
-                        "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold transition-transform active:scale-90",
+                        "relative grid aspect-square place-items-center rounded-xl text-[15px] font-semibold transition-transform active:scale-90",
                         haEventi
                           ? "bg-accent text-accent-foreground"
                           : "bg-secondary text-foreground",
@@ -265,11 +265,11 @@ function GestioneEventi() {
             </AnimatePresence>
           </div>
           {isPending ? (
-            <p aria-busy="true" className="mt-2 text-xs text-muted-foreground">
+            <p aria-busy="true" className="mt-2 text-[13px] text-muted-foreground">
               Carico gli eventi…
             </p>
           ) : isError ? (
-            <div className="mt-3 space-y-2 text-center text-sm">
+            <div className="mt-3 space-y-2 text-center text-[15px]">
               <p className="text-destructive">
                 Non sono riuscito a caricare gli eventi
                 {error instanceof Error ? `: ${error.message}` : ""}.
@@ -277,13 +277,13 @@ function GestioneEventi() {
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="rounded-2xl bg-secondary px-4 py-2 text-xs font-bold uppercase"
+                className="rounded-2xl bg-secondary px-4 py-2 text-[13px] font-bold uppercase"
               >
                 Riprova
               </button>
             </div>
           ) : (
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2 text-[13px] text-muted-foreground">
               Scorri a destra o sinistra per cambiare mese. Tocca un giorno per aggiungere,
               modificare o eliminare.
             </p>
@@ -303,7 +303,7 @@ function GestioneEventi() {
                   type="button"
                   onClick={() => aggiorna(daCategoria(t.id))}
                   className={cn(
-                    "rounded-full py-2 text-xs font-bold uppercase transition-colors",
+                    "rounded-full py-2 text-[13px] font-bold uppercase transition-colors",
                     categoriaEvento(bozza) === t.id
                       ? "bg-card shadow-card text-foreground"
                       : "text-muted-foreground",
@@ -337,15 +337,17 @@ function GestioneEventi() {
                 </Campo>
               ) : (
                 <div className="min-w-0">
-                  <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <span className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
                     Giorno
                   </span>
                   <div className="mt-1 flex h-10 items-center justify-between gap-1">
-                    <span className="truncate text-sm font-semibold">{formatData(bozza.data)}</span>
+                    <span className="truncate text-[15px] font-semibold">
+                      {formatData(bozza.data)}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setCambiaGiorno(true)}
-                      className="shrink-0 rounded-full px-2 py-1 text-xs font-bold uppercase text-accent active:scale-95"
+                      className="shrink-0 rounded-full px-2 py-1 text-[13px] font-bold uppercase text-accent active:scale-95"
                     >
                       Cambia
                     </button>
@@ -394,7 +396,7 @@ function GestioneEventi() {
                         type="button"
                         onClick={() => aggiorna({ casa: o.casa })}
                         className={cn(
-                          "flex-1 rounded-full py-2 text-xs font-bold uppercase transition-colors",
+                          "flex-1 rounded-full py-2 text-[13px] font-bold uppercase transition-colors",
                           bozza.casa === o.casa
                             ? "bg-card shadow-card text-foreground"
                             : "text-muted-foreground",
@@ -433,7 +435,7 @@ function GestioneEventi() {
                         })
                       }
                       className={cn(
-                        "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
+                        "truncate rounded-xl px-2.5 py-2 text-left text-[13px] font-semibold transition-colors",
                         scelto
                           ? "bg-accent text-accent-foreground"
                           : "bg-secondary text-muted-foreground",
@@ -450,7 +452,7 @@ function GestioneEventi() {
               <button
                 type="button"
                 onClick={() => setBozza(null)}
-                className="flex-1 rounded-2xl bg-secondary py-3 text-sm font-bold uppercase"
+                className="flex-1 rounded-2xl bg-secondary py-3 text-[15px] font-bold uppercase"
               >
                 Annulla
               </button>
@@ -458,7 +460,7 @@ function GestioneEventi() {
                 type="button"
                 onClick={chiediConferma}
                 disabled={salva.isPending}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
               >
                 {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Salva
               </button>
@@ -489,8 +491,8 @@ function GestioneEventi() {
                   className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-card"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold leading-tight">{e.titolo}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate text-[15px] font-bold leading-tight">{e.titolo}</p>
+                    <p className="text-[13px] text-muted-foreground">
                       {e.ora} · {e.luogo || "luogo da definire"}
                     </p>
                   </div>
@@ -513,7 +515,7 @@ function GestioneEventi() {
                 </div>
               ))
             ) : (
-              <p className="rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+              <p className="rounded-2xl bg-card p-4 text-center text-[15px] text-muted-foreground shadow-card">
                 Nessun evento in programma
               </p>
             )}
@@ -521,7 +523,7 @@ function GestioneEventi() {
           <button
             type="button"
             onClick={nuovoNelGiorno}
-            className="premi mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+            className="premi mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
           >
             <CalendarPlus className="h-4 w-4" /> Nuovo evento in questo giorno
           </button>
@@ -544,14 +546,14 @@ function GestioneEventi() {
               type="button"
               onClick={conferma}
               disabled={salva.isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
             >
               {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Conferma
             </button>
             <DrawerClose asChild>
               <button
                 type="button"
-                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+                className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-bold uppercase text-foreground"
               >
                 Annulla
               </button>
@@ -573,14 +575,14 @@ function GestioneEventi() {
               type="button"
               onClick={() => daEliminare && rimuovi(daEliminare.id)}
               disabled={elimina.isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive py-3 text-sm font-bold uppercase text-destructive-foreground disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive py-3 text-[15px] font-bold uppercase text-destructive-foreground disabled:opacity-50"
             >
               {elimina.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Elimina
             </button>
             <DrawerClose asChild>
               <button
                 type="button"
-                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+                className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-bold uppercase text-foreground"
               >
                 Annulla
               </button>
@@ -606,7 +608,7 @@ function Interruttore({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full px-3 py-1.5 text-xs font-bold uppercase transition-colors",
+        "rounded-full px-3 py-1.5 text-[13px] font-bold uppercase transition-colors",
         attivo ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground",
       )}
     >

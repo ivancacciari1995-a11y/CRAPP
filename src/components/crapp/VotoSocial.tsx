@@ -51,7 +51,7 @@ export function VotoSocial({ matchId }: { matchId: string }) {
 
   return (
     <div className="space-y-2">
-      <div className="rounded-2xl bg-secondary/60 px-3 py-2 text-xs font-semibold text-muted-foreground">
+      <div className="rounded-2xl bg-secondary/60 px-3 py-2 text-[13px] font-semibold text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-accent" />
           Hai votato {fatti}/{categorieSocial.length} categorie · un solo voto per categoria
@@ -79,14 +79,16 @@ export function VotoSocial({ matchId }: { matchId: string }) {
                 {cat.emoji}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold leading-tight">{cat.nome}</span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-[15px] font-bold leading-tight">
+                  {cat.nome}
+                </span>
+                <span className="block truncate text-[13px] text-muted-foreground">
                   {mio ? `Hai votato ${mio.votato_nome}` : cat.descrizione}
                 </span>
               </span>
               <span
                 className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
+                  "shrink-0 rounded-full px-2.5 py-1 text-[13px] font-bold uppercase",
                   mio ? "bg-success text-success-foreground" : "bg-accent text-accent-foreground",
                 )}
               >
@@ -105,7 +107,7 @@ export function VotoSocial({ matchId }: { matchId: string }) {
                       disabled={vota.isPending}
                       onClick={() => invia(cat.id, g.id, nomeCompleto(g))}
                       className={cn(
-                        "truncate rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors",
+                        "truncate rounded-xl px-2.5 py-2 text-left text-[13px] font-semibold transition-colors",
                         mio?.votato_id === g.id
                           ? "bg-accent text-accent-foreground"
                           : "bg-secondary text-foreground",
@@ -118,17 +120,17 @@ export function VotoSocial({ matchId }: { matchId: string }) {
             ) : (
               <div className="border-t border-border px-3 py-2">
                 {totale === 0 ? (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[13px] text-muted-foreground">
                     Nessun voto ancora: apri e scegli un compagno.
                   </p>
                 ) : vincitore ? (
-                  <p className="inline-flex items-center gap-1.5 text-xs font-bold">
+                  <p className="inline-flex items-center gap-1.5 text-[13px] font-bold">
                     <Crown className="h-3.5 w-3.5 text-oro" />
                     <Icon className="h-3.5 w-3.5 text-accent" />
                     {vincitore.nome} · {vincitore.voti} {vincitore.voti === 1 ? "voto" : "voti"}
                   </p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[13px] text-muted-foreground">
                     Parità con {totale} voti: servono altri voti per assegnare il badge.
                   </p>
                 )}

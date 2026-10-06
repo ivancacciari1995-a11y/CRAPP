@@ -69,6 +69,7 @@ const obiettivo = (id: string, valore: number): ObiettivoSquadra => ({
   unita: "%",
   emoji: "🎯",
   impatto: "",
+  dettaglio: { comeSiCalcola: "", conta: [], nonConta: [], periodo: "", fonte: "", esempio: "" },
 });
 assert.deepEqual(
   ids(g(), [], [obiettivo("o1", 95), obiettivo("o2", 92)]).filter((i) => i.startsWith("obiettivo")),

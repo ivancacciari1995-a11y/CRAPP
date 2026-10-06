@@ -119,7 +119,7 @@ function Calendario() {
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-muted-foreground">
+          <div className="grid grid-cols-7 gap-1 text-center text-[13px] font-bold text-muted-foreground">
             {giorniIT.map((g, i) => (
               <span key={i}>{g}</span>
             ))}
@@ -192,7 +192,7 @@ function Calendario() {
                       onClick={haEventi ? () => apriGiorno(giorno) : undefined}
                       style={sfondo ? { backgroundImage: sfondo } : undefined}
                       className={cn(
-                        "relative grid aspect-square place-items-center rounded-xl text-sm font-semibold",
+                        "relative grid aspect-square place-items-center rounded-xl text-[15px] font-semibold",
                         tipo === "partita" && "bg-accent text-accent-foreground",
                         tipo === "allenamento" && "bg-training text-training-foreground",
                         tipo === "evento" && "bg-warning text-warning-foreground",
@@ -224,10 +224,10 @@ function Calendario() {
               </motion.div>
             </AnimatePresence>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-[13px] text-muted-foreground">
             Scorri a destra o sinistra per cambiare mese.
           </p>
-          <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-muted-foreground">
+          <div className="mt-3 flex flex-wrap gap-3 text-[13px] font-semibold text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <i className="h-2.5 w-2.5 rounded-full bg-accent" /> Partita
             </span>
@@ -248,7 +248,7 @@ function Calendario() {
         <div className="px-5 pt-4">
           <Link
             to="/eventi"
-            className="premi flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[14px] font-bold uppercase text-accent-foreground shadow-pop"
+            className="premi flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
           >
             <CalendarPlus className="h-4 w-4" /> Gestisci eventi
           </Link>
@@ -263,7 +263,7 @@ function Calendario() {
               return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
             })
           ) : (
-            <p className="rounded-3xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+            <p className="rounded-3xl bg-card p-4 text-center text-[15px] text-muted-foreground shadow-card">
               Nessun evento in programma
             </p>
           )}
@@ -275,7 +275,7 @@ function Calendario() {
           {compleanniMese.length > 0 ? (
             compleanniMese.map((c) => <EventoCard key={c.id} evento={c} />)
           ) : (
-            <p className="rounded-3xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+            <p className="rounded-3xl bg-card p-4 text-center text-[15px] text-muted-foreground shadow-card">
               Nessun compleanno in {mesiIT[mese]!.toLowerCase()}
             </p>
           )}
@@ -300,7 +300,7 @@ function Calendario() {
                 return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
               })
             ) : (
-              <p className="rounded-3xl bg-card p-4 text-center text-sm text-muted-foreground shadow-card">
+              <p className="rounded-3xl bg-card p-4 text-center text-[15px] text-muted-foreground shadow-card">
                 Nessun evento in questa data
               </p>
             )}

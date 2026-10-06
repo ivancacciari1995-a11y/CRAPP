@@ -1,5 +1,5 @@
-import { AlertCircle } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { CalendarClock, FileClock, FileX } from "lucide-react";
+import { Avviso, type RigaAvviso } from "@/components/crapp/Avviso";
 import { useProfili } from "@/lib/profili";
 import {
   avvisiCertificatiUtente,
@@ -11,45 +11,6 @@ import { useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { oggiISO } from "@/lib/palloni-core";
 import { useIsAdmin, useRuoliPronti } from "@/lib/ruoli";
 import { useGiocatoreBase } from "@/lib/user-store";
-
-function Card({
-  colore,
-  titolo,
-  righe,
-  cliccabile,
-}: {
-  colore: "warning" | "primary" | "destructive";
-  titolo: string;
-  righe: string[];
-  cliccabile?: boolean;
-}) {
-  const classi = `mx-5 mt-4 block rounded-3xl p-4 shadow-pop ${
-    colore === "warning"
-      ? "bg-warning text-warning-foreground"
-      : colore === "destructive"
-        ? "bg-destructive text-destructive-foreground"
-        : "bg-primary text-primary-foreground"
-  } ${cliccabile ? "premi" : ""}`;
-  const contenuto = (
-    <>
-      <p className="flex items-center gap-2 font-display text-lg uppercase leading-none">
-        <AlertCircle className="h-5 w-5" /> {titolo}
-      </p>
-      {righe.map((r) => (
-        <p key={r} className="mt-2 text-xs leading-snug opacity-90">
-          {r}
-        </p>
-      ))}
-    </>
-  );
-  return cliccabile ? (
-    <Link to="/profilo" search={{ tab: "documenti" }} className={classi}>
-      {contenuto}
-    </Link>
-  ) : (
-    <div className={classi}>{contenuto}</div>
-  );
-}
 
 /**
  * Avviso certificati mancanti/scaduti/in scadenza (DD-035, DD-041, DD-046): calcolato al volo, niente push.
@@ -72,28 +33,31 @@ export function AvvisoCertificati() {
     base,
   });
   const cardPersonale = personaleMancante ? (
-    <Card
-      colore="destructive"
+    <Avviso
+      tono="critico"
+      icona={FileX}
       titolo="Certificato mancante"
       cliccabile
-      righe={["Non hai ancora caricato il certificato medico: caricalo nei documenti"]}
+      testi={["Non hai ancora caricato il certificato medico: caricalo nei documenti"]}
     />
   ) : personale ? (
     personale.giorni < 0 ? (
-      <Card
-        colore="primary"
+      <Avviso
+        tono="scaduto"
+        icona={FileClock}
         titolo="Certificato scaduto"
         cliccabile
-        righe={[
+        testi={[
           `Il tuo certificato medico è scaduto il ${formatDataBreve(personale.scadenza)}: caricane uno nuovo`,
         ]}
       />
     ) : (
-      <Card
-        colore="warning"
+      <Avviso
+        tono="attenzione"
+        icona={CalendarClock}
         titolo="Certificato in scadenza"
         cliccabile
-        righe={[`Il tuo certificato medico ${testoScadenza(personale.giorni)}`]}
+        testi={[`Il tuo certificato medico ${testoScadenza(personale.giorni)}`]}
       />
     )
   ) : null;
@@ -104,30 +68,33 @@ export function AvvisoCertificati() {
     <>
       {cardPersonale}
       {mancanti.length > 0 ? (
-        <Card
-          colore="destructive"
+        <Avviso
+          tono="critico"
+          icona={FileX}
           titolo="Certificati mancanti"
-          righe={mancanti.map((m) => `${m.nome} ${m.cognome} — non caricato`)}
+          elenco={mancanti.map((m) => ({ chi: `${m.nome} ${m.cognome}`, cosa: "non caricato" }))}
         />
       ) : null}
       {scaduti.length > 0 ? (
-        <Card
-          colore="primary"
+        <Avviso
+          tono="scaduto"
+          icona={FileClock}
           titolo="Certificati scaduti"
-          righe={scaduti.map((a) => rigaStaff(a, `scaduto il ${formatDataBreve(a.scadenza)}`))}
+          elenco={scaduti.map((a) => rigaStaff(a, `scaduto il ${formatDataBreve(a.scadenza)}`))}
         />
       ) : null}
       {inScadenza.length > 0 ? (
-        <Card
-          colore="warning"
+        <Avviso
+          tono="attenzione"
+          icona={CalendarClock}
           titolo="Certificati in scadenza"
-          righe={inScadenza.map((a) => rigaStaff(a, testoScadenza(a.giorni)))}
+          elenco={inScadenza.map((a) => rigaStaff(a, testoScadenza(a.giorni)))}
         />
       ) : null}
     </>
   );
 }
 
-function rigaStaff(a: AvvisoCertificato, dettaglio: string): string {
-  return `${a.nome} ${a.cognome} — ${dettaglio}`;
+function rigaStaff(a: AvvisoCertificato, dettaglio: string): RigaAvviso {
+  return { chi: `${a.nome} ${a.cognome}`, cosa: dettaglio };
 }

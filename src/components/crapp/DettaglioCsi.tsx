@@ -49,7 +49,7 @@ export function MetaPartitaCsi({
     .join(" · ");
   if (!voci && !link) return null;
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
       {voci ? <span>{voci}</span> : null}
       {link ? (
         <a
@@ -68,17 +68,17 @@ export function MetaPartitaCsi({
 function ListaFormazione({ squadra }: { squadra: FormazioneSquadra }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+      <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
         {squadra.squadra}
       </p>
       <div className="mt-2 space-y-1">
         {squadra.titolari.map((g, i) => (
-          <div key={i} className="flex items-center gap-2 text-sm">
-            <span className="w-6 shrink-0 text-center font-display text-xs text-accent">
+          <div key={i} className="flex items-center gap-2 text-[15px]">
+            <span className="w-6 shrink-0 text-center font-display text-[13px] text-accent">
               {g.numero}
             </span>
             <span className="min-w-0 flex-1 truncate">{g.nome}</span>
-            {g.ruolo ? <span className="text-xs text-muted-foreground">{g.ruolo}</span> : null}
+            {g.ruolo ? <span className="text-[13px] text-muted-foreground">{g.ruolo}</span> : null}
           </div>
         ))}
       </div>
@@ -89,7 +89,7 @@ function ListaFormazione({ squadra }: { squadra: FormazioneSquadra }) {
           </p>
           <div className="mt-1 space-y-1">
             {squadra.panchina.map((g, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div key={i} className="flex items-center gap-2 text-[13px] text-muted-foreground">
                 <span className="w-6 shrink-0 text-center">{g.numero}</span>
                 <span className="min-w-0 flex-1 truncate">{g.nome}</span>
               </div>
@@ -98,7 +98,7 @@ function ListaFormazione({ squadra }: { squadra: FormazioneSquadra }) {
         </>
       ) : null}
       {squadra.staff.length > 0 ? (
-        <div className="mt-3 space-y-0.5 text-xs text-muted-foreground">
+        <div className="mt-3 space-y-0.5 text-[13px] text-muted-foreground">
           {squadra.staff.map((s, i) => (
             <div key={i}>
               {s.nome} · {s.ruolo}
@@ -121,7 +121,7 @@ function BarraPrecedenti({
 }) {
   const totale = noi + avversario || 1;
   return (
-    <div className="text-xs">
+    <div className="text-[13px]">
       <div className="flex items-center justify-between text-muted-foreground">
         <span className="font-bold text-foreground">{noi}</span>
         <span>{label}</span>
@@ -139,7 +139,7 @@ const NOME_NOI = "CRAP Volley";
 /** Intestazione con i nomi delle due squadre, per non dover ripeterli su ogni barra sotto. */
 function TestataSquadre({ avversario }: { avversario: string }) {
   return (
-    <div className="flex items-center justify-between text-xs font-bold">
+    <div className="flex items-center justify-between text-[13px] font-bold">
       <span className="truncate text-accent">{NOME_NOI}</span>
       <span className="truncate text-right text-muted-foreground">{avversario}</span>
     </div>
@@ -158,7 +158,7 @@ function BarraProbabilita({
   const favoritaNoi = noi >= avversarioPct;
   return (
     <div>
-      <p className="mb-2 text-xs text-muted-foreground">
+      <p className="mb-2 text-[13px] text-muted-foreground">
         Probabilità di vittoria (calcolo CSI):{" "}
         <span className="font-bold text-foreground">{favoritaNoi ? NOME_NOI : avversario}</span>{" "}
         favorita al {Math.max(noi, avversarioPct).toFixed(0)}%.
@@ -171,13 +171,13 @@ function BarraProbabilita({
       </div>
       <div className="flex h-7 overflow-hidden rounded-full">
         <div
-          className="flex items-center justify-center bg-success text-xs font-bold text-success-foreground"
+          className="flex items-center justify-center bg-success text-[13px] font-bold text-success-foreground"
           style={{ width: `${noi}%` }}
         >
           {noi.toFixed(0)}%
         </div>
         <div
-          className="flex items-center justify-center bg-destructive text-xs font-bold text-destructive-foreground"
+          className="flex items-center justify-center bg-destructive text-[13px] font-bold text-destructive-foreground"
           style={{ width: `${avversarioPct}%` }}
         >
           {avversarioPct.toFixed(0)}%
@@ -197,7 +197,7 @@ function BloccoPrecedenti({
   return (
     <div className="space-y-3">
       <TestataSquadre avversario={avversario} />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[13px] text-muted-foreground">
         {precedenti.totale > 0
           ? `${precedenti.totale} precedenti in archivio sul portale CSI.`
           : "Nessun precedente in archivio sul portale CSI: primo confronto tra le due squadre."}
@@ -248,20 +248,22 @@ export function DettaglioCsiEsteso({
   const { data, isLoading } = useCsiPartita(matchId);
 
   if (isLoading) {
-    return <p className="px-1 text-center text-xs text-muted-foreground">Carico i dati dal CSI…</p>;
+    return (
+      <p className="px-1 text-center text-[13px] text-muted-foreground">Carico i dati dal CSI…</p>
+    );
   }
   if (!data || (!data.formazioni && !data.precedenti)) return null;
 
   return (
     <div className="space-y-4">
       {data.giornata || data.nota ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[13px] text-muted-foreground">
           {[data.giornata, data.nota].filter(Boolean).join(" · ")}
         </p>
       ) : null}
       {data.formazioni ? (
         <Card>
-          <div className="mb-3 flex items-center gap-2 text-sm font-bold">
+          <div className="mb-3 flex items-center gap-2 text-[15px] font-bold">
             <Users2 className="h-4 w-4 text-accent" /> Formazioni
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -272,7 +274,7 @@ export function DettaglioCsiEsteso({
       ) : null}
       {data.precedenti ? (
         <Card>
-          <div className="mb-3 flex items-center gap-2 text-sm font-bold">
+          <div className="mb-3 flex items-center gap-2 text-[15px] font-bold">
             <ShieldAlert className="h-4 w-4 text-accent" /> Scontri diretti
           </div>
           <BloccoPrecedenti precedenti={data.precedenti} avversario={avversario} />

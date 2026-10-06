@@ -1,4 +1,5 @@
-import { AlertCircle } from "lucide-react";
+import { Volleyball } from "lucide-react";
+import { Avviso } from "@/components/crapp/Avviso";
 import { formatData } from "@/lib/crapp-data";
 import { eventiPalloni, eventoPrecedente, eventoSuccessivo, oggiISO } from "@/lib/palloni-core";
 import { useTurniPalloni } from "@/lib/palloni";
@@ -17,6 +18,8 @@ export function PromemoriaPalloni() {
 
   const oggi = oggiISO();
   const messaggi: string[] = [];
+  // «Oggi» solo se c'è davvero qualcosa da fare oggi; altrimenti è un semplice promemoria.
+  let oggiTocca = true;
 
   for (const evento of lista) {
     if (evento.data !== oggi) continue;
@@ -36,6 +39,7 @@ export function PromemoriaPalloni() {
   }
 
   if (messaggi.length === 0) {
+    oggiTocca = false;
     const prossimo = lista.find((e) => e.data >= oggi && turni[e.id] === io.id);
     if (!prossimo) return null;
     messaggi.push(
@@ -44,15 +48,13 @@ export function PromemoriaPalloni() {
   }
 
   return (
-    <div className="mx-5 mt-4 rounded-3xl bg-accent-grad p-4 text-accent-foreground shadow-pop">
-      <p className="flex items-center gap-2 font-display text-lg uppercase leading-none">
-        <AlertCircle className="h-5 w-5" /> Turno palloni
-      </p>
-      {messaggi.map((m) => (
-        <p key={m} className="mt-2 text-xs leading-snug opacity-90">
-          {m}
-        </p>
-      ))}
-    </div>
+    <Avviso
+      tono="azione"
+      icona={Volleyball}
+      titolo="Turno palloni"
+      etichetta={oggiTocca ? "Oggi" : "In arrivo"}
+      testi={messaggi}
+      riquadri
+    />
   );
 }

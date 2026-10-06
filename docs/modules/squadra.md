@@ -48,20 +48,19 @@ gli allenatori (`tipo = 'allenatore'`, DD-034): hanno uno slot ma non giocano.
 Nella tab Rosa gli allenatori attivi compaiono in cima, con foto, nome e la dicitura
 «Allenatore» dove i giocatori hanno il ruolo in campo (`ruoloVisibile()`); niente numero,
 statistiche né badge, e niente posto nella tab Stats. Chi usa l'app da allenatore vede solo
-Rosa e Stats, senza badge e senza cacche (criterio «Cacche» e riga «Cacche/partita»). La
+Rosa e Stats, senza badge e senza cacche (criterio «Cacche» e riga «Cacche»). La
 specifica completa sta in [allenatore.md](allenatore.md).
 
 ## Gestione dati squadra (solo amministratore)
 
 Da `/admin` un amministratore può ([DD-017](../decisions/DD-017.md)):
 
-| Azione                         | Hook                     | Effetto                                                                                                                                         |
-| ------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modificare dati squadra        | `useSalvaDatiSquadra()`  | Nome, cognome, numero, ruolo, email (usata per il collegamento automatico, non il dato personale del profilo)                                   |
-| Aggiungere un giocatore        | `useAggiungiGiocatore()` | Nuova riga con id progressivo `g<N>` (`prossimoIdGiocatore()`), non generato dal database; con tipo «Allenatore» senza numero né ruolo (DD-034) |
-| Attivare/disattivare           | `useImpostaAttivo()`     | Non elimina la riga: la storia della stagione resta intatta                                                                                     |
-| Scollegare un account          | `useScollegaAccount()`   | Libera uno slot collegato per errore ([DD-016](../decisions/DD-016.md) regola 2); il giocatore si ricollega al primo accesso successivo         |
-| Registrare il tesseramento CSI | `useSalvaTesseramento()` | Numero e data tessera, note solo dopo il tesseramento effettivo (vedi `profilo-giocatore.md`)                                                   |
+| Azione                  | Hook                     | Effetto                                                                                                                                         |
+| ----------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modificare dati squadra | `useSalvaDatiSquadra()`  | Nome, cognome, numero, ruolo, email (usata per il collegamento automatico, non il dato personale del profilo)                                   |
+| Aggiungere un giocatore | `useAggiungiGiocatore()` | Nuova riga con id progressivo `g<N>` (`prossimoIdGiocatore()`), non generato dal database; con tipo «Allenatore» senza numero né ruolo (DD-034) |
+| Attivare/disattivare    | `useImpostaAttivo()`     | Non elimina la riga: la storia della stagione resta intatta                                                                                     |
+| Scollegare un account   | `useScollegaAccount()`   | Libera uno slot collegato per errore ([DD-016](../decisions/DD-016.md) regola 2); il giocatore si ricollega al primo accesso successivo         |
 
 Il collegamento giocatore↔account, invece, non è manuale: avviene in automatico al primo
 accesso con Google, per corrispondenza email

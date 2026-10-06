@@ -86,6 +86,9 @@ Una decisione sostituita non si cancella: si cambia il suo **Stato** e si rimand
 | [DD-038](DD-038.md) | Tre canali per ogni notifica                |
 | [DD-039](DD-039.md) | Niente promemoria all'allenatore            |
 | [DD-040](DD-040.md) | Palloni e solleciti automatici              |
+| [DD-049](DD-049.md) | Caratteri più grandi in tutta l'app         |
+| [DD-048](DD-048.md) | Via la tessera dalla dashboard              |
+| [DD-047](DD-047.md) | Notifica di compleanno                      |
 | [DD-046](DD-046.md) | Avviso certificati mancanti                 |
 | [DD-045](DD-045.md) | Sollecito presenze: un solo avviso a 24 ore |
 | [DD-044](DD-044.md) | Via la foto tessera dal profilo             |

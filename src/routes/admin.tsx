@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  BadgeCheck,
   Bell,
   BellOff,
   ChevronDown,
@@ -33,11 +32,9 @@ import {
   useGiocatoriSquadra,
   useImpostaAttivo,
   useSalvaDatiSquadra,
-  useSalvaTesseramento,
   useScollegaAccount,
   validaDatiSquadra,
   type DatiSquadra,
-  type DatiTesseramento,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
 import { scaricaFile, useProfili, useSalvaProfilo } from "@/lib/profili";
@@ -110,18 +107,11 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
   const { righe } = useGiocatoriSquadra();
   const salvaSquadra = useSalvaDatiSquadra();
   const salvaProfilo = useSalvaProfilo();
-  const salvaTesseramento = useSalvaTesseramento();
   const scollega = useScollegaAccount();
   const impostaAttivo = useImpostaAttivo();
 
   const [datiSquadra, setDatiSquadra] = useState<DatiSquadra | null>(null);
   const [bozza, setBozza] = useState<Profilo | null>(null);
-  const [tesseramento, setTesseramento] = useState<DatiTesseramento | null>(null);
-
-  const tesseramentoCorrente: DatiTesseramento = tesseramento ?? {
-    numeroTessera: g.numeroTessera,
-    dataTessera: g.dataTessera,
-  };
 
   const squadraCorrente: DatiSquadra = datiSquadra ?? {
     nome: g.nome,
@@ -131,7 +121,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
     email: g.email,
     tipo: g.tipo,
   };
-  // L'allenatore non ha numero, ruolo in campo né tesseramento (DD-034).
+  // L'allenatore non ha numero né ruolo in campo (DD-034).
   const allenatore = isAllenatore(g);
   const profiloCorrente = bozza ?? profilo ?? profiloVuoto(g.id);
 
@@ -167,16 +157,6 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
     }
   }
 
-  async function confermaTesseramento() {
-    try {
-      await salvaTesseramento.mutateAsync({ giocatoreId: g.id, dati: tesseramentoCorrente });
-      setTesseramento(null);
-      toast.success("Tesseramento aggiornato");
-    } catch (e) {
-      toast.error(messaggioErrore(e, "Salvataggio non riuscito"));
-    }
-  }
-
   async function confermaProfilo() {
     try {
       await salvaProfilo.mutateAsync(profiloCorrente);
@@ -204,7 +184,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
 
   return (
     <div className="mt-3 space-y-3 border-t border-border pt-3">
-      <h3 className="font-display text-sm uppercase tracking-wide">Dati squadra</h3>
+      <h3 className="font-display text-[15px] uppercase tracking-wide">Dati squadra</h3>
       <div className="grid grid-cols-2 gap-3">
         <Campo label="Nome">
           <input
@@ -264,54 +244,14 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
         type="button"
         onClick={confermaSquadra}
         disabled={!datiSquadra || salvaSquadra.isPending}
-        className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+        className="premi w-full rounded-2xl bg-primary py-2.5 text-[13px] font-bold uppercase text-primary-foreground disabled:opacity-50"
       >
         Salva dati squadra
       </button>
 
-      {allenatore ? null : (
-        <>
-          <h3 className="font-display text-sm uppercase tracking-wide">Tesseramento CSI</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Campo label="Numero tessera">
-              <input
-                value={tesseramentoCorrente.numeroTessera ?? ""}
-                maxLength={40}
-                placeholder="Non ancora tesserato"
-                onChange={(e) =>
-                  setTesseramento({
-                    ...tesseramentoCorrente,
-                    numeroTessera: e.target.value || null,
-                  })
-                }
-                className={classiInput}
-              />
-            </Campo>
-            <Campo label="Data tessera">
-              <input
-                type="date"
-                value={tesseramentoCorrente.dataTessera ?? ""}
-                onChange={(e) =>
-                  setTesseramento({ ...tesseramentoCorrente, dataTessera: e.target.value || null })
-                }
-                className={classiInput}
-              />
-            </Campo>
-          </div>
-          <button
-            type="button"
-            onClick={confermaTesseramento}
-            disabled={!tesseramento || salvaTesseramento.isPending}
-            className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
-          >
-            Salva tesseramento
-          </button>
-        </>
-      )}
-
       {allenatore ? (
         <>
-          <h3 className="font-display text-sm uppercase tracking-wide">Dati personali</h3>
+          <h3 className="font-display text-[15px] uppercase tracking-wide">Dati personali</h3>
           <CampiAllenatore
             corrente={profiloCorrente}
             aggiorna={(patch) => setBozza({ ...profiloCorrente, ...patch })}
@@ -328,12 +268,12 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
         type="button"
         onClick={confermaProfilo}
         disabled={!bozza || salvaProfilo.isPending}
-        className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+        className="premi w-full rounded-2xl bg-primary py-2.5 text-[13px] font-bold uppercase text-primary-foreground disabled:opacity-50"
       >
         Salva dati personali
       </button>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-[13px]">
         <span className="min-w-0 text-muted-foreground">
           {g.authUserId ? "Account collegato" : "Nessun account collegato"}
         </span>
@@ -404,7 +344,7 @@ function Documento({
       onClick={scarica}
       disabled={!path || inCorso}
       className={cn(
-        "premi flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase disabled:opacity-60",
+        "premi flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-bold uppercase disabled:opacity-60",
         statoClasse[stato],
       )}
     >
@@ -442,12 +382,12 @@ function SchedaGiocatore({
   return (
     <Reveal indice={indice} className="rounded-2xl bg-card p-4 shadow-card">
       <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 text-left">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary font-display text-sm tabular-nums">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary font-display text-[15px] tabular-nums">
           {allenatore ? "All" : numero}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold leading-tight">{nome}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[13px] text-muted-foreground">
             {ruoloVisibile(g)} · profilo {perc}%
           </p>
         </div>
@@ -486,15 +426,6 @@ function SchedaGiocatore({
             stato={certificato}
             path={profilo?.certificatoPath ?? null}
           />
-          <span
-            className={cn(
-              "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
-              statoClasse[g.numeroTessera ? "presente" : "assente"],
-            )}
-          >
-            <BadgeCheck className="h-3.5 w-3.5" />
-            {g.numeroTessera ? "Tesserato" : "Da tesserare"}
-          </span>
         </div>
       )}
 
@@ -549,7 +480,7 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
       <button
         type="button"
         onClick={() => setAperto(true)}
-        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-bold uppercase"
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-[15px] font-bold uppercase"
       >
         <UserPlus className="h-4 w-4" /> Aggiungi giocatore o allenatore
       </button>
@@ -558,7 +489,7 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
 
   return (
     <div className="mt-3 space-y-3 rounded-2xl bg-card p-4 shadow-card">
-      <h3 className="font-display text-sm uppercase tracking-wide">
+      <h3 className="font-display text-[15px] uppercase tracking-wide">
         {allenatore ? "Nuovo allenatore" : "Nuovo giocatore"}
       </h3>
       <Campo label="Tipo">
@@ -632,7 +563,7 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
             setAperto(false);
             setDati(datiVuoti);
           }}
-          className="premi flex-1 rounded-2xl bg-secondary py-2.5 text-xs font-bold uppercase"
+          className="premi flex-1 rounded-2xl bg-secondary py-2.5 text-[13px] font-bold uppercase"
         >
           Annulla
         </button>
@@ -640,7 +571,7 @@ function AggiungiGiocatore({ righe }: { righe: GiocatoreSquadra[] }) {
           type="button"
           onClick={() => void conferma()}
           disabled={aggiungi.isPending}
-          className="premi flex-1 rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
+          className="premi flex-1 rounded-2xl bg-primary py-2.5 text-[13px] font-bold uppercase text-primary-foreground disabled:opacity-50"
         >
           Aggiungi
         </button>
@@ -667,7 +598,7 @@ function GiocatoreDisattivato({ g }: { g: GiocatoreSquadra }) {
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-card p-3 shadow-card">
       <div className="min-w-0">
         <p className="truncate font-semibold leading-tight">{nomeCompleto(g)}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[13px] text-muted-foreground">
           {isAllenatore(g) ? ruoloVisibile(g) : `#${g.numero} · ${g.ruolo}`}
         </p>
       </div>
@@ -675,7 +606,7 @@ function GiocatoreDisattivato({ g }: { g: GiocatoreSquadra }) {
         type="button"
         onClick={() => void riattiva()}
         disabled={impostaAttivo.isPending}
-        className="premi flex shrink-0 items-center gap-1.5 rounded-xl bg-success px-3 py-2 text-xs font-bold text-success-foreground disabled:opacity-50"
+        className="premi flex shrink-0 items-center gap-1.5 rounded-xl bg-success px-3 py-2 text-[13px] font-bold text-success-foreground disabled:opacity-50"
       >
         <UserCheck className="h-3.5 w-3.5" /> Riattiva
       </button>
@@ -722,7 +653,7 @@ function Dashboard() {
       <>
         <PageHeader titolo="Dashboard" sottotitolo="Area riservata" />
         <div className="px-5 pt-4">
-          <p className="flex items-center justify-center gap-2 rounded-3xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+          <p className="flex items-center justify-center gap-2 rounded-3xl bg-card p-5 text-center text-[15px] text-muted-foreground shadow-card">
             <Lock className="h-4 w-4 shrink-0" />
             Riservata agli amministratori della squadra.
           </p>
@@ -743,7 +674,6 @@ function Dashboard() {
       statoScadenza(profili[g.id]?.certificatoScadenza, profili[g.id]?.certificatoPath, oggi) ===
       "valido",
   ).length;
-  const tesserati = attivi.filter((g) => g.numeroTessera).length;
 
   const contenutoSquadra = (
     <>
@@ -755,12 +685,11 @@ function Dashboard() {
           label="Certificati validi"
           hint="non scaduti"
         />
-        <StatTile valore={`${tesserati}/${attivi.length}`} label="Tesserati" hint="CSI" />
       </div>
       <button
         type="button"
         onClick={() => scaricaCsv(`tesseramento-csi-${oggi}.csv`, csvTesseramento(attivi, profili))}
-        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
       >
         <Download className="h-4 w-4" /> Esporta CSV tesseramento
       </button>
@@ -769,7 +698,7 @@ function Dashboard() {
   );
 
   const contenutoProfili = isPending ? (
-    <p className="rounded-2xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+    <p className="rounded-2xl bg-card p-5 text-center text-[15px] text-muted-foreground shadow-card">
       Caricamento…
     </p>
   ) : (
@@ -786,7 +715,7 @@ function Dashboard() {
         />
       ))}
       {allenatori.length > 0 ? (
-        <h3 className="pt-2 font-display text-sm uppercase tracking-wide">Allenatori</h3>
+        <h3 className="pt-2 font-display text-[15px] uppercase tracking-wide">Allenatori</h3>
       ) : null}
       {allenatori.map((g, i) => (
         <SchedaGiocatore
@@ -819,7 +748,7 @@ function Dashboard() {
       <button
         type="button"
         onClick={() => setDestinatarioMessaggio({ nome: "tutta la squadra" })}
-        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+        className="premi mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
       >
         <Send className="h-4 w-4" /> Invia messaggio a tutti
       </button>
@@ -835,7 +764,7 @@ function Dashboard() {
               )}
               <p
                 className={cn(
-                  "min-w-0 flex-1 truncate text-sm font-semibold leading-tight",
+                  "min-w-0 flex-1 truncate text-[15px] font-semibold leading-tight",
                   !attiva && "text-muted-foreground",
                 )}
               >
@@ -855,7 +784,7 @@ function Dashboard() {
       </div>
     </>
   ) : (
-    <p className="rounded-2xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+    <p className="rounded-2xl bg-card p-5 text-center text-[15px] text-muted-foreground shadow-card">
       Caricamento…
     </p>
   );
@@ -909,7 +838,7 @@ function Dashboard() {
               type="button"
               onClick={inviaMessaggio}
               disabled={inviaNotifica.isPending || !messaggio.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
             >
               {inviaNotifica.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -921,7 +850,7 @@ function Dashboard() {
             <DrawerClose asChild>
               <button
                 type="button"
-                className="w-full rounded-2xl bg-secondary py-3 text-sm font-bold uppercase text-foreground"
+                className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-bold uppercase text-foreground"
               >
                 Annulla
               </button>

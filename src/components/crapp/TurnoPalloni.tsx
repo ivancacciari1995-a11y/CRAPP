@@ -74,16 +74,16 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
           <CircleDot className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <span className="block text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
             Palloni
           </span>
-          <span className="flex items-center gap-1.5 text-sm font-bold leading-tight">
+          <span className="flex items-center gap-1.5 text-[15px] font-bold leading-tight">
             {isPending || assegna.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
             ) : null}
             <span className="truncate">{giocatore ? nomeCompleto(giocatore) : "Da assegnare"}</span>
             {proposto && giocatore ? (
-              <span className="shrink-0 rounded-full bg-card px-1.5 py-0.5 text-xs font-bold uppercase text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-card px-1.5 py-0.5 text-[13px] font-bold uppercase text-muted-foreground">
                 proposto
               </span>
             ) : null}
@@ -100,11 +100,11 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
               type="button"
               onClick={() => scegli(g.id)}
               className={cn(
-                "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
+                "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[15px] transition-colors",
                 g.id === id ? "bg-accent/10 font-bold" : "hover:bg-secondary",
               )}
             >
-              <Avatar id={g.id} fallback={String(g.numero)} className="h-7 w-7 text-xs" />
+              <Avatar id={g.id} fallback={String(g.numero)} className="h-7 w-7 text-[13px]" />
               <span className="min-w-0 flex-1 truncate">{nomeCompleto(g)}</span>
               {g.id === id ? <Check className="h-4 w-4 shrink-0 text-accent" /> : null}
             </button>
@@ -117,7 +117,7 @@ export function TurnoPalloni({ eventoId }: { eventoId: string }) {
           type="button"
           onClick={avvisa}
           disabled={avviso}
-          className="premi mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-card px-3 py-2 text-xs font-bold uppercase text-foreground disabled:opacity-50"
+          className="premi mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-card px-3 py-2 text-[13px] font-bold uppercase text-foreground disabled:opacity-50"
         >
           {avviso ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -70,7 +70,7 @@ export function RosaPresenze({
     <div className="space-y-3">
       <Card>
         <div className="flex items-baseline justify-between">
-          <p className="text-sm font-bold">
+          <p className="text-[15px] font-bold">
             Hanno risposto {risposteN}/{rosa.length}
           </p>
           <span className="font-display text-xl leading-none">{perc}%</span>
@@ -84,7 +84,7 @@ export function RosaPresenze({
               <span
                 key={s}
                 className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-bold",
+                  "rounded-full px-2.5 py-1 text-[13px] font-bold",
                   n > 0 ? statoMeta[s].className : "bg-secondary text-muted-foreground",
                 )}
               >
@@ -92,14 +92,14 @@ export function RosaPresenze({
               </span>
             );
           })}
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-muted-foreground">
+          <span className="rounded-full bg-secondary px-2.5 py-1 text-[13px] font-bold text-muted-foreground">
             ❔ {mancanti.length} da rispondere
           </span>
         </div>
 
         {io ? (
           <div className="mt-4 border-t border-border pt-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
               La tua risposta
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -114,7 +114,7 @@ export function RosaPresenze({
                       salva.mutate({ eventoId, giocatoreId: io.id, stato: attivo ? null : s })
                     }
                     className={cn(
-                      "rounded-full border border-border px-2.5 py-1.5 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50",
+                      "rounded-full border border-border px-2.5 py-1.5 text-[13px] font-semibold transition-all active:scale-95 disabled:opacity-50",
                       attivo
                         ? cn(statoMeta[s].className, "border-transparent shadow-card")
                         : "bg-background text-muted-foreground",
@@ -133,7 +133,7 @@ export function RosaPresenze({
             type="button"
             onClick={sollecita}
             disabled={sollecito || daSollecitare === 0 || passato}
-            className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-[15px] font-bold text-primary-foreground disabled:opacity-50"
           >
             {sollecito ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -146,7 +146,7 @@ export function RosaPresenze({
       </Card>
 
       {isPending ? (
-        <p aria-busy="true" className="text-center text-xs text-muted-foreground">
+        <p aria-busy="true" className="text-center text-[13px] text-muted-foreground">
           Carico le risposte…
         </p>
       ) : null}
@@ -194,16 +194,16 @@ function Gruppo({
         attenzione && "border border-dashed border-warning",
       )}
     >
-      <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+      <p className="flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
         {titolo} · {n}
         {attenzione ? <HelpCircle className="h-3.5 w-3.5 text-warning" /> : null}
       </p>
       <div className="mt-3 space-y-2">
         {lista.map((g) => (
           <div key={g.id} className="flex items-center gap-3">
-            <Avatar id={g.id} fallback={String(g.numero)} className="h-8 w-8 text-xs" />
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{g.nome}</span>
-            <span className="shrink-0 text-xs text-muted-foreground">{g.ruolo}</span>
+            <Avatar id={g.id} fallback={String(g.numero)} className="h-8 w-8 text-[13px]" />
+            <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{g.nome}</span>
+            <span className="shrink-0 text-[13px] text-muted-foreground">{g.ruolo}</span>
           </div>
         ))}
       </div>

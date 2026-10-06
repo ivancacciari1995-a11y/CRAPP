@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Cake, ChevronDown, Crown, Trophy } from "lucide-react";
+import { Cake, ChevronDown, ChevronRight, Crown, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData, inizialiDa } from "@/lib/crapp-data";
+import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import {
   useRosa,
@@ -50,7 +51,7 @@ import {
 
 function RuoloBadge({ ruolo }: { ruolo: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-accent-foreground">
+    <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[13px] font-bold uppercase tracking-wide text-accent-foreground">
       {ruolo}
     </span>
   );
@@ -146,7 +147,7 @@ function Squadra() {
                   className="h-11 w-11 text-lg"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold leading-tight">
+                  <span className="block truncate text-[15px] font-bold leading-tight">
                     {nomeCompleto(a)}
                   </span>
                   <span className="mt-1 flex items-center gap-2">
@@ -163,7 +164,7 @@ function Squadra() {
 
               {isOpen && a.nascita ? (
                 <div className="border-t border-border px-4 pb-4 pt-3">
-                  <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <p className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
                     <Cake className="h-3.5 w-3.5" /> {formatData(a.nascita)}
                   </p>
                 </div>
@@ -191,10 +192,12 @@ function Squadra() {
                   className="h-11 w-11 text-lg"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold leading-tight">{g.nome}</span>
+                  <span className="block truncate text-[15px] font-bold leading-tight">
+                    {g.nome}
+                  </span>
                   <span className="mt-1 flex items-center gap-2">
                     <RuoloBadge ruolo={g.ruolo} />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[13px] text-muted-foreground">
                       {g.numero ? `#${g.numero}` : "n° da definire"}
                     </span>
                   </span>
@@ -229,7 +232,7 @@ function Squadra() {
                 <div className="border-t border-border px-4 pb-4 pt-3">
                   {g.nascita ? (
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <p className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
                         <Cake className="h-3.5 w-3.5" /> {formatData(g.nascita)}{" "}
                         {g.nascita.slice(0, 4)}
                       </p>
@@ -243,13 +246,11 @@ function Squadra() {
                       { l: "Presenze di fila", v: g.streak },
                       { l: "Media voto", v: g.mediaVoto || "—" },
                       { l: "MVP", v: g.mvp },
-                      ...(sonoAllenatore
-                        ? []
-                        : [{ l: "Cacche/partita 💩", v: g.cacchePartita || "—" }]),
+                      ...(sonoAllenatore ? [] : [{ l: "Cacche 💩", v: g.cacchePartita || "—" }]),
                     ].map((s) => (
                       <div key={s.l} className="rounded-2xl bg-secondary p-2.5 text-center">
                         <p className="font-display text-xl leading-none">{s.v}</p>
-                        <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
+                        <p className="mt-1 text-[13px] font-semibold uppercase text-muted-foreground">
                           {s.l}
                         </p>
                       </div>
@@ -258,11 +259,11 @@ function Squadra() {
 
                   {sonoAllenatore ? null : (
                     <>
-                      <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      <p className="mt-4 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
                         Badge sbloccati · {collezioneBadge(g).ottenuti}/{collezioneBadge(g).totali}
                       </p>
                       {sbloccati.length === 0 ? (
-                        <p className="mt-2 rounded-2xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+                        <p className="mt-2 rounded-2xl bg-secondary/50 p-3 text-[13px] text-muted-foreground">
                           Nessun badge sbloccato per ora.
                         </p>
                       ) : (
@@ -274,17 +275,20 @@ function Squadra() {
                               <BadgeDrawer key={b.def.id} def={b.def} stato={b}>
                                 <div className={cn("rounded-2xl p-2.5 ring-1", meta.bg, meta.ring)}>
                                   <Icon className={cn("h-4 w-4", meta.text)} />
-                                  <p className="mt-1 text-xs font-bold leading-tight">
+                                  <p className="mt-1 text-[13px] font-bold leading-tight">
                                     {b.def.nome}
                                   </p>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="text-[13px] text-muted-foreground">
                                     {b.valore} {b.def.unita}
                                     {b.prossimaSoglia
                                       ? ` · ${b.prossimaSoglia} per ${gradoMeta[b.prossimo!].label.toLowerCase()}`
                                       : ""}
                                   </p>
                                   <p
-                                    className={cn("mt-1.5 text-xs font-bold uppercase", meta.text)}
+                                    className={cn(
+                                      "mt-1.5 text-[13px] font-bold uppercase",
+                                      meta.text,
+                                    )}
                                   >
                                     {meta.label}
                                   </p>
@@ -326,8 +330,8 @@ function Squadra() {
             className="flex w-full min-w-0 items-center gap-2 rounded-2xl bg-card px-3 py-2.5 text-left shadow-card"
           >
             <Trophy className="h-5 w-5 shrink-0 text-warning" aria-hidden />
-            <span className="shrink-0 text-[14px] text-foreground/80">Classifica per</span>
-            <span className="min-w-0 flex-1 truncate text-right text-[14px] font-bold">
+            <span className="shrink-0 text-[15px] text-foreground/80">Classifica per</span>
+            <span className="min-w-0 flex-1 truncate text-right text-[15px] font-bold">
               {criteri.find((c) => c.id === criterio)?.label}
             </span>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -345,7 +349,7 @@ function Squadra() {
                       type="button"
                       onClick={() => setCriterio(c.id)}
                       className={cn(
-                        "flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm font-bold",
+                        "flex min-h-11 w-full items-center rounded-xl px-3 text-left text-[15px] font-bold",
                         criterio === c.id
                           ? "bg-accent text-accent-foreground"
                           : "bg-secondary text-foreground",
@@ -368,13 +372,13 @@ function Squadra() {
                       {rank[i]}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold">
+                      <p className="truncate text-[15px] font-bold">
                         {g.nome}
                         {rank[i] === 1 ? (
                           <Crown className="ml-1 inline h-3.5 w-3.5 text-warning" />
                         ) : null}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="truncate text-[13px] text-muted-foreground">
                         #{g.numero} · {g.ruolo} · {dettaglioClassifica(g, criterio)}
                       </p>
                     </div>
@@ -414,14 +418,14 @@ function Squadra() {
         <div className="mb-3 rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-primary-foreground/60">
                 Progresso collettivo
               </p>
               <p className="font-display text-4xl leading-none">
                 <Numero valore={mediaObiettivi} suffisso="%" />
               </p>
             </div>
-            <p className="text-xs text-primary-foreground/70">
+            <p className="text-[13px] text-primary-foreground/70">
               {completati}/{obiettivi.length} completati
             </p>
           </div>
@@ -432,38 +436,47 @@ function Squadra() {
             const pct = progressoObiettivo(o);
             const fatto = pct >= 100;
             return (
-              <Reveal
-                key={o.id}
-                indice={i}
-                className={cn(
-                  "premi rounded-3xl bg-card p-4 shadow-card ring-1",
-                  fatto ? "ring-success/40" : pct >= 90 ? "ring-accent/40" : "ring-transparent",
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-lg leading-none">{o.emoji}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold leading-tight">{o.titolo}</p>
-                    <p className="text-xs text-muted-foreground">{o.descrizione}</p>
-                  </div>
-                  <span
+              <Reveal key={o.id} indice={i}>
+                <ObiettivoDrawer obiettivo={o}>
+                  <button
+                    type="button"
+                    aria-label={`Dettaglio obiettivo: ${o.titolo}`}
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide",
-                      fatto
-                        ? "bg-success text-success-foreground"
-                        : "bg-secondary text-muted-foreground",
+                      "premi block w-full rounded-3xl bg-card p-4 text-left shadow-card ring-1",
+                      fatto ? "ring-success/40" : pct >= 90 ? "ring-accent/40" : "ring-transparent",
                     )}
                   >
-                    {fatto ? "Completato" : `${pct}%`}
-                  </span>
-                </div>
-                <Barra percentuale={pct} trackClassName="mt-3" />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {o.valore}/{o.target} {o.unita} · {pct}%
-                  {o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-accent">{microcopyObiettivo(o)}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{o.impatto}</p>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg leading-none">{o.emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-bold leading-tight">{o.titolo}</p>
+                        <p className="text-[13px] text-muted-foreground">{o.descrizione}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[13px] font-bold uppercase tracking-wide",
+                          fatto
+                            ? "bg-success text-success-foreground"
+                            : "bg-secondary text-muted-foreground",
+                        )}
+                      >
+                        {fatto ? "Completato" : `${pct}%`}
+                      </span>
+                    </div>
+                    <Barra percentuale={pct} trackClassName="mt-3" />
+                    <p className="mt-2 text-[13px] text-muted-foreground">
+                      {o.valore}/{o.target} {o.unita} · {pct}%
+                      {o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-accent">
+                      {microcopyObiettivo(o)}
+                    </p>
+                    <p className="mt-0.5 text-[13px] text-muted-foreground">{o.impatto}</p>
+                    <p className="mt-2 inline-flex items-center text-[13px] font-semibold text-accent">
+                      Come funziona <ChevronRight className="h-3.5 w-3.5" />
+                    </p>
+                  </button>
+                </ObiettivoDrawer>
               </Reveal>
             );
           })}
@@ -483,8 +496,10 @@ function Squadra() {
               <div className="rounded-3xl bg-card p-3 shadow-card">
                 <div className="flex items-center gap-2">
                   <Icon className="h-5 w-5 text-accent" />
-                  <p className="text-sm font-bold leading-tight">{b.nome}</p>
-                  <p className="ml-auto text-xs text-muted-foreground">{descrizioneSoglie(b)}</p>
+                  <p className="text-[15px] font-bold leading-tight">{b.nome}</p>
+                  <p className="ml-auto text-[13px] text-muted-foreground">
+                    {descrizioneSoglie(b)}
+                  </p>
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-1.5">
                   {gradiOrdine.map((grado) => {
@@ -500,9 +515,11 @@ function Squadra() {
                         key={grado}
                         className={cn("rounded-2xl p-2 text-center ring-1", meta.bg, meta.ring)}
                       >
-                        <p className={cn("text-xs font-bold uppercase", meta.text)}>{meta.label}</p>
+                        <p className={cn("text-[13px] font-bold uppercase", meta.text)}>
+                          {meta.label}
+                        </p>
                         <p className="font-display text-lg leading-none">{b.soglie[grado]}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[13px] text-muted-foreground">
                           {quanti}/{rosa.length}
                         </p>
                       </div>

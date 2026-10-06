@@ -49,7 +49,7 @@ App su Vercel ──scrive──▶ notifiche_utente ──trigger──▶ noti
 
 ## Quali notifiche e a chi
 
-**Ogni riga nuova di `notifiche_utente` genera una mail**: messaggio admin, sollecito presenze, sondaggio pre-partita. **Fa eccezione il turno palloni** (DD-040, dalla
+**Ogni riga nuova di `notifiche_utente` genera una mail**: messaggio admin, sollecito presenze, sondaggio pre-partita, compleanno (DD-047: solo il titolo, senza corpo; la mail ha oggetto, link e avviso di disattivazione). **Fa eccezione il turno palloni** (DD-040, dalla
 `m26`): per i tipi `turno_palloni`, `turno_palloni_12h`, `_6h`, `_3h` e `turno_palloni_revocato` il
 trigger non accoda nulla, restano push e centro notifiche. Un tipo nuovo che in futuro finisse in quella tabella
 viaggerebbe per email senza altro lavoro. Le notifiche già presenti quando si applica la migration

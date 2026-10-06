@@ -45,21 +45,21 @@ function CardBadge({ b, opaco, indice = 0 }: { b: BadgeStato; opaco?: boolean; i
       <div className="flex items-center justify-between">
         <Icon className={cn("h-6 w-6", meta ? meta.text : "text-muted-foreground/50")} />
         {meta ? (
-          <span className={cn("text-xs font-bold uppercase", meta.text)}>{meta.label}</span>
+          <span className={cn("text-[13px] font-bold uppercase", meta.text)}>{meta.label}</span>
         ) : null}
       </div>
-      <p className="mt-1.5 text-sm font-bold leading-tight">{b.def.nome}</p>
-      <p className="text-xs text-muted-foreground">
+      <p className="mt-1.5 text-[15px] font-bold leading-tight">{b.def.nome}</p>
+      <p className="text-[13px] text-muted-foreground">
         {b.valore} {b.def.unita}
       </p>
       {b.prossimaSoglia ? (
         <>
           <Barra percentuale={b.progresso} altezza="h-1.5" trackClassName="mt-2" />
-          <p className="mt-1 text-xs font-semibold text-accent">{mancanoPer(b)}</p>
-          <p className="text-xs text-muted-foreground">{microcopyBadge(b)}</p>
+          <p className="mt-1 text-[13px] font-semibold text-accent">{mancanoPer(b)}</p>
+          <p className="text-[13px] text-muted-foreground">{microcopyBadge(b)}</p>
         </>
       ) : (
-        <p className="mt-2 text-xs text-muted-foreground">{microcopyBadge(b)}</p>
+        <p className="mt-2 text-[13px] text-muted-foreground">{microcopyBadge(b)}</p>
       )}
     </Reveal>
   );
@@ -90,13 +90,15 @@ function SocialDrawer({
             </span>
             <div className="min-w-0 flex-1">
               <DrawerTitle className="text-xl font-bold leading-tight">{cat.nome}</DrawerTitle>
-              <DrawerDescription className="mt-1 text-sm leading-relaxed">
+              <DrawerDescription className="mt-1 text-[15px] leading-relaxed">
                 {cat.descrizione}
               </DrawerDescription>
             </div>
           </div>
           <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
-            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Vinto</p>
+            <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
+              Vinto
+            </p>
             <p className="mt-1 font-display text-3xl leading-none">
               {conteggio}{" "}
               <span className="text-lg text-muted-foreground">
@@ -109,7 +111,7 @@ function SocialDrawer({
           <DrawerClose asChild>
             <button
               type="button"
-              className="w-full rounded-2xl bg-secondary py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+              className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-semibold text-foreground transition-colors hover:bg-secondary/80"
             >
               Indietro
             </button>
@@ -139,7 +141,7 @@ export function CollezioneBadge({
       <div className="rounded-3xl bg-hero p-4 text-primary-foreground shadow-card">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">
+            <p className="text-[13px] font-semibold uppercase tracking-wide text-primary-foreground/60">
               Collezione badge
             </p>
             <p className="font-display text-4xl leading-none">
@@ -147,7 +149,7 @@ export function CollezioneBadge({
               <span className="text-2xl text-primary-foreground/50">/{c.totali}</span>
             </p>
           </div>
-          <p className="text-xs text-primary-foreground/70">
+          <p className="text-[13px] text-primary-foreground/70">
             <Numero valore={pct} suffisso="%" /> completata
           </p>
         </div>
@@ -156,12 +158,12 @@ export function CollezioneBadge({
 
       {vicino ? (
         <div className="rounded-3xl bg-card p-4 shadow-card ring-1 ring-accent/30">
-          <p className="text-xs font-bold uppercase tracking-wide text-accent">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-accent">
             Prossimo traguardo
           </p>
-          <p className="mt-1 text-sm font-bold leading-tight">{vicino.def.nome}</p>
+          <p className="mt-1 text-[15px] font-bold leading-tight">{vicino.def.nome}</p>
           <Barra percentuale={vicino.progresso} trackClassName="mt-2" />
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-[13px] text-muted-foreground">
             {mancanoPer(vicino)} · {microcopyBadge(vicino)}
           </p>
         </div>
@@ -169,7 +171,7 @@ export function CollezioneBadge({
 
       {c.sbloccati.length > 0 ? (
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
             Sbloccati ({c.sbloccati.length})
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -184,7 +186,7 @@ export function CollezioneBadge({
 
       {c.inProgresso.length > 0 ? (
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
             In progresso ({c.inProgresso.length})
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -199,7 +201,7 @@ export function CollezioneBadge({
 
       {socialVinti.length > 0 ? (
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
             Votati dai compagni
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -207,8 +209,8 @@ export function CollezioneBadge({
               <SocialDrawer key={cat.id} cat={cat} conteggio={social[cat.id] ?? 0}>
                 <div className="rounded-2xl bg-card p-3 shadow-card ring-1 ring-accent/25">
                   <p className="text-lg leading-none">{cat.emoji}</p>
-                  <p className="mt-1 text-sm font-bold leading-tight">{cat.nome}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="mt-1 text-[15px] font-bold leading-tight">{cat.nome}</p>
+                  <p className="text-[13px] text-muted-foreground">
                     Vinto {social[cat.id]} {social[cat.id] === 1 ? "volta" : "volte"}
                   </p>
                 </div>
@@ -219,7 +221,7 @@ export function CollezioneBadge({
       ) : null}
 
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
           Badge segreti
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -229,8 +231,8 @@ export function CollezioneBadge({
               <BadgeDrawer key={b.def.id} def={b.def} stato={b}>
                 <div className="rounded-2xl bg-card p-3 shadow-card ring-1 ring-oro/40">
                   <Icon className="h-6 w-6 text-oro" />
-                  <p className="mt-1.5 text-sm font-bold leading-tight">{b.def.nome}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="mt-1.5 text-[15px] font-bold leading-tight">{b.def.nome}</p>
+                  <p className="text-[13px] text-muted-foreground">
                     {b.def.celebrazione ?? "Badge segreto sbloccato."}
                   </p>
                 </div>
@@ -243,8 +245,10 @@ export function CollezioneBadge({
               className="grid place-items-center rounded-2xl bg-secondary/60 p-3 text-center"
             >
               <Lucchetto className="h-6 w-6 text-muted-foreground/50" />
-              <p className="mt-1.5 text-sm font-bold leading-tight text-muted-foreground">???</p>
-              <p className="text-xs text-muted-foreground/70">Badge segreto da scoprire</p>
+              <p className="mt-1.5 text-[15px] font-bold leading-tight text-muted-foreground">
+                ???
+              </p>
+              <p className="text-[13px] text-muted-foreground/70">Badge segreto da scoprire</p>
             </div>
           ))}
         </div>

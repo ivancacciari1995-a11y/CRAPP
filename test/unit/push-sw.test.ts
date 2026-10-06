@@ -57,6 +57,12 @@ const casi: Array<{ data: Evento["data"]; titolo: string; testo: string }> = [
     titolo: "🏐 Palloni",
     testo: "Sabato tocca a te.",
   },
+  {
+    // Compleanno (DD-047): solo il titolo. Il corpo vuoto resta vuoto, non diventa il testo di ripiego.
+    data: { json: () => ({ title: "Buon compleanno, Marco! 🎂", body: "" }) },
+    titolo: "Buon compleanno, Marco! 🎂",
+    testo: "",
+  },
   { data: null, titolo: "CrAPP", testo: "Apri l'app per i dettagli." },
   {
     data: {

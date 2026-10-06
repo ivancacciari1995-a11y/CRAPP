@@ -13,6 +13,49 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.3.0] - 2026-10-06
+
+Gli auguri di compleanno arrivano da soli, gli obiettivi di squadra si possono toccare per capire come funzionano
+e le presenze si contano solo sugli eventi a cui si è convocati. In tutta l'app i caratteri sono più grandi e gli
+avvisi in Home più chiari. La migration `m31_notifica_compleanno` è **da applicare in produzione** (`npx supabase
+db push`); il resto non tocca il database.
+
+### Aggiunto
+
+- **Notifica di compleanno** — ogni giorno, dalle 8:00, il festeggiato riceve un messaggio di auguri e tutti gli altri membri
+  attivi, allenatori compresi, il solo avviso «Oggi è il compleanno di …»; con più compleanni lo stesso giorno un solo
+  messaggio a testa. Push, centro notifiche ed email. Il 29 febbraio non è gestito (DD-047, issue #11). Migration
+  `m31_notifica_compleanno`, da applicare in produzione.
+- **Obiettivi cliccabili** — toccando un obiettivo (in Squadra o nella card della Home) si apre una card che
+  spiega tutto: come si calcola, cosa conta e cosa no, cosa è una presenza persa, periodo di validità, fonte dei dati,
+  un esempio con numeri. Nessuna migration.
+
+### Modificato
+
+- **Obiettivo «90% di presenze del mese»** — i posti sono i convocati di ogni partita e allenamento (tutta la rosa se
+  non ce ne sono), come nelle presenze collettive: chi non è convocato non abbassa più la percentuale. Assente, forse,
+  infortunato e nessuna risposta restano presenze perse. Nessuna migration.
+- **Obiettivo «Presenze collettive»** — sostituisce «250 presenze complessive»: è la percentuale di presenze di tutta la
+  rosa su allenamenti e partite definiti in stagione (passati e futuri, posti = convocati), con target 90%. Nessuna migration.
+- **Obiettivo «1 evento di squadra al mese»** — si completa quando arriva l'ora dell'evento, non appena viene
+  creato. Un evento futuro non conta finché la sua data e ora non sono passate. Nessuna migration.
+- **Avvisi in Home più leggibili** — certificati e turno palloni usano lo stesso componente (`Avviso`): icona
+  propria per ogni caso (non solo il colore), titolo e testo più grandi, elenchi di persone in righe con il dettaglio
+  a destra e il conteggio, freccia dove la card porta ai documenti, comparsa graduale. Il turno palloni ha la pillola
+  «Oggi»/«In arrivo» e i messaggi in riquadri. Solo aspetto: testi e regole di quando compaiono non cambiano.
+  Nessuna migration.
+- **Caratteri più grandi in tutta l'app** — ogni testo sotto i 16 px sale di un passo (12→13, 14→15, ecc.), nelle
+  card, negli elenchi, nelle statistiche e nei drawer. Restano uguali le barre a pillola dei menu (navigazione in
+  basso e sottosezioni) e i badge minuscoli. Solo aspetto, nessuna migration (DD-049).
+- **Etichetta «Cacche» nella rosa** — nella scheda del giocatore in Squadra la riga «Cacche/partita» si chiama
+  «Cacche»; il valore resta la media per partita. Nessuna migration.
+
+### Rimosso
+
+- **Tessera CSI dalla dashboard** — in Profili spariscono il blocco «Tesseramento CSI» (numero e data
+  tessera), il badge «Tesserato»/«Da tesserare» e il riquadro «Tesserati» della tab Squadra. L'export CSV non
+  cambia. Le colonne `numero_tessera` e `data_tessera` restano a database, non più usate (DD-048). Nessuna migration.
+
 ## [1.2.3] - 2026-10-04
 
 Nella Home si vede anche chi non ha caricato il certificato medico, e le dipendenze sono aggiornate perché Vercel bloccava il deploy. Nessuna migration.

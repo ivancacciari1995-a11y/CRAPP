@@ -33,7 +33,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
         </span>
         <div className="min-w-0 flex-1">
           <DrawerTitle className="text-xl font-bold leading-tight">{def.nome}</DrawerTitle>
-          <DrawerDescription className="mt-1 text-sm leading-relaxed">
+          <DrawerDescription className="mt-1 text-[15px] leading-relaxed">
             {def.descrizione}
           </DrawerDescription>
         </div>
@@ -42,13 +42,15 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
       {stato ? (
         <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
               Stato attuale
             </p>
             {grado ? (
-              <span className={cn("text-xs font-bold uppercase", meta?.text)}>{meta?.label}</span>
+              <span className={cn("text-[13px] font-bold uppercase", meta?.text)}>
+                {meta?.label}
+              </span>
             ) : (
-              <span className="text-xs font-bold uppercase text-muted-foreground">
+              <span className="text-[13px] font-bold uppercase text-muted-foreground">
                 In progresso
               </span>
             )}
@@ -59,19 +61,19 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
           {stato.prossimaSoglia ? (
             <>
               <Barra percentuale={stato.progresso} trackClassName="mt-3" />
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-2 text-[13px] text-muted-foreground">
                 Mancano {stato.prossimaSoglia - stato.valore} {def.unita} per il{" "}
                 {gradoMeta[stato.prossimo as Grado].label.toLowerCase()}
               </p>
             </>
           ) : (
-            <p className="mt-2 text-xs text-success">Hai raggiunto il livello massimo.</p>
+            <p className="mt-2 text-[13px] text-success">Hai raggiunto il livello massimo.</p>
           )}
         </div>
       ) : null}
 
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
           Soglie
         </p>
         <div className="grid grid-cols-3 gap-2">
@@ -88,7 +90,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
               >
                 <p
                   className={cn(
-                    "text-xs font-bold uppercase",
+                    "text-[13px] font-bold uppercase",
                     raggiunto ? gm.text : "text-muted-foreground",
                   )}
                 >
@@ -102,7 +104,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
                 >
                   {def.soglie[g]}
                 </p>
-                <p className="text-xs text-muted-foreground">{def.unita}</p>
+                <p className="text-[13px] text-muted-foreground">{def.unita}</p>
               </div>
             );
           })}
@@ -110,7 +112,7 @@ function DettaglioBadge({ def, stato }: { def: BadgeDef; stato?: BadgeStato }) {
       </div>
 
       {def.celebrazione ? (
-        <p className="rounded-2xl bg-accent/10 p-3 text-center text-sm font-semibold text-accent">
+        <p className="rounded-2xl bg-accent/10 p-3 text-center text-[15px] font-semibold text-accent">
           “{def.celebrazione}”
         </p>
       ) : null}
@@ -142,7 +144,7 @@ export function BadgeDrawer({
           <DrawerClose asChild>
             <button
               type="button"
-              className="w-full rounded-2xl bg-secondary py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+              className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-semibold text-foreground transition-colors hover:bg-secondary/80"
             >
               Indietro
             </button>

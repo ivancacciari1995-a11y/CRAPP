@@ -37,7 +37,7 @@ export function ScoutEntry({
       {occupato ? <Lock className="h-5 w-5 shrink-0" /> : <Radio className="h-5 w-5 shrink-0" />}
       <span className="min-w-0 flex-1">
         <span className="block font-display text-lg uppercase leading-none">{titolo}</span>
-        <span className="block text-xs opacity-80">{sottotitolo}</span>
+        <span className="block text-[13px] opacity-80">{sottotitolo}</span>
       </span>
       {disponibile ? <ChevronRight className="h-5 w-5 shrink-0" /> : null}
     </>

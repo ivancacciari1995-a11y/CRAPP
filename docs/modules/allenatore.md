@@ -97,7 +97,7 @@ nessuna schermata:
 | Dove                                | Cosa si nasconde all'allenatore                                                  |
 | ----------------------------------- | -------------------------------------------------------------------------------- |
 | `/squadra` → Stats                  | il criterio di ordinamento «Cacche» (`cacchePartita`)                            |
-| `/squadra` → Rosa, scheda giocatore | la riga «Cacche/partita 💩»                                                      |
+| `/squadra` → Rosa, scheda giocatore | la riga «Cacche 💩»                                                              |
 | `/partita/$id`                      | la sezione «Badge votati dai compagni» e il sondaggio cacche (`SondaggioCacche`) |
 | push «Sondaggio pre-partita aperto» | non parte verso i dispositivi degli allenatori (`apri-sondaggio.ts`)             |
 | `/profilo`, `/squadra`              | le tab Badge (già escluse sopra)                                                 |
@@ -132,6 +132,7 @@ Cosa riceve l'allenatore, notifica per notifica (il catalogo completo, con i can
 | Sollecito presenze                                           | no                      | L'allenatore non risponde alle presenze (DD-034). Può invece **far partire** il sollecito .                                                                                                                                                                                                                         |
 | Turno palloni                                                | no                      | I turni riguardano solo i giocatori.                                                                                                                                                                                                                                                                                |
 | Sondaggio pre-partita                                        | no                      | Né la push né l'avviso in-app e per email (DD-038): il sondaggio non lo riguarda.                                                                                                                                                                                                                                   |
+| Compleanno (DD-047)                                          | **sì**                  | Riceve l'avviso «Oggi è il compleanno di …» come tutta la squadra, e gli auguri nel giorno del proprio compleanno (la nascita è pubblica, DD-031). In-app, email e push come per i giocatori.                                                                                                                       |
 | Notifiche smart (badge, serie, obiettivi, social)            | **no**                  | Le mostra `CelebrazioneBadge` per il giocatore selezionato, letto da `useIo()`, che cerca l'id in `useRosa()`, da cui l'allenatore è escluso: per lui `useIo()` è `null` e `useNotificheSmart()` non fa nulla. Non ha statistiche da cui calcolarle.                                                                |
 
 Le email arrivano solo se il suo slot ha un account collegato e un'email registrata e se non ha

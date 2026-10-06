@@ -28,8 +28,8 @@ export function SerieGriglia({ g }: { g: Giocatore }) {
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold leading-tight">{s.def.label}</p>
-                <p className="text-xs text-muted-foreground">{s.def.descrizione}</p>
+                <p className="text-[15px] font-bold leading-tight">{s.def.label}</p>
+                <p className="text-[13px] text-muted-foreground">{s.def.descrizione}</p>
               </div>
               <span className="inline-flex items-center gap-1 font-display text-2xl leading-none">
                 <Flame
@@ -39,7 +39,7 @@ export function SerieGriglia({ g }: { g: Giocatore }) {
               </span>
             </div>
             <Barra percentuale={s.progresso} trackClassName="mt-3" />
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2 text-[13px] text-muted-foreground">
               {s.prossimo ? `${s.valore}/${s.prossimo} · ` : ""}
               {s.messaggio}
             </p>
@@ -61,17 +61,17 @@ export function SerieHome({ g }: { g: Giocatore }) {
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-tight">
+          <p className="text-[15px] font-bold leading-tight">
             Serie {top.def.label.toLowerCase()}: {top.valore}
           </p>
-          <p className="text-xs text-muted-foreground">{top.messaggio}</p>
+          <p className="text-[13px] text-muted-foreground">{top.messaggio}</p>
         </div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {serieGiocatore(g).map((s) => (
           <div key={s.def.tipo} className="rounded-2xl bg-secondary p-2 text-center">
             <p className="font-display text-xl leading-none">{s.valore}</p>
-            <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
+            <p className="mt-1 text-[13px] font-semibold uppercase text-muted-foreground">
               {s.def.label}
             </p>
           </div>
