@@ -9,22 +9,18 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.2.3 (in produzione su `main` la 1.2.2) — notifiche su tre canali, avvisi di palloni
-  (3 ore prima) e presenze (24 ore prima) una sola volta, niente promemoria evento, niente foto
-  tessera, avviso certificato a 30 giorni per il giocatore, avviso rosso per chi non l'ha caricato.
+- **Versione:** 1.3.0 (tag `v1.3.0` su `main`) — notifica di compleanno, obiettivi cliccabili con card di
+  dettaglio, presenze calcolate sui convocati, avvisi in Home ridisegnati, caratteri più grandi, tessera CSI
+  tolta dalla dashboard. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
 - **Migration:** 42 file in `supabase/migrations/`, fino a `m31_notifica_compleanno`. Le prime 41 (fino a
   `m30_sollecito_solo_24h`) sono applicate in produzione (verificato con `npx supabase migration list` il
   01/10/2026); la `m31` no, ancora da applicare (DD-047). La `m29` toglie
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
-- **Su `develop`, non ancora rilasciato:** obiettivi cliccabili con card di dettaglio, presenze del mese
-  calcolate sui convocati, obiettivi «Presenze collettive» e «evento di squadra al mese» (ora dell'evento),
-  tessera CSI tolta dalla dashboard (DD-048), avvisi in Home ridisegnati e caratteri più grandi in tutta l'app (DD-049), notifica di compleanno (DD-047, migration `m31`). Dettaglio in
-  [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo
-  è su `develop`, non ancora su `main`.
+  è su `main` dalla 1.3.0.
 - **Accesso:** il login Google è l'unica via d'ingresso; i permessi di amministrazione arrivano
   solo da `user_roles`. Il collegamento degli account è un processo continuo: ogni giocatore si
   collega al primo accesso (DD-018).
