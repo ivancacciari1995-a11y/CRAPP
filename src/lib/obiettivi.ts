@@ -31,6 +31,24 @@ function meseCorrente(oggi: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(oggi).slice(0, 7);
 }
 
+/** Istante corrente in Europe/Rome come "YYYY-MM-DD HH:mm", confrontabile con data + ora di un evento. */
+function adessoRoma(oggi: Date): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Rome",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(oggi)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p["year"]}-${p["month"]}-${p["day"]} ${p["hour"]}:${p["minute"]}`;
+}
+
 /** "a settembre" / "ad agosto": preposizione con elisione davanti a vocale. */
 function aMese(oggi: Date): string {
   const nome = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", month: "long" }).format(
@@ -180,7 +198,13 @@ export function obiettiviSquadra(
       id: "o6",
       titolo: "1 evento di squadra al mese",
       descrizione: "Pizzate, cene e uscite fuori dal campo",
-      valore: ctx.eventi.filter((e) => e.tipo === "evento" && e.data.startsWith(mese)).length,
+      // Conta solo quando l'ora dell'evento è arrivata, non quando viene definito.
+      valore: ctx.eventi.filter(
+        (e) =>
+          e.tipo === "evento" &&
+          e.data.startsWith(mese) &&
+          `${e.data} ${e.ora || "00:00"}` <= adessoRoma(oggi),
+      ).length,
       target: 1,
       unita: "eventi",
       emoji: "🍕",

@@ -48,7 +48,7 @@ corrente dinamico (vedi sotto).
 | `o3`  | Prima vittoria del campionato      | `min(vittorie, 1)`                                                            | 1                     | JSON partite CSI (vedi sotto) |
 | `o4`  | 5 vittorie in campionato           | `min(vittorie, 5)`                                                            | 5                     | JSON partite CSI              |
 | `o5`  | 10 vittorie in campionato          | `min(vittorie, 10)`                                                           | 10                    | JSON partite CSI              |
-| `o6`  | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente (dinamico)                          | 1                     | `eventi_app`                  |
+| `o6`  | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente la cui data e ora sono già passate (dinamico)                          | 1                     | `eventi_app`                  |
 
 Mostrati in `squadra.tsx` (elenco completo con barra di progresso) e in `index.tsx` (home: il
 primo obiettivo non completato). Un obiettivo che supera il 90% genera anche una notifica
@@ -66,6 +66,12 @@ automaticamente a ogni cambio mese: il mese di riferimento è calcolato dalla da
 (fuso Europe/Rome, `meseCorrente(oggi)`), non più una costante fissa. Per `o1`, titolo
 ("90% di presenze ad agosto" / "a settembre" / ...) e scadenza (ultimo giorno del mese)
 seguono di conseguenza.
+
+`o6` si completa quando **arriva l'ora dell'evento**, non quando lo si definisce: conta solo
+un evento di tipo "evento" del mese corrente il cui `data` + `ora` (fuso Europe/Rome,
+`adessoRoma(oggi)`) è già passato; senza ora vale `00:00`. Un evento futuro lascia l'obiettivo a
+0/1 finché non scatta l'ora. Il valore si ricalcola al render: con l'app già aperta il
+passaggio a completato compare al refresh successivo.
 
 `o2` ("Tutti rispondono alle convocazioni") non si azzera — aggrega su tutti gli eventi in
 programma, non solo quelli del mese corrente — ma la sua `scadenza` mostrata in interfaccia è

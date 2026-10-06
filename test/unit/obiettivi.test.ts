@@ -216,7 +216,7 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
 
 // --- o6: evento di squadra al mese, si azzera come o1 ------------------------
 {
-  const OGGI_SETTEMBRE = new Date("2026-09-05T10:00:00Z");
+  const OGGI_SETTEMBRE = new Date("2026-09-20T10:00:00Z");
   const pizzataSettembre: ContestoObiettivi = {
     eventi: [evento("p1", "2026-09-12", "evento")],
     presenze: {},
@@ -231,6 +231,59 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
     trova(obiettiviSquadra(giocatori, pizzataSettembre, OGGI_AGOSTO), "o6").valore,
     0,
     "lo stesso evento non conta se oggi è agosto",
+  );
+
+  // Definito ma non ancora arrivato: non conta finché non scatta l'ora dell'evento.
+  const pizzataFutura: ContestoObiettivi = {
+    eventi: [{ ...evento("pf1", "2026-09-28", "evento"), ora: "20:30" }],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, pizzataFutura, OGGI_SETTEMBRE), "o6").valore,
+    0,
+    "un evento futuro non completa l'obiettivo al momento della definizione",
+  );
+  const serata = { ...evento("ps1", "2026-09-20", "evento"), ora: "20:30" };
+  const conSerata: ContestoObiettivi = { eventi: [serata], presenze: {}, pagelle: [] };
+  // 20/09 10:00Z = 12:00 a Roma (CEST): prima delle 20:30 non conta, dopo sì.
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, conSerata, OGGI_SETTEMBRE), "o6").valore,
+    0,
+    "stesso giorno ma ora non ancora arrivata: non conta",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, conSerata, new Date("2026-09-20T18:30:00Z")), "o6").valore,
+    1,
+    "arrivata l'ora dell'evento (20:30 a Roma): conta",
+  );
+
+  // Senza ora vale 00:00: conta dal giorno stesso, non il giorno prima.
+  const senzaOra: ContestoObiettivi = {
+    eventi: [{ ...evento("so1", "2026-09-20", "evento"), ora: "" }],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, senzaOra, OGGI_SETTEMBRE), "o6").valore,
+    1,
+    "evento senza ora: conta dal giorno stesso",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, senzaOra, new Date("2026-09-19T21:00:00Z")), "o6").valore,
+    0,
+    "evento senza ora: la sera prima (Roma) non conta",
+  );
+  // Più eventi: ne basta uno passato; quello futuro non si somma.
+  const misti: ContestoObiettivi = {
+    eventi: [evento("m1", "2026-09-05", "evento"), evento("m2", "2026-09-28", "evento")],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, misti, OGGI_SETTEMBRE), "o6").valore,
+    1,
+    "conta solo l'evento già passato",
   );
 
   const allenamentoNelMese: ContestoObiettivi = {

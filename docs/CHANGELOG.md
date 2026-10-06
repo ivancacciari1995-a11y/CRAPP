@@ -20,6 +20,11 @@ versioni `0.y.z` erano pre-release.
   messaggio a testa. Push, centro notifiche ed email. Il 29 febbraio non è gestito (DD-047, issue #11). Migration
   `m31_notifica_compleanno`, da applicare in produzione.
 
+### Modificato
+
+- **Obiettivo «1 evento di squadra al mese»** — si completa quando arriva l'ora dell'evento, non appena viene
+  creato. Un evento futuro non conta finché la sua data e ora non sono passate. Nessuna migration.
+
 ## [1.2.3] - 2026-10-04
 
 Nella Home si vede anche chi non ha caricato il certificato medico, e le dipendenze sono aggiornate perché Vercel bloccava il deploy. Nessuna migration.
