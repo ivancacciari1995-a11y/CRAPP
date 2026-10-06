@@ -1,8 +1,8 @@
-import { Dumbbell, Swords, Zap } from "lucide-react";
+import { Dumbbell, Swords } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Giocatore } from "./crapp-data";
 
-export type SerieTipo = "allenamenti" | "partite" | "conferme";
+export type SerieTipo = "allenamenti" | "partite";
 
 export type SerieDef = {
   tipo: SerieTipo;
@@ -30,14 +30,6 @@ export const serieDefs: SerieDef[] = [
     icon: Swords,
     traguardi: [2, 5, 8, 12],
     valore: (g) => g.seriePartite,
-  },
-  {
-    tipo: "conferme",
-    label: "Conferme 24h",
-    descrizione: "Risposte date entro 24 ore dalla convocazione",
-    icon: Zap,
-    traguardi: [3, 8, 15, 20],
-    valore: (g) => g.serieConferme,
   },
 ];
 

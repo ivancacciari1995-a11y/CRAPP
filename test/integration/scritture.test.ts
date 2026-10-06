@@ -254,8 +254,8 @@ if (!locale) {
 
     // --- presenze: la risposta si cambia, il cronometro no --------------------------
     // Due colonne che sembrano la stessa cosa e non lo sono: `risposto_il` è la PRIMA
-    // risposta e alimenta la serie "Conferme 24h", `aggiornato_il` è l'ultima modifica e non
-    // alimenta niente. Il trigger `risposte_presenze_risposto_il_immutabile` (M9) tiene ferma
+    // risposta, `aggiornato_il` è l'ultima modifica; oggi nessuna statistica le usa (la serie
+    // «Conferme 24h» è stata rimossa). Il trigger `risposte_presenze_risposto_il_immutabile` (M9) tiene ferma
     // la prima: senza, chi risponde subito e ci ripensa una settimana dopo risulterebbe lento.
     await prova(
       "la risposta di presenza si aggiorna senza far ripartire il cronometro",

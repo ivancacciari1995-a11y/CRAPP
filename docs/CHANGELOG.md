@@ -13,6 +13,12 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Rimosso
+
+- **Serie «Conferme 24h» e badge collegati** — la serie non compare più nel profilo, in Home né nelle notifiche di
+  traguardo; restano Allenamenti e Partite. Rimossi anche il badge «Risposta lampo» e il segreto «Mai un forfait», che
+  si basavano su di essa. Nessuna migrazione: la colonna `risposto_il` resta, inutilizzata.
+
 ## [1.3.0] - 2026-10-06
 
 Gli auguri di compleanno arrivano da soli, gli obiettivi di squadra si possono toccare per capire come funzionano

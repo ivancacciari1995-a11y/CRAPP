@@ -3,9 +3,7 @@ import {
   Repeat,
   Lock,
   Ghost,
-  Zap,
   Rocket,
-  Anchor,
   Stethoscope,
   AlarmClock,
   ClipboardCheck,
@@ -114,15 +112,6 @@ export const badgeDefs: BadgeDef[] = [
     soglie: { bronzo: 3, argento: 6, oro: 10 },
     valore: (g) => g.serieAllenamenti,
   },
-  {
-    id: "serie-conferme",
-    nome: "Risposta lampo",
-    descrizione: "Conferme rapide agli eventi: la squadra sa subito che ci sei.",
-    unita: "conferme entro 24h",
-    icon: Zap,
-    soglie: { bronzo: 3, argento: 8, oro: 15 },
-    valore: (g) => g.serieConferme,
-  },
 ];
 
 /** Badge segreti: non compaiono nella UI finché non vengono sbloccati. */
@@ -140,18 +129,6 @@ export const badgeSegreti: BadgeDef[] = [
     // non è statisticamente significativa, non deve poter sbloccare nemmeno questo segreto.
     valore: (g) => (g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8 ? 1 : 0),
     celebrazione: "Nei momenti caldi ci sei sempre.",
-  },
-  {
-    id: "s-mai-forfait",
-    nome: "Mai un forfait",
-    descrizione:
-      "Sbloccato con 10 conferme rapide consecutive e 15 presenze: su di te la squadra può contare a occhi chiusi.",
-    unita: "requisito nascosto",
-    icon: Anchor,
-    segreto: true,
-    soglie: { bronzo: 1, argento: 1, oro: 1 },
-    valore: (g) => (g.serieConferme >= 10 && g.presenze >= 15 ? 1 : 0),
-    celebrazione: "Su di te la squadra può contare a occhi chiusi.",
   },
   {
     id: "s-infermeria",

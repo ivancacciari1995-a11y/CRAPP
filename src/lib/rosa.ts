@@ -12,7 +12,6 @@ import { useEventi } from "./eventi";
 import {
   contaPartiteGiocate,
   contaPresenzeGiocatore,
-  serieConferme,
   serieConsecutiva,
   totaliEventiGiocatore,
   useRispostePresenze,
@@ -68,7 +67,7 @@ export function useRosa(): Giocatore[] {
   const { salvati: turniSalvati } = useTurniPalloni();
   const { infortuni, ritardi } = useInfortuniERitardi();
   const { eventi } = useEventi();
-  const { presenze: mappaPresenze, tempi } = useRispostePresenze();
+  const { presenze: mappaPresenze } = useRispostePresenze();
 
   const votiMvp = voti.data;
 
@@ -94,7 +93,6 @@ export function useRosa(): Giocatore[] {
       streak: serieConsecutiva(g.id, eventi, mappaPresenze),
       serieAllenamenti: serieConsecutiva(g.id, eventi, mappaPresenze, "allenamento"),
       seriePartite: serieConsecutiva(g.id, eventi, mappaPresenze, "partita"),
-      serieConferme: serieConferme(g.id, eventi, tempi),
       mvp: mvpVinti[g.id] ?? 0,
       mediaVoto: medie[g.id]?.media ?? 0,
       votiPagella: medie[g.id]?.voti ?? 0,
@@ -105,18 +103,7 @@ export function useRosa(): Giocatore[] {
       infortuni: infortuni[g.id] ?? 0,
       ritardi: ritardi[g.id] ?? 0,
     }));
-  }, [
-    squadra,
-    votiMvp,
-    pagelle,
-    cacche,
-    turniSalvati,
-    infortuni,
-    ritardi,
-    eventi,
-    mappaPresenze,
-    tempi,
-  ]);
+  }, [squadra, votiMvp, pagelle, cacche, turniSalvati, infortuni, ritardi, eventi, mappaPresenze]);
 }
 
 /** Criteri di ordinamento della classifica interna di Squadra. */

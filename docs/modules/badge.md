@@ -76,7 +76,7 @@ badge assegnati per voto dai compagni.
 
 ## Elenco badge
 
-Riferimento completo per chi lavora sul codice. **In app i 5 badge segreti restano nascosti
+Riferimento completo per chi lavora sul codice. **In app i 4 badge segreti restano nascosti
 finché non sbloccati** (fanno parte della sorpresa per i giocatori): elencarli qui, con le
 condizioni esatte, è una scelta deliberata per la documentazione tecnica, non una fuga di
 informazioni verso l'interfaccia.
@@ -93,7 +93,6 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | `palloni`           | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano               | 3 / 6 / 10      |
 | `presenze`          | Presenza fissa     | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`)                     | 5 / 15 / 30     |
 | `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì                            | 3 / 6 / 10      |
-| `serie-conferme`    | Risposta lampo     | conferme di presenza consecutive date entro 24h dalla convocazione (`g.serieConferme`)                                               | 3 / 8 / 15      |
 
 ### Badge segreti (booleani, nascosti finché non sbloccati)
 
@@ -104,13 +103,12 @@ grado effettivo che risulta una volta sbloccato è sempre **`"oro"`** (l'ultimo 
 `for` sovrascrive), mai `"bronzo"` — l'unica cosa che conta davvero per questi badge è
 `grado !== null`, non il suo valore, ed è così che li legge `badgeSegretiSbloccati()`.
 
-| id              | nome                        | condizione esatta                                                                                                                                            |
-| --------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `s-tiebreak`    | Uomo tie-break              | almeno 2 MVP **e** media pagella ≥ 8, sopra la soglia minima di voti di Pagellone (`g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8`) |
-| `s-mai-forfait` | Mai un forfait              | almeno 10 conferme rapide consecutive **e** almeno 15 presenze (`g.serieConferme >= 10 && g.presenze >= 15`)                                                 |
-| `s-infermeria`  | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`)                                                                                                  |
-| `s-ritardi`     | Aspettate, arrivo!          | almeno 5 ritardi a eventi (`g.ritardi >= 5`)                                                                                                                 |
-| `s-cacche`      | Trono di ferro              | almeno 3 partite (campionato o amichevole) con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`)                                                          |
+| id             | nome                        | condizione esatta                                                                                                                                            |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `s-tiebreak`   | Uomo tie-break              | almeno 2 MVP **e** media pagella ≥ 8, sopra la soglia minima di voti di Pagellone (`g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8`) |
+| `s-infermeria` | Cliente VIP dell'Infermeria | almeno 3 eventi saltati per infortunio (`g.infortuni >= 3`)                                                                                                  |
+| `s-ritardi`    | Aspettate, arrivo!          | almeno 5 ritardi a eventi (`g.ritardi >= 5`)                                                                                                                 |
+| `s-cacche`     | Trono di ferro              | almeno 3 partite (campionato o amichevole) con 3 o più cacche pre-gara dichiarate (`g.cacche >= 3`)                                                          |
 
 ### Badge social (votati dai compagni, 5 categorie per partita)
 
@@ -149,24 +147,22 @@ dicono i file, non questa pagina: leggili prima di cambiare una soglia.
 
 ### Riepilogo per badge
 
-| #   | id                  | tipo    | test unit                     | test integration                              |
-| --- | ------------------- | ------- | ----------------------------- | --------------------------------------------- |
-| 1   | `mvp`               | normale | ✅                            | ✅ (`scritture`, `permessi`, `mvp-badge`)     |
-| 2   | `pagella`           | normale | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
-| 3   | `palloni`           | normale | ✅                            | ✅ (`scritture`, `palloni-badge`)             |
-| 4   | `presenze`          | normale | ✅                            | ✅ (`obiettivi`, `presenze-badge`)            |
-| 5   | `serie-allenamenti` | normale | ✅                            | ✅ (`serie-allenamenti-badge`)                |
-| 6   | `serie-conferme`    | normale | ✅ (vedi Limiti noti)         | ✅ (`serie-conferme-badge`)                   |
-| 7   | `s-tiebreak`        | segreto | ✅ (soglia minima voti)       | ✅ (`s-tiebreak-badge`)                       |
-| 8   | `s-mai-forfait`     | segreto | ✅                            | ✅ (`s-mai-forfait-badge`)                    |
-| 9   | `s-infermeria`      | segreto | ✅                            | ✅ (`s-infermeria-badge`)                     |
-| 10  | `s-ritardi`         | segreto | ✅                            | ✅ (`s-ritardi-badge`)                        |
-| 11  | `s-cacche`          | segreto | ✅                            | ✅ (`s-cacche-badge`)                         |
-| 12  | `affidabile`        | social  | ✅                            | ✅ (`scritture`, `permessi`, `badge-social`)  |
-| 13  | `spirito`           | social  | ✅ (meccanismo generico)      | ✅ (meccanismo generico, `badge-social`)      |
-| 14  | `fairplay`          | social  | ✅ (meccanismo generico)      | ✅ (meccanismo generico, `badge-social`)      |
-| 15  | `meme`              | social  | ✅                            | ✅ (`badge-social`)                           |
-| 16  | `cuore`             | social  | ✅                            | ✅ (autovoto, `badge-social`)                 |
+| #   | id                  | tipo         | test unit                     | test integration                              |
+| --- | ------------------- | ------------ | ----------------------------- | --------------------------------------------- |
+| 1   | `mvp`               | normale      | ✅                            | ✅ (`scritture`, `permessi`, `mvp-badge`)     |
+| 2   | `pagella`           | normale      | ✅ (incl. soglia minima voti) | ✅ (`scritture`, `permessi`, `pagella-badge`) |
+| 3   | `palloni`           | normale      | ✅                            | ✅ (`scritture`, `palloni-badge`)             |
+| 4   | `presenze`          | normale      | ✅                            | ✅ (`obiettivi`, `presenze-badge`)            |
+| 5   | `serie-allenamenti` | normale      | ✅                            | ✅ (`serie-allenamenti-badge`)                |
+| 6   | 7                   | `s-tiebreak` | segreto                       | ✅ (soglia minima voti)                       | ✅ (`s-tiebreak-badge`) |
+| 6   | `s-infermeria`      | segreto      | ✅                            | ✅ (`s-infermeria-badge`)                     |
+| 7   | `s-ritardi`         | segreto      | ✅                            | ✅ (`s-ritardi-badge`)                        |
+| 8   | `s-cacche`          | segreto      | ✅                            | ✅ (`s-cacche-badge`)                         |
+| 9   | `affidabile`        | social       | ✅                            | ✅ (`scritture`, `permessi`, `badge-social`)  |
+| 10  | `spirito`           | social       | ✅ (meccanismo generico)      | ✅ (meccanismo generico, `badge-social`)      |
+| 11  | `fairplay`          | social       | ✅ (meccanismo generico)      | ✅ (meccanismo generico, `badge-social`)      |
+| 12  | `meme`              | social       | ✅                            | ✅ (`badge-social`)                           |
+| 13  | `cuore`             | social       | ✅                            | ✅ (autovoto, `badge-social`)                 |
 
 ---
 
@@ -193,11 +189,9 @@ dicono i file, non questa pagina: leggili prima di cambiare una soglia.
 
 ## Limiti noti
 
-- **Dipendenza dal modulo [Serie](serie-presenze.md)**: i badge "Sempre in palestra",
-  "Risposta lampo" e il segreto "Mai un forfait" si muovono solo se cambiano le serie. Le
-  serie sono calcolate sui dati reali dalla migration `m9` in avanti, ma "Risposta lampo" e
-  "Mai un forfait" dipendono da `serieConferme`, e `risposto_il` non è ricostruibile per le
-  risposte precedenti a `m9`: su quelle righe la serie è un'approssimazione.
+- **Dipendenza dal modulo [Serie](serie-presenze.md)**: il badge «Sempre in palestra» si muove solo se cambia la serie
+  Allenamenti. Il badge «Risposta lampo» e il segreto «Mai un forfait», basati sulla serie «Conferme 24h», sono stati
+  rimossi il 2026-10-06.
 - Nessuno storico dei badge sbloccati: se cambiano le soglie o i dati sorgente, un badge già
   "ottenuto" può sparire o apparire retroattivamente.
 - Notifiche "nuovo badge" solo locali al dispositivo (localStorage), si ripetono cambiando
@@ -213,7 +207,7 @@ UI di rotazione (`TurnoPalloni.tsx`, `PromemoriaPalloni.tsx`), mai per il conteg
 Dimostrato con dati veri in `palloni-badge.test.ts`. [palloni.md](palloni.md) aggiornato di
 conseguenza.
 
-**Risolto (audit completo dei 16 badge)**: `s-tiebreak` (`badges.ts:139`) usava `g.mediaVoto`
+**Risolto (audit completo dei badge (all'epoca 16))**: `s-tiebreak` (`badges.ts:139`) usava `g.mediaVoto`
 senza applicare `VOTI_MINIMI_PAGELLA`, a differenza del badge normale `pagella` che usa lo
 stesso campo — un giocatore con un solo voto pagella altissimo e 2 MVP poteva sbloccare il
 segreto senza che la media fosse statisticamente significativa. Ora `s-tiebreak` richiede anche
@@ -238,7 +232,7 @@ ancora correggere un voto anche fuori convocazione o dopo la chiusura.
 ## Evoluzioni possibili
 
 - Sincronizzare lo stato "visto" su Supabase invece che solo in localStorage.
-- Verificare sui dati di stagione che i tre badge legati alle serie si sblocchino davvero,
+- Verificare sui dati di stagione che il badge legato alla serie si sblocchino davvero,
   ora che le serie sono calcolate.
 - Rimuovere `badgeSbloccati()` (codice morto) o documentarne lo scopo.
 - Aggiungere un vincolo (CHECK o FK) sulla colonna `categoria` di `badge_social_voti`.

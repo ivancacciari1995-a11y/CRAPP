@@ -34,7 +34,6 @@ export type Giocatore = {
   /** Serie consecutive per tipo: si azzerano in modo indipendente. */
   serieAllenamenti: number;
   seriePartite: number;
-  serieConferme: number;
   /** MVP eletti dalla squadra. */
   mvp: number;
   /** Media delle pagelle ricevute dai compagni (1-10). */
@@ -109,7 +108,6 @@ export const giocatori: Giocatore[] = rosaCSI
     streak: 0,
     serieAllenamenti: 0,
     seriePartite: 0,
-    serieConferme: 0,
     mvp: 0,
     mediaVoto: 0,
     votiPagella: 0,

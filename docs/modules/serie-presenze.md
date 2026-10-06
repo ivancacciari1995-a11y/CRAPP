@@ -1,12 +1,12 @@
 # Modulo — Serie di presenze
 
-**Stato:** implementato — tutte e tre le serie calcolate sui dati reali
+**Stato:** implementato — le due serie (allenamenti e partite) calcolate sui dati reali
 **File principali:** `src/lib/serie.ts`, `src/lib/presenze.ts`, `src/lib/rosa.ts`,
 `src/components/crapp/SerieCard.tsx`
 **Migration collegata:** `m9_risposte_presenze_risposto_il`
 **Test:** `test/unit/serie.test.ts`, `test/unit/presenze.test.ts`,
 `test/integration/scritture.test.ts` (il trigger che congela `risposto_il`),
-`test/integration/serie-allenamenti-badge.test.ts`, `test/integration/serie-conferme-badge.test.ts`
+`test/integration/serie-allenamenti-badge.test.ts`
 
 ---
 
@@ -19,15 +19,18 @@ requisiti di sblocco di alcuni [badge](badge.md) e di un [obiettivo di squadra](
 
 ---
 
-## Le tre serie in sintesi
+## Le due serie in sintesi
 
-| Tipo          | Campo `Giocatore`  | Cosa conta                                                   | Traguardi    |
-| ------------- | ------------------ | ------------------------------------------------------------ | ------------ |
-| `allenamenti` | `serieAllenamenti` | Allenamenti passati consecutivi con presenza                 | 3, 6, 10, 15 |
-| `partite`     | `seriePartite`     | Partite passate consecutive con presenza                     | 2, 5, 8, 12  |
-| `conferme`    | `serieConferme`    | Eventi consecutivi con risposta entro 24h dalla convocazione | 3, 8, 15, 20 |
+| Tipo          | Campo `Giocatore`  | Cosa conta                                   | Traguardi    |
+| ------------- | ------------------ | -------------------------------------------- | ------------ |
+| `allenamenti` | `serieAllenamenti` | Allenamenti passati consecutivi con presenza | 3, 6, 10, 15 |
+| `partite`     | `seriePartite`     | Partite passate consecutive con presenza     | 2, 5, 8, 12  |
 
-Esiste un quarto contatore fuori da questo modulo, `Giocatore.streak`: la stessa regola delle
+La serie «Conferme 24h», con i badge «Risposta lampo» e «Mai un forfait» che ne dipendevano, è stata rimossa il
+2026-10-06: restano `Giocatore.streak` e le due serie sopra. La colonna `risposto_il` e il trigger che la congela
+restano nel database, ma oggi nessuna statistica li usa.
+
+Esiste un terzo contatore fuori da questo modulo, `Giocatore.streak`: la stessa regola delle
 presenze ma **su partite e allenamenti insieme**. Non ha card né traguardi, compare come
 "presenze consecutive" in `src/routes/index.tsx`, `src/routes/squadra.tsx` e
 `src/routes/profilo.tsx`.
@@ -67,10 +70,10 @@ il cronometro»), che riscrive la risposta provando a riscrivere anche `risposto
 che il database abbia tenuto la prima: se qualcuno togliesse il trigger, quel test diventa
 rosso. Il test precedente guardava `aggiornato_il` e passava anche senza trigger.
 
-| Colonna         | Cosa registra         | Chi la usa              |
-| --------------- | --------------------- | ----------------------- |
-| `risposto_il`   | la **prima** risposta | la serie "Conferme 24h" |
-| `aggiornato_il` | l'**ultima** modifica | nessuna statistica      |
+| Colonna         | Cosa registra         | Chi la usa                             |
+| --------------- | --------------------- | -------------------------------------- |
+| `risposto_il`   | la **prima** risposta | nessuna statistica (ex «Conferme 24h») |
+| `aggiornato_il` | l'**ultima** modifica | nessuna statistica                     |
 
 Cancellare la risposta (`stato: null` → DELETE) elimina anche `risposto_il`: se il giocatore
 risponde di nuovo, riparte il cronometro. È voluto — ha ritirato la risposta.
@@ -146,26 +149,6 @@ Conseguenze da conoscere prima di cambiare qualcosa:
   toccato l'app equivale a un'assenza. È voluto (la serie premia anche il rispondere), ma
   significa che eventi storici importati senza presenze schiacciano a zero le serie di tutti.
 - Senza `tipo` conta partite e allenamenti insieme: è così che si ottiene `streak`.
-
-### `serieConferme()` — conferme entro 24 ore
-
-```ts
-serieConferme(giocatoreId, eventi, tempi, oggi?)
-```
-
-Onorato = esiste una risposta **e** `risposto_il − creato_il ≤ 24h` (confronto inclusivo,
-costante `ORE_24`, entrambi gli istanti passati da `Date.parse`).
-
-- Conta **partite e allenamenti insieme**, non c'è una versione per tipo.
-- **Lo stato non conta**: anche un "assente" dato in fretta tiene viva la serie. È una serie
-  sulla reattività, non sulla presenza.
-- **Gli eventi senza `creatoIl` vengono saltati e non spezzano la serie.** Sono gli eventi
-  costruiti dal client e mai salvati a database — i compleanni di `compleanniEventi()` e la
-  bozza di `eventoVuoto()`. Senza istante di convocazione la domanda "ha risposto in fretta?"
-  non ha risposta, e trattarli come un buco punirebbe il giocatore per un dettaglio tecnico.
-- **Le 24 ore partono dalla creazione dell'evento**, non da un invio di notifica: oggi un
-  momento di "convocazione mandata" distinto non esiste. Se un domani ci sarà, è quello
-  l'istante giusto da confrontare.
 
 ### Lettura e cache
 
@@ -263,8 +246,6 @@ Toccare la regola di calcolo muove anche questi, che non hanno logica propria:
 | Dove                            | Cosa                                                           | Soglie                      |
 | ------------------------------- | -------------------------------------------------------------- | --------------------------- |
 | `badges.ts` `serie-allenamenti` | "Sempre in palestra", su `serieAllenamenti`                    | bronzo 3, argento 6, oro 10 |
-| `badges.ts` `serie-conferme`    | "Risposta lampo", su `serieConferme`                           | bronzo 3, argento 8, oro 15 |
-| `badges.ts` `s-mai-forfait`     | Badge segreto: `serieConferme >= 10` **e** `presenze >= 15`    | —                           |
 | `obiettivi.ts` `o11`            | "Continuità di squadra": giocatori con `serieAllenamenti >= 3` | target 12                   |
 
 ---
@@ -320,8 +301,8 @@ risultato finale, ma va sistemato se un giorno serve l'ordine esatto.
 **`oggi` è sempre in fuso Italia.** `dataOggi()` (`src/lib/scout-live.ts`) usa
 `Intl.DateTimeFormat` con `timeZone: "Europe/Rome"`, non i getter locali di `Date` né
 `toISOString()`: il cambio ora legale/solare lo gestisce il database IANA dei fusi, non un
-offset scritto a mano. È lo stesso `oggi` di `serieConsecutiva()`, `serieConferme()` e del
-conteggio presenze — prima `serieConsecutiva()`/`serieConferme()` calcolavano `oggi` con
+offset scritto a mano. È lo stesso `oggi` di `serieConsecutiva()` e del
+conteggio presenze — prima `serieConsecutiva()` e `serieConferme()` (poi rimossa) calcolavano `oggi` con
 `toISOString()` (sempre UTC) mentre il conteggio presenze usava i getter locali di `Date`
 (corretti solo se il processo gira già in fuso italiano): nelle prime ore della giornata
 italiana potevano non essere d'accordo su cosa fosse "oggi".

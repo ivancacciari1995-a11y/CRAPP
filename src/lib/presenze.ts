@@ -155,31 +155,6 @@ export function serieConsecutiva(
   );
 }
 
-const ORE_24 = 24 * 60 * 60 * 1000;
-
-/**
- * Serie di conferme rapide: risposte arrivate entro 24 ore dalla convocazione
- * (`creatoIl` dell'evento). Gli eventi senza istante di creazione — quelli generati
- * dal client, non salvati a database — non spezzano la serie: vengono saltati.
- */
-export function serieConferme(
-  giocatoreId: string,
-  eventi: Evento[],
-  tempi: MappaTempiRisposta,
-  oggi: string = dataOggi(),
-): number {
-  return serieSu(
-    giocatoreId,
-    eventi.filter((e) => e.creatoIl),
-    oggi,
-    undefined,
-    (e) => {
-      const risposto = tempi[e.id]?.[giocatoreId];
-      return risposto !== undefined && Date.parse(risposto) - Date.parse(e.creatoIl!) <= ORE_24;
-    },
-  );
-}
-
 /** Scorre gli eventi già passati in ordine di data applicando la regola delle serie. */
 function serieSu(
   giocatoreId: string,
@@ -228,7 +203,7 @@ export function usePresenzeEvento(eventoId: string) {
  *
  * - l'istante si scrive **solo se manca** (`??=`), come fa il database, dove `risposto_il`
  *   non viene inviato sull'upsert e un trigger lo congela: è la prima risposta, non l'ultima,
- *   e un ripensamento non deve far ripartire il cronometro della serie "Conferme 24h";
+ *   e un ripensamento non deve cambiare l'istante della prima risposta;
  * - cancellare la risposta (`stato: null`) elimina **anche** l'istante, così se il giocatore
  *   risponde di nuovo il cronometro riparte davvero — ha ritirato la risposta.
  */

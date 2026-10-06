@@ -19,7 +19,6 @@ function g(valori: Partial<Giocatore> = {}): Giocatore {
     streak: 0,
     serieAllenamenti: 0,
     seriePartite: 0,
-    serieConferme: 0,
     ...valori,
   };
 }
@@ -57,7 +56,7 @@ assert.ok(
 // --- serie: solo sul traguardo esatto ----------------------------------------
 assert.ok(ids(g({ serieAllenamenti: 3 })).includes("serie:allenamenti:3"));
 assert.ok(!ids(g({ serieAllenamenti: 4 })).includes("serie:allenamenti:4"), "4 non è un traguardo");
-assert.ok(ids(g({ serieConferme: 8 })).includes("serie:conferme:8"));
+assert.ok(ids(g({ seriePartite: 5 })).includes("serie:partite:5"));
 
 // --- obiettivi di squadra: uno solo, tra il 90% e il 99% --------------------
 const obiettivo = (id: string, valore: number): ObiettivoSquadra => ({

@@ -4,7 +4,7 @@ import { giocatori, type Giocatore } from "@/lib/crapp-data";
 import { aggiornaSerie, serieDefs, serieGiocatore, serieMigliore, statoSerie } from "@/lib/serie";
 
 function g(valori: Partial<Giocatore> = {}): Giocatore {
-  return { ...giocatori[0]!, serieAllenamenti: 0, seriePartite: 0, serieConferme: 0, ...valori };
+  return { ...giocatori[0]!, serieAllenamenti: 0, seriePartite: 0, ...valori };
 }
 
 const allenamenti = serieDefs.find((d) => d.tipo === "allenamenti")!;
@@ -45,16 +45,16 @@ assert.deepEqual([fuoriScala.prossimo, fuoriScala.manca, fuoriScala.progresso], 
 assert.equal(fuoriScala.messaggio, "Serie leggendaria: sei fuori scala!");
 
 // --- serieGiocatore / serieMigliore ------------------------------------------
-const tutte = serieGiocatore(g({ serieAllenamenti: 4, seriePartite: 1, serieConferme: 9 }));
-assert.equal(tutte.length, serieDefs.length, "tre serie indipendenti");
+const tutte = serieGiocatore(g({ serieAllenamenti: 4, seriePartite: 6 }));
+assert.equal(tutte.length, serieDefs.length, "due serie indipendenti");
 assert.deepEqual(
   tutte.map((s) => s.valore),
-  [4, 1, 9],
+  [4, 6],
   "ogni serie legge il proprio contatore",
 );
 
-const migliore = serieMigliore(g({ serieAllenamenti: 4, seriePartite: 1, serieConferme: 9 }));
-assert.equal(migliore.def.tipo, "conferme", "in home si mostra la serie più lunga");
+const migliore = serieMigliore(g({ serieAllenamenti: 4, seriePartite: 6 }));
+assert.equal(migliore.def.tipo, "partite", "in home si mostra la serie più lunga");
 assert.ok(serieMigliore(g()), "anche a zero c'è sempre una serie da mostrare");
 
 // --- invarianti sulle definizioni --------------------------------------------

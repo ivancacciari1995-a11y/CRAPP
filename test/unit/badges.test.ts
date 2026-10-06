@@ -34,7 +34,6 @@ function g(valori: Partial<Giocatore> = {}): Giocatore {
     streak: 0,
     serieAllenamenti: 0,
     seriePartite: 0,
-    serieConferme: 0,
     ...valori,
   };
 }
@@ -146,16 +145,6 @@ assert.equal(gradoRaggiunto(serieAllenamentiDef, 9), "argento");
 assert.equal(gradoRaggiunto(serieAllenamentiDef, 10), "oro");
 assert.equal(gradoRaggiunto(serieAllenamentiDef, 50), "oro", "oltre l'oro resta oro");
 
-// --- serie-conferme: soglie 3 / 8 / 15 ----------------------------------------
-const serieConfermeDef = badgeDefs.find((b) => b.id === "serie-conferme")!;
-assert.equal(gradoRaggiunto(serieConfermeDef, 2), null, "sotto la prima soglia nessun grado");
-assert.equal(gradoRaggiunto(serieConfermeDef, 3), "bronzo", "la soglia è inclusiva");
-assert.equal(gradoRaggiunto(serieConfermeDef, 7), "bronzo");
-assert.equal(gradoRaggiunto(serieConfermeDef, 8), "argento");
-assert.equal(gradoRaggiunto(serieConfermeDef, 14), "argento");
-assert.equal(gradoRaggiunto(serieConfermeDef, 15), "oro");
-assert.equal(gradoRaggiunto(serieConfermeDef, 50), "oro", "oltre l'oro resta oro");
-
 // --- badgeGiocatore ----------------------------------------------------------
 assert.equal(badgeGiocatore(g()).length, badgeDefs.length, "i badge normali sono sempre tutti");
 assert.ok(
@@ -200,36 +189,6 @@ assert.deepEqual(
   ["s-cacche"],
 );
 assert.equal(badgeSegretiSbloccati(g({ cacche: 2 })).length, 0, "2 cacche non bastano");
-assert.deepEqual(
-  badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 15 })).map((b) => b.def.id),
-  ["s-mai-forfait"],
-);
-assert.equal(
-  badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 14 })).length,
-  0,
-  "servono entrambe le condizioni",
-);
-// Confini isolati: ogni soglia testata da sola, con l'altra abbondantemente sopra.
-assert.equal(
-  badgeSegretiSbloccati(g({ serieConferme: 9, presenze: 30 })).length,
-  0,
-  "serieConferme appena sotto soglia, presenze abbondanti: non basta",
-);
-assert.deepEqual(
-  badgeSegretiSbloccati(g({ serieConferme: 10, presenze: 30 })).map((b) => b.def.id),
-  ["s-mai-forfait"],
-  "serieConferme esattamente al confine, presenze abbondanti: sblocca",
-);
-assert.equal(
-  badgeSegretiSbloccati(g({ serieConferme: 30, presenze: 14 })).length,
-  0,
-  "presenze appena sotto soglia, serieConferme abbondante: non basta",
-);
-assert.deepEqual(
-  badgeSegretiSbloccati(g({ serieConferme: 30, presenze: 15 })).map((b) => b.def.id),
-  ["s-mai-forfait"],
-  "presenze esattamente al confine, serieConferme abbondante: sblocca",
-);
 
 // --- collezioneBadge ---------------------------------------------------------
 const vuota = collezioneBadge(g());
@@ -262,7 +221,6 @@ assert.equal(
       palloni: 10,
       presenze: 30,
       serieAllenamenti: 10,
-      serieConferme: 15,
     }),
   ),
   null,
