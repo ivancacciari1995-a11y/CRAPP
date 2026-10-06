@@ -27,7 +27,7 @@ const TIPI_DOCUMENTO = ["Carta d'identità", "Patente", "Passaporto"];
 function Intestazione({ titolo, completa }: { titolo: string; completa: boolean }) {
   return (
     <div className="flex items-center gap-2 pt-2">
-      <h3 className="font-display text-sm uppercase tracking-wide">{titolo}</h3>
+      <h3 className="font-display text-[15px] uppercase tracking-wide">{titolo}</h3>
       {completa ? <Check className="h-4 w-4 text-success" /> : null}
     </div>
   );
@@ -67,7 +67,7 @@ function CampoFile({
 
   return (
     <div className="flex items-center justify-between gap-3 py-2">
-      <span className="flex min-w-0 items-center gap-2 text-sm">
+      <span className="flex min-w-0 items-center gap-2 text-[15px]">
         <span
           className={cn(
             "grid h-6 w-6 shrink-0 place-items-center rounded-lg",
@@ -93,7 +93,7 @@ function CampoFile({
           type="button"
           onClick={() => input.current?.click()}
           disabled={inCorso}
-          className="premi rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
+          className="premi rounded-xl bg-primary px-3 py-2 text-[13px] font-bold text-primary-foreground disabled:opacity-60"
         >
           {inCorso ? <Loader2 className="h-4 w-4 animate-spin" /> : path ? "Sostituisci" : "Carica"}
         </button>
@@ -336,7 +336,7 @@ export function ProfiloAllenatore({ g }: { g: GiocatoreSquadra }) {
             style={{ width: `${perc}%` }}
           />
         </div>
-        <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-[13px] font-bold tabular-nums text-muted-foreground">
           {perc}%
         </span>
       </div>
@@ -366,7 +366,7 @@ export function ProfiloAllenatore({ g }: { g: GiocatoreSquadra }) {
         type="button"
         onClick={() => void salva()}
         disabled={!sporco || inCorso}
-        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
       >
         {inCorso ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {sporco ? "Salva" : "Salvato"}
@@ -430,7 +430,7 @@ export function ProfiloAmministrativo({
             style={{ width: `${perc}%` }}
           />
         </div>
-        <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-[13px] font-bold tabular-nums text-muted-foreground">
           {perc}%
         </span>
       </div>
@@ -472,7 +472,7 @@ export function ProfiloAmministrativo({
         type="button"
         onClick={salvaBozza}
         disabled={!sporco || salva.isPending}
-        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
+        className="premi flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop disabled:opacity-50"
       >
         {salva.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {sporco ? "Salva" : "Salvato"}
@@ -486,7 +486,9 @@ export function ProfiloAmministrativo({
     <SezioneTendina
       titolo="Dati per il tesseramento"
       indice={indice}
-      azione={<span className="text-xs font-bold tabular-nums text-muted-foreground">{perc}%</span>}
+      azione={
+        <span className="text-[13px] font-bold tabular-nums text-muted-foreground">{perc}%</span>
+      }
     >
       {corpo}
     </SezioneTendina>
@@ -521,10 +523,10 @@ export function CompletaProfilo({
         className="premi block rounded-3xl bg-card p-4 shadow-card"
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="font-display text-[15px] uppercase tracking-wide">
+          <span className="font-display text-[16px] uppercase tracking-wide">
             Completa il tuo profilo
           </span>
-          <span className="text-[13px] font-bold tabular-nums text-muted-foreground">{perc}%</span>
+          <span className="text-[14px] font-bold tabular-nums text-muted-foreground">{perc}%</span>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
           <div
@@ -532,7 +534,7 @@ export function CompletaProfilo({
             style={{ width: `${perc}%` }}
           />
         </div>
-        <p className="mt-2 text-[13px] text-muted-foreground">
+        <p className="mt-2 text-[14px] text-muted-foreground">
           {allenatore
             ? "Data e luogo di nascita, telefono ed email."
             : "Documento e certificato medico servono per il tesseramento CSI."}

@@ -51,11 +51,11 @@ export function CelebrazioneBadge() {
             {notifica.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-wide text-accent">
+            <p className="text-[13px] font-bold uppercase tracking-wide text-accent">
               {notifica.tono === "segreto" ? "Badge segreto sbloccato" : "Traguardo raggiunto"}
             </p>
             <p className="mt-0.5 font-display text-2xl leading-none">{notifica.titolo}</p>
-            <p className="mt-1.5 text-sm text-muted-foreground">{notifica.testo}</p>
+            <p className="mt-1.5 text-[15px] text-muted-foreground">{notifica.testo}</p>
           </div>
           <button
             type="button"
@@ -69,7 +69,7 @@ export function CelebrazioneBadge() {
         <button
           type="button"
           onClick={chiudi}
-          className="mt-4 w-full rounded-2xl bg-accent-grad px-4 py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground"
+          className="mt-4 w-full rounded-2xl bg-accent-grad px-4 py-3 text-[15px] font-bold uppercase tracking-wide text-accent-foreground"
         >
           {restanti > 0 ? `Avanti (${restanti})` : "Grande!"}
         </button>

@@ -20,7 +20,7 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Su `develop`, non ancora rilasciato:** obiettivi cliccabili con card di dettaglio, presenze del mese
   calcolate sui convocati, obiettivi «Presenze collettive» e «evento di squadra al mese» (ora dell'evento),
-  tessera CSI tolta dalla dashboard (DD-048), notifica di compleanno (DD-047, migration `m31`). Dettaglio in
+  tessera CSI tolta dalla dashboard (DD-048), avvisi in Home ridisegnati e caratteri più grandi in tutta l'app (DD-049), notifica di compleanno (DD-047, migration `m31`). Dettaglio in
   [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo

@@ -40,7 +40,7 @@ function PartitaCsiDetail() {
   if (!partita) {
     return (
       <div className="px-5 pt-8">
-        <p className="mt-8 text-center text-sm text-muted-foreground">Partita non trovata</p>
+        <p className="mt-8 text-center text-[15px] text-muted-foreground">Partita non trovata</p>
       </div>
     );
   }
@@ -69,7 +69,7 @@ function PartitaCsiDetail() {
               className="h-10 w-10"
             />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
                 {partita.casa ? "In casa" : "Fuori casa"}
               </p>
               <p className="truncate text-lg font-bold leading-tight">{partita.avversario}</p>
@@ -93,7 +93,7 @@ function PartitaCsiDetail() {
               {partita.parziali.map(([noi, loro], i) => (
                 <span
                   key={i}
-                  className="rounded-lg bg-secondary px-2 py-1 text-xs font-semibold tabular-nums"
+                  className="rounded-lg bg-secondary px-2 py-1 text-[13px] font-semibold tabular-nums"
                 >
                   {noi}-{loro}
                 </span>

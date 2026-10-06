@@ -107,13 +107,13 @@ function RigaNotifica({
           const arrivo = info.offset.x + proietta(info.velocity.x);
           if (arrivo < -60) onElimina(notifica.id);
         }}
-        className="touch-pan-y bg-card p-3 pr-8 text-sm"
+        className="touch-pan-y bg-card p-3 pr-8 text-[15px]"
       >
         <p className="font-semibold">{notifica.titolo}</p>
         {notifica.corpo ? (
           <p className="mt-0.5 whitespace-pre-line text-muted-foreground">{notifica.corpo}</p>
         ) : null}
-        <p className="mt-1 text-xs text-muted-foreground">{tempoRelativo(notifica.creataIl)}</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">{tempoRelativo(notifica.creataIl)}</p>
       </motion.div>
       <button
         type="button"
@@ -254,7 +254,7 @@ export function PageHeader({
         <div className="min-w-0">
           <h1 className="truncate font-display-lg text-3xl uppercase">{titolo}</h1>
           {sottotitolo ? (
-            <p className="mt-1 truncate text-sm text-primary-foreground/80">{sottotitolo}</p>
+            <p className="mt-1 truncate text-[15px] text-primary-foreground/80">{sottotitolo}</p>
           ) : null}
         </div>
         {azione ?? <LinkProfilo />}
@@ -338,7 +338,7 @@ export function SezioneTendina({
  * parità di padding — un'altezza esplicita allinea tutti i campi tra loro.
  */
 export const classiInput =
-  "h-10 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
+  "h-10 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-[15px]";
 
 /**
  * Etichetta + controllo di un form. `min-w-0`: dentro `grid-cols-2` questa label
@@ -349,7 +349,7 @@ export const classiInput =
 export function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block min-w-0">
-      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+      <span className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <span className="mt-1 block">{children}</span>
@@ -378,7 +378,7 @@ export function StatoBadge({ stato, className }: { stato: Stato; className?: str
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold uppercase",
         meta.className,
         className,
       )}
@@ -402,10 +402,10 @@ export function StatTile({
       <p className="font-display text-2xl leading-none">
         {typeof valore === "number" ? <Numero valore={valore} /> : valore}
       </p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="mt-1 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      {hint ? <p className="mt-0.5 text-xs text-accent">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-[13px] text-accent">{hint}</p> : null}
     </div>
   );
 }

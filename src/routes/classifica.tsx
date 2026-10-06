@@ -82,7 +82,7 @@ export const Route = createFileRoute("/classifica")({
 function TabellaClassifica({ righe, vuoto }: { righe: RigaClassifica[]; vuoto: string }) {
   return (
     <div className="overflow-hidden rounded-3xl bg-card shadow-card">
-      <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-xs font-bold uppercase text-muted-foreground">
+      <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] gap-2 border-b border-border px-3 py-2 text-[13px] font-bold uppercase text-muted-foreground">
         <span>#</span>
         <span>Squadra</span>
         <span className="text-center">G</span>
@@ -90,7 +90,7 @@ function TabellaClassifica({ righe, vuoto }: { righe: RigaClassifica[]; vuoto: s
         <span className="text-center">Pt</span>
       </div>
       {righe.length === 0 ? (
-        <p className="px-3 py-4 text-center text-xs text-muted-foreground">{vuoto}</p>
+        <p className="px-3 py-4 text-center text-[13px] text-muted-foreground">{vuoto}</p>
       ) : (
         righe.map((r) => {
           const noi = isNostraSquadra(r.squadra) || r.squadra === "CRAP Volley";
@@ -98,14 +98,14 @@ function TabellaClassifica({ righe, vuoto }: { righe: RigaClassifica[]; vuoto: s
             <div
               key={r.pos}
               className={cn(
-                "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-sm last:border-0",
+                "grid grid-cols-[2rem_minmax(0,1fr)_2rem_2.5rem_2.5rem] items-center gap-2 border-b border-border px-3 py-2.5 text-[15px] last:border-0",
                 noi && "bg-accent/10",
               )}
             >
               <span className={cn("font-display text-base", noi && "text-accent")}>{r.pos}</span>
               <span className={cn("truncate", noi ? "font-bold" : "font-medium")}>{r.squadra}</span>
-              <span className="text-center text-xs text-muted-foreground">{r.giocate}</span>
-              <span className="text-center text-xs tabular-nums text-muted-foreground">
+              <span className="text-center text-[13px] text-muted-foreground">{r.giocate}</span>
+              <span className="text-center text-[13px] tabular-nums text-muted-foreground">
                 {r.setFatti}:{r.setSubiti}
               </span>
               <span className="text-center font-bold tabular-nums">{r.punti}</span>
@@ -171,7 +171,7 @@ function Classifica() {
       <>
         <div
           className={cn(
-            "mb-3 flex items-center gap-2 rounded-2xl px-3 py-2 text-xs",
+            "mb-3 flex items-center gap-2 rounded-2xl px-3 py-2 text-[13px]",
             csi?.formatoSospetto
               ? "bg-warning/15 text-warning"
               : "bg-secondary text-muted-foreground",
@@ -190,9 +190,9 @@ function Classifica() {
         </div>
         {classificaCoppa.length > 0 ? (
           <>
-            <h3 className="mb-2 px-1 text-sm font-bold text-foreground">Coppa</h3>
+            <h3 className="mb-2 px-1 text-[15px] font-bold text-foreground">Coppa</h3>
             <TabellaClassifica righe={classificaCoppa} vuoto="Classifica non disponibile." />
-            <h3 className="mb-2 mt-4 px-1 text-sm font-bold text-foreground">Girone</h3>
+            <h3 className="mb-2 mt-4 px-1 text-[15px] font-bold text-foreground">Girone</h3>
           </>
         ) : null}
         <TabellaClassifica righe={classifica} vuoto="Classifica non ancora disponibile." />
@@ -204,14 +204,14 @@ function Classifica() {
   const contenutoStorico = useMemo(
     () =>
       tuttiMatch.length === 0 ? (
-        <p className="rounded-3xl bg-card p-4 text-center text-xs text-muted-foreground shadow-card">
+        <p className="rounded-3xl bg-card p-4 text-center text-[13px] text-muted-foreground shadow-card">
           Nessuna partita disponibile.
         </p>
       ) : (
         <div className="space-y-5">
           {raggruppaPerStagione(tuttiMatch).map(({ stagione, match }) => (
             <section key={stagione} className="space-y-3">
-              <h3 className="px-1 text-sm font-bold text-foreground">Stagione {stagione}</h3>
+              <h3 className="px-1 text-[15px] font-bold text-foreground">Stagione {stagione}</h3>
               {match.map((m) => {
                 const vinta = m.setNostri > m.setLoro;
                 const eventoId = eventoIdPerData.get(m.data);
@@ -237,7 +237,7 @@ function Classifica() {
                             logoAvversario={m.logoAvversario}
                             avversario={m.avversario}
                           />
-                          <p className="truncate text-sm font-bold">{casa.nome}</p>
+                          <p className="truncate text-[15px] font-bold">{casa.nome}</p>
                         </div>
                         <div className="flex min-w-0 items-center gap-2">
                           <LogoPartita
@@ -245,9 +245,9 @@ function Classifica() {
                             logoAvversario={m.logoAvversario}
                             avversario={m.avversario}
                           />
-                          <p className="truncate text-sm font-bold">{trasferta.nome}</p>
+                          <p className="truncate text-[15px] font-bold">{trasferta.nome}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[13px] text-muted-foreground">
                           {formatData(m.data)} · MVP {m.mvp || "da votare"}
                           {m.scout ? " · scoutata" : ""}
                         </p>
@@ -278,7 +278,7 @@ function Classifica() {
                           <span
                             key={i}
                             className={cn(
-                              "rounded-lg px-2 py-1 text-xs font-semibold tabular-nums",
+                              "rounded-lg px-2 py-1 text-[13px] font-semibold tabular-nums",
                               setVintoDaNoi ? "bg-secondary" : "bg-muted text-muted-foreground",
                             )}
                           >
@@ -287,7 +287,7 @@ function Classifica() {
                         );
                       })}
                       {eventoId && !m.mvp ? (
-                        <span className="ml-auto inline-flex items-center gap-0.5 text-xs font-bold uppercase text-accent">
+                        <span className="ml-auto inline-flex items-center gap-0.5 text-[13px] font-bold uppercase text-accent">
                           Vota MVP <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                         </span>
                       ) : null}

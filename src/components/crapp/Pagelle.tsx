@@ -45,19 +45,19 @@ export function Pagelle({
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
-        <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="inline-flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
           <ClipboardCheck className="h-3.5 w-3.5" /> Pagelle anonime
         </p>
-        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold uppercase text-muted-foreground">
+        <span className="rounded-full bg-secondary px-2.5 py-1 text-[13px] font-bold uppercase text-muted-foreground">
           {chiuse ? "Votazioni chiuse" : `${fatti}/${daVotare.length} votati`}
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="mt-1 text-[13px] text-muted-foreground">
         Dai un voto da 1 a 10 ai compagni: nessuno vedrà chi ha votato cosa, solo la media.
       </p>
 
       {isPending ? (
-        <p aria-busy="true" className="mt-3 text-xs text-muted-foreground">
+        <p aria-busy="true" className="mt-3 text-[13px] text-muted-foreground">
           Carico le pagelle…
         </p>
       ) : (
@@ -70,15 +70,17 @@ export function Pagelle({
             return (
               <div key={g.id} className="rounded-2xl bg-secondary/60 p-2.5">
                 <div className="flex items-center gap-2.5">
-                  <Avatar id={g.id} fallback={String(g.numero)} className="h-8 w-8 text-xs" />
+                  <Avatar id={g.id} fallback={String(g.numero)} className="h-8 w-8 text-[13px]" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold leading-tight">{g.nome}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="block truncate text-[15px] font-bold leading-tight">
+                      {g.nome}
+                    </span>
+                    <span className="text-[13px] text-muted-foreground">
                       {media ? `Media ${media.media} · ${media.voti} voti` : "Nessun voto"}
                     </span>
                   </span>
                   {sonoIo ? (
-                    <span className="shrink-0 text-xs font-semibold uppercase text-muted-foreground">
+                    <span className="shrink-0 text-[13px] font-semibold uppercase text-muted-foreground">
                       Sei tu
                     </span>
                   ) : chiuse ? (
@@ -89,7 +91,7 @@ export function Pagelle({
                       disabled={!io || vota.isPending}
                       onClick={() => setApertoPer(aperto ? null : g.id)}
                       className={cn(
-                        "shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase transition-colors disabled:opacity-50",
+                        "shrink-0 rounded-full px-3 py-1 text-[13px] font-bold uppercase transition-colors disabled:opacity-50",
                         mio !== undefined
                           ? "bg-accent text-accent-foreground"
                           : "bg-card text-foreground",
@@ -107,7 +109,7 @@ export function Pagelle({
                         type="button"
                         onClick={() => invia(g.id, v)}
                         className={cn(
-                          "rounded-lg py-1.5 text-xs font-bold tabular-nums transition-transform active:scale-90",
+                          "rounded-lg py-1.5 text-[13px] font-bold tabular-nums transition-transform active:scale-90",
                           mio === v
                             ? "bg-accent text-accent-foreground"
                             : "bg-card text-foreground",

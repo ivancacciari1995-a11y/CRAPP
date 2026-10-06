@@ -97,7 +97,7 @@ nessuna schermata:
 | Dove                                | Cosa si nasconde all'allenatore                                                  |
 | ----------------------------------- | -------------------------------------------------------------------------------- |
 | `/squadra` → Stats                  | il criterio di ordinamento «Cacche» (`cacchePartita`)                            |
-| `/squadra` → Rosa, scheda giocatore | la riga «Cacche/partita 💩»                                                      |
+| `/squadra` → Rosa, scheda giocatore | la riga «Cacche 💩»                                                              |
 | `/partita/$id`                      | la sezione «Badge votati dai compagni» e il sondaggio cacche (`SondaggioCacche`) |
 | push «Sondaggio pre-partita aperto» | non parte verso i dispositivi degli allenatori (`apri-sondaggio.ts`)             |
 | `/profilo`, `/squadra`              | le tab Badge (già escluse sopra)                                                 |

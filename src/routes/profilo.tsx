@@ -220,7 +220,7 @@ function CardAvatar({ id, fallback }: { id: string; fallback: string }) {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="premi min-h-11 flex-1 rounded-xl bg-secondary px-3 text-xs font-bold uppercase tracking-wide"
+            className="premi min-h-11 flex-1 rounded-xl bg-secondary px-3 text-[13px] font-bold uppercase tracking-wide"
           >
             Cambia immagine profilo
           </button>
@@ -312,11 +312,11 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
           type="button"
           onClick={cambiaNotifiche}
           disabled={!supportate || inCorso}
-          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-[15px] disabled:opacity-60"
         >
           <span className="min-w-0">
             <span className="block truncate">Notifiche</span>
-            <span className="block text-xs text-muted-foreground">
+            <span className="block text-[13px] text-muted-foreground">
               {supportate
                 ? notifiche
                   ? "Attive su questo dispositivo"
@@ -339,11 +339,11 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
           type="button"
           onClick={cambiaEmail}
           disabled={!email.pronta || email.imposta.isPending}
-          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm disabled:opacity-60"
+          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-[15px] disabled:opacity-60"
         >
           <span className="min-w-0">
             <span className="block truncate">Email</span>
-            <span className="block text-xs text-muted-foreground">
+            <span className="block text-[13px] text-muted-foreground">
               {email.attive
                 ? "Le notifiche arrivano anche via email"
                 : "Nessuna email, solo notifiche in app"}
@@ -363,7 +363,7 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
         {admin ? (
           <Link
             to="/admin"
-            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+            className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-[15px] transition-colors hover:bg-accent/5"
           >
             <span className="min-w-0 truncate">Dashboard amministratore</span>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
@@ -373,7 +373,7 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
           href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=bug_report.yml"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-[15px] transition-colors hover:bg-accent/5"
         >
           <span className="min-w-0 truncate">Segnala un bug</span>
           <Bug className="h-4 w-4 text-muted-foreground" />
@@ -382,17 +382,17 @@ function TabOpzioni({ giocatoreId }: { giocatoreId: string }) {
           href="https://github.com/ivancacciari1995-a11y/CRAPP/issues/new?template=feature_request.yml"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/5"
+          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-[15px] transition-colors hover:bg-accent/5"
         >
           <span className="min-w-0 truncate">Suggerisci una nuova funzionalità</span>
           <Lightbulb className="h-4 w-4 text-muted-foreground" />
         </a>
       </div>
-      <p className="text-center text-xs text-muted-foreground">CrAPP v{APP_VERSION}</p>
+      <p className="text-center text-[13px] text-muted-foreground">CrAPP v{APP_VERSION}</p>
       <button
         type="button"
         onClick={logout}
-        className="premi flex min-h-11 w-full items-center justify-center gap-2 rounded-3xl bg-destructive/15 px-4 py-3 text-sm font-bold text-destructive shadow-card"
+        className="premi flex min-h-11 w-full items-center justify-center gap-2 rounded-3xl bg-destructive/15 px-4 py-3 text-[15px] font-bold text-destructive shadow-card"
       >
         <LogOut className="h-4 w-4" />
         Esci

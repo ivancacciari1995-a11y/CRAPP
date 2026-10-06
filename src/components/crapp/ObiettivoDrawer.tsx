@@ -17,12 +17,12 @@ import {
 function Elenco({ titolo, voci, segno }: { titolo: string; voci: string[]; segno: string }) {
   return (
     <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+      <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
         {titolo}
       </p>
       <ul className="space-y-1.5">
         {voci.map((v) => (
-          <li key={v} className="flex gap-2 text-sm leading-snug">
+          <li key={v} className="flex gap-2 text-[15px] leading-snug">
             <span aria-hidden className="shrink-0 font-bold text-accent">
               {segno}
             </span>
@@ -37,10 +37,10 @@ function Elenco({ titolo, voci, segno }: { titolo: string; voci: string[]; segno
 function Blocco({ titolo, testo }: { titolo: string; testo: string }) {
   return (
     <div>
-      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+      <p className="mb-1 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
         {titolo}
       </p>
-      <p className="text-sm leading-relaxed">{testo}</p>
+      <p className="text-[15px] leading-relaxed">{testo}</p>
     </div>
   );
 }
@@ -58,7 +58,7 @@ export function SchedaObiettivo({ o }: { o: ObiettivoSquadra }) {
         </span>
         <div className="min-w-0 flex-1">
           <DrawerTitle className="text-xl font-bold leading-tight">{o.titolo}</DrawerTitle>
-          <DrawerDescription className="mt-1 text-sm leading-relaxed">
+          <DrawerDescription className="mt-1 text-[15px] leading-relaxed">
             {o.descrizione}
           </DrawerDescription>
         </div>
@@ -66,12 +66,12 @@ export function SchedaObiettivo({ o }: { o: ObiettivoSquadra }) {
 
       <div className="rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
             Stato attuale
           </p>
           <span
             className={cn(
-              "text-xs font-bold uppercase",
+              "text-[13px] font-bold uppercase",
               fatto ? "text-success" : "text-muted-foreground",
             )}
           >
@@ -83,10 +83,10 @@ export function SchedaObiettivo({ o }: { o: ObiettivoSquadra }) {
           <span className="text-lg text-muted-foreground">{o.unita}</span>
         </p>
         <Barra percentuale={pct} trackClassName="mt-3" />
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-[13px] text-muted-foreground">
           {pct}%{o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
         </p>
-        <p className="mt-1 text-xs font-semibold text-accent">{microcopyObiettivo(o)}</p>
+        <p className="mt-1 text-[13px] font-semibold text-accent">{microcopyObiettivo(o)}</p>
       </div>
 
       <Blocco titolo="Come si calcola" testo={d.comeSiCalcola} />
@@ -101,7 +101,7 @@ export function SchedaObiettivo({ o }: { o: ObiettivoSquadra }) {
       <Blocco titolo="Da dove arrivano i dati" testo={d.fonte} />
       <Blocco titolo="Un esempio" testo={d.esempio} />
 
-      <p className="rounded-2xl bg-accent/10 p-3 text-center text-sm font-semibold text-accent">
+      <p className="rounded-2xl bg-accent/10 p-3 text-center text-[15px] font-semibold text-accent">
         {o.impatto}
       </p>
     </div>
@@ -130,7 +130,7 @@ export function ObiettivoDrawer({
           <DrawerClose asChild>
             <button
               type="button"
-              className="w-full rounded-2xl bg-secondary py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+              className="w-full rounded-2xl bg-secondary py-3 text-[15px] font-semibold text-foreground transition-colors hover:bg-secondary/80"
             >
               Indietro
             </button>

@@ -60,7 +60,7 @@ function PartitaDetail() {
   if (!evento) {
     return (
       <div className="px-5 pt-8">
-        <p className="mt-8 text-center text-sm text-muted-foreground">Partita non trovata</p>
+        <p className="mt-8 text-center text-[15px] text-muted-foreground">Partita non trovata</p>
       </div>
     );
   }
@@ -118,7 +118,7 @@ function PartitaDetail() {
               <LogoSquadra src={match.logoAvversario} alt={avversario} className="h-10 w-10" />
             ) : null}
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
                 {casa ? "In casa" : "Fuori casa"}
                 {evento.campionato ? " · Campionato" : " · Amichevole"}
               </p>
@@ -126,7 +126,7 @@ function PartitaDetail() {
             </div>
           </div>
 
-          <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+          <div className="mt-4 space-y-2 text-[15px] text-muted-foreground">
             <span className="inline-flex items-center gap-2">
               <Clock className="h-4 w-4" /> {evento.ora}
             </span>
@@ -136,12 +136,12 @@ function PartitaDetail() {
           </div>
 
           {evento.note ? (
-            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-sm">
+            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-[15px]">
               {evento.note}
             </p>
           ) : null}
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-[13px] font-semibold">
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocati.length}
           </div>
@@ -163,7 +163,7 @@ function PartitaDetail() {
         <Section titolo="Risultato">
           <div className="rounded-3xl bg-card p-5 shadow-card">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold">CRAP Volley</span>
+              <span className="text-[15px] font-bold">CRAP Volley</span>
               <span
                 className={cn(
                   "rounded-full px-3 py-1 text-lg font-display font-bold",
@@ -174,7 +174,7 @@ function PartitaDetail() {
               >
                 {match.setNostri} - {match.setLoro}
               </span>
-              <span className="text-right text-sm font-bold">{avversario}</span>
+              <span className="text-right text-[15px] font-bold">{avversario}</span>
             </div>
             <div className="mt-4 space-y-2">
               {match.parziali.map(([noi, loro], i) => (
@@ -183,7 +183,9 @@ function PartitaDetail() {
                   className="flex items-center justify-between rounded-xl bg-secondary px-3 py-2"
                 >
                   <span className="font-display text-lg">{noi}</span>
-                  <span className="text-xs font-semibold text-muted-foreground">Set {i + 1}</span>
+                  <span className="text-[13px] font-semibold text-muted-foreground">
+                    Set {i + 1}
+                  </span>
                   <span className="font-display text-lg">{loro}</span>
                 </div>
               ))}
@@ -213,7 +215,7 @@ function PartitaDetail() {
         )
       ) : (
         <Section titolo="In programma">
-          <p className="rounded-3xl bg-card p-5 text-center text-sm text-muted-foreground shadow-card">
+          <p className="rounded-3xl bg-card p-5 text-center text-[15px] text-muted-foreground shadow-card">
             La partita non è ancora stata disputata. Torna qui dopo il fischio finale per vedere il
             risultato.
           </p>
@@ -248,13 +250,13 @@ function PartitaDetail() {
               ].map((t) => (
                 <div key={t.l} className="rounded-2xl bg-secondary p-2.5">
                   <p className="font-display text-xl leading-none">{t.v}</p>
-                  <p className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
+                  <p className="mt-1 text-[13px] font-semibold uppercase text-muted-foreground">
                     {t.l}
                   </p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="mt-4 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
               Dettaglio giocatori (uso interno allenatori)
             </p>
             <div className="mt-2 space-y-1">
@@ -264,7 +266,7 @@ function PartitaDetail() {
                 return (
                   <div
                     key={gid}
-                    className="flex items-center gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-xs"
+                    className="flex items-center gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-[13px]"
                   >
                     <span className="min-w-0 flex-1 truncate font-semibold">
                       #{g.numero} {g.nome}
@@ -285,7 +287,7 @@ function PartitaDetail() {
                     csvScoutMatch(scout, rosa),
                   )
                 }
-                className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-bold uppercase text-accent-foreground shadow-pop"
+                className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
               >
                 <Download className="h-4 w-4" /> Esporta CSV
               </button>

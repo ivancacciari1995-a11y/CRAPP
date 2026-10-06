@@ -43,7 +43,9 @@ function AllenamentoDetail() {
   if (!evento) {
     return (
       <div className="px-5 pt-8">
-        <p className="mt-8 text-center text-sm text-muted-foreground">Allenamento non trovato</p>
+        <p className="mt-8 text-center text-[15px] text-muted-foreground">
+          Allenamento non trovato
+        </p>
       </div>
     );
   }
@@ -59,14 +61,14 @@ function AllenamentoDetail() {
               <Dumbbell className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
                 Allenamento di squadra
               </p>
               <p className="truncate text-lg font-bold leading-tight">{evento.titolo}</p>
             </div>
           </div>
 
-          <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+          <div className="mt-4 space-y-2 text-[15px] text-muted-foreground">
             <span className="inline-flex items-center gap-2">
               <Clock className="h-4 w-4" /> {evento.ora}
             </span>
@@ -76,12 +78,12 @@ function AllenamentoDetail() {
           </div>
 
           {evento.note ? (
-            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-sm">
+            <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary px-3 py-2 text-[15px]">
               {evento.note}
             </p>
           ) : null}
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-[13px] font-semibold">
             <Users className="h-4 w-4" />
             Conferme: {presentiVeri}/{convocatiEvento(evento, rosa).length}
           </div>

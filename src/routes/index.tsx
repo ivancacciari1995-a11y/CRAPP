@@ -86,7 +86,7 @@ function Index() {
               className="h-14 w-14 rounded-full shadow-pop ring-2 ring-primary-foreground/25"
             />
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
+              <p className="text-[13px] font-semibold uppercase tracking-[0.2em] text-primary-foreground/80">
                 Ciao {nome.split(" ")[0]}
               </p>
               <h1 className="font-display-lg text-4xl uppercase leading-none">CRAP Volley</h1>
@@ -100,13 +100,13 @@ function Index() {
         >
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">{noi ? `${noi.pos}º` : "—"}</p>
-            <p className="text-xs uppercase text-primary-foreground/80">In classifica</p>
+            <p className="text-[13px] uppercase text-primary-foreground/80">In classifica</p>
           </div>
           <div className="rounded-2xl bg-primary-foreground/10 p-3">
             <p className="font-display text-2xl leading-none">
               {noi ? `${noi.vinte}-${noi.perse}` : "—"}
             </p>
-            <p className="text-xs uppercase text-primary-foreground/80">Bilancio W-L</p>
+            <p className="text-[13px] uppercase text-primary-foreground/80">Bilancio W-L</p>
           </div>
           {giocatore ? (
             <div className="rounded-2xl bg-primary-foreground/10 p-3">
@@ -114,7 +114,7 @@ function Index() {
                 <Flame className="h-4 w-4 text-accent" />
                 {giocatore.streak}
               </p>
-              <p className="text-xs uppercase text-primary-foreground/80">Streak</p>
+              <p className="text-[13px] uppercase text-primary-foreground/80">Streak</p>
             </div>
           ) : null}
         </div>
@@ -132,7 +132,7 @@ function Index() {
         azione={
           <Link
             to="/calendario"
-            className="inline-flex items-center text-[14px] font-semibold text-accent"
+            className="inline-flex items-center text-[15px] font-semibold text-accent"
           >
             Calendario <ChevronRight className="h-4 w-4" />
           </Link>
@@ -141,7 +141,7 @@ function Index() {
         {prossimo ? (
           <EventoCard evento={prossimo} {...(linkProssimo ? { linkTo: linkProssimo } : {})} />
         ) : (
-          <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+          <p className="rounded-3xl bg-card p-4 text-[13px] text-muted-foreground shadow-card">
             Nessun impegno in programma.
           </p>
         )}
@@ -156,7 +156,7 @@ function Index() {
                 return <EventoCard key={e.id} evento={e} {...(link ? { linkTo: link } : {})} />;
               })
             ) : (
-              <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+              <p className="rounded-3xl bg-card p-4 text-[13px] text-muted-foreground shadow-card">
                 Nient'altro da confermare: sei in pari.
               </p>
             )}
@@ -171,7 +171,7 @@ function Index() {
           <Link
             to="/classifica"
             search={{ tab: "storico" }}
-            className="inline-flex items-center text-[14px] font-semibold text-accent"
+            className="inline-flex items-center text-[15px] font-semibold text-accent"
           >
             Storico <ChevronRight className="h-4 w-4" />
           </Link>
@@ -183,8 +183,10 @@ function Index() {
               <>
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">CRAP Volley vs {ultima.avversario}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate text-[15px] font-bold">
+                      CRAP Volley vs {ultima.avversario}
+                    </p>
+                    <p className="text-[13px] text-muted-foreground">
                       {ultima.casa ? "In casa" : "Trasferta"}
                       {ultima.mvp ? ` · MVP ${ultima.mvp}` : " · MVP da votare"}
                     </p>
@@ -197,7 +199,7 @@ function Index() {
                   {ultima.parziali.map((p, i) => (
                     <span
                       key={i}
-                      className="rounded-lg bg-secondary px-2 py-1 text-xs font-semibold tabular-nums"
+                      className="rounded-lg bg-secondary px-2 py-1 text-[13px] font-semibold tabular-nums"
                     >
                       {p[0]}-{p[1]}
                     </span>
@@ -218,7 +220,7 @@ function Index() {
             );
           })()
         ) : (
-          <p className="rounded-3xl bg-card p-4 text-xs text-muted-foreground shadow-card">
+          <p className="rounded-3xl bg-card p-4 text-[13px] text-muted-foreground shadow-card">
             Nessun risultato disponibile.
           </p>
         )}
@@ -231,7 +233,7 @@ function Index() {
           azione={
             <Link
               to="/squadra"
-              className="inline-flex items-center text-[14px] font-semibold text-accent"
+              className="inline-flex items-center text-[15px] font-semibold text-accent"
             >
               Tutti <ChevronRight className="h-4 w-4" />
             </Link>
@@ -245,20 +247,20 @@ function Index() {
                 className="block w-full text-left"
               >
                 <Card>
-                  <div className="flex items-center gap-2 text-sm font-bold">
+                  <div className="flex items-center gap-2 text-[15px] font-bold">
                     <span className="text-base leading-none">{obiettivo.emoji}</span>{" "}
                     {obiettivo.titolo}
                   </div>
                   <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-2 text-[13px] text-muted-foreground">
                     Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
                     {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
                   </p>
-                  <p className="mt-1 text-xs font-semibold text-accent">
+                  <p className="mt-1 text-[13px] font-semibold text-accent">
                     {microcopyObiettivo(obiettivo)}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
-                  <p className="mt-2 inline-flex items-center text-xs font-semibold text-accent">
+                  <p className="mt-1 text-[13px] text-muted-foreground">{obiettivo.impatto}</p>
+                  <p className="mt-2 inline-flex items-center text-[13px] font-semibold text-accent">
                     Come funziona <ChevronRight className="h-3.5 w-3.5" />
                   </p>
                 </Card>

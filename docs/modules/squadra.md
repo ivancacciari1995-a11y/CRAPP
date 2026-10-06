@@ -48,7 +48,7 @@ gli allenatori (`tipo = 'allenatore'`, DD-034): hanno uno slot ma non giocano.
 Nella tab Rosa gli allenatori attivi compaiono in cima, con foto, nome e la dicitura
 «Allenatore» dove i giocatori hanno il ruolo in campo (`ruoloVisibile()`); niente numero,
 statistiche né badge, e niente posto nella tab Stats. Chi usa l'app da allenatore vede solo
-Rosa e Stats, senza badge e senza cacche (criterio «Cacche» e riga «Cacche/partita»). La
+Rosa e Stats, senza badge e senza cacche (criterio «Cacche» e riga «Cacche»). La
 specifica completa sta in [allenatore.md](allenatore.md).
 
 ## Gestione dati squadra (solo amministratore)

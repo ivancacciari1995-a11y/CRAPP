@@ -27,13 +27,13 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="font-display-lg text-7xl text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina non trovata</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-[15px] text-muted-foreground">
           La pagina che cerchi non esiste o è stata spostata.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-[15px] font-semibold text-primary-foreground"
           >
             Torna alla home
           </Link>
@@ -53,7 +53,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Questa pagina non si è caricata
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-[15px] text-muted-foreground">
           Qualcosa è andato storto da parte nostra. Puoi riprovare o tornare alla home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -63,13 +63,13 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
               router.invalidate();
               reset();
             }}
-            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-[15px] font-semibold text-primary-foreground"
           >
             Riprova
           </button>
           <a
             href="/"
-            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+            className="premi inline-flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 py-2 text-[15px] font-semibold text-foreground"
           >
             Torna alla home
           </a>

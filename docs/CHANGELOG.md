@@ -25,6 +25,9 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **Caratteri più grandi in tutta l'app** — ogni testo sotto i 16 px sale di un passo (12→13, 14→15, ecc.), nelle
+  card, negli elenchi, nelle statistiche e nei drawer. Restano uguali le barre a pillola dei menu (navigazione in
+  basso e sottosezioni) e i badge minuscoli. Solo aspetto, nessuna migration (DD-049).
 - **Avvisi in Home più leggibili** — certificati e turno palloni usano lo stesso componente (`Avviso`): icona
   propria per ogni caso (non solo il colore), titolo e testo più grandi, elenchi di persone in righe con il dettaglio
   a destra e il conteggio, freccia dove la card porta ai documenti, comparsa graduale. Solo aspetto: testi e regole

@@ -88,6 +88,10 @@ Componenti condivisi in `src/components/crapp/` (`ui-bits.tsx` per `Card`, `Page
 `Section`, `StatTile`; `Avviso.tsx` per gli avvisi colorati in Home; i drawer di dettaglio `BadgeDrawer` e `ObiettivoDrawer`), animazioni in `src/components/motion/`. Mobile-first (DD-005): poche
 schermate, pochi click.
 
+**Caratteri** (DD-049): niente testo sotto i 13 px, tranne la navigazione a pillola e i badge
+da 10-11 px. Scala in uso: 13 px note, 15 px corpo, 16 px titoli di card; si usano le misure
+fisse `text-[13px]`…`text-[16px]`, non `text-xs` e `text-sm`.
+
 In `src/components/ui/` restano solo le due primitive shadcn davvero usate, `drawer` (vaul) e
 `sonner`: le altre 43 non erano importate da nessuna parte (DD-021). Il resto dell'interfaccia
 è composto con Tailwind e la primitiva `Card`, che è l'unica definizione di raggio, sfondo e

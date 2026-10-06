@@ -81,10 +81,10 @@ export function SondaggioCacche({
   if (!sondaggioAperto(dataEvento, oraEvento)) {
     return (
       <Card>
-        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
           💩 Sondaggio pre-partita
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-[13px] text-muted-foreground">
           {sondaggioTerminato(dataEvento, oraEvento)
             ? "Sondaggio chiuso: era aperto fino al fischio d'inizio."
             : "Apre alle 8:00 del giorno della partita: riceverai una notifica."}
@@ -96,14 +96,14 @@ export function SondaggioCacche({
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
           💩 Sondaggio pre-partita
         </p>
-        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold uppercase text-muted-foreground">
+        <span className="rounded-full bg-secondary px-2.5 py-1 text-[13px] font-bold uppercase text-muted-foreground">
           {dellaPartita.length} risposte
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="mt-1 text-[13px] text-muted-foreground">
         Quante cacche hai fatto prima di questa partita? Dato scientifico fondamentale.
       </p>
 
@@ -115,7 +115,7 @@ export function SondaggioCacche({
             disabled={!io || salva.isPending}
             onClick={() => rispondi(n)}
             className={cn(
-              "min-w-11 rounded-xl px-3 py-2 text-sm font-bold tabular-nums transition-transform active:scale-90 disabled:opacity-50",
+              "min-w-11 rounded-xl px-3 py-2 text-[15px] font-bold tabular-nums transition-transform active:scale-90 disabled:opacity-50",
               mia?.quantita === n
                 ? "bg-accent text-accent-foreground shadow-pop"
                 : "bg-secondary text-foreground",
@@ -126,7 +126,7 @@ export function SondaggioCacche({
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
         <span className="rounded-full bg-secondary px-2.5 py-1 font-semibold">
           Media squadra {media}
         </span>
@@ -145,7 +145,7 @@ export function SondaggioCacche({
           type="button"
           onClick={avvisaTutti}
           disabled={avviso}
-          className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-[15px] font-bold text-primary-foreground disabled:opacity-50"
         >
           {avviso ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />}
           Avvisa tutti del sondaggio
