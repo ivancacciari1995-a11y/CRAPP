@@ -13,6 +13,13 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Aggiunto
+
+- **Notifica di compleanno** — ogni giorno, dalle 8:00, il festeggiato riceve un messaggio di auguri e tutti gli altri membri
+  attivi, allenatori compresi, il solo avviso «Oggi è il compleanno di …»; con più compleanni lo stesso giorno un solo
+  messaggio a testa. Push, centro notifiche ed email. Il 29 febbraio non è gestito (DD-047, issue #11). Migration
+  `m31_notifica_compleanno`, da applicare in produzione.
+
 ## [1.2.3] - 2026-10-04
 
 Nella Home si vede anche chi non ha caricato il certificato medico, e le dipendenze sono aggiornate perché Vercel bloccava il deploy. Nessuna migration.

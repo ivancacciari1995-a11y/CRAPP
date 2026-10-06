@@ -59,12 +59,21 @@ const tipiNuovi: TipoNotifica[] = [
   "sollecita_presenze_24h",
   "sollecita_presenze_12h",
   "sollecita_presenze_6h",
+  "compleanno",
+  "compleanno_auguri",
 ];
 const corpoMultiriga = "Data: 01/10/2026\nOra: 21:00\nLuogo: PalaCRAP";
 for (const tipo of tipiNuovi) {
   const n = daRiga({ ...riga, tipo, corpo: corpoMultiriga });
   assert.equal(n.tipo, tipo);
   assert.equal(n.corpo, corpoMultiriga, `${tipo}: il corpo a più righe arriva intatto`);
+}
+
+// Compleanno (DD-047): titolo e basta, il corpo è vuoto e resta vuoto (la riga non lo inventa).
+for (const tipo of ["compleanno", "compleanno_auguri"] as const) {
+  const n = daRiga({ ...riga, tipo, titolo: "Buon compleanno, Marco! 🎂", corpo: "" });
+  assert.equal(n.tipo, tipo);
+  assert.equal(n.corpo, "", `${tipo}: corpo vuoto`);
 }
 
 // Le righe del corpo vanno a capo solo se la riga della notifica lo chiede al CSS: senza

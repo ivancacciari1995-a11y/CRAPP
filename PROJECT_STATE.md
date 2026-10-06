@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 01/10/2026
+Ultimo aggiornamento: 06/10/2026
 
 Questo file dice **a che punto siamo ora**. Le funzionalità stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), i rilasci in [docs/CHANGELOG.md](docs/CHANGELOG.md), lo
@@ -14,8 +14,9 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   tessera, avviso certificato a 30 giorni per il giocatore, avviso rosso per chi non l'ha caricato.
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 41 file in `supabase/migrations/`, fino a `m30_sollecito_solo_24h`, tutte
-  applicate in produzione (verificato con `npx supabase migration list` il 01/10/2026). La `m29` toglie
+- **Migration:** 42 file in `supabase/migrations/`, fino a `m31_notifica_compleanno`. Le prime 41 (fino a
+  `m30_sollecito_solo_24h`) sono applicate in produzione (verificato con `npx supabase migration list` il
+  01/10/2026); la `m31` no, ancora da applicare (DD-047). La `m29` toglie
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo

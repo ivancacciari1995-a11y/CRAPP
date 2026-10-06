@@ -47,6 +47,9 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Notifiche automatiche — turno palloni 3 ore prima, sollecito
       presenze 24 ore prima (i pulsanti «Avvisa chi è di turno» e «Sollecita» restano; il promemoria a 24 e 3 ore è stato tolto, DD-043) ([specifica](modules/notifiche.md#testi-delle-notifiche), DD-040)
 
+- [x] Notifica di compleanno — auguri al festeggiato e avviso a tutti gli altri, ogni giorno dalle 8:00, su push,
+      centro notifiche ed email ([specifica](modules/notifiche.md#catalogo-delle-notifiche), DD-047)
+
 ## Prossimo
 
 - [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
