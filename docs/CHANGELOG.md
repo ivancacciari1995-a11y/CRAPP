@@ -25,6 +25,9 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **Tessera CSI tolta dalla dashboard** — in Profili spariscono il blocco «Tesseramento CSI» (numero e data
+  tessera), il badge «Tesserato»/«Da tesserare» e il riquadro «Tesserati» della tab Squadra. L'export CSV non
+  cambia. Le colonne a database restano, non più usate (DD-048). Nessuna migration.
 - **Obiettivo «90% di presenze del mese»** — i posti sono i convocati di ogni partita e allenamento (tutta la rosa se
   non ce ne sono), come nelle presenze collettive: chi non è convocato non abbassa più la percentuale. Nessuna migration.
 - **Obiettivo «1 evento di squadra al mese»** — si completa quando arriva l'ora dell'evento, non appena viene

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  BadgeCheck,
   Bell,
   BellOff,
   ChevronDown,
@@ -33,11 +32,9 @@ import {
   useGiocatoriSquadra,
   useImpostaAttivo,
   useSalvaDatiSquadra,
-  useSalvaTesseramento,
   useScollegaAccount,
   validaDatiSquadra,
   type DatiSquadra,
-  type DatiTesseramento,
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
 import { scaricaFile, useProfili, useSalvaProfilo } from "@/lib/profili";
@@ -110,18 +107,11 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
   const { righe } = useGiocatoriSquadra();
   const salvaSquadra = useSalvaDatiSquadra();
   const salvaProfilo = useSalvaProfilo();
-  const salvaTesseramento = useSalvaTesseramento();
   const scollega = useScollegaAccount();
   const impostaAttivo = useImpostaAttivo();
 
   const [datiSquadra, setDatiSquadra] = useState<DatiSquadra | null>(null);
   const [bozza, setBozza] = useState<Profilo | null>(null);
-  const [tesseramento, setTesseramento] = useState<DatiTesseramento | null>(null);
-
-  const tesseramentoCorrente: DatiTesseramento = tesseramento ?? {
-    numeroTessera: g.numeroTessera,
-    dataTessera: g.dataTessera,
-  };
 
   const squadraCorrente: DatiSquadra = datiSquadra ?? {
     nome: g.nome,
@@ -131,7 +121,7 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
     email: g.email,
     tipo: g.tipo,
   };
-  // L'allenatore non ha numero, ruolo in campo né tesseramento (DD-034).
+  // L'allenatore non ha numero né ruolo in campo (DD-034).
   const allenatore = isAllenatore(g);
   const profiloCorrente = bozza ?? profilo ?? profiloVuoto(g.id);
 
@@ -164,16 +154,6 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
       toast.success(nuovo ? "Giocatore riattivato" : "Giocatore disattivato");
     } catch (e) {
       toast.error(messaggioErrore(e, "Operazione non riuscita"));
-    }
-  }
-
-  async function confermaTesseramento() {
-    try {
-      await salvaTesseramento.mutateAsync({ giocatoreId: g.id, dati: tesseramentoCorrente });
-      setTesseramento(null);
-      toast.success("Tesseramento aggiornato");
-    } catch (e) {
-      toast.error(messaggioErrore(e, "Salvataggio non riuscito"));
     }
   }
 
@@ -268,46 +248,6 @@ function ModificaGiocatore({ g, profilo }: { g: GiocatoreSquadra; profilo: Profi
       >
         Salva dati squadra
       </button>
-
-      {allenatore ? null : (
-        <>
-          <h3 className="font-display text-sm uppercase tracking-wide">Tesseramento CSI</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Campo label="Numero tessera">
-              <input
-                value={tesseramentoCorrente.numeroTessera ?? ""}
-                maxLength={40}
-                placeholder="Non ancora tesserato"
-                onChange={(e) =>
-                  setTesseramento({
-                    ...tesseramentoCorrente,
-                    numeroTessera: e.target.value || null,
-                  })
-                }
-                className={classiInput}
-              />
-            </Campo>
-            <Campo label="Data tessera">
-              <input
-                type="date"
-                value={tesseramentoCorrente.dataTessera ?? ""}
-                onChange={(e) =>
-                  setTesseramento({ ...tesseramentoCorrente, dataTessera: e.target.value || null })
-                }
-                className={classiInput}
-              />
-            </Campo>
-          </div>
-          <button
-            type="button"
-            onClick={confermaTesseramento}
-            disabled={!tesseramento || salvaTesseramento.isPending}
-            className="premi w-full rounded-2xl bg-primary py-2.5 text-xs font-bold uppercase text-primary-foreground disabled:opacity-50"
-          >
-            Salva tesseramento
-          </button>
-        </>
-      )}
 
       {allenatore ? (
         <>
@@ -486,15 +426,6 @@ function SchedaGiocatore({
             stato={certificato}
             path={profilo?.certificatoPath ?? null}
           />
-          <span
-            className={cn(
-              "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase",
-              statoClasse[g.numeroTessera ? "presente" : "assente"],
-            )}
-          >
-            <BadgeCheck className="h-3.5 w-3.5" />
-            {g.numeroTessera ? "Tesserato" : "Da tesserare"}
-          </span>
         </div>
       )}
 
@@ -743,7 +674,6 @@ function Dashboard() {
       statoScadenza(profili[g.id]?.certificatoScadenza, profili[g.id]?.certificatoPath, oggi) ===
       "valido",
   ).length;
-  const tesserati = attivi.filter((g) => g.numeroTessera).length;
 
   const contenutoSquadra = (
     <>
@@ -755,7 +685,6 @@ function Dashboard() {
           label="Certificati validi"
           hint="non scaduti"
         />
-        <StatTile valore={`${tesserati}/${attivi.length}`} label="Tesserati" hint="CSI" />
       </div>
       <button
         type="button"

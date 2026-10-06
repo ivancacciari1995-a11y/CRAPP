@@ -222,40 +222,6 @@ export function useSalvaDatiSquadra() {
   });
 }
 
-/** Numero e data della tessera CSI, note solo dopo il tesseramento effettivo. */
-export type DatiTesseramento = Pick<GiocatoreSquadra, "numeroTessera" | "dataTessera">;
-
-/**
- * Registra numero e data della tessera CSI (roadmap v1.1). Campo puramente amministrativo:
- * il trigger di M8 lo rende scrivibile solo da un admin, il giocatore non può autodichiararsi
- * tesserato.
- */
-export function useSalvaTesseramento() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { giocatoreId: string; dati: DatiTesseramento }) => {
-      const dati = {
-        numero_tessera: input.dati.numeroTessera?.trim() || null,
-        data_tessera: input.dati.dataTessera || null,
-      };
-      const { error } = await supabaseNuoveTabelle
-        .from("giocatori_squadra")
-        .update(dati)
-        .eq("id", input.giocatoreId);
-      if (error) throw error;
-      return {
-        giocatoreId: input.giocatoreId,
-        dati: { numeroTessera: dati.numero_tessera, dataTessera: dati.data_tessera },
-      };
-    },
-    onSuccess: (input) => {
-      queryClient.setQueryData<GiocatoreSquadra[]>(SQUADRA_KEY, (prec) =>
-        (prec ?? []).map((g) => (g.id === input.giocatoreId ? { ...g, ...input.dati } : g)),
-      );
-    },
-  });
-}
-
 /**
  * Aggiunge un giocatore alla rosa (DD-017). Solo un admin passa le policy di M1.
  * L'id (`g<N>`) non è generato dal database: va calcolato con `prossimoIdGiocatore`

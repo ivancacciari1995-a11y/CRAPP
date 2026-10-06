@@ -29,8 +29,8 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Profilo Giocatore — dati personali, documento d'identità, certificato medico
       (caricamento, scadenza, stato, download); la foto tessera è stata tolta (DD-044); lo storico dei certificati
       resta un'estensione futura
-- [x] Gestione tesseramenti CSI — raccolta dati, export CSV e tracciamento di chi è già
-      tesserato (numero e data di tessera)
+- [x] Gestione tesseramenti CSI — raccolta dati ed export CSV; il tracciamento di numero e data
+      di tessera è stato tolto dalla dashboard (DD-048)
 - [x] Collegamento CSI (stagione 2025/26)
 - [x] Classifica automatica (campionato e Coppa)
 - [x] Risultati campionato

@@ -85,7 +85,7 @@ quando il database non risponde.
 ## UI
 
 Componenti condivisi in `src/components/crapp/` (`ui-bits.tsx` per `Card`, `PageHeader`,
-`Section`, `StatTile`), animazioni in `src/components/motion/`. Mobile-first (DD-005): poche
+`Section`, `StatTile`; i drawer di dettaglio `BadgeDrawer` e `ObiettivoDrawer`), animazioni in `src/components/motion/`. Mobile-first (DD-005): poche
 schermate, pochi click.
 
 In `src/components/ui/` restano solo le due primitive shadcn davvero usate, `drawer` (vaul) e

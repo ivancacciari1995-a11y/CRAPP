@@ -2,7 +2,8 @@
 
 **Stato:** implementato — mesi/scadenze dinamici, target stagionali fissi da rivedere a mano,
 copertura test completa (unit + integration) su tutti e 10 gli obiettivi.
-**File principali:** `src/lib/obiettivi.ts`, `src/lib/rosa.ts` (`useObiettivi()`)
+**File principali:** `src/lib/obiettivi.ts`, `src/lib/rosa.ts` (`useObiettivi()`),
+`src/components/crapp/ObiettivoDrawer.tsx` (card di dettaglio)
 
 ---
 
@@ -70,7 +71,9 @@ UI per farlo, si cambia il numero in `obiettivi.ts`. Fa eccezione "Continuità d
 automaticamente a ogni cambio mese: il mese di riferimento è calcolato dalla data corrente
 (fuso Europe/Rome, `meseCorrente(oggi)`), non più una costante fissa. Per `o1`, titolo
 ("90% di presenze ad agosto" / "a settembre" / ...) e scadenza (ultimo giorno del mese)
-seguono di conseguenza.
+seguono di conseguenza. I posti di ogni partita e allenamento sono i convocati (tutta la rosa se non ce
+ne sono): chi non è convocato non pesa, mentre assente, forse, infortunato e nessuna risposta sono
+presenze perse.
 
 `o6` si completa quando **arriva l'ora dell'evento**, non quando lo si definisce: conta solo
 un evento di tipo "evento" del mese corrente il cui `data` + `ora` (fuso Europe/Rome,
