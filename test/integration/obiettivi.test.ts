@@ -2,7 +2,7 @@
  * Obiettivi di squadra end-to-end contro il database locale: `bun test/integration/obiettivi.test.ts`.
  * Copre gli obiettivi con scadenza/mese dinamici ("presenze del mese", "evento di squadra al
  * mese", "tutti rispondono alle convocazioni") e quelli la cui logica dipende da dati scritti
- * su altre tabelle ("250 presenze complessive" via `contaPresenzeGiocatore()`, "media pagelle
+ * su altre tabelle ("presenze collettive" via `leggiEventi()`/`leggiPresenze()`, "media pagelle
  * da 7.5" e "200 pagelle compilate" via `pagelle_voti`).
  *
  * I test unitari (`test/unit/obiettivi.test.ts`) verificano `obiettiviSquadra()` come funzione
@@ -23,7 +23,7 @@
 import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
 import { obiettiviSquadra } from "@/lib/obiettivi";
-import { contaPresenzeGiocatore, serieConsecutiva, type MappaPresenze } from "@/lib/presenze";
+import { serieConsecutiva, type MappaPresenze } from "@/lib/presenze";
 import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
 
@@ -282,33 +282,51 @@ if (!locale) {
       "o6 legge dal database l'evento sociale del mese, azzerandosi come o1",
       async () => {
         const pizzataId = `${PREFISSO}-pizzata`;
-        const inserita = await rest("eventi_app", {
-          method: "POST",
-          body: JSON.stringify({
-            id: pizzataId,
-            tipo: "evento",
-            titolo: "Test obiettivi o6",
-            data: `${MESE_TEST}-20`,
-          }),
-        });
-        if (!inserita.ok) throw new Error(`inserimento evento fallito: ${await inserita.text()}`);
+        const pizzataFuturaId = `${PREFISSO}-pizzata-futura`;
+        // OGGI è il 15 marzo 12:00 a Roma: la pizzata del 10 è passata, quella del 20 no.
+        for (const [id, giorno] of [
+          [pizzataId, "10"],
+          [pizzataFuturaId, "20"],
+        ] as const) {
+          const inserita = await rest("eventi_app", {
+            method: "POST",
+            body: JSON.stringify({
+              id,
+              tipo: "evento",
+              titolo: "Test obiettivi o6",
+              data: `${MESE_TEST}-${giorno}`,
+              ora: "20:30",
+            }),
+          });
+          if (!inserita.ok) throw new Error(`inserimento evento fallito: ${await inserita.text()}`);
+        }
 
-        const eventiReali = await leggiEventi();
-        const o6InMese = obiettiviSquadra(
-          giocatori,
-          { eventi: eventiReali, presenze: {}, pagelle: [] },
-          OGGI,
-        ).find((o) => o.id === "o6")!;
-        assert.equal(o6InMese.valore, 1, "l'evento sociale di marzo conta letto dal database");
+        const tutti = await leggiEventi();
+        const o6Di = (ids: string[], oggi: Date) =>
+          obiettiviSquadra(
+            giocatori,
+            { eventi: tutti.filter((e) => ids.includes(e.id)), presenze: {}, pagelle: [] },
+            oggi,
+          ).find((o) => o.id === "o6")!;
 
-        const OGGI_MESE_DOPO = new Date("2099-04-15T10:00:00Z");
-        const o6MeseDopo = obiettiviSquadra(
-          giocatori,
-          { eventi: eventiReali, presenze: {}, pagelle: [] },
-          OGGI_MESE_DOPO,
-        ).find((o) => o.id === "o6")!;
         assert.equal(
-          o6MeseDopo.valore,
+          o6Di([pizzataId], OGGI).valore,
+          1,
+          "l'evento sociale già passato conta, letto dal database",
+        );
+        assert.equal(
+          o6Di([pizzataFuturaId], OGGI).valore,
+          0,
+          "l'evento sociale futuro non conta finché non arriva la sua ora",
+        );
+        // Il 20 marzo 2099 alle 20:30 Roma (CET, UTC+1) = 19:30Z: da lì conta.
+        assert.equal(
+          o6Di([pizzataFuturaId], new Date("2099-03-20T19:30:00Z")).valore,
+          1,
+          "arrivata l'ora dell'evento conta",
+        );
+        assert.equal(
+          o6Di([pizzataId], new Date("2099-04-15T10:00:00Z")).valore,
           0,
           "lo stesso evento non conta più il mese successivo (si azzera)",
         );
@@ -386,68 +404,69 @@ if (!locale) {
       },
     );
 
-    await prova("o7 somma presenze calcolate da eventi/risposte reali del database", async () => {
-      // o7 non calcola nulla da `ctx`: somma `g.presenze`, un campo già calcolato a monte da
-      // `contaPresenzeGiocatore()` (che in produzione alimenta `useRosa()`). Qui si esercita
-      // la stessa funzione pura sui dati appena scritti, per verificare l'intera catena
-      // DB -> contaPresenzeGiocatore -> o7, non solo la somma finale.
-      const allenamentoId = `${PREFISSO}-o7-allenamento`;
-      const partitaId = `${PREFISSO}-o7-partita`;
-      const OGGI_STR = "2099-01-20";
+    await prova(
+      "o7 percentuale di presenze collettive da eventi/risposte reali del database",
+      async () => {
+        // o7 è la % di presenze su allenamenti e partite definiti (passati e futuri), con i
+        // convocati come denominatore. Si esercita l'intera catena DB -> leggiEventi/leggiPresenze -> o7.
+        const allenamentoId = `${PREFISSO}-o7-allenamento`;
+        const partitaId = `${PREFISSO}-o7-partita`;
+        const [g1, g2, g3] = giocatori;
 
-      for (const [id, tipo, data] of [
-        [allenamentoId, "allenamento", "2099-01-05"],
-        [partitaId, "partita", "2099-01-08"],
-      ] as const) {
-        const inserito = await rest("eventi_app", {
+        for (const [id, tipo, data] of [
+          [allenamentoId, "allenamento", "2099-01-05"],
+          [partitaId, "partita", "2099-01-08"],
+        ] as const) {
+          const inserito = await rest("eventi_app", {
+            method: "POST",
+            body: JSON.stringify({
+              id,
+              tipo,
+              titolo: `Test obiettivi o7 (${tipo})`,
+              data,
+              convocati: [g1!.id, g2!.id, g3!.id],
+            }),
+          });
+          if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+        }
+
+        // g1 presente a entrambi, g2 presente e in ritardo (il ritardo conta), g3 assente a
+        // entrambi: 4 presenze su 6 posti (3 convocati x 2 eventi) = 67%.
+        const righe = [
+          { evento_id: allenamentoId, giocatore_id: g1!.id, stato: "presente" },
+          { evento_id: partitaId, giocatore_id: g1!.id, stato: "presente" },
+          { evento_id: allenamentoId, giocatore_id: g2!.id, stato: "presente" },
+          { evento_id: partitaId, giocatore_id: g2!.id, stato: "ritardo" },
+          { evento_id: allenamentoId, giocatore_id: g3!.id, stato: "assente" },
+          { evento_id: partitaId, giocatore_id: g3!.id, stato: "assente" },
+        ];
+        const inserite = await rest("risposte_presenze", {
           method: "POST",
-          body: JSON.stringify({ id, tipo, titolo: `Test obiettivi o7 (${tipo})`, data }),
+          body: JSON.stringify(righe),
         });
-        if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
-      }
+        if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
 
-      // g1: presente ai due eventi (2 presenze). g2: presente e in ritardo (2 presenze,
-      // il ritardo conta). g3: assente a entrambi (0 presenze).
-      const [g1, g2, g3] = giocatori;
-      const righe = [
-        { evento_id: allenamentoId, giocatore_id: g1!.id, stato: "presente" },
-        { evento_id: partitaId, giocatore_id: g1!.id, stato: "presente" },
-        { evento_id: allenamentoId, giocatore_id: g2!.id, stato: "presente" },
-        { evento_id: partitaId, giocatore_id: g2!.id, stato: "ritardo" },
-        { evento_id: allenamentoId, giocatore_id: g3!.id, stato: "assente" },
-        { evento_id: partitaId, giocatore_id: g3!.id, stato: "assente" },
-      ];
-      const inserite = await rest("risposte_presenze", {
-        method: "POST",
-        body: JSON.stringify(righe),
-      });
-      if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
+        const eventiReali = (await leggiEventi()).filter(
+          (e) => e.id === allenamentoId || e.id === partitaId,
+        );
+        const presenzeReali = {
+          ...(await leggiPresenze(allenamentoId)),
+          ...(await leggiPresenze(partitaId)),
+        };
 
-      const eventiReali = (await leggiEventi()).filter(
-        (e) => e.id === allenamentoId || e.id === partitaId,
-      );
-      const presenzeReali = {
-        ...(await leggiPresenze(allenamentoId)),
-        ...(await leggiPresenze(partitaId)),
-      };
+        const o7 = obiettiviSquadra([g1!, g2!, g3!], {
+          eventi: eventiReali,
+          presenze: presenzeReali,
+          pagelle: [],
+        }).find((o) => o.id === "o7")!;
 
-      const rosaConPresenzeReali = [g1!, g2!, g3!].map((g) => ({
-        ...g,
-        presenze: contaPresenzeGiocatore(g.id, eventiReali, presenzeReali, OGGI_STR),
-      }));
-
-      const o7 = obiettiviSquadra(rosaConPresenzeReali, {
-        eventi: [],
-        presenze: {},
-        pagelle: [],
-      }).find((o) => o.id === "o7")!;
-
-      assert.equal(
-        o7.valore,
-        4,
-        "g1 (2) + g2 (2, il ritardo conta) + g3 (0) = 4, calcolate dal database",
-      );
-    });
+        assert.equal(
+          o7.valore,
+          67,
+          "4 presenze su 6 posti (il ritardo conta), calcolate dal database",
+        );
+      },
+    );
 
     await prova("o12/o13 media e conteggio pagelle vere lette da pagelle_voti", async () => {
       const matchId = `${PREFISSO}-o12-m1`;

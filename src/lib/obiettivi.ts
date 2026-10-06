@@ -80,6 +80,27 @@ function percentualePresenzeMese(ctx: ContestoObiettivi, rosaSize: number, mese:
   return Math.round((presenti / posti) * 100);
 }
 
+/**
+ * Presenze (presente o ritardo) su tutti gli allenamenti e le partite definiti, passati e
+ * futuri, sul totale dei posti: per ogni evento i convocati, o tutta la rosa se non ce ne sono.
+ */
+function percentualePresenzeCollettive(ctx: ContestoObiettivi, rosa: Giocatore[]) {
+  let posti = 0;
+  let presenti = 0;
+  for (const e of ctx.eventi) {
+    if (e.tipo !== "partita" && e.tipo !== "allenamento") continue;
+    const attesi = e.convocati.length === 0 ? rosa : rosa.filter((g) => e.convocati.includes(g.id));
+    posti += attesi.length;
+    const risposte = ctx.presenze[e.id] ?? {};
+    presenti += attesi.filter((g) => {
+      const stato = risposte[g.id];
+      return stato === "presente" || stato === "ritardo";
+    }).length;
+  }
+  if (posti === 0) return 0;
+  return Math.round((presenti / posti) * 100);
+}
+
 function percentualeRisposte(ctx: ContestoObiettivi, rosaSize: number) {
   const daRispondere = ctx.eventi.filter((e) => e.tipo !== "compleanno");
   if (daRispondere.length === 0 || rosaSize === 0) return 0;
@@ -97,7 +118,6 @@ export function obiettiviSquadra(
   ctx: ContestoObiettivi = contestoVuoto,
   oggi: Date = new Date(),
 ): ObiettivoSquadra[] {
-  const somma = (f: (g: Giocatore) => number) => rosa.reduce((s, g) => s + f(g), 0);
   const continui = rosa.filter((g) => g.serieAllenamenti >= 3).length;
   const vittorie = ctx.vittorie ?? 0;
   const mese = meseCorrente(oggi);
@@ -126,11 +146,11 @@ export function obiettiviSquadra(
     },
     {
       id: "o7",
-      titolo: "250 presenze complessive",
-      descrizione: "Somma delle presenze di tutta la rosa in stagione",
-      valore: somma((g) => g.presenze),
-      target: 250,
-      unita: "presenze",
+      titolo: "Presenze collettive",
+      descrizione: "Presenze di tutta la rosa su allenamenti e partite definiti in stagione",
+      valore: percentualePresenzeCollettive(ctx, rosa),
+      target: 90,
+      unita: "%",
       emoji: "🤝",
       impatto: "Ogni allenamento a cui vieni vale +1 per il gruppo.",
     },

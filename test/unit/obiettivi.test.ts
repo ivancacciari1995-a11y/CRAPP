@@ -274,6 +274,32 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
     0,
     "evento senza ora: la sera prima (Roma) non conta",
   );
+  // Ora legale: il 20/09 vale CEST (UTC+2), il 20/12 CET (UTC+1): 20:30 Roma = 18:30Z / 19:30Z.
+  const inverno = { ...evento("iv1", "2026-12-20", "evento"), ora: "20:30" };
+  const ctxInverno: ContestoObiettivi = { eventi: [inverno], presenze: {}, pagelle: [] };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, ctxInverno, new Date("2026-12-20T19:29:00Z")), "o6").valore,
+    0,
+    "inverno: 19:29Z = 20:29 a Roma, non ancora",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, ctxInverno, new Date("2026-12-20T19:30:00Z")), "o6").valore,
+    1,
+    "inverno: 19:30Z = 20:30 a Roma, conta",
+  );
+  // Cambio mese a mezzanotte di Roma: 30/09 23:30Z è già 01/10 a Roma (CEST).
+  const fineSett = { ...evento("fs1", "2026-09-30", "evento"), ora: "20:00" };
+  const ctxFine: ContestoObiettivi = { eventi: [fineSett], presenze: {}, pagelle: [] };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, ctxFine, new Date("2026-09-30T21:59:00Z")), "o6").valore,
+    1,
+    "30/09 23:59 a Roma: ancora settembre, conta",
+  );
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, ctxFine, new Date("2026-09-30T22:00:00Z")), "o6").valore,
+    0,
+    "01/10 00:00 a Roma: nuovo mese, si azzera",
+  );
   // Più eventi: ne basta uno passato; quello futuro non si somma.
   const misti: ContestoObiettivi = {
     eventi: [evento("m1", "2026-09-05", "evento"), evento("m2", "2026-09-28", "evento")],
@@ -298,23 +324,85 @@ assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2
   );
 }
 
-// --- somme sulla rosa --------------------------------------------------------
-const sommaPresenze = giocatori.reduce((s, g) => s + g.presenze, 0);
-assert.equal(trova(vuoti, "o7").valore, sommaPresenze);
-assert.equal(
-  trova(obiettiviSquadra([], contestoVuoto), "o7").valore,
-  0,
-  "rosa vuota: nessuna presenza",
-);
+// --- o7: presenze collettive (% su allenamenti e partite definiti, passati e futuri) ---
+{
+  const [g1, g2, g3, g4] = giocatori;
+  const rosa4 = [g1!, g2!, g3!, g4!];
+  const o7 = (c: ContestoObiettivi, r = rosa4) => trova(obiettiviSquadra(r, c, OGGI_AGOSTO), "o7");
 
-// Valori noti e indipendenti dai dati reali della rosa: non solo la stessa formula
-// ricalcolata sugli stessi dati, ma una somma verificabile a mente (5 + 10 + 15 = 30).
-const rosaControllata = giocatori.slice(0, 3).map((g, i) => ({ ...g, presenze: [5, 10, 15][i]! }));
-assert.equal(
-  trova(obiettiviSquadra(rosaControllata, contestoVuoto), "o7").valore,
-  30,
-  "somma di presenze note, indipendente dal roster reale",
-);
+  assert.equal(o7(contestoVuoto).titolo, "Presenze collettive");
+  assert.equal(o7(contestoVuoto).target, 90);
+  assert.equal(o7(contestoVuoto).valore, 0, "nessun evento: 0, non NaN");
+  assert.equal(o7({ ...contestoVuoto }, []).valore, 0, "rosa vuota: 0");
+
+  // Allenamento passato (3 presenti su 4) + partita futura (1 presente su 4): 4 su 8 = 50%.
+  const base: ContestoObiettivi = {
+    eventi: [evento("c1", "2026-07-01", "allenamento"), evento("c2", "2026-12-01", "partita")],
+    presenze: {
+      c1: { [g1!.id]: "presente", [g2!.id]: "ritardo", [g3!.id]: "presente", [g4!.id]: "assente" },
+      c2: { [g1!.id]: "presente", [g2!.id]: "assente" },
+    },
+    pagelle: [],
+  };
+  assert.equal(o7(base).valore, 50, "passati e futuri nel denominatore, ritardo conta");
+
+  // Con convocati il denominatore sono solo loro: c1 per g1 e g2 (2 presenti su 2) = 100%.
+  const conConvocati: ContestoObiettivi = {
+    ...base,
+    eventi: [{ ...evento("c1", "2026-07-01", "allenamento"), convocati: [g1!.id, g2!.id] }],
+  };
+  assert.equal(o7(conConvocati).valore, 100, "denominatore = convocati");
+
+  // Un non convocato che risponde "presente" non gonfia la percentuale.
+  const nonConvocato: ContestoObiettivi = {
+    ...conConvocati,
+    presenze: { c1: { [g1!.id]: "presente", [g3!.id]: "presente" } },
+  };
+  assert.equal(o7(nonConvocato).valore, 50, "i non convocati non contano (1 su 2)");
+
+  // Arrotondamento: 179 presenze su 200 posti = 89,5% -> 90; 178 su 200 = 89%.
+  const rosa100 = Array.from({ length: 100 }, (_, i) => ({ ...g1!, id: `r${i}` }));
+  const rispondi = (presenti: number) =>
+    Object.fromEntries(rosa100.map((g, i) => [g.id, i < presenti ? "presente" : "assente"]));
+  const duePartite = (a: number, b: number): ContestoObiettivi => ({
+    eventi: [evento("t1", "2026-07-01", "allenamento"), evento("t2", "2026-07-02", "allenamento")],
+    presenze: {
+      t1: rispondi(a) as Record<string, "presente" | "assente">,
+      t2: rispondi(b) as Record<string, "presente" | "assente">,
+    },
+    pagelle: [],
+  });
+  assert.equal(o7(duePartite(90, 89), rosa100).valore, 90, "89,5% arrotonda a 90");
+  assert.equal(o7(duePartite(90, 88), rosa100).valore, 89, "89% resta 89");
+  assert.equal(o7(duePartite(100, 100), rosa100).valore, 100);
+
+  // Evento privo di risposte: pesa nel denominatore ma non nel numeratore.
+  const senzaRisposte: ContestoObiettivi = {
+    eventi: [evento("n1", "2026-07-01", "allenamento")],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(o7(senzaRisposte).valore, 0, "nessuna risposta: 0%");
+
+  // Convocati che non sono in rosa: non entrano nei posti.
+  const fuoriRosa: ContestoObiettivi = {
+    eventi: [{ ...evento("f1", "2026-07-01", "allenamento"), convocati: ["sconosciuto"] }],
+    presenze: {},
+    pagelle: [],
+  };
+  assert.equal(o7(fuoriRosa).valore, 0, "nessun posto valido: 0, non NaN");
+
+  // Eventi sociali e compleanni non fanno parte del denominatore.
+  const sociali: ContestoObiettivi = {
+    ...base,
+    eventi: [
+      ...base.eventi,
+      evento("c3", "2026-07-10", "evento"),
+      evento("c4", "2026-07-11", "compleanno"),
+    ],
+  };
+  assert.equal(o7(sociali).valore, 50, "solo allenamenti e partite");
+}
 
 const pagelle: VotoPagella[] = [
   { match_id: "m1", votante_id: "g1", votato_id: "g2", voto: 7 },

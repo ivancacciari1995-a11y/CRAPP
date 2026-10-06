@@ -24,6 +24,8 @@ versioni `0.y.z` erano pre-release.
 
 - **Obiettivo «1 evento di squadra al mese»** — si completa quando arriva l'ora dell'evento, non appena viene
   creato. Un evento futuro non conta finché la sua data e ora non sono passate. Nessuna migration.
+- **Obiettivo «Presenze collettive»** — sostituisce «250 presenze complessive»: è la percentuale di presenze di tutta la
+  rosa su allenamenti e partite definiti in stagione (passati e futuri, posti = convocati), con target 90%. Nessuna migration.
 
 ## [1.2.3] - 2026-10-04
 

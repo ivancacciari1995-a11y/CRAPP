@@ -37,22 +37,22 @@ corrente dinamico (vedi sotto).
 
 ## Obiettivi definiti
 
-| id    | Obiettivo                          | Calcolo                                                                       | Target                | Fonte                         |
-| ----- | ---------------------------------- | ----------------------------------------------------------------------------- | --------------------- | ----------------------------- |
-| `o1`  | 90% presenze del mese              | risposte presente/ritardo su partite+allenamenti del mese corrente (dinamico) | 90%                   | `risposte_presenze`           |
-| `o2`  | Tutti rispondono alle convocazioni | risposte totali / eventi possibili (esclusi i compleanni)                     | 90%                   | `risposte_presenze`           |
-| `o7`  | 250 presenze complessive           | somma presenze di tutta la rosa, stagione intera                              | 250                   | aggregato da `useRosa()`      |
-| `o12` | Media pagelle da 7.5               | media di tutti i voti, arrotondata a una cifra decimale                       | 7.5                   | `pagelle_voti`                |
-| `o13` | 200 pagelle compilate              | conteggio voti                                                                | 200                   | `pagelle_voti`                |
-| `o11` | Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi                                      | 12 (min. per un 6vs6) | `serieAllenamenti`            |
-| `o3`  | Prima vittoria del campionato      | `min(vittorie, 1)`                                                            | 1                     | JSON partite CSI (vedi sotto) |
-| `o4`  | 5 vittorie in campionato           | `min(vittorie, 5)`                                                            | 5                     | JSON partite CSI              |
-| `o5`  | 10 vittorie in campionato          | `min(vittorie, 10)`                                                           | 10                    | JSON partite CSI              |
-| `o6`  | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente la cui data e ora sono già passate (dinamico)                          | 1                     | `eventi_app`                  |
+| id    | Obiettivo                          | Calcolo                                                                                                                                                   | Target                | Fonte                              |
+| ----- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ---------------------------------- |
+| `o1`  | 90% presenze del mese              | risposte presente/ritardo su partite+allenamenti del mese corrente (dinamico)                                                                             | 90%                   | `risposte_presenze`                |
+| `o2`  | Tutti rispondono alle convocazioni | risposte totali / eventi possibili (esclusi i compleanni)                                                                                                 | 90%                   | `risposte_presenze`                |
+| `o7`  | Presenze collettive                | % di presenze (presente/ritardo) su tutti gli allenamenti e le partite definiti, passati e futuri; posti = convocati dell'evento (tutta la rosa se vuoto) | 90                    | `eventi_app` + `risposte_presenze` |
+| `o12` | Media pagelle da 7.5               | media di tutti i voti, arrotondata a una cifra decimale                                                                                                   | 7.5                   | `pagelle_voti`                     |
+| `o13` | 200 pagelle compilate              | conteggio voti                                                                                                                                            | 200                   | `pagelle_voti`                     |
+| `o11` | Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi                                                                                                                  | 12 (min. per un 6vs6) | `serieAllenamenti`                 |
+| `o3`  | Prima vittoria del campionato      | `min(vittorie, 1)`                                                                                                                                        | 1                     | JSON partite CSI (vedi sotto)      |
+| `o4`  | 5 vittorie in campionato           | `min(vittorie, 5)`                                                                                                                                        | 5                     | JSON partite CSI                   |
+| `o5`  | 10 vittorie in campionato          | `min(vittorie, 10)`                                                                                                                                       | 10                    | JSON partite CSI                   |
+| `o6`  | 1 evento di squadra al mese        | eventi di tipo "evento" nel mese corrente la cui data e ora sono già passate (dinamico)                                                                   | 1                     | `eventi_app`                       |
 
 Mostrati in `squadra.tsx` (elenco completo con barra di progresso) e in `index.tsx` (home: il
 primo obiettivo non completato). Un obiettivo che supera il 90% genera anche una notifica
-smart (`notifiche-smart.ts`). I target fissi (250 presenze, 200 pagelle, 7.5 di media, 1/5/10
+smart (`notifiche-smart.ts`). I target fissi (200 pagelle, 7.5 di media, 1/5/10
 vittorie) sono scelte editoriali da rivedere a mano a ogni stagione — nessuna configurazione o
 UI per farlo, si cambia il numero in `obiettivi.ts`. Fa eccezione "Continuità di squadra"
 (vedi sotto): il suo target ha un significato specifico, non va scalato come gli altri.
@@ -72,6 +72,12 @@ un evento di tipo "evento" del mese corrente il cui `data` + `ora` (fuso Europe/
 `adessoRoma(oggi)`) è già passato; senza ora vale `00:00`. Un evento futuro lascia l'obiettivo a
 0/1 finché non scatta l'ora. Il valore si ricalcola al render: con l'app già aperta il
 passaggio a completato compare al refresh successivo.
+
+`o7` ("Presenze collettive") invece **non** si azzera: copre tutta la stagione, cioè tutti gli
+allenamenti e le partite in calendario, passati e futuri (le risposte sugli eventi futuri sono
+conferme). Differisce da `o1` per periodo (stagione, non mese) e perché i posti sono i convocati
+di ciascun evento, non sempre l'intera rosa. Non c'è un confine di stagione esplicito: conta ciò
+che c'è in `eventi_app`.
 
 `o2` ("Tutti rispondono alle convocazioni") non si azzera — aggrega su tutti gli eventi in
 programma, non solo quelli del mese corrente — ma la sua `scadenza` mostrata in interfaccia è
@@ -163,8 +169,8 @@ da un backend reale, non solo funzione pura con contesto costruito a mano).
   query REST equivalente a `fetchPresenze()`. Copre: contesto vuoto, aggregazione su più eventi,
   filtro sui tipi (partite/allenamenti contano, eventi sociali/compleanni no), il mese dinamico
   (evento dentro/fuori mese), scadenza dinamica.
-- **o7** (Supabase locale): scrive eventi/presenze reali, calcola `contaPresenzeGiocatore()` (la
-  stessa funzione pura usata da `useRosa()` in produzione) sui dati riletti, verifica la somma.
+- **o7** (Supabase locale): scrive un allenamento e una partita con convocati e presenze reali,
+  li rilegge con `leggiEventi()`/`leggiPresenze()` e verifica la percentuale (il ritardo conta).
 - **o11** (Supabase locale): scrive tre allenamenti e presenze reali, calcola
   `serieConsecutiva()` sui dati riletti, verifica che solo chi resta in serie venga contato.
 - **o12/o13** (Supabase locale): scrive voti veri su `pagelle_voti` rispettando i vincoli reali
