@@ -13,6 +13,17 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.3.1] - 2026-10-06
+
+Il Calendario mostra solo i prossimi compleanni del mese, e le serie di presenze sono due invece di tre: sparisce
+«Conferme 24h» con i due badge che ne dipendevano. Nessuna migration da applicare.
+
+### Modificato
+
+- **Calendario: «Prossimi compleanni»** — la sezione in fondo mostra solo i compleanni del mese in corso non
+  ancora passati, non più quelli del mese selezionato nella griglia; se nel mese non ce ne sono, lo dice
+  («Nessun compleanno questo mese»).
+
 ### Rimosso
 
 - **Serie «Conferme 24h» e badge collegati** — la serie non compare più nel profilo, in Home né nelle notifiche di

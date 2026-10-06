@@ -90,6 +90,13 @@ function Calendario() {
   // Prossimi 3 eventi da oggi in avanti (indipendenti dal mese selezionato nella griglia).
   const oggiIso = oggi ? `${oggi.anno}-${pad2(oggi.mese + 1)}-${pad2(oggi.giorno)}` : null;
   const prossimiEventi = oggiIso ? eventi.filter((e) => e.data >= oggiIso).slice(0, 3) : [];
+  // Solo i compleanni del mese in corso non ancora passati (oggi compreso), a prescindere dal mese
+  // mostrato nella griglia.
+  const compleanniMeseCorrente =
+    oggi && oggiIso
+      ? compleanniEventi(rosa, oggi.anno).filter((c) => c.data.startsWith(oggiIso.slice(0, 7)))
+      : [];
+  const prossimiCompleanni = oggiIso ? compleanniMeseCorrente.filter((c) => c.data >= oggiIso) : [];
 
   return (
     <>
@@ -270,13 +277,15 @@ function Calendario() {
         </div>
       </Section>
 
-      <Section titolo="Compleanni">
+      <Section titolo="Prossimi compleanni">
         <div className="space-y-3">
-          {compleanniMese.length > 0 ? (
-            compleanniMese.map((c) => <EventoCard key={c.id} evento={c} />)
+          {prossimiCompleanni.length > 0 ? (
+            prossimiCompleanni.map((c) => <EventoCard key={c.id} evento={c} />)
           ) : (
             <p className="rounded-3xl bg-card p-4 text-center text-[15px] text-muted-foreground shadow-card">
-              Nessun compleanno in {mesiIT[mese]!.toLowerCase()}
+              {compleanniMeseCorrente.length > 0
+                ? "Nessun altro compleanno questo mese"
+                : "Nessun compleanno questo mese"}
             </p>
           )}
         </div>

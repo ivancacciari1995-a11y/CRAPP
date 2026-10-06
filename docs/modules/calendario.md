@@ -24,7 +24,11 @@ scout e turno palloni — la maggior parte degli altri moduli dipende da un `eve
   in `eventi.ts`, generati a runtime dall'anagrafica di `useAnagraficaRosa({ conAllenatori:
 true })` — ci sono anche gli allenatori, DD-034 — non righe
   vere di `eventi_app`): la spunta della vista `giorniIT`/`mesiIT` colora la cella per tipo
-  di evento, i giorni con più eventi si dividono lo spazio.
+  di evento, i giorni con più eventi si dividono lo spazio. In fondo alla pagina la sezione
+  «Prossimi compleanni» elenca solo quelli del **mese in corso** non ancora passati (oggi
+  compreso), a prescindere dal mese mostrato nella griglia: il 6 ottobre un compleanno del 3
+  non compare più. Le celle della griglia continuano a mostrare tutti i compleanni del mese
+  selezionato.
 - **`/eventi`** — "Gestione eventi", riservata ad amministratori e allenatori
   (`usePuoGestireEventi()`, [DD-034](../decisions/DD-034.md)):
   crea, modifica ed elimina un evento, sceglie i convocati tra i soli giocatori

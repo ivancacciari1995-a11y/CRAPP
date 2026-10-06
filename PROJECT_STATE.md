@@ -9,9 +9,10 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.3.0 (tag `v1.3.0` su `main`) — notifica di compleanno, obiettivi cliccabili con card di
-  dettaglio, presenze calcolate sui convocati, avvisi in Home ridisegnati, caratteri più grandi, tessera CSI
-  tolta dalla dashboard. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
+- **Versione:** 1.3.1 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — il Calendario mostra solo i prossimi
+  compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta lampo» e «Mai un forfait». La 1.3.0
+  portava la notifica di compleanno, gli obiettivi cliccabili, le presenze sui convocati, gli avvisi in Home
+  ridisegnati e i caratteri più grandi. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
 - **Migration:** 42 file in `supabase/migrations/`, fino a `m31_notifica_compleanno`. Le prime 41 (fino a
