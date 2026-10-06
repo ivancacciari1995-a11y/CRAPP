@@ -9,6 +9,7 @@ import { CompletaProfilo } from "@/components/crapp/ProfiloAmministrativo";
 import { Reveal } from "@/components/motion/Reveal";
 import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
+import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import { useEventi, type Evento } from "@/lib/eventi";
 import { useRispostePresenze } from "@/lib/presenze";
@@ -237,20 +238,32 @@ function Index() {
           }
         >
           {obiettivo ? (
-            <Card>
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <span className="text-base leading-none">{obiettivo.emoji}</span> {obiettivo.titolo}
-              </div>
-              <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
-                {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
-              </p>
-              <p className="mt-1 text-xs font-semibold text-accent">
-                {microcopyObiettivo(obiettivo)}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
-            </Card>
+            <ObiettivoDrawer obiettivo={obiettivo}>
+              <button
+                type="button"
+                aria-label={`Dettaglio obiettivo: ${obiettivo.titolo}`}
+                className="block w-full text-left"
+              >
+                <Card>
+                  <div className="flex items-center gap-2 text-sm font-bold">
+                    <span className="text-base leading-none">{obiettivo.emoji}</span>{" "}
+                    {obiettivo.titolo}
+                  </div>
+                  <Barra percentuale={progressoObiettivo(obiettivo)} trackClassName="mt-3" />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Siamo al <Numero valore={progressoObiettivo(obiettivo)} suffisso="%" /> —{" "}
+                    {obiettivo.valore}/{obiettivo.target} {obiettivo.unita}.
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-accent">
+                    {microcopyObiettivo(obiettivo)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{obiettivo.impatto}</p>
+                  <p className="mt-2 inline-flex items-center text-xs font-semibold text-accent">
+                    Come funziona <ChevronRight className="h-3.5 w-3.5" />
+                  </p>
+                </Card>
+              </button>
+            </ObiettivoDrawer>
           ) : null}
         </Section>
       )}

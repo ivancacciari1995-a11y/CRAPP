@@ -15,6 +15,9 @@ versioni `0.y.z` erano pre-release.
 
 ### Aggiunto
 
+- **Obiettivi cliccabili** — toccando un obiettivo (in Squadra o nella card della Home) si apre una card che
+  spiega tutto: come si calcola, cosa conta e cosa no, periodo di validità, fonte dei dati, un esempio. Nessuna
+  migration.
 - **Notifica di compleanno** — ogni giorno, dalle 8:00, il festeggiato riceve un messaggio di auguri e tutti gli altri membri
   attivi, allenatori compresi, il solo avviso «Oggi è il compleanno di …»; con più compleanni lo stesso giorno un solo
   messaggio a testa. Push, centro notifiche ed email. Il 29 febbraio non è gestito (DD-047, issue #11). Migration
@@ -22,6 +25,8 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- **Obiettivo «90% di presenze del mese»** — i posti sono i convocati di ogni partita e allenamento (tutta la rosa se
+  non ce ne sono), come nelle presenze collettive: chi non è convocato non abbassa più la percentuale. Nessuna migration.
 - **Obiettivo «1 evento di squadra al mese»** — si completa quando arriva l'ora dell'evento, non appena viene
   creato. Un evento futuro non conta finché la sua data e ora non sono passate. Nessuna migration.
 - **Obiettivo «Presenze collettive»** — sostituisce «250 presenze complessive»: è la percentuale di presenze di tutta la

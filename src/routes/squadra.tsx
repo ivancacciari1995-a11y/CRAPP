@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Cake, ChevronDown, Crown, Trophy } from "lucide-react";
+import { Cake, ChevronDown, ChevronRight, Crown, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader, StatTile } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData, inizialiDa } from "@/lib/crapp-data";
+import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
 import {
   useRosa,
@@ -432,38 +433,47 @@ function Squadra() {
             const pct = progressoObiettivo(o);
             const fatto = pct >= 100;
             return (
-              <Reveal
-                key={o.id}
-                indice={i}
-                className={cn(
-                  "premi rounded-3xl bg-card p-4 shadow-card ring-1",
-                  fatto ? "ring-success/40" : pct >= 90 ? "ring-accent/40" : "ring-transparent",
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-lg leading-none">{o.emoji}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold leading-tight">{o.titolo}</p>
-                    <p className="text-xs text-muted-foreground">{o.descrizione}</p>
-                  </div>
-                  <span
+              <Reveal key={o.id} indice={i}>
+                <ObiettivoDrawer obiettivo={o}>
+                  <button
+                    type="button"
+                    aria-label={`Dettaglio obiettivo: ${o.titolo}`}
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide",
-                      fatto
-                        ? "bg-success text-success-foreground"
-                        : "bg-secondary text-muted-foreground",
+                      "premi block w-full rounded-3xl bg-card p-4 text-left shadow-card ring-1",
+                      fatto ? "ring-success/40" : pct >= 90 ? "ring-accent/40" : "ring-transparent",
                     )}
                   >
-                    {fatto ? "Completato" : `${pct}%`}
-                  </span>
-                </div>
-                <Barra percentuale={pct} trackClassName="mt-3" />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {o.valore}/{o.target} {o.unita} · {pct}%
-                  {o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-accent">{microcopyObiettivo(o)}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{o.impatto}</p>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg leading-none">{o.emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold leading-tight">{o.titolo}</p>
+                        <p className="text-xs text-muted-foreground">{o.descrizione}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide",
+                          fatto
+                            ? "bg-success text-success-foreground"
+                            : "bg-secondary text-muted-foreground",
+                        )}
+                      >
+                        {fatto ? "Completato" : `${pct}%`}
+                      </span>
+                    </div>
+                    <Barra percentuale={pct} trackClassName="mt-3" />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {o.valore}/{o.target} {o.unita} · {pct}%
+                      {o.scadenza ? ` · entro il ${formatData(o.scadenza)}` : ""}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-accent">
+                      {microcopyObiettivo(o)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{o.impatto}</p>
+                    <p className="mt-2 inline-flex items-center text-xs font-semibold text-accent">
+                      Come funziona <ChevronRight className="h-3.5 w-3.5" />
+                    </p>
+                  </button>
+                </ObiettivoDrawer>
               </Reveal>
             );
           })}

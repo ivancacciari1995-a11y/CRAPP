@@ -468,6 +468,66 @@ if (!locale) {
       },
     );
 
+    await prova(
+      "o1 usa i convocati letti dal database: il non convocato non pesa, l'assente sì, la cena no",
+      async () => {
+        // Stesso mese di test di o1 (marzo 2099). Allenamento con 3 convocati su 14 in rosa:
+        // g1 presente, g2 assente (presenza persa), g3 in ritardo. g4 non è convocato ma risponde
+        // «assente»: non deve pesare. La cena del mese ha risposte «assente» e non deve contare.
+        const allenamentoId = `${PREFISSO}-o1-convocati-allenamento`;
+        const cenaId = `${PREFISSO}-o1-convocati-cena`;
+        const [g1, g2, g3, g4] = giocatori;
+        for (const [id, tipo, data, convocati] of [
+          [allenamentoId, "allenamento", "2099-03-12", [g1!.id, g2!.id, g3!.id]],
+          [cenaId, "evento", "2099-03-14", [g1!.id, g2!.id, g3!.id]],
+        ] as const) {
+          const inserito = await rest("eventi_app", {
+            method: "POST",
+            body: JSON.stringify({
+              id,
+              tipo,
+              titolo: `Test o1 convocati (${tipo})`,
+              data,
+              convocati,
+            }),
+          });
+          if (!inserito.ok) throw new Error(`inserimento evento fallito: ${await inserito.text()}`);
+        }
+        const righe = [
+          { evento_id: allenamentoId, giocatore_id: g1!.id, stato: "presente" },
+          { evento_id: allenamentoId, giocatore_id: g2!.id, stato: "assente" },
+          { evento_id: allenamentoId, giocatore_id: g3!.id, stato: "ritardo" },
+          { evento_id: allenamentoId, giocatore_id: g4!.id, stato: "assente" },
+          { evento_id: cenaId, giocatore_id: g1!.id, stato: "assente" },
+          { evento_id: cenaId, giocatore_id: g2!.id, stato: "assente" },
+        ];
+        const inserite = await rest("risposte_presenze", {
+          method: "POST",
+          body: JSON.stringify(righe),
+        });
+        if (!inserite.ok) throw new Error(`inserimento presenze fallito: ${await inserite.text()}`);
+
+        const ids = [allenamentoId, cenaId];
+        const eventiReali = (await leggiEventi()).filter((e) => ids.includes(e.id));
+        const presenzeReali = {
+          ...(await leggiPresenze(allenamentoId)),
+          ...(await leggiPresenze(cenaId)),
+        };
+
+        const o1 = obiettiviSquadra(
+          giocatori,
+          { eventi: eventiReali, presenze: presenzeReali, pagelle: [] },
+          OGGI,
+        ).find((o) => o.id === "o1")!;
+
+        assert.equal(
+          o1.valore,
+          67,
+          "2 presenti (presente e ritardo) su 3 convocati; g4 non convocato e la cena non contano",
+        );
+      },
+    );
+
     await prova("o12/o13 media e conteggio pagelle vere lette da pagelle_voti", async () => {
       const matchId = `${PREFISSO}-o12-m1`;
       const [g1, g2, g3] = giocatori;

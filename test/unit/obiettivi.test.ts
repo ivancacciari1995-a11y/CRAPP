@@ -100,6 +100,169 @@ const soloCompleanni: ContestoObiettivi = {
 };
 assert.equal(trova(obiettiviSquadra(giocatori, soloCompleanni, OGGI_AGOSTO), "o2").valore, 0);
 
+// --- o1: chi non è convocato non occupa un posto, la sua assenza non pesa -------
+{
+  const [g1, g2] = giocatori;
+  const mese: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [{ ...evento("m1", "2026-08-10", "allenamento"), convocati: [g1!.id, g2!.id] }],
+    presenze: { m1: { [g1!.id]: "presente", [g2!.id]: "assente" } },
+  };
+  assert.equal(
+    trova(obiettiviSquadra(giocatori, mese, OGGI_AGOSTO), "o1").valore,
+    50,
+    "su 2 convocati 1 presente e 1 assente: 50%, il resto della rosa non conta",
+  );
+  assert.equal(
+    trova(
+      obiettiviSquadra(
+        giocatori,
+        { ...mese, eventi: [evento("m1", "2026-08-10", "allenamento")] },
+        OGGI_AGOSTO,
+      ),
+      "o1",
+    ).valore,
+    Math.round((1 / giocatori.length) * 100),
+    "senza convocati i posti sono tutta la rosa",
+  );
+}
+
+// --- presenze (o1 mese, o7 totale): casi limite del calcolo ------------------------
+{
+  const [g1, g2, g3, g4] = giocatori;
+  const P = (...x: [string, "presente" | "ritardo" | "assente" | "forse" | "infortunato"][]) =>
+    Object.fromEntries(x);
+  const o1v = (c: ContestoObiettivi, oggi = OGGI_AGOSTO) =>
+    trova(obiettiviSquadra(giocatori, c, oggi), "o1").valore;
+  const o7v = (c: ContestoObiettivi) => trova(obiettiviSquadra(giocatori, c), "o7").valore;
+  const conv = (id: string, data: string, tipo: Evento["tipo"], convocati: string[]) => ({
+    ...evento(id, data, tipo),
+    convocati,
+  });
+
+  // Solo allenamenti e partite entrano nel conto: cene, eventi e compleanni restano fuori
+  // anche se hanno risposte di presenza.
+  const conAltri: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [
+      conv("t1", "2026-08-05", "allenamento", [g1!.id, g2!.id]),
+      conv("t2", "2026-08-06", "evento", [g1!.id, g2!.id]),
+      conv("t3", "2026-08-07", "compleanno", [g1!.id, g2!.id]),
+    ],
+    presenze: {
+      t1: P([g1!.id, "presente"], [g2!.id, "assente"]),
+      t2: P([g1!.id, "assente"], [g2!.id, "assente"]),
+      t3: P([g1!.id, "presente"], [g2!.id, "presente"]),
+    },
+  };
+  assert.equal(o1v(conAltri), 50, "o1: solo l'allenamento conta (1 su 2)");
+  assert.equal(o7v(conAltri), 50, "o7: solo l'allenamento conta (1 su 2)");
+
+  // Assente, forse, infortunato e nessuna risposta sono tutti presenze perse: posto vuoto.
+  const perse: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("p1", "2026-08-05", "partita", [g1!.id, g2!.id, g3!.id, g4!.id])],
+    presenze: { p1: P([g1!.id, "assente"], [g2!.id, "forse"], [g3!.id, "infortunato"]) },
+  };
+  assert.equal(o1v(perse), 0, "o1: nessuna presenza, 0 su 4");
+  assert.equal(o7v(perse), 0, "o7: nessuna presenza, 0 su 4");
+  const unaPresente = {
+    ...perse,
+    presenze: { p1: P([g1!.id, "presente"], [g2!.id, "forse"], [g3!.id, "infortunato"]) },
+  };
+  assert.equal(o1v(unaPresente), 25, "o1: 1 presente su 4 convocati");
+  assert.equal(o7v(unaPresente), 25, "o7: 1 presente su 4 convocati");
+
+  // Un non convocato che risponde non gonfia la percentuale, e se è assente non la abbassa.
+  const nonConv: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("n1", "2026-08-05", "allenamento", [g1!.id])],
+    presenze: { n1: P([g1!.id, "presente"], [g2!.id, "assente"], [g3!.id, "presente"]) },
+  };
+  assert.equal(o1v(nonConv), 100, "o1: l'assente non convocato non pesa, il presente nemmeno");
+  assert.equal(o7v(nonConv), 100, "o7: idem");
+
+  // Il mese e il totale coincidono quando tutti gli eventi sono del mese corrente;
+  // il totale invece comprende anche gli altri mesi.
+  const dueMesi: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [
+      conv("m1", "2026-08-05", "allenamento", [g1!.id, g2!.id]),
+      conv("m2", "2026-07-05", "allenamento", [g1!.id, g2!.id]),
+    ],
+    presenze: {
+      m1: P([g1!.id, "presente"], [g2!.id, "presente"]),
+      m2: P([g1!.id, "assente"], [g2!.id, "assente"]),
+    },
+  };
+  assert.equal(o1v(dueMesi), 100, "o1: guarda solo agosto");
+  assert.equal(o7v(dueMesi), 50, "o7: guarda agosto e luglio insieme");
+  assert.equal(o1v(dueMesi, new Date("2026-07-15T10:00:00Z")), 0, "o1 a luglio: solo luglio");
+  const soloAgosto = { ...dueMesi, eventi: [dueMesi.eventi[0]!] };
+  assert.equal(o1v(soloAgosto), o7v(soloAgosto), "stessi eventi: stessa percentuale");
+
+  // Confine di mese nel fuso Europe/Rome: il 30 giugno alle 22:30 UTC a Roma è già luglio.
+  const sera = new Date("2026-06-30T22:30:00Z");
+  const luglio: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("l1", "2026-07-01", "allenamento", [g1!.id])],
+    presenze: { l1: P([g1!.id, "presente"]) },
+  };
+  assert.equal(o1v(luglio, sera), 100, "a Roma è già il 1° luglio: l'evento di luglio conta");
+  const giugno = { ...luglio, eventi: [conv("l1", "2026-06-30", "allenamento", [g1!.id])] };
+  assert.equal(o1v(giugno, sera), 0, "a Roma giugno è finito: l'evento del 30 giugno non conta");
+
+  // Convocato sconosciuto (non in rosa): nessun posto, quindi 0 e non NaN.
+  const fantasma: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("f1", "2026-08-05", "allenamento", ["fantasma"])],
+    presenze: { f1: P(["fantasma", "presente"]) },
+  };
+  assert.equal(o1v(fantasma), 0, "o1: convocato fuori rosa, 0 posti");
+  assert.equal(o7v(fantasma), 0, "o7: convocato fuori rosa, 0 posti");
+
+  // Evento senza nessuna risposta: i posti ci sono, le presenze no.
+  const senzaRisposte: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("r1", "2026-08-05", "allenamento", [g1!.id, g2!.id])],
+  };
+  assert.equal(o1v(senzaRisposte), 0, "o1: nessuna risposta = 0%");
+
+  // Rosa vuota: nessuna divisione per zero.
+  assert.equal(
+    trova(obiettiviSquadra([], conAltri, OGGI_AGOSTO), "o1").valore,
+    0,
+    "rosa vuota: o1",
+  );
+  assert.equal(
+    trova(obiettiviSquadra([], conAltri, OGGI_AGOSTO), "o7").valore,
+    0,
+    "rosa vuota: o7",
+  );
+
+  // Arrotondamento: 2 su 3 = 67%, e il progresso non supera mai il 100%.
+  const treConvocati: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("a3", "2026-08-05", "allenamento", [g1!.id, g2!.id, g3!.id])],
+    presenze: { a3: P([g1!.id, "presente"], [g2!.id, "ritardo"], [g3!.id, "assente"]) },
+  };
+  assert.equal(o1v(treConvocati), 67, "o1: 2 su 3 arrotondato");
+  assert.equal(o7v(treConvocati), 67, "o7: 2 su 3 arrotondato");
+
+  // Soglia del 90%: la percentuale arriva al target e l'obiettivo risulta completato.
+  const dieci = giocatori.slice(0, 10).map((g) => g.id);
+  const novePresenti: ContestoObiettivi = {
+    ...contestoVuoto,
+    eventi: [conv("d1", "2026-08-05", "allenamento", dieci)],
+    presenze: {
+      d1: Object.fromEntries(dieci.map((id, i) => [id, i === 0 ? "assente" : "presente"])),
+    },
+  };
+  const ob1 = trova(obiettiviSquadra(giocatori, novePresenti, OGGI_AGOSTO), "o1");
+  assert.equal(ob1.valore, 90, "9 su 10 = 90%");
+  assert.equal(progressoObiettivo(ob1), 100, "90% su target 90% = completato");
+}
+
 // --- o1: si azzera a ogni cambio mese, in base agli eventi a calendario ------
 {
   // Stesso evento/presenze: "in mese" a settembre, "fuori mese" se letto da agosto.
@@ -529,6 +692,7 @@ const o = (valore: number, target: number): ObiettivoSquadra => ({
   unita: "%",
   emoji: "🎯",
   impatto: "i",
+  dettaglio: { comeSiCalcola: "", conta: [], nonConta: [], periodo: "", fonte: "", esempio: "" },
 });
 assert.equal(progressoObiettivo(o(0, 10)), 0);
 assert.equal(progressoObiettivo(o(5, 10)), 50);
@@ -557,5 +721,18 @@ assert.equal(microcopyObiettivo(o(95, 100)), "Ci siamo quasi: mancano 5 %.");
 assert.equal(microcopyObiettivo(o(60, 100)), "Oltre metà strada: ancora 40 %.");
 assert.equal(microcopyObiettivo(o(10, 100)), "Si parte: 90 % al traguardo.");
 assert.equal(microcopyObiettivo(o(0, 100)), "Tocca a noi far partire questo obiettivo.");
+
+// --- dettaglio: ogni obiettivo spiega tutto, senza campi vuoti ---------------------
+for (const ob of obiettiviSquadra(giocatori, contestoVuoto)) {
+  const d = ob.dettaglio;
+  for (const campo of [d.comeSiCalcola, d.periodo, d.fonte, d.esempio]) {
+    assert.ok(campo.trim().length > 0, `${ob.id}: testo di dettaglio vuoto`);
+  }
+  assert.ok(d.conta.length > 0, `${ob.id}: manca «cosa conta»`);
+  assert.ok(d.nonConta.length > 0, `${ob.id}: manca «cosa non conta»`);
+  if (ob.id === "o1" || ob.id === "o7") {
+    assert.ok(d.perse && d.perse.length > 0, `${ob.id}: manca «presenza persa»`);
+  }
+}
 
 console.log("obiettivi: ok");
