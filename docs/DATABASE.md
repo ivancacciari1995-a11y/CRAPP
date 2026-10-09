@@ -126,7 +126,7 @@ votante e votato convocati all'evento (RLS, `evento_permette_voto()`, DD-027).
   `sollecita_presenze_24h`, `_12h`, `_6h`, scritti dai job (DD-040). `turno_palloni` e
   `sollecita_presenze` restano i tipi dei pulsanti manuali.
 - Il trigger delle email salta tutti i tipi `turno_palloni*`; quello delle push accoda i tipi
-  automatici (compleanni compresi) ma non quelli dei pulsanti.
+  automatici (compleanni e `presenza_modificata` compresi) ma non quelli dei pulsanti. `presenza_modificata` ha `evento_id` NULL (come `admin`): la UNIQUE non si applica e ogni modifica resta una riga (M32, DD-050).
 
 ### Code di invio (`notifiche_email_coda`, `notifiche_push_coda`)
 

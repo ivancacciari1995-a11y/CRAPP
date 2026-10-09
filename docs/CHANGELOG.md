@@ -13,12 +13,17 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.4.0] - 2026-10-09
+
+Gli admin e gli allenatori vengono avvisati quando una presenza cambia a ridosso di una partita o di un allenamento.
+Due migration, `m32` e `m33`, entrambe applicate in produzione il 09/10/2026.
+
 ### Aggiunto
 
-- **Notifica «Presenza modificata» (DD-050)** — quando una risposta a una partita o a
-  un allenamento cambia, compare o viene ritirata a meno di 6 ore dall'inizio, gli admin e gli allenatori ricevono una notifica
-  (centro notifiche, push, email) con chi, quale evento e lo stato prima e dopo. Migration `m32` (solo admin,
-  applicata in produzione il 09/10/2026) e `m33` (anche allenatori).
+- **Notifica «Presenza modificata» (DD-050)** — quando una risposta a una partita o a un allenamento cambia,
+  compare o viene ritirata a meno di 6 ore dall'inizio, gli admin e gli allenatori ricevono una notifica (centro
+  notifiche, push, email) con chi, quale evento e lo stato prima e dopo. Migration `m32` (solo admin, applicata in
+  produzione il 09/10/2026) e `m33` (aggiunge gli allenatori, applicata il 09/10/2026).
 
 ## [1.3.1] - 2026-10-06
 

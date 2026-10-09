@@ -9,14 +9,15 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.3.1 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — il Calendario mostra solo i prossimi
+- **Versione:** 1.4.0 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — avviso «Presenza modificata» ad admin e
+  allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario mostra solo i prossimi
   compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta lampo» e «Mai un forfait». La 1.3.0
   portava la notifica di compleanno, gli obiettivi cliccabili, le presenze sui convocati, gli avvisi in Home
   ridisegnati e i caratteri più grandi. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 44 file in `supabase/migrations/`, fino a `m33_presenza_modificata_allenatori`. Fino alla `m32` applicate in produzione (verificato con `npx supabase migration list` il
-  09/10/2026); la `m32` (DD-050, avviso «Presenza modificata» ai soli admin) è stata applicata quel giorno; la `m33` (anche agli allenatori) no, ancora da applicare. La `m29` toglie
+- **Migration:** 44 file in `supabase/migrations/`, fino a `m33_presenza_modificata_allenatori`. Tutte applicate in produzione (verificato con `npx supabase migration list` il
+  09/10/2026; la `m32` è l'avviso «Presenza modificata» ai soli admin, DD-050). La `m33`, che lo estende agli allenatori, è stata applicata il 09/10/2026. La `m29` toglie
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo

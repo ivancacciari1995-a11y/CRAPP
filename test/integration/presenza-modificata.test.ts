@@ -12,7 +12,7 @@
  * - ogni modifica è una notifica a sé (nessun raggruppamento) e ha la coda email e la coda push.
  *
  * Gira solo sullo stack locale (`npx supabase start`). Usa gli slot `g4` (chi risponde), `g5` (admin),
- * `g6` (giocatore) e `g10` (allenatore) della rosa seed, ripristinati alla fine.
+ * `g6` (giocatore), `g9` (allenatore inattivo) e `g10` (allenatore) della rosa seed, ripristinati alla fine.
  */
 import assert from "node:assert/strict";
 import { statoLocale } from "../helpers/locale";
@@ -32,6 +32,7 @@ if (!locale) {
   const ADMIN = "g5";
   const GIOCATORE = "g6";
   const ALLENATORE = "g10";
+  const INATTIVO = "g9";
   const PREFISSO = "test-presenza-mod-";
 
   const rest = (percorso: string, token: string, init?: RequestInit) =>
@@ -137,10 +138,12 @@ if (!locale) {
   try {
     const admin = await creaUtente(`${PREFISSO}admin-${Date.now()}@example.test`);
     const allenatore = await creaUtente(`${PREFISSO}allenatore-${Date.now()}@example.test`);
-    idUtenti.push(admin.id, allenatore.id);
+    const inattivo = await creaUtente(`${PREFISSO}inattivo-${Date.now()}@example.test`);
+    const senzaSlot = await creaUtente(`${PREFISSO}senza-slot-${Date.now()}@example.test`);
+    idUtenti.push(admin.id, allenatore.id, inattivo.id, senzaSlot.id);
     await scrivi("user_roles", "POST", { user_id: admin.id, role: "admin" });
     tokenAdmin = admin.token;
-    for (const id of [RISPONDE, ADMIN, GIOCATORE, ALLENATORE]) {
+    for (const id of [RISPONDE, ADMIN, GIOCATORE, ALLENATORE, INATTIVO]) {
       const [riga] = await leggi<Record<string, unknown>>(
         `giocatori_squadra?id=eq.${id}&select=tipo,attivo,auth_user_id`,
       );
@@ -159,6 +162,16 @@ if (!locale) {
       { tipo: "allenatore", auth_user_id: allenatore.id },
       tokenAdmin,
     );
+    // Un allenatore con slot disattivato, un admin senza nessuno slot e un admin che ha anche il
+    // ruolo allenatore: nessuno dei primi due può ricevere, il terzo riceve una sola notifica.
+    await scrivi(
+      `giocatori_squadra?id=eq.${INATTIVO}`,
+      "PATCH",
+      { tipo: "allenatore", auth_user_id: inattivo.id, attivo: false },
+      tokenAdmin,
+    );
+    await scrivi("user_roles", "POST", { user_id: senzaSlot.id, role: "admin" });
+    await scrivi("user_roles", "POST", { user_id: admin.id, role: "allenatore" });
     await svuota();
 
     const [chi] = await leggi<{ nome: string; cognome: string }>(
@@ -297,6 +310,93 @@ if (!locale) {
       await risposta(id, "presente");
       await svuota();
       await scrivi(`eventi_app?id=eq.${id}`, "DELETE");
+      assert.equal((await notifiche()).length, 0);
+    });
+
+    await prova(
+      "destinatari: né inattivi né senza slot, e una sola notifica a chi ha due ruoli",
+      async () => {
+        await svuota();
+        const id = `${PREFISSO}destinatari`;
+        await creaEvento(id, "partita", 4);
+        idEventi.push(id);
+        await risposta(id, "presente");
+        const destinatari = (await notifiche()).map((r) => r.giocatore_id);
+        assert.ok(!destinatari.includes(INATTIVO), "slot disattivato");
+        assert.deepEqual([...destinatari].sort(), await attesi());
+        assert.equal(
+          destinatari.filter((d) => d === ADMIN).length,
+          1,
+          "chi ha sia il ruolo admin sia allenatore riceve una sola notifica",
+        );
+      },
+    );
+
+    await prova(
+      "cambio di un giocatore: avvisati admin e allenatore, mai il giocatore stesso",
+      async () => {
+        await svuota();
+        const id = `${PREFISSO}per-conto`;
+        await creaEvento(id, "partita", 2);
+        idEventi.push(id);
+        await risposta(id, "presente");
+        await aggiorna(id, "assente");
+        const destinatari = new Set((await notifiche()).map((r) => r.giocatore_id));
+        assert.ok(destinatari.has(ALLENATORE) && destinatari.has(ADMIN));
+        assert.ok(!destinatari.has(RISPONDE));
+      },
+    );
+
+    await prova("tutti gli stati hanno il loro nome nel testo", async () => {
+      await svuota();
+      const id = `${PREFISSO}stati`;
+      await creaEvento(id, "allenamento", 1);
+      idEventi.push(id);
+      const sequenza = ["presente", "assente", "forse", "ritardo", "infortunato"];
+      await risposta(id, sequenza[0]!);
+      for (const stato of sequenza.slice(1)) await aggiorna(id, stato);
+      const corpi = (await notifiche())
+        .filter((r) => r.giocatore_id === ADMIN)
+        .map((r) => r.corpo.split("\n").slice(2).join("|"));
+      assert.deepEqual(corpi, [
+        "Da: nessuna risposta|A: presente",
+        "Da: presente|A: assente",
+        "Da: assente|A: forse",
+        "Da: forse|A: in ritardo",
+        "Da: in ritardo|A: infortunato",
+      ]);
+    });
+
+    // Confini della finestra: la soglia è di 6 ore esatte (da 0 a 6).
+    for (const [nome, ore, avvisa] of [
+      ["a 5 ore e 50 minuti", 5 + 50 / 60, true],
+      ["a 6 ore e 10 minuti", 6 + 10 / 60, false],
+      ["a 10 minuti", 10 / 60, true],
+      ["iniziato da 10 minuti", -10 / 60, false],
+    ] as const) {
+      await prova(`finestra: evento ${nome} ${avvisa ? "avvisa" : "non avvisa"}`, async () => {
+        await svuota();
+        const id = `${PREFISSO}soglia-${idEventi.length}`;
+        await creaEvento(id, "partita", ore);
+        idEventi.push(id);
+        await risposta(id, "presente");
+        assert.equal((await notifiche()).length > 0, avvisa);
+      });
+    }
+
+    await prova("ora dell'evento illeggibile: nessun avviso e nessun errore", async () => {
+      await svuota();
+      const id = `${PREFISSO}ora-illeggibile`;
+      const { data } = traOre(3);
+      await scrivi("eventi_app", "POST", {
+        id,
+        tipo: "partita",
+        titolo: "Ora strana",
+        data,
+        ora: "boh",
+      });
+      idEventi.push(id);
+      await risposta(id, "presente");
       assert.equal((await notifiche()).length, 0);
     });
 
