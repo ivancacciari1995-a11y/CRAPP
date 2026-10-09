@@ -15,8 +15,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   ridisegnati e i caratteri più grandi. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 43 file in `supabase/migrations/`, fino a `m32_presenza_modificata`. Tutte applicate in produzione (verificato con `npx supabase migration list` il
-  09/10/2026); la `m32` (DD-050, avviso «Presenza modificata» agli admin in prova) è stata applicata quel giorno. La `m29` toglie
+- **Migration:** 44 file in `supabase/migrations/`, fino a `m33_presenza_modificata_allenatori`. Fino alla `m32` applicate in produzione (verificato con `npx supabase migration list` il
+  09/10/2026); la `m32` (DD-050, avviso «Presenza modificata» ai soli admin) è stata applicata quel giorno; la `m33` (anche agli allenatori) no, ancora da applicare. La `m29` toglie
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo

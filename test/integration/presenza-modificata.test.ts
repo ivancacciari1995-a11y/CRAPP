@@ -1,11 +1,11 @@
 /**
- * Avviso «Presenza modificata» (M32, DD-050): `bun test/integration/presenza-modificata.test.ts`.
+ * Avviso «Presenza modificata» (M32 e M33, DD-050): `bun test/integration/presenza-modificata.test.ts`.
  *
  * Scrive su `risposte_presenze` come farebbe l'app e verifica, sul database vero:
  *
  * - una risposta nuova, modificata o ritirata a meno di 6 ore da una partita o da un allenamento
- *   avvisa gli admin attivi, con titolo e corpo del catalogo;
- * - in fase di prova (DD-050) non riceve nulla un giocatore semplice né un allenatore, e non riceve
+ *   avvisa gli admin e gli allenatori attivi, con titolo e corpo del catalogo;
+ * - riceve l'avviso chi ha il ruolo admin o allenatore con uno slot attivo (M33); non riceve nulla un giocatore semplice, e non riceve
  *   nulla l'admin a cui appartiene la presenza;
  * - nessun avviso se lo stato non cambia, se l'evento è oltre le 6 ore, già iniziato, o di un tipo che
  *   non è partita né allenamento, né quando una risposta sparisce perché l'evento è stato cancellato;
@@ -168,7 +168,9 @@ if (!locale) {
 
     // Il seed può avere altri admin con uno slot attivo: l'elenco atteso lo calcola il test.
     const attesi = async () => {
-      const ruoli = await leggi<{ user_id: string }>("user_roles?role=eq.admin&select=user_id");
+      const ruoli = await leggi<{ user_id: string }>(
+        "user_roles?role=in.(admin,allenatore)&select=user_id",
+      );
       const slot = await leggi<{ id: string; auth_user_id: string }>(
         "giocatori_squadra?attivo=eq.true&auth_user_id=not.is.null&select=id,auth_user_id",
       );
@@ -184,31 +186,34 @@ if (!locale) {
     idEventi.push(`${PREFISSO}partita`);
     const dataIt = `${ev.data.slice(8, 10)}/${ev.data.slice(5, 7)}/${ev.data.slice(0, 4)}`;
 
-    await prova("risposta nuova: avvisa gli admin, con il testo del catalogo", async () => {
-      await risposta(`${PREFISSO}partita`, "presente");
-      const righe = await notifiche();
-      assert.deepEqual(righe.map((r) => r.giocatore_id).sort(), await attesi());
-      assert.ok(
-        righe.some((r) => r.giocatore_id === ADMIN),
-        "l'admin di prova è tra i destinatari",
-      );
-      const mia = righe.find((r) => r.giocatore_id === ADMIN)!;
-      assert.equal(mia.titolo, `Presenza modificata: ${nomeCompleto}`);
-      assert.equal(
-        mia.corpo,
-        [
-          `Evento: ${ev.titolo}`,
-          `Data: ${dataIt}, ore ${ev.ora}`,
-          "Da: nessuna risposta",
-          "A: presente",
-        ].join("\n"),
-      );
-    });
+    await prova(
+      "risposta nuova: avvisa admin e allenatori, con il testo del catalogo",
+      async () => {
+        await risposta(`${PREFISSO}partita`, "presente");
+        const righe = await notifiche();
+        assert.deepEqual(righe.map((r) => r.giocatore_id).sort(), await attesi());
+        assert.ok(
+          righe.some((r) => r.giocatore_id === ADMIN),
+          "l'admin di prova è tra i destinatari",
+        );
+        const mia = righe.find((r) => r.giocatore_id === ADMIN)!;
+        assert.equal(mia.titolo, `Presenza modificata: ${nomeCompleto}`);
+        assert.equal(
+          mia.corpo,
+          [
+            `Evento: ${ev.titolo}`,
+            `Data: ${dataIt}, ore ${ev.ora}`,
+            "Da: nessuna risposta",
+            "A: presente",
+          ].join("\n"),
+        );
+      },
+    );
 
-    await prova("in prova non ricevono nulla il giocatore semplice e l'allenatore", async () => {
+    await prova("il giocatore semplice non riceve nulla, l'allenatore sì", async () => {
       const destinatari = (await notifiche()).map((r) => r.giocatore_id);
       assert.ok(!destinatari.includes(GIOCATORE));
-      assert.ok(!destinatari.includes(ALLENATORE));
+      assert.ok(destinatari.includes(ALLENATORE), "l'allenatore attivo è tra i destinatari");
       assert.ok(!destinatari.includes(RISPONDE), "chi risponde non avvisa se stesso");
     });
 
