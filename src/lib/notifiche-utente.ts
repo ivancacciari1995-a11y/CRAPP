@@ -26,7 +26,8 @@ export type TipoNotifica =
   | "sollecita_presenze_6h"
   | "sondaggio_cacche"
   | "compleanno"
-  | "compleanno_auguri";
+  | "compleanno_auguri"
+  | "presenza_modificata";
 
 export type NotificaUtente = {
   id: string;

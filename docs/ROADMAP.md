@@ -49,6 +49,8 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 
 - [x] Notifica di compleanno — auguri al festeggiato e avviso a tutti gli altri, ogni giorno dalle 8:00, su push,
       centro notifiche ed email ([specifica](modules/notifiche.md#catalogo-delle-notifiche), DD-047)
+- [x] Avviso «Presenza modificata» — una risposta che cambia a meno di 6 ore da una partita o un allenamento avvisa
+      gli admin (in prova solo loro, poi anche gli allenatori) ([specifica](modules/notifiche.md#catalogo-delle-notifiche), DD-050)
 
 ## Prossimo
 

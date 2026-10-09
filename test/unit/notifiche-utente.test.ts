@@ -61,6 +61,7 @@ const tipiNuovi: TipoNotifica[] = [
   "sollecita_presenze_6h",
   "compleanno",
   "compleanno_auguri",
+  "presenza_modificata",
 ];
 const corpoMultiriga = "Data: 01/10/2026\nOra: 21:00\nLuogo: PalaCRAP";
 for (const tipo of tipiNuovi) {

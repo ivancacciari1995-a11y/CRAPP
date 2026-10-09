@@ -15,9 +15,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   ridisegnati e i caratteri più grandi. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 42 file in `supabase/migrations/`, fino a `m31_notifica_compleanno`. Le prime 41 (fino a
-  `m30_sollecito_solo_24h`) sono applicate in produzione (verificato con `npx supabase migration list` il
-  01/10/2026); la `m31` no, ancora da applicare (DD-047). La `m29` toglie
+- **Migration:** 43 file in `supabase/migrations/`, fino a `m32_presenza_modificata`. Tutte applicate in produzione (verificato con `npx supabase migration list` il
+  09/10/2026); la `m32` (DD-050, avviso «Presenza modificata» agli admin in prova) è stata applicata quel giorno. La `m29` toglie
   `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo
@@ -33,9 +32,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 - Si lavora direttamente su `main` (DD-019); Cursor e Claude Code sono gli ambienti di sviluppo.
 - Dev e produzione condividono lo stesso progetto Supabase: un account di prova che collega uno
   slot lo occupa anche in produzione e va liberato da un admin.
-- Lo slot `g18` «Beta Tester» è impostato come allenatore in produzione (24/09/2026). Numero 99
-  e ruolo «Palleggiatore» sono rimasti apposta per la 0.9.2: da svuotare da `/admin` se ancora
-  presenti.
+- Lo slot `g18` «Beta Tester» è un giocatore in produzione (dal 09/10/2026, prima era allenatore), numero 99 e
+  ruolo «Palleggiatore»; non è collegato a nessun account. Serve per provare le notifiche con un secondo utente.
 
 ## Note
 

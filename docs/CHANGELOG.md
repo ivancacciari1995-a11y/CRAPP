@@ -13,6 +13,13 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Aggiunto
+
+- **Notifica «Presenza modificata» (DD-050), in prova solo per gli admin** — quando una risposta a una partita o a
+  un allenamento cambia, compare o viene ritirata a meno di 6 ore dall'inizio, gli admin ricevono una notifica
+  (centro notifiche, push, email) con chi, quale evento e lo stato prima e dopo. Gli allenatori non la ricevono
+  finché dura la prova. Migration `m32`, applicata in produzione il 09/10/2026.
+
 ## [1.3.1] - 2026-10-06
 
 Il Calendario mostra solo i prossimi compleanni del mese, e le serie di presenze sono due invece di tre: sparisce
