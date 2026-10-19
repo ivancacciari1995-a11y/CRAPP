@@ -6,7 +6,7 @@ import { Card } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
 import { statoMeta, type Giocatore, type Stato } from "@/lib/crapp-data";
-import type { EventoTipo } from "@/lib/eventi";
+import { rosaConvocata, type EventoTipo } from "@/lib/eventi";
 import { usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useAnagraficaRosa } from "@/lib/rosa";
 import { useGiocatoreBase, useGiocatoreInCampo } from "@/lib/user-store";
@@ -38,8 +38,7 @@ export function RosaPresenze({
   const mittente = useGiocatoreBase();
   const puoSollecitare = usePuoGestireEventi();
   const anagrafica = useAnagraficaRosa();
-  const rosa =
-    convocati.length === 0 ? anagrafica : anagrafica.filter((g) => convocati.includes(g.id));
+  const rosa = rosaConvocata(anagrafica, convocati);
   const [sollecito, setSollecito] = useState(false);
   const passato = data < dataOggi();
 

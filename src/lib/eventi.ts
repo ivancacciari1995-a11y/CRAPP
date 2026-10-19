@@ -90,6 +90,11 @@ export function useEventi() {
   return { ...query, eventi: query.data ?? [] };
 }
 
+/** Il giocatore è tra i convocati (elenco vuoto = tutta la rosa). */
+export function eConvocato(evento: Pick<Evento, "convocati">, giocatoreId: string): boolean {
+  return evento.convocati.length === 0 || evento.convocati.includes(giocatoreId);
+}
+
 /**
  * Chi vede un evento: i convocati; se `convocati` è vuoto, tutta la rosa. Chi gestisce gli
  * eventi (admin e allenatori) li vede sempre, convocato o no.
@@ -99,8 +104,9 @@ export function eventoVisibile(
   giocatoreId: string | null,
   vedeTutto: boolean,
 ): boolean {
-  if (vedeTutto || evento.convocati.length === 0) return true;
-  return giocatoreId !== null && evento.convocati.includes(giocatoreId);
+  if (vedeTutto) return true;
+  if (evento.convocati.length === 0) return true;
+  return giocatoreId !== null && eConvocato(evento, giocatoreId);
 }
 
 export function useEvento(id: string) {
@@ -211,6 +217,11 @@ export function compleanniEventi(
 
 /** Rosa convocata per un evento: se non specificata vale tutta la rosa. */
 export function convocatiEvento(evento: Evento | null, rosa: Giocatore[]) {
-  if (!evento || evento.convocati.length === 0) return rosa;
-  return rosa.filter((g) => evento.convocati.includes(g.id));
+  return rosaConvocata(rosa, evento?.convocati ?? []);
+}
+
+/** Restringe una rosa ai convocati indicati: elenco vuoto = tutta la rosa. */
+export function rosaConvocata<T extends { id: string }>(rosa: T[], convocati: string[]): T[] {
+  if (convocati.length === 0) return rosa;
+  return rosa.filter((g) => convocati.includes(g.id));
 }

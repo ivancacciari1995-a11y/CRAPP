@@ -13,6 +13,13 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Corretto
+
+- La card dell'evento (Calendario e Home) conta «presenti/convocati» invece di dividere per tutta la
+  rosa, e i pulsanti di presenza compaiono solo ai convocati: un admin che è anche giocatore ma non
+  è convocato vede l'evento senza poter rispondere. In «Da confermare» (Home) non finiscono più gli
+  eventi a cui non sei convocato.
+
 ## [1.4.1] - 2026-10-19
 
 Gli eventi con dei convocati si vedono solo a loro, e «Rosa e presenze» elenca solo i convocati.

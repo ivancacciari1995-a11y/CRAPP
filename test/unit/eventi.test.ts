@@ -7,7 +7,9 @@ import {
   convocatiEvento,
   daCategoria,
   daRiga,
+  eConvocato,
   eventoVisibile,
+  rosaConvocata,
   eventoVuoto,
   type RigaEvento,
 } from "@/lib/eventi";
@@ -131,3 +133,42 @@ assert.equal(eventoVisibile({ convocati: ["g1"] }, "g2", false), false, "il non 
 assert.equal(eventoVisibile({ convocati: ["g1"] }, null, false), false, "senza slot no");
 assert.equal(eventoVisibile({ convocati: ["g1"] }, "g2", true), true, "admin/allenatore sempre");
 assert.equal(eventoVisibile({ convocati: [] }, "g2", false), true, "vuoto = tutta la rosa");
+
+// --- eConvocato: elenco vuoto = tutti ----------------------------------------
+assert.equal(eConvocato({ convocati: ["g1"] }, "g1"), true, "convocato");
+assert.equal(eConvocato({ convocati: ["g1"] }, "g2"), false, "non convocato");
+assert.equal(eConvocato({ convocati: [] }, "g2"), true, "vuoto = tutti");
+
+// --- Copertura per numero di convocati: 1, 2, 3, tutti, nessuno, id sconosciuti -
+const squadra = ["g1", "g2", "g3", "g4"].map((id) => ({ id }));
+const ids = (l: Array<{ id: string }>) => l.map((g) => g.id);
+const casi: Array<{ nome: string; convocati: string[]; attesi: string[] }> = [
+  { nome: "nessuno indicato = tutta la rosa", convocati: [], attesi: ["g1", "g2", "g3", "g4"] },
+  { nome: "solo 1", convocati: ["g2"], attesi: ["g2"] },
+  { nome: "2", convocati: ["g1", "g4"], attesi: ["g1", "g4"] },
+  { nome: "3", convocati: ["g3", "g1", "g2"], attesi: ["g1", "g2", "g3"] },
+  { nome: "tutti indicati", convocati: ["g1", "g2", "g3", "g4"], attesi: ["g1", "g2", "g3", "g4"] },
+  { nome: "id sconosciuto ignorato", convocati: ["g2", "zz"], attesi: ["g2"] },
+  { nome: "solo ids sconosciuti: nessuno", convocati: ["zz"], attesi: [] },
+];
+for (const { nome, convocati, attesi } of casi) {
+  assert.deepEqual(ids(rosaConvocata(squadra, convocati)), attesi, `rosaConvocata: ${nome}`);
+  const conv = { convocati };
+  for (const { id } of squadra) {
+    const dentro = attesi.includes(id) || convocati.length === 0;
+    assert.equal(
+      eConvocato(conv, id),
+      convocati.length === 0 || convocati.includes(id),
+      `eConvocato ${id}: ${nome}`,
+    );
+    assert.equal(eventoVisibile(conv, id, false), dentro, `visibile a ${id}: ${nome}`);
+    assert.equal(
+      eventoVisibile(conv, id, true),
+      true,
+      `admin/allenatore vede sempre (${id}): ${nome}`,
+    );
+  }
+  assert.equal(eventoVisibile(conv, null, false), convocati.length === 0, `senza slot: ${nome}`);
+  assert.equal(eventoVisibile(conv, null, true), true, `admin senza slot: ${nome}`);
+}
+assert.equal(rosaConvocata([], ["g1"]).length, 0, "rosa vuota resta vuota");

@@ -11,7 +11,7 @@ import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
 import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
-import { type Evento } from "@/lib/eventi";
+import { eConvocato, type Evento } from "@/lib/eventi";
 import { useEventiVisibili } from "@/lib/eventi-visibili";
 import { useRispostePresenze } from "@/lib/presenze";
 import { useIo, useObiettivi } from "@/lib/rosa";
@@ -55,7 +55,7 @@ function Index() {
   const prossimo = prossimi[0] ?? null;
   const daConfermare = prossimi
     .slice(1)
-    .filter((e) => !giocatore || !presenze[e.id]?.[giocatore.id]);
+    .filter((e) => !giocatore || (eConvocato(e, giocatore.id) && !presenze[e.id]?.[giocatore.id]));
   const linkProssimo = prossimo ? linkPerEvento(prossimo) : null;
   const { data: csi } = useCsi();
   const noi = csi?.classifica.find((r) => isNostraSquadra(r.squadra));

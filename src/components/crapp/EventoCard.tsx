@@ -13,7 +13,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { formatData, statoMeta, type Stato } from "@/lib/crapp-data";
-import type { Evento } from "@/lib/eventi";
+import { eConvocato, rosaConvocata, type Evento } from "@/lib/eventi";
 import { inRosa, useGiocatoriSquadra } from "@/lib/giocatori-squadra";
 import { includeInfortunato, usePresenzeEvento, useSalvaPresenza } from "@/lib/presenze";
 import { useGiocatoreInCampo } from "@/lib/user-store";
@@ -75,7 +75,8 @@ export function EventoCard({
   // Rilevante perché ogni card monta questo hook: il Calendario ne rende diverse insieme.
   const io = useGiocatoreInCampo();
   const { righe: squadra } = useGiocatoriSquadra();
-  const rosa = squadra.filter(inRosa);
+  // Solo i convocati contano e rispondono (vuoto = tutta la rosa).
+  const rosa = rosaConvocata(squadra.filter(inRosa), evento.convocati);
   const stato = io ? risposte[io.id] : undefined;
   const presentiVeri = rosa.filter(
     (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
@@ -187,7 +188,7 @@ export function EventoCard({
           </p>
         ) : null}
 
-        {io ? (
+        {io && eConvocato(evento, io.id) ? (
           <div
             className={cn("pointer-events-auto flex w-full gap-1", metaStato ? "mt-2.5" : "mt-3")}
             role="group"
