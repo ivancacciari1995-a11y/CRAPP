@@ -13,6 +13,11 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.4.1] - 2026-10-19
+
+Gli eventi con dei convocati si vedono solo a loro, e «Rosa e presenze» elenca solo i convocati.
+Nessuna migration.
+
 ### Modificato
 
 - Un evento con dei convocati compare nel Calendario, in Home e nell'elenco eventi solo ai
