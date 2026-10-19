@@ -1,3 +1,4 @@
+import { useEventiVisibili } from "@/lib/eventi-visibili";
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2, X } from "lucide-react";
@@ -22,7 +23,6 @@ import {
   daCategoria,
   eventoVuoto,
   useEliminaEvento,
-  useEventi,
   useSalvaEvento,
   type CategoriaEvento,
   type Evento,
@@ -65,7 +65,7 @@ function GestioneEventi() {
   const io = useGiocatoreBase();
   // Admin o allenatore (DD-034): la RLS di `eventi_app` (M21) dice lo stesso.
   const puoGestire = usePuoGestireEventi();
-  const { eventi, isPending, isError, error, refetch } = useEventi();
+  const { eventi, isPending, isError, error, refetch } = useEventiVisibili();
   const { righe: squadra } = useGiocatoriSquadra();
   const salva = useSalvaEvento();
   const elimina = useEliminaEvento();

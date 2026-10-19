@@ -90,6 +90,19 @@ export function useEventi() {
   return { ...query, eventi: query.data ?? [] };
 }
 
+/**
+ * Chi vede un evento: i convocati; se `convocati` è vuoto, tutta la rosa. Chi gestisce gli
+ * eventi (admin e allenatori) li vede sempre, convocato o no.
+ */
+export function eventoVisibile(
+  evento: Pick<Evento, "convocati">,
+  giocatoreId: string | null,
+  vedeTutto: boolean,
+): boolean {
+  if (vedeTutto || evento.convocati.length === 0) return true;
+  return giocatoreId !== null && evento.convocati.includes(giocatoreId);
+}
+
 export function useEvento(id: string) {
   const { eventi, ...resto } = useEventi();
   return { ...resto, evento: eventi.find((e) => e.id === id) ?? null };

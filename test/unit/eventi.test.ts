@@ -7,6 +7,7 @@ import {
   convocatiEvento,
   daCategoria,
   daRiga,
+  eventoVisibile,
   eventoVuoto,
   type RigaEvento,
 } from "@/lib/eventi";
@@ -123,3 +124,10 @@ assert.match(bozza.id, /^e[a-z0-9]+$/, "id generato dal client");
 assert.notEqual(bozza.id, "", "ogni bozza ha un id");
 
 console.log("eventi: ok");
+
+// --- eventoVisibile: i non convocati non vedono l'evento, chi gestisce sì -----
+assert.equal(eventoVisibile({ convocati: ["g1"] }, "g1", false), true, "il convocato lo vede");
+assert.equal(eventoVisibile({ convocati: ["g1"] }, "g2", false), false, "il non convocato no");
+assert.equal(eventoVisibile({ convocati: ["g1"] }, null, false), false, "senza slot no");
+assert.equal(eventoVisibile({ convocati: ["g1"] }, "g2", true), true, "admin/allenatore sempre");
+assert.equal(eventoVisibile({ convocati: [] }, "g2", false), true, "vuoto = tutta la rosa");

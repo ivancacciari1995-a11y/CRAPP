@@ -11,7 +11,8 @@ import { Barra } from "@/components/motion/Barra";
 import { Numero } from "@/components/motion/Numero";
 import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
 import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
-import { useEventi, type Evento } from "@/lib/eventi";
+import { type Evento } from "@/lib/eventi";
+import { useEventiVisibili } from "@/lib/eventi-visibili";
 import { useRispostePresenze } from "@/lib/presenze";
 import { useIo, useObiettivi } from "@/lib/rosa";
 import { isAllenatore, nomeCompleto } from "@/lib/giocatori-squadra";
@@ -47,7 +48,7 @@ function Index() {
   const base = useGiocatoreBase();
   const giocatore = useIo();
   const allenatore = isAllenatore(base);
-  const { eventi } = useEventi();
+  const { eventi } = useEventiVisibili();
   const { presenze } = useRispostePresenze();
   const oggi = new Date().toISOString().slice(0, 10);
   const prossimi: Evento[] = eventi.filter((e) => e.data >= oggi).slice(0, 3);

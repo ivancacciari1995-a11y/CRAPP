@@ -8,7 +8,8 @@ import { molla, proietta } from "@/lib/molla";
 import { useMotoRidotto } from "@/lib/motion";
 import { EventoCard, linkPerEvento } from "@/components/crapp/EventoCard";
 import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
-import { compleanniEventi, useEventi, type Evento } from "@/lib/eventi";
+import { compleanniEventi, type Evento } from "@/lib/eventi";
+import { useEventiVisibili } from "@/lib/eventi-visibili";
 import { useAnagraficaRosa } from "@/lib/rosa";
 import { usePuoGestireEventi } from "@/lib/ruoli";
 import { giorniDelMese, giorniIT, mesiIT, pad2, useMeseNav } from "@/lib/calendario";
@@ -56,7 +57,7 @@ function Calendario() {
   const [giornoSelezionato, setGiornoSelezionato] = useState<number | null>(null);
   const [drawerAperto, setDrawerAperto] = useState(false);
   const puoGestire = usePuoGestireEventi();
-  const { eventi } = useEventi();
+  const { eventi } = useEventiVisibili();
   const rosa = useAnagraficaRosa({ conAllenatori: true });
   // `useMotoRidotto` copre anche i device deboli (RAM bassa), non solo
   // `prefers-reduced-motion`: disattiva anche lo swipe orizzontale tra mesi.

@@ -20,9 +20,12 @@ export function RosaPresenze({
   eventoId,
   data,
   tipo = "allenamento",
+  convocati = [],
 }: {
   eventoId: string;
   data: string;
+  /** Id dei convocati: vuoto = tutta la rosa (come `convocatiEvento()`). */
+  convocati?: string[];
   /** Negli eventi extra-campo "infortunato" non è pertinente: niente badge né opzione. */
   tipo?: EventoTipo;
 }) {
@@ -34,7 +37,9 @@ export function RosaPresenze({
   // Il nome di chi sollecita: admin o allenatore, che non ha una risposta propria (DD-034).
   const mittente = useGiocatoreBase();
   const puoSollecitare = usePuoGestireEventi();
-  const rosa = useAnagraficaRosa();
+  const anagrafica = useAnagraficaRosa();
+  const rosa =
+    convocati.length === 0 ? anagrafica : anagrafica.filter((g) => convocati.includes(g.id));
   const [sollecito, setSollecito] = useState(false);
   const passato = data < dataOggi();
 
@@ -97,7 +102,7 @@ export function RosaPresenze({
           </span>
         </div>
 
-        {io ? (
+        {io && rosa.some((g) => g.id === io.id) ? (
           <div className="mt-4 border-t border-border pt-3">
             <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
               La tua risposta
