@@ -13,6 +13,28 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.4.1] - 2026-10-19
+
+Gli eventi con dei convocati si vedono solo a loro, e «Rosa e presenze» elenca solo i convocati.
+Nessuna migration.
+
+### Modificato
+
+- Un evento con dei convocati compare nel Calendario, in Home e nell'elenco eventi solo ai
+  convocati. Admin e allenatori lo vedono sempre; `convocati` vuoto = visibile a tutti. È un
+  filtro dell'interfaccia: i dati restano leggibili dal database (RLS di `eventi_app` invariata).
+
+### Corretto
+
+- «Rosa e presenze» di allenamenti, partite ed eventi mostra solo i convocati (prima elencava
+  sempre tutta la rosa, anche se ne era stato convocato uno solo). Il conteggio «Hanno risposto»,
+  il pulsante «Sollecita» e il riquadro «La tua risposta» seguono la stessa regola; `convocati`
+  vuoto resta «tutta la rosa».
+- La card dell'evento (Calendario e Home) conta «presenti/convocati» invece di dividere per tutta la
+  rosa, e i pulsanti di presenza compaiono solo ai convocati: un admin che è anche giocatore ma non
+  è convocato vede l'evento senza poter rispondere. In «Da confermare» (Home) non finiscono più gli
+  eventi a cui non sei convocato.
+
 ## [1.4.0] - 2026-10-09
 
 Gli admin e gli allenatori vengono avvisati quando una presenza cambia a ridosso di una partita o di un allenamento.

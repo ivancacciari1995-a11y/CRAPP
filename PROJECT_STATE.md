@@ -9,7 +9,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.4.0 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — avviso «Presenza modificata» ad admin e
+- **Versione:** 1.4.1 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — gli eventi con convocati si vedono
+  solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo loro. La 1.4.0: avviso «Presenza modificata» ad admin e
   allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario mostra solo i prossimi
   compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta lampo» e «Mai un forfait». La 1.3.0
   portava la notifica di compleanno, gli obiettivi cliccabili, le presenze sui convocati, gli avvisi in Home

@@ -297,7 +297,12 @@ function PartitaDetail() {
       ) : null}
 
       <Section titolo="Rosa e presenze">
-        <RosaPresenze eventoId={evento.id} data={evento.data} tipo={evento.tipo} />
+        <RosaPresenze
+          eventoId={evento.id}
+          data={evento.data}
+          tipo={evento.tipo}
+          convocati={evento.convocati}
+        />
       </Section>
     </>
   );

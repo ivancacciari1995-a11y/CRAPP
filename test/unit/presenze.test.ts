@@ -294,3 +294,35 @@ assert.equal(
 );
 
 console.log("presenze: ok");
+
+// --- Solleciti per numero di convocati: 1, 2, 3, tutti ------------------------
+{
+  const sq = (["g1", "g2", "g3", "g4"] as const).map((id) => ({
+    id,
+    attivo: true,
+    tipo: "giocatore" as const,
+  }));
+  const nessuna: Array<{ giocatore_id: string; stato: string }> = [];
+  assert.deepEqual(destinatariSollecito(sq, nessuna, ["g2"]), ["g2"], "solo 1 convocato");
+  assert.deepEqual(destinatariSollecito(sq, nessuna, ["g1", "g3"]), ["g1", "g3"], "2 convocati");
+  assert.deepEqual(
+    destinatariSollecito(sq, nessuna, ["g1", "g2", "g4"]),
+    ["g1", "g2", "g4"],
+    "3 convocati",
+  );
+  assert.deepEqual(
+    destinatariSollecito(sq, [{ giocatore_id: "g1", stato: "presente" }], ["g1", "g3"]),
+    ["g3"],
+    "il convocato che ha già risposto non va sollecitato",
+  );
+  assert.deepEqual(
+    destinatariSollecito(sq, [{ giocatore_id: "g4", stato: "presente" }], ["g1"]),
+    ["g1"],
+    "chi ha risposto ma non è convocato non cambia i destinatari",
+  );
+  assert.deepEqual(
+    destinatariSollecito(sq, nessuna, []),
+    ["g1", "g2", "g3", "g4"],
+    "nessuno = tutti",
+  );
+}
