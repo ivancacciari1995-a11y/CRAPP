@@ -82,7 +82,7 @@ function AllenamentoDetail() {
                 rel="noopener noreferrer"
                 className="ml-4 inline-flex items-center gap-2 font-semibold text-accent underline"
               >
-                <MapPin className="h-4 w-4" /> Apri su Google Maps
+                <MapPin className="h-4 w-4" /> Apri su Maps
               </a>
             ) : null}
           </div>

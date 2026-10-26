@@ -57,7 +57,7 @@ extra-campo, nessun link per gli eventi virtuali (compleanni), che non hanno una
 sotto «Luogo»: si incolla il link di «Condividi» di Google Maps. `linkMapsValido()` in `eventi.ts`
 accetta solo URL https di Google Maps (`maps.app.goo.gl`, `goo.gl/maps`, `google.*/maps`,
 `maps.google.*`) e lo stesso criterio è un CHECK sul database. Le tre schede di dettaglio mostrano
-«Apri su Google Maps» (nuova scheda) solo se il link c'è; non c'è un link generato dal testo del
+«Apri su Maps» (nuova scheda) solo se il link c'è; non c'è un link generato dal testo del
 luogo, e né la card né le notifiche lo mostrano.
 
 Le tre schede di dettaglio (`allenamento.$id.tsx`, `partita.$id.tsx`, `evento.$id.tsx`)

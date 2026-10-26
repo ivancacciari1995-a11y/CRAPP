@@ -13,13 +13,16 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
-Una migration, `m34`, **non ancora applicata in produzione**.
+## [1.4.2] - 2026-10-26
+
+Link Google Maps del luogo degli eventi. Una migration, `m34`, applicata in produzione il
+26/10/2026.
 
 ### Aggiunto
 
 - Link Google Maps del luogo: in «Gestione eventi» (admin e allenatori) un campo facoltativo
   accetta il link copiato da Google Maps; nelle schede di partita, allenamento ed evento compare
-  «Apri su Google Maps» solo se il link c'è. Non compare nella card né nelle notifiche. Il link
+  «Apri su Maps» solo se il link c'è. Non compare nella card né nelle notifiche. Il link
   è validato (solo https di Google Maps) sia nell'app sia da un CHECK sul database.
 
 ## [1.4.1] - 2026-10-19
