@@ -22,6 +22,7 @@ import {
   categoriaEvento,
   daCategoria,
   eventoVuoto,
+  linkMapsValido,
   useEliminaEvento,
   useSalvaEvento,
   type CategoriaEvento,
@@ -111,6 +112,12 @@ function GestioneEventi() {
       toast.error("Serve un titolo per l'evento");
       return;
     }
+    if ((bozza.linkMaps ?? "").trim() && !linkMapsValido(bozza.linkMaps!.trim())) {
+      toast.error(
+        "Il link deve essere di Google Maps (https://maps.app.goo.gl/… o google.com/maps…)",
+      );
+      return;
+    }
     if (modificaEsistente) {
       setConfermaModifica(true);
       return;
@@ -121,7 +128,11 @@ function GestioneEventi() {
   async function conferma() {
     if (!bozza) return;
     try {
-      await salva.mutateAsync({ ...bozza, titolo: bozza.titolo.trim() });
+      await salva.mutateAsync({
+        ...bozza,
+        titolo: bozza.titolo.trim(),
+        linkMaps: (bozza.linkMaps ?? "").trim(),
+      });
       toast.success("Evento salvato");
       setBozza(null);
     } catch {
@@ -369,6 +380,18 @@ function GestioneEventi() {
                 value={bozza.luogo}
                 maxLength={80}
                 onChange={(e) => aggiorna({ luogo: e.target.value })}
+                className={classiInput}
+              />
+            </Campo>
+
+            <Campo label="Link Google Maps (facoltativo)">
+              <input
+                type="url"
+                inputMode="url"
+                value={bozza.linkMaps ?? ""}
+                maxLength={500}
+                placeholder="Incolla il link da Condividi → Copia link"
+                onChange={(e) => aggiorna({ linkMaps: e.target.value })}
                 className={classiInput}
               />
             </Campo>

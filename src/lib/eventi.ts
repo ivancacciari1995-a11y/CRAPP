@@ -9,6 +9,8 @@ export type Evento = {
   tipo: EventoTipo;
   titolo: string;
   luogo: string;
+  /** Link Google Maps del luogo; assente o vuoto = nessun link. */
+  linkMaps?: string | undefined;
   data: string;
   ora: string;
   note: string;
@@ -30,6 +32,7 @@ export type RigaEvento = {
   tipo: string;
   titolo: string;
   luogo: string;
+  link_maps?: string | null;
   data: string;
   ora: string;
   note: string | null;
@@ -47,6 +50,7 @@ export function daRiga(r: RigaEvento): Evento {
     tipo: (r.tipo as EventoTipo) ?? "evento",
     titolo: r.titolo,
     luogo: r.luogo ?? "",
+    linkMaps: r.link_maps ?? "",
     data: r.data,
     ora: r.ora ?? "",
     note: r.note ?? "",
@@ -59,7 +63,7 @@ export function daRiga(r: RigaEvento): Evento {
 }
 
 const COLONNE =
-  "id, tipo, titolo, luogo, data, ora, note, convocati, campionato, casa, pagelle_chiuse, creato_il";
+  "id, tipo, titolo, luogo, link_maps, data, ora, note, convocati, campionato, casa, pagelle_chiuse, creato_il";
 
 /** Categoria mostrata in interfaccia: le amichevoli sono partite fuori campionato. */
 export type CategoriaEvento = "allenamento" | "partita" | "amichevole" | "evento";
@@ -74,6 +78,17 @@ export function daCategoria(c: CategoriaEvento): Pick<Evento, "tipo" | "campiona
   if (c === "partita") return { tipo: "partita", campionato: true };
   if (c === "amichevole") return { tipo: "partita", campionato: false };
   return { tipo: c, campionato: false };
+}
+
+/**
+ * Il link è accettato solo se punta a Google Maps (stesso criterio del CHECK su
+ * `eventi_app.link_maps`): è un URL che gli utenti toccano, quindi niente `javascript:` né siti terzi.
+ */
+const LINK_MAPS =
+  /^https:\/\/(maps\.app\.goo\.gl\/|goo\.gl\/maps\/|maps\.google\.[a-z.]+\/|(www\.)?google\.[a-z.]+\/maps)\S*$/;
+
+export function linkMapsValido(url: string): boolean {
+  return url.length <= 500 && LINK_MAPS.test(url);
 }
 
 export const EVENTI_KEY = ["eventi"] as const;
@@ -124,6 +139,7 @@ export function eventoVuoto(): Evento {
     tipo: "allenamento",
     titolo: "",
     luogo: "",
+    linkMaps: "",
     data: new Date().toISOString().slice(0, 10),
     ora: "20:30",
     note: "",
@@ -144,6 +160,7 @@ export function useSalvaEvento() {
           tipo: evento.tipo,
           titolo: evento.titolo,
           luogo: evento.luogo,
+          link_maps: evento.linkMaps?.trim() || null,
           data: evento.data,
           ora: evento.ora,
           note: evento.note,

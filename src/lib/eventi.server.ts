@@ -1,7 +1,7 @@
 import { daRiga, type Evento, type RigaEvento } from "./eventi";
 
 const COLONNE =
-  "id, tipo, titolo, luogo, data, ora, note, convocati, campionato, casa, pagelle_chiuse";
+  "id, tipo, titolo, luogo, link_maps, data, ora, note, convocati, campionato, casa, pagelle_chiuse";
 
 /** Lettura eventi lato server (route API): stessa conversione del client. */
 export async function leggiEventi(): Promise<Evento[]> {

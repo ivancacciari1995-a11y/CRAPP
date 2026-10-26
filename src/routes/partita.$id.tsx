@@ -133,6 +133,16 @@ function PartitaDetail() {
             <span className="ml-4 inline-flex items-center gap-2">
               <MapPin className="h-4 w-4" /> {evento.luogo}
             </span>
+            {evento.linkMaps ? (
+              <a
+                href={evento.linkMaps}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-4 inline-flex items-center gap-2 font-semibold text-accent underline"
+              >
+                <MapPin className="h-4 w-4" /> Apri su Google Maps
+              </a>
+            ) : null}
           </div>
 
           {evento.note ? (

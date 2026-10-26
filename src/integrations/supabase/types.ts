@@ -145,6 +145,7 @@ export type Database = {
           data: string;
           id: string;
           luogo: string;
+          link_maps: string | null;
           note: string;
           ora: string;
           pagelle_chiuse: boolean;
@@ -160,6 +161,7 @@ export type Database = {
           data: string;
           id: string;
           luogo?: string;
+          link_maps?: string | null;
           note?: string;
           ora?: string;
           pagelle_chiuse?: boolean;
@@ -175,6 +177,7 @@ export type Database = {
           data?: string;
           id?: string;
           luogo?: string;
+          link_maps?: string | null;
           note?: string;
           ora?: string;
           pagelle_chiuse?: boolean;

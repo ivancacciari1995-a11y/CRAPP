@@ -11,6 +11,7 @@ import {
   eventoVisibile,
   rosaConvocata,
   eventoVuoto,
+  linkMapsValido,
   type RigaEvento,
 } from "@/lib/eventi";
 
@@ -35,6 +36,7 @@ assert.deepEqual(daRiga(riga), {
   tipo: "partita",
   titolo: "CRAP - Avversari",
   luogo: "PalaCRAP",
+  linkMaps: "",
   data: "2026-09-01",
   ora: "21:00",
   note: "portare la seconda maglia",
@@ -172,3 +174,32 @@ for (const { nome, convocati, attesi } of casi) {
   assert.equal(eventoVisibile(conv, null, true), true, `admin senza slot: ${nome}`);
 }
 assert.equal(rosaConvocata([], ["g1"]).length, 0, "rosa vuota resta vuota");
+
+// Link Google Maps: solo URL https di Google Maps, e vuoto se la riga non ne ha uno.
+assert.equal(daRiga(riga).linkMaps, "");
+assert.equal(daRiga({ ...riga, link_maps: null }).linkMaps, "");
+assert.equal(
+  daRiga({ ...riga, link_maps: "https://maps.app.goo.gl/abc123" }).linkMaps,
+  "https://maps.app.goo.gl/abc123",
+);
+assert.equal(eventoVuoto().linkMaps, "");
+for (const ok of [
+  "https://maps.app.goo.gl/abc123",
+  "https://goo.gl/maps/xyz",
+  "https://www.google.com/maps/place/PalaCRAP",
+  "https://google.it/maps?q=Cesena",
+  "https://maps.google.com/?q=Cesena",
+]) {
+  assert.equal(linkMapsValido(ok), true, ok);
+}
+for (const ko of [
+  "",
+  "javascript:alert(1)",
+  "http://maps.app.goo.gl/abc123",
+  "https://example.com/maps",
+  "https://maps.app.goo.gl.evil.com/abc",
+  "https://www.google.com/search?q=maps",
+  "https://maps.app.goo.gl/a b",
+]) {
+  assert.equal(linkMapsValido(ko), false, ko);
+}
