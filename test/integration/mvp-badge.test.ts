@@ -14,7 +14,7 @@
  */
 import assert from "node:assert/strict";
 import { badgeDefs, statoBadge } from "@/lib/badges";
-import { mvpVintiPerGiocatore, type VotoMvp } from "@/lib/mvp-voti";
+import { mvpVintiPerGiocatore, type VotoMvp, type VotoMvpPubblico } from "@/lib/mvp-voti";
 import { giocatori, type Giocatore } from "@/lib/crapp-data";
 import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
@@ -52,11 +52,11 @@ if (!locale) {
   }
 
   /** Rilegge esattamente come `useVotiMvp()`. */
-  async function leggiVoti(): Promise<VotoMvp[]> {
+  async function leggiVoti(): Promise<VotoMvpPubblico[]> {
     const res = await rest(
-      `mvp_voti?match_id=like.${PREFISSO}-*&select=match_id,votante_id,votato_id,votato_nome`,
+      `mvp_voti_anonimi?match_id=like.${PREFISSO}-*&select=match_id,votato_id,votato_nome`,
     );
-    return (await res.json()) as VotoMvp[];
+    return (await res.json()) as VotoMvpPubblico[];
   }
 
   /** Un giocatore azzerato, come in `test/unit/badges.test.ts`. */
@@ -68,8 +68,8 @@ if (!locale) {
     await prova(
       "il badge MVP passa da bronzo ad argento con vittorie vere lette dal database",
       async () => {
-        // Il votato "vg1" vince nettamente le partite m1 e m2 (2 voti contro 1), pareggia in
-        // m3 (nessun vincitore) e perde in m4 (0 voti): dopo m1+m2 ha 2 vittorie -> bronzo,
+        // Il votato "vg1" vince nettamente le partite m1 e m2 (2 voti contro 1), in m3 ha un solo
+        // voto (sotto quorum: nessun vincitore) e in m4 nessuno: dopo m1+m2 ha 2 vittorie -> bronzo,
         // non ancora argento (soglia 3). Il votato "vg2" non vince mai: resta senza badge.
         await upsert({
           match_id: `${PREFISSO}-m1`,
@@ -107,17 +107,15 @@ if (!locale) {
           votato_id: "vg1",
           votato_nome: "Uno",
         });
-        await upsert({
-          match_id: `${PREFISSO}-m3`,
-          votante_id: "vb",
-          votato_id: "vg2",
-          votato_nome: "Due",
-        });
 
         const voti = await leggiVoti();
         const vinti = mvpVintiPerGiocatore(voti);
-        assert.equal(vinti["vg1"], 2, "vg1 vince m1 e m2, pareggia in m3 (non conta)");
-        assert.equal(vinti["vg2"] ?? 0, 0, "vg2 non vince mai nettamente");
+        assert.equal(
+          vinti["vg1"],
+          2,
+          "vg1 vince m1 e m2, m3 ha un solo voto (sotto quorum, non conta)",
+        );
+        assert.equal(vinti["vg2"] ?? 0, 0, "vg2 non vince mai");
 
         const badgeVg1 = statoBadge(mvpDef, giocatoreAzzerato(vinti["vg1"] ?? 0));
         assert.equal(badgeVg1.grado, "bronzo", "2 vittorie: soglia bronzo (1) raggiunta");

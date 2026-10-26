@@ -1,11 +1,18 @@
 /** Check dei voti MVP: `bun test/unit/mvp-voti.test.ts`. */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   conteggioPartita,
+  elencoNomi,
   mioVoto,
+  mvpPartita,
   mvpVintiPerGiocatore,
+  DURATA_VOTO_MVP_ORE,
+  ORE_ATTESA_MVP,
   vincitoriMvp,
   votoMvpAperto,
+  votoMvpChiuso,
+  votoMvpInCorso,
   VOTI_MINIMI_MVP,
   type VotoMvp,
 } from "@/lib/mvp-voti";
@@ -44,9 +51,13 @@ assert.deepEqual(
   ["Anna", "Zeno"],
 );
 
-// --- vincitoriMvp: la parità non assegna nessun MVP --------------------------
+// --- vincitoriMvp: la parità in testa assegna l'MVP a tutti i pari merito --------------------------
 assert.deepEqual(vincitoriMvp(partita), { m1: "Bruno", m2: "Anna" });
-assert.deepEqual(vincitoriMvp(pari), {}, "due voti pari: MVP non assegnato");
+assert.deepEqual(
+  vincitoriMvp(pari),
+  { m3: "Anna e Zeno" },
+  "due voti pari in testa: sono MVP entrambi, a pari merito",
+);
 assert.deepEqual(vincitoriMvp([]), {});
 
 // --- vincitoriMvp: quorum minimo di voti -------------------------------------
@@ -69,12 +80,37 @@ const triplaPari = [
   v("m6", "g2", "g8", "Anna"),
   v("m6", "g3", "g7", "Bea"),
 ];
-assert.deepEqual(vincitoriMvp(triplaPari), {}, "primo e secondo pari: nessun MVP anche a 3 vie");
+assert.deepEqual(
+  vincitoriMvp(triplaPari),
+  { m6: "Anna, Bea e Zeno" },
+  "tre pari in testa: tre MVP, in ordine alfabetico",
+);
 assert.deepEqual(
   mvpVintiPerGiocatore(triplaPari),
-  {},
-  "stessa parità: nessuna vittoria netta da contare",
+  { g9: 1, g8: 1, g7: 1 },
+  "ognuno dei pari merito conta un titolo",
 );
+
+// Primo pari col secondo, terzo staccato: il terzo resta fuori.
+const duePariUnoSotto = [
+  v("m7", "g1", "g9", "Zeno"),
+  v("m7", "g2", "g9", "Zeno"),
+  v("m7", "g3", "g8", "Anna"),
+  v("m7", "g4", "g8", "Anna"),
+  v("m7", "g5", "g7", "Bea"),
+];
+assert.deepEqual(
+  mvpPartita(duePariUnoSotto, "m7").map((c) => c.nome),
+  ["Anna", "Zeno"],
+);
+assert.deepEqual(mvpPartita([v("m8", "g1", "g2", "Solo")], "m8"), [], "sotto quorum: nessuno");
+assert.deepEqual(mvpPartita([], "m8"), []);
+
+// --- elencoNomi ---
+assert.equal(elencoNomi([]), "");
+assert.equal(elencoNomi(["Anna"]), "Anna");
+assert.equal(elencoNomi(["Anna", "Bruno"]), "Anna e Bruno");
+assert.equal(elencoNomi(["Anna", "Bruno", "Carla"]), "Anna, Bruno e Carla");
 
 // --- mioVoto -----------------------------------------------------------------
 assert.equal(mioVoto(partita, "m1", "g1")?.votato_nome, "Bruno");
@@ -89,8 +125,8 @@ assert.deepEqual(
 );
 assert.deepEqual(
   mvpVintiPerGiocatore([...partita, ...pari]),
-  { g2: 1, g5: 1 },
-  "la parità non assegna",
+  { g2: 1, g5: 1, g9: 1, g8: 1 },
+  "m3 è pari: i due pari merito prendono un titolo ciascuno",
 );
 assert.deepEqual(
   mvpVintiPerGiocatore([...partita, v("m5", "g1", "g2", "Bruno"), v("m5", "g3", "g2", "Bruno")]),
@@ -113,5 +149,33 @@ assert.equal(votoMvpAperto("2026-09-06", "10:00", alle(23)), false, "partita di 
 assert.equal(votoMvpAperto("2026-09-04", "20:30", alle(0, 1)), true, "partita passata: aperto");
 assert.equal(votoMvpAperto("2026-09-05", "", alle(1, 59)), false, "senza ora vale mezzanotte");
 assert.equal(votoMvpAperto("2026-09-05", "", alle(2)), true);
+
+// --- votoMvpChiuso: 24 ore dopo l'apertura (2 ore dopo l'inizio) -----------------
+assert.equal(DURATA_VOTO_MVP_ORE, 24);
+const giorno = (g: number, o: number, m = 0) => new Date(2026, 8, g, o, m);
+// partita del 5/9 alle 20:30: apre il 5 alle 22:30, chiude il 6 alle 22:30
+assert.equal(votoMvpChiuso("2026-09-05", "20:30", giorno(6, 22, 29)), false, "un minuto prima");
+assert.equal(votoMvpChiuso("2026-09-05", "20:30", giorno(6, 22, 30)), true, "24 ore in punto");
+assert.equal(votoMvpChiuso("2026-09-05", "20:30", giorno(20, 12)), true, "partita vecchia");
+assert.equal(votoMvpChiuso("2026-09-05", "20:30", giorno(5, 12)), false, "prima della partita");
+assert.equal(votoMvpInCorso("2026-09-05", "20:30", giorno(5, 21)), false, "non ancora aperto");
+assert.equal(votoMvpInCorso("2026-09-05", "20:30", giorno(5, 23)), true, "aperto");
+assert.equal(votoMvpInCorso("2026-09-05", "20:30", giorno(7, 8)), false, "chiuso");
+assert.equal(votoMvpChiuso("2026-09-05", "", giorno(6, 1, 59)), false, "senza ora vale mezzanotte");
+assert.equal(votoMvpChiuso("2026-09-05", "", giorno(6, 2)), true);
+
+// --- l'app e il database (M36, M37) hanno la stessa finestra -----------------------
+const m37 = readFileSync(
+  "supabase/migrations/20261026170000_m37_voto_mvp_segreto_e_chiusura.sql",
+  "utf8",
+);
+assert.ok(
+  m37.includes(`interval '${ORE_ATTESA_MVP} hours'`),
+  "ORE_ATTESA_MVP e l'attesa di voto_mvp_consentito() devono coincidere",
+);
+assert.ok(
+  m37.includes(`interval '${DURATA_VOTO_MVP_ORE} hours'`),
+  "DURATA_VOTO_MVP_ORE e la chiusura di voto_mvp_consentito() devono coincidere",
+);
 
 console.log("mvp-voti: ok");
