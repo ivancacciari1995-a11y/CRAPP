@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 06/10/2026
+Ultimo aggiornamento: 26/10/2026
 
 Questo file dice **a che punto siamo ora**. Le funzionalità stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), i rilasci in [docs/CHANGELOG.md](docs/CHANGELOG.md), lo
@@ -9,27 +9,35 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.4.2 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — ogni evento può avere un link
-  Google Maps del luogo, mostrato come «Apri su Maps» nelle schede (`m34`). La 1.4.1: gli eventi con
-  convocati si vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo
-  loro. La 1.4.0: avviso «Presenza modificata» ad admin e
-  allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario mostra solo i prossimi
-  compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta lampo» e «Mai un forfait». La 1.3.0
-  portava la notifica di compleanno, gli obiettivi cliccabili, le presenze sui convocati, gli avvisi in Home
-  ridisegnati e i caratteri più grandi. Dettaglio in [docs/CHANGELOG.md](docs/CHANGELOG.md).
+- **Versione:** 1.4.2 in produzione su `main` (tag `v1.4.2`): ogni evento può avere un link Google
+  Maps del luogo, mostrato come «Apri su Maps» nelle schede (`m34`). Su `feature/gara` c'è del lavoro
+  non ancora rilasciato (voto MVP, vedi «Lavoro in corso»). La 1.4.1: gli eventi con convocati si
+  vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo loro. La 1.4.0:
+  avviso «Presenza modificata» ad admin e allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario
+  mostra solo i prossimi compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta
+  lampo» e «Mai un forfait». La 1.3.0 portava la notifica di compleanno, gli obiettivi cliccabili, le
+  presenze sui convocati, gli avvisi in Home ridisegnati e i caratteri più grandi. Dettaglio in
+  [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 45 file in `supabase/migrations/`, fino a `m34_link_maps_evento` (colonna `eventi_app.link_maps`, applicata il 26/10/2026). Tutte applicate in produzione (verificato con `npx supabase migration list` il
-  26/10/2026; la `m32` è l'avviso «Presenza modificata» ai soli admin, DD-050). La `m33`, che lo estende agli allenatori, è stata applicata il 09/10/2026. La `m29` toglie
-  `foto_path`: il codice che non la legge più (1.2.2) va rilasciato.
+- **Migration:** 49 file in `supabase/migrations/`, fino a `m38_nome_votato_badge_social`. In produzione
+  sono applicate 45 su 49, fino alla `m34_link_maps_evento` (verificato con
+  `npx supabase migration list --linked` il 26/10/2026: le uniche mancanti sono `m35`-`m38`, nessuna
+  migration remota è assente dal repository). **Da applicare ancora: `m35`-`m38`**
+  (voto MVP e badge social, DD-051 e DD-052, branch `feature/gara`): `npx supabase db push` è rinviato
+  per scelta, non è stato eseguito. Vanno applicate subito prima del rilascio del codice: con le sole
+  migration il voto MVP dell'app in produzione (1.4.2) smette di funzionare, con il solo codice la
+  vista dei conteggi non esiste.
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo
   è su `main` dalla 1.3.0.
 - **Accesso:** il login Google è l'unica via d'ingresso; i permessi di amministrazione arrivano
   solo da `user_roles`. Il collegamento degli account è un processo continuo: ogni giocatore si
   collega al primo accesso (DD-018).
-- **Lavoro in corso:** niente di assegnato. Le voci aperte stanno in
-  [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+- **Lavoro in corso:** branch `feature/gara` per le funzioni di gara (correzioni e nuove
+  funzioni; in futuro anche lo scouting). Primo lavoro: il voto MVP definitivo, segreto, a tempo e
+  tra presenti, con i pari merito (DD-051, DD-052). Non ancora in `main`, non rilasciato, versione
+  invariata. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ## Cose da sapere
 

@@ -87,6 +87,8 @@ Una decisione sostituita non si cancella: si cambia il suo **Stato** e si rimand
 | [DD-039](DD-039.md) | Niente promemoria all'allenatore                          |
 | [DD-040](DD-040.md) | Palloni e solleciti automatici                            |
 | [DD-050](DD-050.md) | Avviso se una presenza cambia a meno di 6 ore dall'evento |
+| [DD-051](DD-051.md) | Voto MVP definitivo e MVP a pari merito                   |
+| [DD-052](DD-052.md) | Voto MVP segreto, nome dal database e chiusura            |
 | [DD-049](DD-049.md) | Caratteri più grandi in tutta l'app                       |
 | [DD-048](DD-048.md) | Via la tessera dalla dashboard                            |
 | [DD-047](DD-047.md) | Notifica di compleanno                                    |

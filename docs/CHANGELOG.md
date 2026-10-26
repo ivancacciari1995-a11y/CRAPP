@@ -13,6 +13,29 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+Quattro migration, da `m35` a `m38`, **non ancora applicate in produzione**.
+
+### Modificato
+
+- Il voto MVP è definitivo ([DD-051](decisions/DD-051.md)): si sceglie un nome, si conferma e non si
+  può più cambiare. Il database lo impone (solo gli admin possono correggere un voto).
+- In caso di parità in testa gli MVP sono più d'uno: ognuno dei pari merito conta un titolo, e in
+  Home e Classifica compaiono i nomi uniti («Anna e Bruno»). Resta il minimo di 2 voti per eleggere
+  un MVP.
+- Il voto MVP è segreto ([DD-052](decisions/DD-052.md)): nessuno vede chi ha votato chi, solo i
+  conteggi e il proprio voto.
+- La votazione MVP si chiude 24 ore dopo l'apertura (cioè 26 ore dopo l'inizio della partita): le
+  partite più vecchie non si votano più.
+
+### Sicurezza
+
+- Il database impone anche le regole che prima valevano solo nell'app: il voto MVP è possibile solo per
+  una partita, tra presenti (`presente` o `ritardo`) e dopo 2 ore dall'inizio (`m36`,
+  [DD-051](decisions/DD-051.md)). Gli admin possono ancora correggere un voto.
+- Il nome del votato lo scrive il database dalla rosa, per i voti MVP (`m37`) e per i badge social
+  (`m38`): un client non può più salvare un nome diverso da quello del giocatore votato. In
+  produzione non risultavano voti MVP, quindi nessun dato da bonificare.
+
 ## [1.4.2] - 2026-10-26
 
 Link Google Maps del luogo degli eventi. Una migration, `m34`, applicata in produzione il
