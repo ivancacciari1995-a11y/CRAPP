@@ -13,11 +13,21 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.5.0] - 2026-10-29
+
+Campionato CSI 2026/27. Nessuna migration.
+
 ### Modificato
 
 - Campionato CSI passato alla stagione 2026/27: nuovo `project_id` (933) e nuovo `team_id`
   (3878). La Coppa non c'è quest'anno e la sezione resta nascosta; lo storico 2025/26 non viene
-  più mostrato. Nessuna modifica al database.
+  più mostrato.
+
+### Dati
+
+- Calendario di produzione aggiornato a mano con le 12 gare di campionato già definite dal CSI
+  (4/11/2026 – 11/3/2027): titolo «CAMPIONATO», luogo e link Google Maps dell'impianto. I 9
+  allenamenti nello stesso giorno di una gara sono stati eliminati.
 
 ## [1.4.2] - 2026-10-26
 

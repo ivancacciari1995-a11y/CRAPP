@@ -9,7 +9,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.4.2 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — ogni evento può avere un link
+- **Versione:** 1.5.0 (in produzione su `main` la 1.3.0, tag `v1.3.0`) — campionato CSI sulla
+  stagione 2026/27 (nuovi `project_id` e `team_id`, nessuna Coppa). La 1.4.2: ogni evento può avere un link
   Google Maps del luogo, mostrato come «Apri su Maps» nelle schede (`m34`). La 1.4.1: gli eventi con
   convocati si vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo
   loro. La 1.4.0: avviso «Presenza modificata» ad admin e
