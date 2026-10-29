@@ -333,42 +333,51 @@ assert.equal(
 if (process.env["CSI_LIVE"]) {
   const [html, htmlCoppa, json] = await Promise.all([
     fetch(urlClassifica()).then((r) => r.text()),
-    fetch(urlClassifica(CSI_COPPA_PROJECT_ID)).then((r) => r.text()),
+    CSI_COPPA_PROJECT_ID === null
+      ? Promise.resolve("")
+      : fetch(urlClassifica(CSI_COPPA_PROJECT_ID)).then((r) => r.text()),
     fetch(urlPartite()).then((r) => r.json()),
   ]);
   const live = parseClassifica(html);
   const nostra = live.find((r) => isNostraSquadra(r.squadra));
   assert.ok(nostra, "la nostra squadra è in classifica");
-  assert.ok(live.length >= 8 && nostra.giocate > 0);
+  assert.ok(live.length >= 7); // a inizio stagione le giocate sono ancora 0
   const liveCoppa = parseClassifica(htmlCoppa);
-  assert.ok(
-    liveCoppa.some((r) => isNostraSquadra(r.squadra)),
-    "la nostra squadra è nel girone di Coppa",
-  );
+  if (CSI_COPPA_PROJECT_ID !== null) {
+    assert.ok(
+      liveCoppa.some((r) => isNostraSquadra(r.squadra)),
+      "la nostra squadra è nel girone di Coppa",
+    );
+  }
   const livePartite = partiteDaEventi(json);
   const liveGiocate = partiteGiocate(livePartite);
-  assert.ok(livePartite.length > 0 && liveGiocate.length > 0);
+  assert.ok(livePartite.length > 0, "calendario presente"); // liveGiocate può essere vuoto a inizio stagione
   assert.ok(
     liveGiocate.every((p) => p.link.startsWith("https://")),
     "ogni partita ha un referto",
   );
 
-  const primaGiocata = liveGiocate[0]!;
-  const [liveMain, livePlayers, liveStats] = await Promise.all([
-    fetch(urlPartitaInfo(primaGiocata.id)).then((r) => r.text()),
-    fetch(urlPartitaFormazioni(primaGiocata.id)).then((r) => r.text()),
-    fetch(urlPartitaPrecedenti(primaGiocata.id)).then((r) => r.text()),
-  ]);
-  const liveFormazioni = parseFormazioni(livePlayers);
-  assert.ok(liveFormazioni, "formazioni riconosciute per una gara già giocata");
-  assert.ok(isNostraSquadra(liveFormazioni!.noi.squadra));
-  const livePrecedenti = parsePrecedenti(liveStats);
-  assert.ok(livePrecedenti, "precedenti riconosciuti");
-  console.log(
-    `live: ${live.length} squadre, ${livePartite.length} partite, noi ${nostra.pos}°, ` +
-      `${parseInfoPartita(liveMain).giornata || "(senza giornata)"}, ` +
-      `formazione ${liveFormazioni!.noi.titolari.length} titolari`,
-  );
+  // A inizio stagione nessuna gara è ancora giocata: niente referto da leggere.
+  if (liveGiocate.length === 0) {
+    console.log(`live: ${live.length} squadre, ${livePartite.length} partite, nessuna giocata`);
+  } else {
+    const primaGiocata = liveGiocate[0]!;
+    const [liveMain, livePlayers, liveStats] = await Promise.all([
+      fetch(urlPartitaInfo(primaGiocata.id)).then((r) => r.text()),
+      fetch(urlPartitaFormazioni(primaGiocata.id)).then((r) => r.text()),
+      fetch(urlPartitaPrecedenti(primaGiocata.id)).then((r) => r.text()),
+    ]);
+    const liveFormazioni = parseFormazioni(livePlayers);
+    assert.ok(liveFormazioni, "formazioni riconosciute per una gara già giocata");
+    assert.ok(isNostraSquadra(liveFormazioni!.noi.squadra));
+    const livePrecedenti = parsePrecedenti(liveStats);
+    assert.ok(livePrecedenti, "precedenti riconosciuti");
+    console.log(
+      `live: ${live.length} squadre, ${livePartite.length} partite, noi ${nostra.pos}°, ` +
+        `${parseInfoPartita(liveMain).giornata || "(senza giornata)"}, ` +
+        `formazione ${liveFormazioni!.noi.titolari.length} titolari`,
+    );
+  }
 }
 
 // --- stagioneDi / stagioneDaPartite: l'anno cambia ad agosto ------------------
@@ -377,6 +386,8 @@ assert.equal(stagioneDi("2026-05-20"), "2025/26");
 assert.equal(stagioneDi("2026-07-31"), "2025/26");
 assert.equal(stagioneDi("2026-08-01"), "2026/27");
 assert.equal(stagioneDi("2099-10-01"), "2099/00");
+assert.equal(stagioneDi("2026-11-04"), "2026/27", "prima gara del campionato 2026/27");
+assert.equal(stagioneDi("2027-03-11"), "2026/27", "ultima gara del campionato 2026/27");
 assert.equal(stagioneDaPartite([]), null);
 assert.equal(
   stagioneDaPartite([{ data: "2026-03-04" }, { data: "2025-11-12" }, { data: "" }]),

@@ -33,7 +33,9 @@ async function leggiCsi(): Promise<DatiCsi> {
     scarica(urlClassifica()),
     // Non blocca la risposta se fallisce: la Coppa è un dato supplementare, non critico
     // come classifica/partite del girone (vedi il controllo sotto).
-    scarica(urlClassifica(CSI_COPPA_PROJECT_ID)).catch(() => ""),
+    CSI_COPPA_PROJECT_ID === null
+      ? Promise.resolve("")
+      : scarica(urlClassifica(CSI_COPPA_PROJECT_ID)).catch(() => ""),
     scarica(urlPartite()),
   ]);
   const classifica = parseClassifica(html);

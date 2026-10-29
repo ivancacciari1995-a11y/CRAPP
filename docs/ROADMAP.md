@@ -31,7 +31,7 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
       resta un'estensione futura
 - [x] Gestione tesseramenti CSI — raccolta dati ed export CSV; il tracciamento di numero e data
       di tessera è stato tolto dalla dashboard (DD-048)
-- [x] Collegamento CSI (stagione 2025/26)
+- [x] Collegamento CSI (stagione 2026/27)
 - [x] Classifica automatica (campionato e Coppa)
 - [x] Risultati campionato
 - [x] Dettaglio partita — formazioni, storico scontri diretti e probabilità di vittoria

@@ -8,16 +8,17 @@ import type { RigaClassifica } from "./crapp-data";
  */
 
 export const CSI_BASE = "https://livescore.csibologna.it";
-/** Campionato Open Misto Eccellenza 2025/26. Cambia a ogni stagione. */
-export const CSI_PROJECT_ID = 767;
+/** Campionato Open Misto Eccellenza 2026/27. Cambia a ogni stagione. */
+export const CSI_PROJECT_ID = 933;
 /**
- * Coppa CSI Misto Silver 2025/26. Stesso formato di tabella del campionato (girone
- * all'italiana), solo con meno squadre: `parseClassifica()` funziona invariata. Cambia a
- * ogni stagione come CSI_PROJECT_ID, vedi docs/modules/collegamento-csi.md.
+ * Coppa CSI della stagione in corso, `null` se la squadra non è iscritta (nel 2026/27 non c'è).
+ * Stesso formato di tabella del campionato (girone all'italiana), solo con meno squadre:
+ * `parseClassifica()` funziona invariata. Cambia a ogni stagione come CSI_PROJECT_ID, vedi
+ * docs/modules/collegamento-csi.md.
  */
-export const CSI_COPPA_PROJECT_ID = 848;
-/** C.R.A.P. Volley sul portale CSI. */
-export const CSI_TEAM_ID = 3359;
+export const CSI_COPPA_PROJECT_ID: number | null = null;
+/** C.R.A.P. Volley sul portale CSI: l'id cambia a ogni stagione (2025/26 era 3359). */
+export const CSI_TEAM_ID = 3878;
 export const CSI_GIRONE = "Girone B";
 export const CSI_NOME_SQUADRA = "C.R.A.P. Volley";
 
@@ -133,7 +134,7 @@ export type DettaglioPartitaCsi = {
 
 export type DatiCsi = {
   classifica: RigaClassifica[];
-  /** Classifica del girone di Coppa (project_id 848). Vuota se il parsing fallisce. */
+  /** Classifica del girone di Coppa (`CSI_COPPA_PROJECT_ID`). Vuota se il parsing fallisce. */
   classificaCoppa: RigaClassifica[];
   partite: PartitaCsi[];
   girone: string;

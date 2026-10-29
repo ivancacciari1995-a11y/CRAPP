@@ -9,9 +9,10 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.4.2 in produzione su `main` (tag `v1.4.2`): ogni evento può avere un link Google
-  Maps del luogo, mostrato come «Apri su Maps» nelle schede (`m34`). Su `feature/gara` c'è del lavoro
-  non ancora rilasciato (voto MVP, vedi «Lavoro in corso»). La 1.4.1: gli eventi con convocati si
+- **Versione:** 1.5.0 su `main` (tag `v1.5.0`): campionato CSI sulla stagione 2026/27 (nuovi `project_id`
+  e `team_id`, nessuna Coppa). Su `feature/gara` c'è del lavoro non ancora rilasciato (voto MVP, vedi
+  «Lavoro in corso»). La 1.4.2: ogni evento può avere un link Google Maps del luogo, mostrato come
+  «Apri su Maps» nelle schede (`m34`). La 1.4.1: gli eventi con convocati si
   vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo loro. La 1.4.0:
   avviso «Presenza modificata» ad admin e allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario
   mostra solo i prossimi compleanni del mese; tolta la serie «Conferme 24h» con i badge «Risposta

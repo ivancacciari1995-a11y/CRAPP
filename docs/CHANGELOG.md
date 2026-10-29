@@ -36,6 +36,22 @@ Quattro migration, da `m35` a `m38`, **non ancora applicate in produzione**.
   (`m38`): un client non può più salvare un nome diverso da quello del giocatore votato. In
   produzione non risultavano voti MVP, quindi nessun dato da bonificare.
 
+## [1.5.0] - 2026-10-29
+
+Campionato CSI 2026/27. Nessuna migration.
+
+### Modificato
+
+- Campionato CSI passato alla stagione 2026/27: nuovo `project_id` (933) e nuovo `team_id`
+  (3878). La Coppa non c'è quest'anno e la sezione resta nascosta; lo storico 2025/26 non viene
+  più mostrato.
+
+### Dati
+
+- Calendario di produzione aggiornato a mano con le 12 gare di campionato già definite dal CSI
+  (4/11/2026 – 11/3/2027): titolo «CAMPIONATO», luogo e link Google Maps dell'impianto. I 9
+  allenamenti nello stesso giorno di una gara sono stati eliminati.
+
 ## [1.4.2] - 2026-10-26
 
 Link Google Maps del luogo degli eventi. Una migration, `m34`, applicata in produzione il
