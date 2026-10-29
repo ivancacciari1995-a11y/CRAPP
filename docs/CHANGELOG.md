@@ -13,6 +13,12 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- Campionato CSI passato alla stagione 2026/27: nuovo `project_id` (933) e nuovo `team_id`
+  (3878). La Coppa non c'è quest'anno e la sezione resta nascosta; lo storico 2025/26 non viene
+  più mostrato. Nessuna modifica al database.
+
 ## [1.4.2] - 2026-10-26
 
 Link Google Maps del luogo degli eventi. Una migration, `m34`, applicata in produzione il

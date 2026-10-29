@@ -1,6 +1,6 @@
 # Modulo — Collegamento CSI
 
-**Stato:** implementato (stagione 2025/26)
+**Stato:** implementato (stagione 2026/27)
 **Route interessate:** `/classifica` (classifica e storico), `/partita/$id` e `/partita-csi/$id`
 (dettaglio di una gara: formazioni e scontri diretti)
 
@@ -28,52 +28,50 @@ verificato leggendo `assets/js/project.js` e `assets/js/team.js`, referenziati i
 alle due pagine. Servono solo per la consultazione manuale nel browser (es. per ritrovare
 un `project_id`), nessun codice le chiama direttamente.
 
-### Identificativi (stagione 2025/26)
+### Identificativi (stagione 2026/27)
 
 | Cosa                  | Valore                                 |
 | --------------------- | -------------------------------------- |
 | Campionato            | PVM - Campionato Open Misto Eccellenza |
-| `project_id` (girone) | `767`                                  |
-| Coppa                 | PVM Coppa CSI Misto Silver             |
-| `project_id` (coppa)  | `848`                                  |
-| Squadra sul portale   | `C.R.A.P. Volley` (con i punti)        |
-| `team_id`             | `3359`                                 |
-| Girone                | B                                      |
+| `project_id` (girone) | `933`                                  |
+| Coppa                 | nessuna: la squadra non è iscritta     |
+| `project_id` (coppa)  | `null`                                 |
+| Squadra sul portale   | `C.R.A.P. Volley`                      |
+| `team_id`             | `3878`                                 |
+| Girone                | B (7 squadre)                          |
 
-`project_id` (767), `CSI_COPPA_PROJECT_ID` (848) e `team_id` (3359) sono costanti in
+`project_id` (933), `CSI_COPPA_PROJECT_ID` (`null`) e `team_id` (3878) sono costanti in
 `src/lib/csi-core.ts`.
 
-**Stagione 2026/27 non ancora sul portale (verificato il 24/09/2026).** Il CSI non ha ancora
-creato le pagine di campionato e Coppa 2026/27: le uniche competizioni della squadra sono
-ancora `767` e `848`, con gare da novembre 2025 a maggio 2026. Per questo `/classifica`
-mostra «Stagione 2025/26» mentre Squadra e Calendario, che hanno la stagione scritta nel
-codice, mostrano già «Stagione 2026/27». È voluto: la pagina Campionato riporta la stagione
-dei dati CSI che sta mostrando, non quella in corso per la squadra. Quando il CSI pubblica
-la nuova stagione si aggiornano i due `project_id` (vedi sotto) e l'etichetta passa da sola
-a 2026/27 ([DD-032](../decisions/DD-032.md)).
+**A ogni stagione il CSI crea una nuova squadra, con un nuovo `team_id`.** Il 2025/26 era
+`3359` (campionato `767`, Coppa `848`); verificato il 29/10/2026 che `getEventsByTeamId.php`
+per `3878` restituisce solo le 12 gare 2026/27 (4/11/2026 – 11/3/2027), nessuna giocata, e per
+`3359` solo quelle del 2025/26. Cambiando `team_id` lo storico della stagione scorsa sparisce
+da `/classifica`: è voluto, si lascia perdere la stagione passata. A inizio stagione la
+classifica è tutta a zero (giocate 0): non è un errore di parsing.
 
-Per ritrovare questi id a ogni cambio stagione: `components/team-main.php?team_id=3359`
-(dietro `team_details.php`) contiene una sezione "Campionati" con un link
-`league_details.php?project_id=…` per ogni competizione a cui la squadra è iscritta —
-verificato chiamando l'endpoint direttamente, che oggi restituisce sia
-`project_id=848` (Coppa) sia `project_id=767` (Campionato). Non serve aprire
-`team_details.php` nel browser, questo componente basta.
+Per ritrovare gli id a ogni cambio stagione: aprire `team_details.php?team_id=<nuovo id>` (il
+`team_id` si legge dal link della squadra nella pagina del girone) oppure
+`components/team-main.php?team_id=<id>`, che contiene una sezione "Campionati" con un link
+`league_details.php?project_id=…` per ogni competizione a cui la squadra è iscritta (oggi solo
+`933`). Se il CSI crea una Coppa e la squadra vi è iscritta, compare qui: si mette il suo id in
+`CSI_COPPA_PROJECT_ID` e la sezione ricompare in `/classifica`.
 
 ### Endpoint usati dall'app
 
-| Endpoint                                         | Formato | Uso                                                                | Pagina "umana" corrispondente                                           |
-| ------------------------------------------------ | ------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| `components/project-sheets.php?project_id=767`   | HTML    | Classifica completa dei due gironi di campionato                   | `league_details.php?project_id=767` (tab "Classifica")                  |
-| `components/project-sheets.php?project_id=848`   | HTML    | Classifica del girone di Coppa (solo fase a gironi, vedi limite 4) | `league_details.php?project_id=848` (tab "Classifica")                  |
-| `assets/json/getEventsByTeamId.php?team_id=3359` | JSON    | Tutte le gare della squadra                                        | `team_details.php?team_id=3359` (tab "Calendario", `team-calendar.php`) |
+| Endpoint                                           | Formato | Uso                                                                                         | Pagina "umana" corrispondente                                           |
+| -------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `components/project-sheets.php?project_id=933`     | HTML    | Classifica completa dei due gironi di campionato                                            | `league_details.php?project_id=933` (tab "Classifica")                  |
+| `components/project-sheets.php?project_id=<Coppa>` | HTML    | Classifica del girone di Coppa, solo se `CSI_COPPA_PROJECT_ID` non è `null` (vedi limite 4) | `league_details.php?project_id=<Coppa>` (tab "Classifica")              |
+| `assets/json/getEventsByTeamId.php?team_id=3878`   | JSON    | Tutte le gare della squadra                                                                 | `team_details.php?team_id=3878` (tab "Calendario", `team-calendar.php`) |
 
 **Formato di `project-sheets.php`** — tabella HTML per girone (una per `<table>`,
 `parseClassifica()` in `csi-core.ts` prende quella che contiene il nome della squadra).
 Colonne per `<td>` (0-indicizzate): `0` Pos · `1` Squadra (nome + logo + link a
 `team_details.php?team_id=…`) · `2` Punti · `3` Partite giocate · `4` Vinte · `5` Perse ·
 `6`-`7` Tie-break vinti/persi (non lette) · `8` Set fatti · `9` Set subiti · poi punti
-fatti/subiti, quoziente, ultime cinque (non lette). Stessa struttura per `project_id=767`
-(campionato) e `project_id=848` (fase a gironi della Coppa): `parseClassifica()` è
+fatti/subiti, quoziente, ultime cinque (non lette). Stessa struttura per il campionato
+(`project_id=933`) e per la fase a gironi della Coppa, quando c'è: `parseClassifica()` è
 condivisa, nessun parser dedicato per la Coppa.
 
 **Formato di `getEventsByTeamId.php`** — array JSON, un oggetto per gara (girone **e**
@@ -247,9 +245,10 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    ancora disponibile" (o l'ultimo dato buono in cache, se ce n'è uno) e i risultati ricadono
    sulle partite dello Scout Live locale, non su dati demo — non esistono più in `crapp-data.ts`.
    Il check con `CSI_LIVE=1` serve a scoprire il problema di parsing.
-2. **`project_id` è legato alla stagione.** Per il 2026/27 servirà un nuovo id (vedi
-   "Sorgente dati" sopra per come ritrovarlo). Oggi va aggiornato a mano in `csi-core.ts`.
-   L'etichetta «Stagione 2025/26» di `/classifica` invece non va toccata: il portale non
+2. **`project_id` e `team_id` sono legati alla stagione.** Per il 2027/28 serviranno due nuovi
+   id (vedi "Sorgente dati" sopra per come ritrovarli): vanno aggiornati a mano in
+   `csi-core.ts`, e lo storico della stagione precedente sparisce (DD-032 non lo conserva).
+   L'etichetta «Stagione 2026/27» di `/classifica` invece non va toccata: il portale non
    espone il nome della stagione, quindi `stagioneDi()`/`stagioneDaPartite()` la ricavano
    dalla data delle gare (l'anno cambia ad agosto) e segue da sola il nuovo `project_id`.
 3. **La cache vive nel processo del server.** Si perde a ogni cold start e non è condivisa tra
@@ -258,20 +257,21 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
    dati in una tabella Supabase riempita da un job cron (stesso pattern di
    `promemoria-palloni`).
 4. **Le partite includono sia il girone di campionato sia la Coppa, mescolate.**
-   `getEventsByTeamId.php?team_id=3359` è per squadra, non per competizione (vedi tabella
+   `getEventsByTeamId.php?team_id=3878` è per squadra, non per competizione (vedi tabella
    endpoint sopra): risponde con tutte le gare di `C.R.A.P. Volley`. Il campo `project`
    distingue le due nel JSON grezzo, ma `partiteDaEventi()` (`csi-core.ts`) oggi non lo usa
    per filtrare: tutte le gare finiscono in `DatiCsi.partite` senza distinzione (`storico
 partite` in `/classifica` le mostra tutte insieme). Se in futuro servisse separarle, il
    filtro va aggiunto su `evento.project` in `partiteDaEventi()`.
-   **La classifica della Coppa, invece, è mostrata** (sopra quella del girone in
-   `/classifica`): `project-sheets.php?project_id=848` (`CSI_COPPA_PROJECT_ID`) ha la stessa
-   struttura a tabella-per-girone di `project_id=767`, quindi `parseClassifica()` funziona
+   **La classifica della Coppa, invece, è mostrata quando c'è** (sopra quella del girone in
+   `/classifica`; nel 2026/27 `CSI_COPPA_PROJECT_ID` è `null` e la sezione non compare). Nel
+   2025/26 era `project_id=848`: `project-sheets.php` ha la stessa
+   struttura a tabella-per-girone del campionato, quindi `parseClassifica()` funziona
    invariata — nessun parser dedicato. Resta un limite: quella pagina copre **solo la fase a
    gironi**. La Coppa (PVM Coppa CSI Misto Silver) prevede due gironi da 4 squadre sola
    andata seguiti da una finale secca tra le due vincenti, disputata in un `project_id`
    figlio separato generato a fine fase a gironi (verificato con `curl` diretto:
-   `project-main.php?project_id=848` descrive il regolamento — "due gironi sola andata, le
+   `project-main.php?project_id=848` (2025/26) descrive il regolamento — "due gironi sola andata, le
    due vincenti in finale, gare 3 set su 5" — e `project-sheets.php?project_id=848` mostra
    sia le due classifiche a girone sia, in un'altra sezione della stessa risposta, il
    tabellone a eliminazione con quel `project_id` figlio). Se la squadra arrivasse in
