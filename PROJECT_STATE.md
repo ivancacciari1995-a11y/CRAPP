@@ -1,6 +1,6 @@
 # Project State
 
-Ultimo aggiornamento: 26/10/2026
+Ultimo aggiornamento: 02/11/2026
 
 Questo file dice **a che punto siamo ora**. Le funzionalità stanno in
 [docs/ROADMAP.md](docs/ROADMAP.md), i rilasci in [docs/CHANGELOG.md](docs/CHANGELOG.md), lo
@@ -21,11 +21,11 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 49 file in `supabase/migrations/`, fino a `m38_nome_votato_badge_social`. In produzione
-  sono applicate 45 su 49, fino alla `m34_link_maps_evento` (verificato con
-  `npx supabase migration list --linked` il 26/10/2026: le uniche mancanti sono `m35`-`m38`, nessuna
-  migration remota è assente dal repository). **Da applicare ancora: `m35`-`m38`**
-  (voto MVP e badge social, DD-051 e DD-052, branch `feature/gara`): `npx supabase db push` è rinviato
+- **Migration:** 50 file in `supabase/migrations/`, fino a `m39_scout_valutazioni`. In produzione
+  sono applicate 45 su 50, fino alla `m34_link_maps_evento` (verificato con
+  `npx supabase migration list --linked` il 26/10/2026: le uniche mancanti sono `m35`-`m39`, nessuna
+  migration remota è assente dal repository). **Da applicare ancora: `m35`-`m39`**
+  (voto MVP e badge social, DD-051 e DD-052, valutazioni dello scout, DD-053; branch `feature/gara`): `npx supabase db push` è rinviato
   per scelta, non è stato eseguito. Vanno applicate subito prima del rilascio del codice: con le sole
   migration il voto MVP dell'app in produzione (1.4.2) smette di funzionare, con il solo codice la
   vista dei conteggi non esiste.
@@ -38,7 +38,7 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 - **Lavoro in corso:** branch `feature/gara` per le funzioni di gara (correzioni e nuove
   funzioni; in futuro anche lo scouting). Primo lavoro: il voto MVP definitivo, segreto, a tempo e
   tra presenti, con i pari merito (DD-051, DD-052). Poi lo scout live ridotto alle valutazioni − / +
-  per set (DD-053), salvate subito su database. Migration `m39` da applicare in produzione. Non ancora in `main`, non rilasciato, versione
+  per set (DD-053), salvate subito su database. Non ancora in `main`, non rilasciato, versione
   invariata. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ## Cose da sapere

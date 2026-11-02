@@ -330,7 +330,7 @@ function ScoutBoard({
       toast.error("Salvataggio non riuscito, riprova");
       return;
     }
-    toast.success("Partita salvata: ora la squadra può votare l'MVP");
+    toast.success("Partita salvata");
     finito.current = true;
     void cancella.mutateAsync(partita.id);
     onFine();
