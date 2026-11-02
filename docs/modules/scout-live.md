@@ -66,7 +66,7 @@ perché occupava spazio 6 giorni su 7.
 
 ## Cosa registra
 
-La schermata `/scout` ha due passi: **1. Tocca il giocatore** (griglia dei convocati, filtrati sulle
+La schermata `/scout` ha due passi: **Selezione giocatore** (griglia dei convocati, ordinata per cognome o per numero con il selettore a destra del titolo, default cognome; in ogni riquadro, sotto il nome, i **+** del giocatore nel set in corso, ricezione esclusa; filtrati sulle
 risposte "presente"/"ritardo", con fallback a tutta la rosa se nessuno ha risposto) e **2. Valuta**
 (vedi sotto), seguiti da «Ultime azioni», «Chiudi set» e «Fine partita». Salvataggio automatico su
 `scout_live` con debounce di 800ms a ogni cambiamento.
@@ -85,7 +85,7 @@ leggono le partite scoutate prima di questa modifica, ma oggi nessuna schermata 
 
 Per ogni convocato lo scout può segnare un **−** o un **+** su battuta, ricezione, attacco e muro
 ([DD-053](../decisions/DD-053.md)). Non sono punti: restano fuori dal punteggio, dai parziali e dai
-totali P/A/M/E. Si seleziona il giocatore (passo 1) e si tocca − o + sul fondamentale (passo 2, il cui titolo mostra
+totali P/A/M/E. Si seleziona il giocatore (primo passo) e si tocca − o + sul fondamentale (passo 2, il cui titolo mostra
 cognome e numero del giocatore e il set in corso);
 accanto a ogni tasto compare il conteggio di quel giocatore **nel set in corso**. «Annulla» nella
 sezione toglie l'ultima valutazione del set in corso (l'«Annulla» in alto agisce solo sulle azioni, quindi oggi è sempre spento).
