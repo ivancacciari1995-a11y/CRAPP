@@ -9,9 +9,10 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.5.0 su `main` (tag `v1.5.0`): campionato CSI sulla stagione 2026/27 (nuovi `project_id`
-  e `team_id`, nessuna Coppa). Su `feature/gara` c'è del lavoro non ancora rilasciato (voto MVP, vedi
-  «Lavoro in corso»). La 1.4.2: ogni evento può avere un link Google Maps del luogo, mostrato come
+- **Versione:** 1.6.0 su `main` in locale, **non ancora pubblicato né in produzione** (ultimo tag
+  `v1.5.0`): voto MVP definitivo, segreto e a tempo (DD-051, DD-052) e Scout live a valutazioni − / +
+  (DD-053). La 1.5.0: campionato CSI sulla stagione 2026/27 (nuovi `project_id` e `team_id`,
+  nessuna Coppa). La 1.4.2: ogni evento può avere un link Google Maps del luogo, mostrato come
   «Apri su Maps» nelle schede (`m34`). La 1.4.1: gli eventi con convocati si
   vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo loro. La 1.4.0:
   avviso «Presenza modificata» ad admin e allenatori (DD-050, `m32`-`m33`). La 1.3.1: il Calendario
@@ -35,11 +36,10 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 - **Accesso:** il login Google è l'unica via d'ingresso; i permessi di amministrazione arrivano
   solo da `user_roles`. Il collegamento degli account è un processo continuo: ogni giocatore si
   collega al primo accesso (DD-018).
-- **Lavoro in corso:** branch `feature/gara` per le funzioni di gara (correzioni e nuove
-  funzioni; in futuro anche lo scouting). Primo lavoro: il voto MVP definitivo, segreto, a tempo e
-  tra presenti, con i pari merito (DD-051, DD-052). Poi lo scout live ridotto alle valutazioni − / +
-  per set (DD-053), salvate subito su database. Non ancora in `main`, non rilasciato, versione
-  invariata. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+- **Lavoro in corso:** il rilascio della 1.6.0, in questo ordine: `npx supabase db push` per `m35`-`m39`,
+  subito dopo push di `main` (deploy Vercel) e tag `v1.6.0`, poi `npx supabase migration list --linked`
+  per verificare. `feature/gara` è già dentro `main`. Le altre voci aperte stanno in
+  [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ## Cose da sapere
 

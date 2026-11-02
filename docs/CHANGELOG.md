@@ -13,7 +13,10 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
-Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
+## [1.6.0] - 2026-11-02
+
+Voto MVP definitivo e segreto, Scout live a valutazioni. Cinque migration, da `m35` a `m39`,
+applicate in produzione il 02/11/2026.
 
 ### Aggiunto
 
@@ -31,6 +34,8 @@ Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
   se non riesce, compare un avviso.
 - Scout live: la griglia «Selezione giocatore» si ordina per cognome o per numero; nel riquadro di
   ogni giocatore compaiono i + del set in corso (ricezione esclusa) al posto dei punti.
+- Scout live: dopo «Fine partita» il messaggio dice solo «Partita salvata» (il voto MVP apre 2 ore
+  dopo l'inizio della partita, non dipende dallo scout).
 - Il voto MVP è definitivo ([DD-051](decisions/DD-051.md)): si sceglie un nome, si conferma e non si
   può più cambiare. Il database lo impone (solo gli admin possono correggere un voto).
 - In caso di parità in testa gli MVP sono più d'uno: ognuno dei pari merito conta un titolo, e in
@@ -40,6 +45,9 @@ Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
   conteggi e il proprio voto.
 - La votazione MVP si chiude 24 ore dopo l'apertura (cioè 26 ore dopo l'inizio della partita): le
   partite più vecchie non si votano più.
+
+- I test non pretendono più una gara CSI già giocata: a inizio stagione il calendario c'è ma i
+  risultati no (un test si salta finché non c'è una gara giocata).
 
 ### Sicurezza
 
