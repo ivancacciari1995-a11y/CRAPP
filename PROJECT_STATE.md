@@ -22,23 +22,19 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   [docs/CHANGELOG.md](docs/CHANGELOG.md).
 - **Backend:** Supabase proprietario (`kfkcldwncxqaixetsjes`). Lovable Cloud e il vecchio
   Project Ref `hetycilxgkdmccelwerq` non si usano più.
-- **Migration:** 50 file in `supabase/migrations/`, fino a `m39_scout_valutazioni`. In produzione
-  sono applicate 45 su 50, fino alla `m34_link_maps_evento` (verificato con
-  `npx supabase migration list --linked` il 26/10/2026: le uniche mancanti sono `m35`-`m39`, nessuna
-  migration remota è assente dal repository). **Da applicare ancora: `m35`-`m39`**
-  (voto MVP e badge social, DD-051 e DD-052, valutazioni dello scout, DD-053; branch `feature/gara`): `npx supabase db push` è rinviato
-  per scelta, non è stato eseguito. Vanno applicate subito prima del rilascio del codice: con le sole
-  migration il voto MVP dell'app in produzione (1.4.2) smette di funzionare, con il solo codice la
-  vista dei conteggi non esiste.
+- **Migration:** 50 file in `supabase/migrations/`, fino a `m39_scout_valutazioni`. In produzione sono
+  applicate tutte e 50 (`npx supabase db push` del 02/11/2026: `m35`-`m39`, verificato con
+  `npx supabase migration list --linked`; nessuna migration remota è assente dal repository). Prima
+  del push è stato salvato lo schema di produzione (solo schema, non i dati).
 - **Worker delle notifiche** (`mailer/`): in funzione su un Raspberry Pi con Docker dal 29/09/2026
   ([docs/WORKER_EMAIL.md](docs/WORKER_EMAIL.md)). Il codice con l'interruttore «Email» in Profilo
   è su `main` dalla 1.3.0.
 - **Accesso:** il login Google è l'unica via d'ingresso; i permessi di amministrazione arrivano
   solo da `user_roles`. Il collegamento degli account è un processo continuo: ogni giocatore si
   collega al primo accesso (DD-018).
-- **Lavoro in corso:** il rilascio della 1.6.0, in questo ordine: `npx supabase db push` per `m35`-`m39`,
-  subito dopo push di `main` (deploy Vercel) e tag `v1.6.0`, poi `npx supabase migration list --linked`
-  per verificare. `feature/gara` è già dentro `main`. Le altre voci aperte stanno in
+- **Lavoro in corso:** il rilascio della 1.6.0. Le migration `m35`-`m39` sono già in produzione; mancano
+  il push di `main` (deploy Vercel) e il tag `v1.6.0`. Finché il codice non è pubblicato, la 1.5.0 gira
+  sul database nuovo (il voto MVP dei giocatori mostra conteggi parziali). `feature/gara` è già dentro `main`. Le altre voci aperte stanno in
   [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ## Cose da sapere
