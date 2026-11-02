@@ -69,7 +69,7 @@ perché occupava spazio 6 giorni su 7.
 La schermata `/scout` ha due passi: **Selezione giocatore** (griglia dei convocati, ordinata per cognome o per numero con il selettore a destra del titolo, default cognome; in ogni riquadro, sotto il nome, i **+** del giocatore nel set in corso, ricezione esclusa; filtrati sulle
 risposte "presente"/"ritardo", con fallback a tutta la rosa se nessuno ha risposto) e **2. Valuta**
 (vedi sotto), seguiti da «Ultime azioni», «Chiudi set» e «Fine partita». Salvataggio automatico su
-`scout_live` con debounce di 800ms a ogni cambiamento.
+`scout_live` **a ogni cambiamento**, senza attesa: i salvataggi vanno in coda, uno alla volta e in ordine, e ognuno scrive lo stato intero (uno riuscito rimedia a uno fallito). Se un salvataggio non riesce compare un avviso fisso che sparisce al salvataggio successivo riuscito.
 
 **Punteggio e azioni.** L'interfaccia non registra più il punteggio: sono stati tolti i tasti delle
 azioni (punto attacco, ace, muro, errore nostro, punto e errore avversario), il tabellone con punti
@@ -99,9 +99,12 @@ stati salvati prima: vale lista vuota); a fine partita finiscono in `scout_parti
 
 ## Fine partita
 
-**Limite attuale:** `chiudiSet()` e `finePartita()` si basano sui punti, che non si registrano più. «Chiudi
-set» risponde «Set senza azioni» (quindi il set resta sempre il 1) e «Fine partita» «Nessun set da
-salvare»: le valutazioni restano nello stato in corso e non arrivano in `scout_partite`.
+Senza punteggio, `chiudiSet()` chiude il set (come 0-0) se ha almeno una valutazione, e
+`finePartita()` archivia anche la partita fatta di sole valutazioni: il set in corso entra nei
+parziali se ha dati (`parzialiFinali()`, `scout-store.ts`). Con nessuna valutazione risponde
+«Nessun set da salvare». Una partita senza punti ha parziali 0-0 e **non è un risultato**:
+`haPunteggio()` la esclude da Home, Classifica e dalla pagina della partita, dove non sostituisce il
+referto CSI; resta visibile il «Report tecnico» con il CSV.
 
 `finePartita()` (`scout.tsx`) compone i parziali finali, inserisce la partita in
 `scout_partite` (INSERT, non upsert), poi cancella la riga da `scout_live` (stato consumato)
@@ -144,8 +147,13 @@ calcolati a runtime).
 
 ## Limiti noti
 
-- Senza punteggio, set e partita non si chiudono (vedi «Fine partita»): da risolvere, per esempio
-  chiudendo il set anche senza punti e salvando la partita con le sole valutazioni.
+- Lo stato in corso è raggiungibile solo il giorno della partita: se nessuno preme «Fine partita»
+  entro la mezzanotte i dati restano in `scout_live` ma dall'app non si riprendono più.
+- Le valutazioni dei set chiusi e delle partite finite sono salvate ma non si rivedono nell'app: lo
+  scout mostra solo il set in corso e l'unica lettura è il CSV admin. Evoluzione: tabella nella
+  pagina partita.
+- Il blocco «Report tecnico» della pagina partita mostra ancora Punti/Ace/Muri/Errori (a zero per le
+  partite di sole valutazioni) e non le valutazioni, che sono solo nel CSV admin.
 - Scout aperto a tutta la squadra: nessun filtro su chi può registrare le azioni, l'unica
   garanzia è il lock di sessione (vedi sopra).
 - Possibile, per quanto improbabile, doppio "successo" applicativo nel prendere il lock:
@@ -159,5 +167,5 @@ calcolati a runtime).
 
 ## Evoluzioni possibili
 
-- Mostrare le valutazioni anche nella pagina della partita (oggi solo nel CSV admin).
+- Mostrare le valutazioni per set e giocatore nella pagina della partita (oggi solo nel CSV admin) e, nello scout, in sola lettura quelle dei set chiusi.
 - Realtime (Supabase Realtime) per aggiornare la sessione condivisa senza refresh manuale.

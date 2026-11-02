@@ -25,7 +25,10 @@ Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
 
 - Scout live: tolti i tasti dei punti, il tabellone del punteggio e il blocco avversario / in casa /
   trasferta; resta la scelta del giocatore e la valutazione − / + per set
-  ([DD-053](decisions/DD-053.md)). Per ora «Chiudi set» e «Fine partita» non salvano senza punti.
+  ([DD-053](decisions/DD-053.md)). «Chiudi set» e «Fine partita» funzionano anche senza punti; le
+  partite di sole valutazioni non compaiono come risultato in Home, Classifica e pagina partita.
+- Scout live: il salvataggio è immediato a ogni tocco (prima c'era una pausa di 0,8 secondi) e,
+  se non riesce, compare un avviso.
 - Scout live: la griglia «Selezione giocatore» si ordina per cognome o per numero; nel riquadro di
   ogni giocatore compaiono i + del set in corso (ricezione esclusa) al posto dei punti.
 - Il voto MVP è definitivo ([DD-051](decisions/DD-051.md)): si sceglie un nome, si conferma e non si
