@@ -11,7 +11,7 @@ import { DettaglioCsiEsteso, LogoSquadra, MetaPartitaCsi } from "@/components/cr
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
-import { useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
+import { haPunteggio, useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
 import { useIsAdmin } from "@/lib/ruoli";
 import { useSonoAllenatore } from "@/lib/user-store";
@@ -70,25 +70,26 @@ function PartitaDetail() {
   const csiMatch = csi
     ? partiteGiocate(csi.partite).find((p) => p.data === evento.data)
     : undefined;
-  const match = scout
-    ? {
-        id: scout.id,
-        data: scout.data,
-        avversario: scout.avversario,
-        logoAvversario: "",
-        casa: scout.casa,
-        setNostri: scout.setNostri,
-        setLoro: scout.setLoro,
-        parziali: scout.parziali,
-        campo: "",
-        girone: "",
-        numeroGara: "",
-        arbitro: "",
-        link: "",
-      }
-    : csiMatch
-      ? matchDaPartitaCsi(csiMatch)
-      : undefined;
+  const match =
+    scout && haPunteggio(scout)
+      ? {
+          id: scout.id,
+          data: scout.data,
+          avversario: scout.avversario,
+          logoAvversario: "",
+          casa: scout.casa,
+          setNostri: scout.setNostri,
+          setLoro: scout.setLoro,
+          parziali: scout.parziali,
+          campo: "",
+          girone: "",
+          numeroGara: "",
+          arbitro: "",
+          link: "",
+        }
+      : csiMatch
+        ? matchDaPartitaCsi(csiMatch)
+        : undefined;
   const totaliTeam = scout ? totaliSquadra([scout]) : null;
   const avversario = evento.titolo.includes(" vs ")
     ? (evento.titolo.split(" vs ").find((p) => !p.includes("CRAP")) ?? evento.titolo)

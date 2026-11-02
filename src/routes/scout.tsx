@@ -29,6 +29,7 @@ import {
   azioniMeta,
   contaPiuSenzaRicezione,
   contaValutazioni,
+  parzialiFinali,
   fondamentali,
   useSalvaScoutMatch,
   type Azione,
@@ -121,7 +122,11 @@ function Scout() {
 
   const attiva = sessione.data && !sessioneScaduta(sessione.data) ? sessione.data : null;
   const occupataDaAltri = !!attiva && attiva.giocatore_id !== io?.id;
-  const ripresa = !!statoSalvato.data && statoSalvato.data.azioni.length > 0;
+  const ripresa =
+    !!statoSalvato.data &&
+    (statoSalvato.data.azioni.length > 0 ||
+      (statoSalvato.data.valutazioni?.length ?? 0) > 0 ||
+      statoSalvato.data.setChiusi.length > 0);
 
   if (!controllo) {
     return (
@@ -212,6 +217,7 @@ function ScoutBoard({
   // Solo id/nome/numero servono (selezione e display): niente statistiche di squadra.
   const rosa = useAnagraficaRosa();
   const finito = useRef(false);
+  const codaSalvataggio = useRef<Promise<unknown>>(Promise.resolve());
 
   /** In campo solo chi ha confermato la presenza (anche in ritardo). */
   const convocati = useMemo(() => {
@@ -229,13 +235,21 @@ function ScoutBoard({
   // Salvataggio condiviso: se chi scouta si disconnette, il prossimo riprende da qui.
   useEffect(() => {
     if (finito.current) return;
-    const id = window.setTimeout(() => {
-      void salva.mutateAsync({
-        eventoId: partita.id,
-        stato: { azioni, valutazioni, setChiusi, avversario, casa },
+    // Subito a ogni tocco, non dopo una pausa: così non resta nulla in sospeso se l'app si
+    // chiude. Il salvataggio è sempre lo stato intero, quindi uno riuscito dopo uno fallito
+    // rimette a posto tutto; la coda li tiene in ordine.
+    const stato = { azioni, valutazioni, setChiusi, avversario, casa };
+    codaSalvataggio.current = codaSalvataggio.current
+      .then(() => salva.mutateAsync({ eventoId: partita.id, stato }))
+      .then(() => {
+        toast.dismiss("scout-salvataggio");
+      })
+      .catch(() => {
+        toast.error("Salvataggio non riuscito: controlla la connessione", {
+          id: "scout-salvataggio",
+          duration: Infinity,
+        });
       });
-    }, 800);
-    return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [azioni, valutazioni, setChiusi, avversario, casa, partita.id]);
 
@@ -243,6 +257,7 @@ function ScoutBoard({
   const azioniSet = azioni.filter((a) => a.set === setCorrente);
   const puntiNoi = azioniSet.filter((a) => azioniMeta[a.tipo].nostro).length;
   const puntiLoro = azioniSet.length - puntiNoi;
+  const setHaDati = azioniSet.length > 0 || valutazioni.some((v) => v.set === setCorrente);
 
   function valuta(fondamentale: Fondamentale, segno: Valutazione["segno"]) {
     if (!selezionato) {
@@ -281,17 +296,16 @@ function ScoutBoard({
   }
 
   function chiudiSet() {
-    if (puntiNoi === 0 && puntiLoro === 0) {
-      toast.error("Set senza azioni");
+    if (!setHaDati) {
+      toast.error("Set senza valutazioni");
       return;
     }
     setSetChiusi((prev) => [...prev, [puntiNoi, puntiLoro]]);
-    toast.success(`Set ${setCorrente} chiuso ${puntiNoi}-${puntiLoro}`);
+    toast.success(`Set ${setCorrente} chiuso`);
   }
 
   async function finePartita() {
-    const parziali: Array<[number, number]> =
-      puntiNoi + puntiLoro > 0 ? [...setChiusi, [puntiNoi, puntiLoro]] : setChiusi;
+    const parziali = parzialiFinali(setChiusi, [puntiNoi, puntiLoro], setHaDati);
     if (parziali.length === 0) {
       toast.error("Nessun set da salvare");
       return;

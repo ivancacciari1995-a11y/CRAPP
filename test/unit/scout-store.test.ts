@@ -4,6 +4,8 @@ import { giocatori } from "@/lib/crapp-data";
 import {
   azioniMeta,
   contaPiuSenzaRicezione,
+  haPunteggio,
+  parzialiFinali,
   contaValutazioni,
   fondamentali,
   giocatoriConScout,
@@ -158,3 +160,40 @@ assert.equal(
 );
 assert.equal(contaPiuSenzaRicezione(piuVal, "g1", 2), 1);
 assert.equal(contaPiuSenzaRicezione(piuVal, "g3", 1), 0);
+
+// --- parziali finali: il set in corso conta solo se ha dati ------------------------
+assert.deepEqual(
+  parzialiFinali([[25, 20]], [0, 0], true),
+  [
+    [25, 20],
+    [0, 0],
+  ],
+  "set con sole valutazioni",
+);
+assert.deepEqual(
+  parzialiFinali([[25, 20]], [0, 0], false),
+  [[25, 20]],
+  "set vuoto: non si archivia",
+);
+assert.deepEqual(parzialiFinali([], [0, 0], false), [], "nessun set da salvare");
+
+// --- haPunteggio: le partite di sole valutazioni non sono un risultato -------------
+assert.equal(
+  haPunteggio({
+    parziali: [
+      [0, 0],
+      [0, 0],
+    ],
+  }),
+  false,
+);
+assert.equal(haPunteggio({ parziali: [] }), false);
+assert.equal(
+  haPunteggio({
+    parziali: [
+      [0, 0],
+      [25, 18],
+    ],
+  }),
+  true,
+);

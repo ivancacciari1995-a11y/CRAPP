@@ -114,6 +114,18 @@ export function contaPiuSenzaRicezione(
   ).length;
 }
 
+/**
+ * Parziali da archiviare: i set chiusi più il set in corso, se ha qualcosa dentro (punti o
+ * valutazioni). Senza punteggio un set vale 0-0: serve solo a numerarlo.
+ */
+export function parzialiFinali(
+  setChiusi: Array<[number, number]>,
+  corrente: [number, number],
+  haDati: boolean,
+): Array<[number, number]> {
+  return haDati ? [...setChiusi, corrente] : setChiusi;
+}
+
 export type ScoutMatch = {
   id: string;
   data: string;
@@ -215,6 +227,15 @@ export function useEliminaScoutMatch() {
         (prec ?? []).filter((m) => m.id !== id),
       ),
   });
+}
+
+/**
+ * Una partita scoutata ha un risultato solo se ha registrato punti: quelle fatte di sole
+ * valutazioni − / + hanno parziali 0-0 e non devono sostituire il referto ufficiale né
+ * comparire come risultato in Home e Classifica.
+ */
+export function haPunteggio(match: Pick<ScoutMatch, "parziali">): boolean {
+  return match.parziali.some(([n, l]) => n + l > 0);
 }
 
 /** Somma delle azioni di un match per giocatore. */

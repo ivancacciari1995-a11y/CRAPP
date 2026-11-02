@@ -19,7 +19,7 @@ import { isAllenatore, nomeCompleto } from "@/lib/giocatori-squadra";
 import { useGiocatoreBase } from "@/lib/user-store";
 import { useCsi } from "@/lib/csi";
 import { isNostraSquadra, matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
-import { useScoutMatches } from "@/lib/scout-store";
+import { haPunteggio, useScoutMatches } from "@/lib/scout-store";
 import { useVotiMvp, vincitoriMvp } from "@/lib/mvp-voti";
 import { mediaVotoColpoDOcchio } from "@/lib/pagelle";
 
@@ -63,7 +63,9 @@ function Index() {
   const votiMvp = useVotiMvp();
   const mvpPerMatch = vincitoriMvp(votiMvp.data ?? []);
   const csiGiocate = csi ? partiteGiocate(csi.partite) : [];
-  const ultimaBase = csiGiocate[0] ? matchDaPartitaCsi(csiGiocate[0]) : (scoutMatches[0] ?? null);
+  const ultimaBase = csiGiocate[0]
+    ? matchDaPartitaCsi(csiGiocate[0])
+    : (scoutMatches.find(haPunteggio) ?? null);
   const obiettivi = useObiettivi();
   const obiettivo = obiettivi.find((o) => progressoObiettivo(o) < 100) ?? obiettivi[0] ?? null;
   const eventoUltima = ultimaBase

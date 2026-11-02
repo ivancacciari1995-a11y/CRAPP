@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { formatData, type RigaClassifica } from "@/lib/crapp-data";
 import { PageHeader, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
-import { useScoutMatches } from "@/lib/scout-store";
+import { haPunteggio, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import {
   isNostraSquadra,
@@ -150,7 +150,7 @@ function Classifica() {
           const m = matchDaPartitaCsi(p);
           return { ...m, mvp: mvpPerData(m.data), scout: false };
         })
-      : scoutMatches.map((m) => ({
+      : scoutMatches.filter(haPunteggio).map((m) => ({
           id: m.id,
           data: m.data,
           avversario: m.avversario,
