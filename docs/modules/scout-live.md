@@ -1,6 +1,6 @@
 # Modulo — Scout Live
 
-**Stato:** implementato (fix M7 per la persistenza condivisa)
+**Stato:** implementato (fix M7 per la persistenza condivisa; valutazioni − / + dalla 1.6.0, DD-053)
 **File principali:** `src/lib/scout-live.ts`, `src/lib/scout-stato.ts`, `src/lib/scout-store.ts`,
 `src/lib/scout-export.ts`, `src/lib/cacche.ts`, `src/components/crapp/ScoutEntry.tsx`,
 `src/components/crapp/SondaggioCacche.tsx`, `src/routes/scout.tsx`, `src/routes/partita.$id.tsx`
@@ -11,8 +11,8 @@
 
 Permettere a un solo referente per volta di registrare in tempo reale, durante la partita,
 un giudizio − / + sui fondamentali (battuta, ricezione, attacco, muro) di ciascun convocato,
-per set, con salvataggio condiviso su Supabase (non più solo `localStorage`, fix M7) così che tutta la squadra veda lo stato
-aggiornato da qualunque dispositivo.
+per set, con salvataggio condiviso su Supabase (non più solo `localStorage`, fix M7) così che chi
+riprende lo scout trovi lo stato aggiornato, da qualunque dispositivo.
 
 ---
 
@@ -20,10 +20,9 @@ aggiornato da qualunque dispositivo.
 
 - `scout_sessioni` — chi ha il controllo dello Scout Live per una partita (una riga per
   `evento_id`, quindi un solo detentore).
-- `scout_live` — stato in corso (azioni non ancora concluse) di una sessione.
+- `scout_live` — stato in corso (valutazioni, set chiusi, avversario e campo) di una sessione.
 - `scout_partite` — archivio delle partite scoutate concluse (risultato, parziali, azioni,
-  valutazioni − / +),
-  mai più modificato una volta salvato (solo eliminabile per intero).
+  valutazioni − / +), mai più modificato una volta salvato (solo eliminabile per intero).
 - `cacche_partita` — sondaggio goliardico pre-partita, un voto per giocatore/evento
   (`UNIQUE evento_id, giocatore_id`).
 
@@ -66,10 +65,16 @@ perché occupava spazio 6 giorni su 7.
 
 ## Cosa registra
 
-La schermata `/scout` ha due passi: **Selezione giocatore** (griglia dei convocati, ordinata per cognome o per numero con il selettore a destra del titolo, default cognome; in ogni riquadro, sotto il nome, i **+** del giocatore nel set in corso, ricezione esclusa; filtrati sulle
-risposte "presente"/"ritardo", con fallback a tutta la rosa se nessuno ha risposto) e **2. Valuta**
-(vedi sotto), seguiti da «Ultime azioni», «Chiudi set» e «Fine partita». Salvataggio automatico su
-`scout_live` **a ogni cambiamento**, senza attesa: i salvataggi vanno in coda, uno alla volta e in ordine, e ognuno scrive lo stato intero (uno riuscito rimedia a uno fallito). Se un salvataggio non riesce compare un avviso fisso che sparisce al salvataggio successivo riuscito.
+La schermata `/scout` ha due passi: **Selezione giocatore** e **2. Valuta** (vedi sotto), seguiti da
+«Ultime azioni» (oggi sempre vuota, vedi «Limiti noti»), «Chiudi set» e «Fine partita».
+
+- **Selezione giocatore:** griglia dei convocati (chi ha risposto "presente"/"ritardo", con fallback
+  a tutta la rosa se nessuno ha risposto), ordinata per cognome o per numero con il selettore a
+  destra del titolo (default cognome). In ogni riquadro, sotto il nome, compaiono i **+** del
+  giocatore nel set in corso, ricezione esclusa (`contaPiuSenzaRicezione()`).
+- **Salvataggio** su `scout_live` a ogni cambiamento, senza attesa: i salvataggi vanno in coda, uno
+  alla volta e in ordine, e ognuno scrive lo stato intero (uno riuscito rimedia a uno fallito). Se
+  un salvataggio non riesce compare un avviso fisso, che sparisce al salvataggio successivo riuscito.
 
 **Punteggio e azioni.** L'interfaccia non registra più il punteggio: sono stati tolti i tasti delle
 azioni (punto attacco, ace, muro, errore nostro, punto e errore avversario), il tabellone con punti
@@ -85,10 +90,10 @@ leggono le partite scoutate prima di questa modifica, ma oggi nessuna schermata 
 
 Per ogni convocato lo scout può segnare un **−** o un **+** su battuta, ricezione, attacco e muro
 ([DD-053](../decisions/DD-053.md)). Non sono punti: restano fuori dal punteggio, dai parziali e dai
-totali P/A/M/E. Si seleziona il giocatore (primo passo) e si tocca − o + sul fondamentale (passo 2, il cui titolo mostra
-cognome e numero del giocatore e il set in corso);
-accanto a ogni tasto compare il conteggio di quel giocatore **nel set in corso**. «Annulla» nella
-sezione toglie l'ultima valutazione del set in corso (l'«Annulla» in alto agisce solo sulle azioni, quindi oggi è sempre spento).
+totali P/A/M/E. Si seleziona il giocatore e si tocca − o + sul fondamentale: il titolo della sezione
+mostra cognome e numero del giocatore e il set in corso, e accanto a ogni tasto compare il conteggio
+di quel giocatore **nel set in corso**. «Annulla» nella sezione toglie l'ultima valutazione del set in
+corso (l'«Annulla» in alto agisce solo sulle azioni, quindi oggi è sempre spento).
 
 Ogni tocco è una riga `Valutazione` (`giocatoreId`, `fondamentale`, `segno`, `set`, `ts`) in una
 lista separata da `azioni`; i conteggi per set si calcolano con `contaValutazioni()`
@@ -114,11 +119,10 @@ e rilascia la sessione.
 
 ## Export CSV
 
-`scout-export.ts` genera un CSV (separatore `;`, BOM UTF-8) con parziali, riepilogo per
-giocatore e log cronologico delle azioni. Se ci sono valutazioni, aggiunge una tabella per set e giocatore con i
-
-- e i − di ogni fondamentale (solo per chi ne ha). Scaricabile dagli admin dalla pagina partita,
-  sezione "Report tecnico".
+`scout-export.ts` genera un CSV (separatore `;`, BOM UTF-8) con parziali, riepilogo per giocatore e
+log cronologico delle azioni. Se ci sono valutazioni, aggiunge una tabella per set e giocatore con
+i conteggi di «più» e «meno» di ogni fondamentale (solo per chi ne ha). Scaricabile dagli admin dalla
+pagina partita, sezione "Report tecnico".
 
 ---
 
@@ -139,7 +143,7 @@ calcolati a runtime).
 
 ## Regole rispettate
 
-- **DD-008 (gamification equa)**: i dati tecnici (punti/ace/muri) restano confinati allo Scout
+- **DD-008 (gamification equa)**: i dati tecnici (punti/ace/muri e valutazioni) restano confinati allo Scout
   Live come statistica di squadra e non entrano nel tipo `Giocatore` usato per badge o
   classifiche individuali.
 
@@ -149,6 +153,8 @@ calcolati a runtime).
 
 - Lo stato in corso è raggiungibile solo il giorno della partita: se nessuno preme «Fine partita»
   entro la mezzanotte i dati restano in `scout_live` ma dall'app non si riprendono più.
+- «Ultime azioni» resta nella schermata ma non si riempie mai («Nessuna azione registrata»): nessuna
+  schermata crea più azioni. Da togliere o da riusare per le ultime valutazioni.
 - Le valutazioni dei set chiusi e delle partite finite sono salvate ma non si rivedono nell'app: lo
   scout mostra solo il set in corso e l'unica lettura è il CSV admin. Evoluzione: tabella nella
   pagina partita.
@@ -167,5 +173,6 @@ calcolati a runtime).
 
 ## Evoluzioni possibili
 
-- Mostrare le valutazioni per set e giocatore nella pagina della partita (oggi solo nel CSV admin) e, nello scout, in sola lettura quelle dei set chiusi.
+- Mostrare le valutazioni per set e giocatore nella pagina della partita (oggi solo nel CSV admin)
+  e, nello scout, in sola lettura quelle dei set chiusi.
 - Realtime (Supabase Realtime) per aggiornare la sessione condivisa senza refresh manuale.

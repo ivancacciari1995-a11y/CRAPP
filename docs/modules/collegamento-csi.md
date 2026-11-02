@@ -230,7 +230,8 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
   tabella/lista, sia per classifica/partite sia per formazioni/precedenti.
 - **Fallback**: se il CSI non risponde, l'endpoint `/api/public/csi` restituisce l'ultimo
   dato buono in cache; se non ne ha ancora uno, la classifica resta vuota e i risultati
-  ricadono sulle partite dello Scout Live locale (`useScoutMatches()`).
+  ricadono sulle partite dello Scout Live che hanno un punteggio (`useScoutMatches()` filtrato con
+  `haPunteggio()`: quelle di sole valutazioni non sono un risultato).
   `/api/public/csi-partita/$id` non ha questo fallback sulla prima chiamata per una gara mai
   vista (vedi sopra): fallisce con `503`, e la UI (`DettaglioCsiEsteso`) semplicemente non
   mostra la sezione formazioni/scontri diretti, senza rompere il resto della pagina.
@@ -243,7 +244,7 @@ DettaglioCsiEsteso           → src/components/crapp/DettaglioCsi.tsx (formazio
 1. **La classifica si legge da HTML.** Se il portale cambia la struttura della tabella il
    parsing restituisce un array vuoto: `/classifica` non si rompe, ma mostra "Classifica non
    ancora disponibile" (o l'ultimo dato buono in cache, se ce n'è uno) e i risultati ricadono
-   sulle partite dello Scout Live locale, non su dati demo — non esistono più in `crapp-data.ts`.
+   sulle partite dello Scout Live con punteggio, non su dati demo — non esistono più in `crapp-data.ts`.
    Il check con `CSI_LIVE=1` serve a scoprire il problema di parsing.
 2. **`project_id` e `team_id` sono legati alla stagione.** Per il 2027/28 serviranno due nuovi
    id (vedi "Sorgente dati" sopra per come ritrovarli): vanno aggiornati a mano in
