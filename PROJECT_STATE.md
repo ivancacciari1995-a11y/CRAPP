@@ -9,9 +9,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.6.0 su `main` in locale, **non ancora pubblicato né in produzione** (ultimo tag
-  `v1.5.0`): voto MVP definitivo, segreto e a tempo (DD-051, DD-052) e Scout live a valutazioni − / +
-  (DD-053). La 1.5.0: campionato CSI sulla stagione 2026/27 (nuovi `project_id` e `team_id`,
+- **Versione:** 1.6.0 su `main` (tag `v1.6.0`), pubblicata il 02/11/2026: voto MVP definitivo, segreto e a
+  tempo (DD-051, DD-052) e Scout live a valutazioni − / + (DD-053). La 1.5.0: campionato CSI sulla stagione 2026/27 (nuovi `project_id` e `team_id`,
   nessuna Coppa). La 1.4.2: ogni evento può avere un link Google Maps del luogo, mostrato come
   «Apri su Maps» nelle schede (`m34`). La 1.4.1: gli eventi con convocati si
   vedono solo ai convocati (admin e allenatori sempre) e «Rosa e presenze» elenca solo loro. La 1.4.0:
@@ -32,10 +31,9 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 - **Accesso:** il login Google è l'unica via d'ingresso; i permessi di amministrazione arrivano
   solo da `user_roles`. Il collegamento degli account è un processo continuo: ogni giocatore si
   collega al primo accesso (DD-018).
-- **Lavoro in corso:** il rilascio della 1.6.0. Le migration `m35`-`m39` sono già in produzione; mancano
-  il push di `main` (deploy Vercel) e il tag `v1.6.0`. Finché il codice non è pubblicato, la 1.5.0 gira
-  sul database nuovo (il voto MVP dei giocatori mostra conteggi parziali). `feature/gara` è già dentro `main`. Le altre voci aperte stanno in
-  [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
+- **Lavoro in corso:** nessuno su branch. Le voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto
+  «Prossimo». Da decidere sullo scout: il pulsante «Annulla» in alto agisce solo sulle azioni, che non
+  si creano più, quindi è sempre spento.
 
 ## Cose da sapere
 
