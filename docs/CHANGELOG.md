@@ -23,6 +23,9 @@ Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
 
 ### Modificato
 
+- Scout live: tolti i tasti dei punti, il tabellone del punteggio e il blocco avversario / in casa /
+  trasferta; resta la scelta del giocatore e la valutazione − / + per set
+  ([DD-053](decisions/DD-053.md)). Per ora «Chiudi set» e «Fine partita» non salvano senza punti.
 - Il voto MVP è definitivo ([DD-051](decisions/DD-051.md)): si sceglie un nome, si conferma e non si
   può più cambiare. Il database lo impone (solo gli admin possono correggere un voto).
 - In caso di parità in testa gli MVP sono più d'uno: ognuno dei pari merito conta un titolo, e in

@@ -37,7 +37,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
   collega al primo accesso (DD-018).
 - **Lavoro in corso:** branch `feature/gara` per le funzioni di gara (correzioni e nuove
   funzioni; in futuro anche lo scouting). Primo lavoro: il voto MVP definitivo, segreto, a tempo e
-  tra presenti, con i pari merito (DD-051, DD-052). Non ancora in `main`, non rilasciato, versione
+  tra presenti, con i pari merito (DD-051, DD-052). Poi lo scout live ridotto alle valutazioni − / +
+  per set (DD-053): da completare la chiusura di set e partita senza punti. Non ancora in `main`, non rilasciato, versione
   invariata. Le altre voci aperte stanno in [docs/ROADMAP.md](docs/ROADMAP.md), sotto «Prossimo».
 
 ## Cose da sapere

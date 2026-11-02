@@ -10,9 +10,8 @@
 ## Obiettivo
 
 Permettere a un solo referente per volta di registrare in tempo reale, durante la partita,
-punti, ace, muri ed errori di ciascun giocatore in campo — più un giudizio − / + sui
-fondamentali, per set — con salvataggio condiviso su
-Supabase (non più solo `localStorage`, fix M7) così che tutta la squadra veda lo stato
+un giudizio − / + sui fondamentali (battuta, ricezione, attacco, muro) di ciascun convocato,
+per set, con salvataggio condiviso su Supabase (non più solo `localStorage`, fix M7) così che tutta la squadra veda lo stato
 aggiornato da qualunque dispositivo.
 
 ---
@@ -67,12 +66,18 @@ perché occupava spazio 6 giorni su 7.
 
 ## Cosa registra
 
-Tipi di azione (`AzioneTipo`, `scout-store.ts`): `attacco`, `ace`, `muro`, `errore`,
-`punto_avv`, `errore_avv` — attacco/ace/muro ed errore avversario valgono come punto nostro,
-errore nostro e punto avversario come punto avversario. Le azioni con giocatore
-(attacco/ace/muro/errore) richiedono di selezionarlo prima dalla griglia dei convocati
-(filtrati sulle risposte "presente"/"ritardo", con fallback a tutta la rosa se nessuno ha
-risposto). Salvataggio automatico su `scout_live` con debounce di 800ms a ogni cambiamento.
+La schermata `/scout` ha due passi: **1. Tocca il giocatore** (griglia dei convocati, filtrati sulle
+risposte "presente"/"ritardo", con fallback a tutta la rosa se nessuno ha risposto) e **2. Valuta**
+(vedi sotto), seguiti da «Ultime azioni», «Chiudi set» e «Fine partita». Salvataggio automatico su
+`scout_live` con debounce di 800ms a ogni cambiamento.
+
+**Punteggio e azioni.** L'interfaccia non registra più il punteggio: sono stati tolti i tasti delle
+azioni (punto attacco, ace, muro, errore nostro, punto e errore avversario), il tabellone con punti
+e set e il blocco avversario / in casa / trasferta. Avversario e campo restano quelli ricavati dal
+titolo della partita (o dallo stato già salvato) e non si modificano. I tipi di azione
+(`AzioneTipo`, `scout-store.ts`: `attacco`, `ace`, `muro`, `errore`, `punto_avv`, `errore_avv`),
+i totali `totaliPerGiocatore()` e il campo `scout_partite.azioni` restano nel codice e nei dati:
+leggono le partite scoutate prima di questa modifica, ma oggi nessuna schermata crea nuove azioni.
 
 ---
 
@@ -80,9 +85,10 @@ risposto). Salvataggio automatico su `scout_live` con debounce di 800ms a ogni c
 
 Per ogni convocato lo scout può segnare un **−** o un **+** su battuta, ricezione, attacco e muro
 ([DD-053](../decisions/DD-053.md)). Non sono punti: restano fuori dal punteggio, dai parziali e dai
-totali P/A/M/E. Si seleziona il giocatore (passo 1) e si tocca − o + sul fondamentale (passo 3);
+totali P/A/M/E. Si seleziona il giocatore (passo 1) e si tocca − o + sul fondamentale (passo 2, il cui titolo mostra
+cognome e numero del giocatore e il set in corso);
 accanto a ogni tasto compare il conteggio di quel giocatore **nel set in corso**. «Annulla» nella
-sezione toglie l'ultima valutazione del set in corso (l'«Annulla» in alto resta per le azioni).
+sezione toglie l'ultima valutazione del set in corso (l'«Annulla» in alto agisce solo sulle azioni, quindi oggi è sempre spento).
 
 Ogni tocco è una riga `Valutazione` (`giocatoreId`, `fondamentale`, `segno`, `set`, `ts`) in una
 lista separata da `azioni`; i conteggi per set si calcolano con `contaValutazioni()`
@@ -92,6 +98,10 @@ stati salvati prima: vale lista vuota); a fine partita finiscono in `scout_parti
 ---
 
 ## Fine partita
+
+**Limite attuale:** `chiudiSet()` e `finePartita()` si basano sui punti, che non si registrano più. «Chiudi
+set» risponde «Set senza azioni» (quindi il set resta sempre il 1) e «Fine partita» «Nessun set da
+salvare»: le valutazioni restano nello stato in corso e non arrivano in `scout_partite`.
 
 `finePartita()` (`scout.tsx`) compone i parziali finali, inserisce la partita in
 `scout_partite` (INSERT, non upsert), poi cancella la riga da `scout_live` (stato consumato)
@@ -134,10 +144,13 @@ calcolati a runtime).
 
 ## Limiti noti
 
+- Senza punteggio, set e partita non si chiudono (vedi «Fine partita»): da risolvere, per esempio
+  chiudendo il set anche senza punti e salvando la partita con le sole valutazioni.
 - Scout aperto a tutta la squadra: nessun filtro su chi può registrare le azioni, l'unica
   garanzia è il lock di sessione (vedi sopra).
 - Possibile, per quanto improbabile, doppio "successo" applicativo nel prendere il lock:
   lettura e upsert non sono atomici.
+- Avversario e campo non si correggono dallo scout.
 - `scout_partite` si inserisce ma non si corregge dall'interfaccia: solo eliminazione totale.
 - Abbinamento partita↔scout fatto anche per uguaglianza di data come fallback: ambiguo se due
   partite cadono lo stesso giorno.
