@@ -341,8 +341,6 @@ function ScoutBoard({
   const contiSelezionato = selezionato
     ? contaValutazioni(valutazioni, selezionato, setCorrente)
     : null;
-  const ultime = [...azioni].slice(-4).reverse();
-
   return (
     <>
       <header className="sticky top-0 z-30 bg-hero px-5 pb-4 pt-6 text-primary-foreground">
@@ -466,42 +464,6 @@ function ScoutBoard({
               </div>
             );
           })}
-        </div>
-      </section>
-
-      <section className="px-5 pt-4">
-        <div className="rounded-3xl bg-card p-3 shadow-card">
-          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-            Ultime azioni
-          </p>
-          {ultime.length === 0 ? (
-            <p className="mt-2 text-[13px] text-muted-foreground">Nessuna azione registrata.</p>
-          ) : (
-            <ul className="mt-2 space-y-1.5">
-              {ultime.map((a, i) => {
-                const g = rosa.find((x) => x.id === a.giocatoreId);
-                return (
-                  <li
-                    key={a.id}
-                    className={cn(
-                      "flex items-center justify-between gap-2 px-1 text-[13px]",
-                      i === 0 && "anim-riga",
-                    )}
-                  >
-                    <span className="truncate">{g ? `#${g.numero} ${g.nome}` : "Avversario"}</span>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[13px] font-bold uppercase",
-                        azioniMeta[a.tipo].className,
-                      )}
-                    >
-                      {azioniMeta[a.tipo].short}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </div>
       </section>
 

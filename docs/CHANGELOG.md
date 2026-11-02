@@ -26,8 +26,8 @@ applicate in produzione il 02/11/2026.
 
 ### Modificato
 
-- Scout live: tolti i tasti dei punti, il tabellone del punteggio e il blocco avversario / in casa /
-  trasferta; resta la scelta del giocatore e la valutazione − / + per set
+- Scout live: tolti i tasti dei punti, il tabellone del punteggio, l'elenco «Ultime azioni» e il
+  blocco avversario / in casa / trasferta; resta la scelta del giocatore e la valutazione − / + per set
   ([DD-053](decisions/DD-053.md)). «Chiudi set» e «Fine partita» funzionano anche senza punti; le
   partite di sole valutazioni non compaiono come risultato in Home, Classifica e pagina partita.
 - Scout live: il salvataggio è immediato a ogni tocco (prima c'era una pausa di 0,8 secondi) e,

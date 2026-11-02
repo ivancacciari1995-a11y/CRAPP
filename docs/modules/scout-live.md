@@ -66,7 +66,7 @@ perché occupava spazio 6 giorni su 7.
 ## Cosa registra
 
 La schermata `/scout` ha due passi: **Selezione giocatore** e **2. Valuta** (vedi sotto), seguiti da
-«Ultime azioni» (oggi sempre vuota, vedi «Limiti noti»), «Chiudi set» e «Fine partita».
+«Chiudi set» e «Fine partita».
 
 - **Selezione giocatore:** griglia dei convocati (chi ha risposto "presente"/"ritardo", con fallback
   a tutta la rosa se nessuno ha risposto), ordinata per cognome o per numero con il selettore a
@@ -78,7 +78,7 @@ La schermata `/scout` ha due passi: **Selezione giocatore** e **2. Valuta** (ved
 
 **Punteggio e azioni.** L'interfaccia non registra più il punteggio: sono stati tolti i tasti delle
 azioni (punto attacco, ace, muro, errore nostro, punto e errore avversario), il tabellone con punti
-e set e il blocco avversario / in casa / trasferta. Avversario e campo restano quelli ricavati dal
+e set, l'elenco «Ultime azioni» e il blocco avversario / in casa / trasferta. Avversario e campo restano quelli ricavati dal
 titolo della partita (o dallo stato già salvato) e non si modificano. I tipi di azione
 (`AzioneTipo`, `scout-store.ts`: `attacco`, `ace`, `muro`, `errore`, `punto_avv`, `errore_avv`),
 i totali `totaliPerGiocatore()` e il campo `scout_partite.azioni` restano nel codice e nei dati:
@@ -153,8 +153,6 @@ calcolati a runtime).
 
 - Lo stato in corso è raggiungibile solo il giorno della partita: se nessuno preme «Fine partita»
   entro la mezzanotte i dati restano in `scout_live` ma dall'app non si riprendono più.
-- «Ultime azioni» resta nella schermata ma non si riempie mai («Nessuna azione registrata»): nessuna
-  schermata crea più azioni. Da togliere o da riusare per le ultime valutazioni.
 - Le valutazioni dei set chiusi e delle partite finite sono salvate ma non si rivedono nell'app: lo
   scout mostra solo il set in corso e l'unica lettura è il CSV admin. Evoluzione: tabella nella
   pagina partita.
