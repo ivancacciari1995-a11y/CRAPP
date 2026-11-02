@@ -96,6 +96,24 @@ export function contaValutazioni(
   return out;
 }
 
+/**
+ * I + di un giocatore in un set, esclusa la ricezione (che qui non vale come punto messo a
+ * terra): quello che compare nel suo riquadro dello scout.
+ */
+export function contaPiuSenzaRicezione(
+  valutazioni: Valutazione[],
+  giocatoreId: string,
+  set: number,
+): number {
+  return valutazioni.filter(
+    (v) =>
+      v.giocatoreId === giocatoreId &&
+      v.set === set &&
+      v.segno === "+" &&
+      v.fondamentale !== "ricezione",
+  ).length;
+}
+
 export type ScoutMatch = {
   id: string;
   data: string;

@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Undo2, Save, CheckCircle2, Radio, Lock, CalendarX2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Select } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { useAnagraficaRosa } from "@/lib/rosa";
@@ -26,10 +27,10 @@ import {
 } from "@/lib/scout-live";
 import {
   azioniMeta,
+  contaPiuSenzaRicezione,
   contaValutazioni,
   fondamentali,
   useSalvaScoutMatch,
-  totaliPerGiocatore,
   type Azione,
   type AzioneTipo,
   type Fondamentale,
@@ -202,6 +203,7 @@ function ScoutBoard({
   const [setChiusi, setSetChiusi] = useState<Array<[number, number]>>(base.setChiusi);
   const [azioni, setAzioni] = useState<Azione[]>(base.azioni);
   const [valutazioni, setValutazioni] = useState<Valutazione[]>(base.valutazioni ?? []);
+  const [ordine, setOrdine] = useState<"cognome" | "numero">("cognome");
   const [selezionato, setSelezionato] = useState<string | null>(null);
   const salva = useSalvaStatoScout();
   const cancella = useCancellaStatoScout();
@@ -216,8 +218,13 @@ function ScoutBoard({
     const presenti = rosa.filter(
       (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
     );
-    return presenti.length > 0 ? presenti : rosa;
-  }, [risposte, rosa]);
+    const elenco = presenti.length > 0 ? presenti : rosa;
+    return [...elenco].sort((a, b) =>
+      ordine === "numero"
+        ? a.numero - b.numero
+        : a.cognome.localeCompare(b.cognome, "it") || a.numero - b.numero,
+    );
+  }, [risposte, rosa, ordine]);
 
   // Salvataggio condiviso: se chi scouta si disconnette, il prossimo riprende da qui.
   useEffect(() => {
@@ -236,7 +243,6 @@ function ScoutBoard({
   const azioniSet = azioni.filter((a) => a.set === setCorrente);
   const puntiNoi = azioniSet.filter((a) => azioniMeta[a.tipo].nostro).length;
   const puntiLoro = azioniSet.length - puntiNoi;
-  const totali = useMemo(() => totaliPerGiocatore(azioni), [azioni]);
 
   function valuta(fondamentale: Fondamentale, segno: Valutazione["segno"]) {
     if (!selezionato) {
@@ -351,13 +357,25 @@ function ScoutBoard({
       </header>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-          1. Tocca il giocatore
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
+            Selezione giocatore
+          </p>
+          <div className="w-40 shrink-0">
+            <Select
+              value={ordine}
+              onChange={(e) => setOrdine(e.target.value as "cognome" | "numero")}
+              aria-label="Ordina i giocatori"
+            >
+              <option value="cognome">Per cognome</option>
+              <option value="numero">Per numero</option>
+            </Select>
+          </div>
+        </div>
         <div className="grid grid-cols-4 gap-2">
           {convocati.map((g) => {
             const attivo = selezionato === g.id;
-            const t = totali.get(g.id);
+            const piu = contaPiuSenzaRicezione(valutazioni, g.id, setCorrente);
             return (
               <button
                 key={g.id}
@@ -376,7 +394,7 @@ function ScoutBoard({
                     attivo ? "text-accent-foreground/70" : "text-muted-foreground",
                   )}
                 >
-                  {t ? `${t.punti}p` : "0p"}
+                  +{piu}
                 </p>
               </button>
             );

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
 import {
   azioniMeta,
+  contaPiuSenzaRicezione,
   contaValutazioni,
   fondamentali,
   giocatoriConScout,
@@ -139,3 +140,21 @@ assert.deepEqual(
   "giocatore senza valutazioni",
 );
 assert.equal(totaliPerGiocatore([]).size, 0, "le valutazioni non sono azioni: nessun punto");
+
+// --- + del riquadro giocatore: tutti i fondamentali tranne la ricezione, nel set -------
+const piuVal = [
+  v("g1", "battuta", "+"),
+  v("g1", "attacco", "+"),
+  v("g1", "muro", "+"),
+  v("g1", "ricezione", "+"),
+  v("g1", "attacco", "-"),
+  v("g1", "battuta", "+", 2),
+  v("g2", "attacco", "+"),
+];
+assert.equal(
+  contaPiuSenzaRicezione(piuVal, "g1", 1),
+  3,
+  "niente ricezione, niente −, solo il set 1",
+);
+assert.equal(contaPiuSenzaRicezione(piuVal, "g1", 2), 1);
+assert.equal(contaPiuSenzaRicezione(piuVal, "g3", 1), 0);
