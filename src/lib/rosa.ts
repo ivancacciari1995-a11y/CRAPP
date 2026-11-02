@@ -34,7 +34,7 @@ function iniziali(nome: string, cognome: string): string {
 export function useAnagraficaRosa({
   conAllenatori = false,
 }: { conAllenatori?: boolean } = {}): Array<
-  Pick<Giocatore, "id" | "nome" | "ruolo" | "numero" | "nascita">
+  Pick<Giocatore, "id" | "nome" | "ruolo" | "numero" | "nascita"> & { cognome: string }
 > {
   const { righe: squadra } = useGiocatoriSquadra();
   return useMemo(
@@ -44,6 +44,7 @@ export function useAnagraficaRosa({
         .map((g) => ({
           id: g.id,
           nome: nomeCompleto(g),
+          cognome: g.cognome,
           ruolo: g.ruolo,
           numero: g.numero,
           nascita: g.nascita ?? "",

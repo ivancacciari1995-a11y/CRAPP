@@ -5,7 +5,10 @@ import { SCOUT_STATO_KEY, statoIniziale } from "@/lib/scout-stato";
 // --- statoIniziale: parte vuoto, con avversario e campo memorizzati -----------
 const stato = statoIniziale("Avversari", true);
 // Confronta una copia: deepEqual restringerebbe `stato` al letterale, con `azioni: never[]`.
-assert.deepEqual({ ...stato }, { azioni: [], setChiusi: [], avversario: "Avversari", casa: true });
+assert.deepEqual(
+  { ...stato },
+  { azioni: [], valutazioni: [], setChiusi: [], avversario: "Avversari", casa: true },
+);
 
 const trasferta = statoIniziale("Altra Squadra", false);
 assert.equal(trasferta.casa, false);
@@ -14,6 +17,7 @@ assert.deepEqual(trasferta.azioni, [], "ogni chiamata parte da una lista vuota i
 // Le liste non devono essere condivise tra due stati distinti.
 stato.azioni.push({ id: "a1", tipo: "attacco", set: 1, ts: 0 });
 assert.deepEqual(trasferta.azioni, [], "modificare uno stato non tocca l'altro");
+assert.notEqual(stato.valutazioni, trasferta.valutazioni, "anche le valutazioni sono indipendenti");
 
 // --- SCOUT_STATO_KEY: chiave stabile per React Query --------------------------
 assert.deepEqual(SCOUT_STATO_KEY("evt-1"), ["scout-stato", "evt-1"]);

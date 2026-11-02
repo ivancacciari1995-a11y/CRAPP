@@ -1,5 +1,11 @@
 import type { Giocatore } from "./crapp-data";
-import { azioniMeta, totaliPerGiocatore, type ScoutMatch } from "./scout-store";
+import {
+  azioniMeta,
+  contaValutazioni,
+  fondamentali,
+  totaliPerGiocatore,
+  type ScoutMatch,
+} from "./scout-store";
 
 /** Riga CSV con separatore ";" (Excel IT), riusata anche dall'export tesseramento. */
 export function rigaCsv(campi: Array<string | number>) {
@@ -33,6 +39,32 @@ export function csvScoutMatch(match: ScoutMatch, rosa: Giocatore[]): string {
     const t = totali.get(g.id);
     if (!t) continue;
     righe.push(rigaCsv([g.numero, g.nome, g.ruolo, t.punti, t.ace, t.muri, t.errori]));
+  }
+  if (match.valutazioni.length > 0) {
+    righe.push("");
+    righe.push(
+      rigaCsv([
+        "Set",
+        "Numero",
+        "Giocatore",
+        ...fondamentali.flatMap((f) => [`${f.label} +`, `${f.label} -`]),
+      ]),
+    );
+    const sets = [...new Set(match.valutazioni.map((v) => v.set))].sort((x, y) => x - y);
+    for (const set of sets) {
+      for (const g of rosa) {
+        if (!match.valutazioni.some((v) => v.set === set && v.giocatoreId === g.id)) continue;
+        const c = contaValutazioni(match.valutazioni, g.id, set);
+        righe.push(
+          rigaCsv([
+            set,
+            g.numero,
+            g.nome,
+            ...fondamentali.flatMap((f) => [c[f.id].piu, c[f.id].meno]),
+          ]),
+        );
+      }
+    }
   }
   righe.push("");
   righe.push(rigaCsv(["Set", "Giocatore", "Azione"]));

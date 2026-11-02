@@ -536,6 +536,7 @@ export type Database = {
           parziali: Json;
           set_loro: number;
           set_nostri: number;
+          valutazioni: Json;
         };
         Insert: {
           avversario: string;
@@ -548,6 +549,7 @@ export type Database = {
           parziali?: Json;
           set_loro: number;
           set_nostri: number;
+          valutazioni?: Json;
         };
         Update: {
           avversario?: string;
@@ -560,6 +562,7 @@ export type Database = {
           parziali?: Json;
           set_loro?: number;
           set_nostri?: number;
+          valutazioni?: Json;
         };
         Relationships: [];
       };

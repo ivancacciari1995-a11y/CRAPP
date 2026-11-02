@@ -32,6 +32,7 @@ if (!locale) {
     "turni_palloni",
     "risposte_presenze",
     "scout_live",
+    "scout_partite",
   ] as const;
 
   const rest = (percorso: string, init?: RequestInit) =>
@@ -312,6 +313,32 @@ if (!locale) {
         "il jsonb viene rimpiazzato: i campi del set precedente non restano appesi",
       );
     });
+
+    // --- scout: le valutazioni − / + stanno accanto alle azioni (m39) ----------------
+    await prova(
+      "la partita scoutata conserva le valutazioni; senza, l'elenco è vuoto",
+      async () => {
+        const evento = `${PREFISSO}-e5`;
+        const base = {
+          evento_id: evento,
+          data: "2026-11-02",
+          avversario: "X",
+          set_nostri: 3,
+          set_loro: 0,
+        };
+        await upsert("scout_partite", "id", { ...base, id: `${PREFISSO}-s1` });
+        const valutazioni = [
+          { id: "v1", giocatoreId: "g1", fondamentale: "battuta", segno: "+", set: 1, ts: 0 },
+        ];
+        await upsert("scout_partite", "id", { ...base, id: `${PREFISSO}-s2`, valutazioni });
+        const righe = await leggi(
+          "scout_partite",
+          `evento_id=eq.${evento}&select=id,valutazioni&order=id`,
+        );
+        assert.deepEqual(righe[0]?.["valutazioni"], [], "le partite senza valutazioni hanno []");
+        assert.deepEqual(righe[1]?.["valutazioni"], valutazioni);
+      },
+    );
   } finally {
     for (const tabella of TABELLE) {
       const colonna = tabella.endsWith("_voti") ? "match_id" : "evento_id";

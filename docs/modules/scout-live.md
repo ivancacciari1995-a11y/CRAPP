@@ -10,7 +10,8 @@
 ## Obiettivo
 
 Permettere a un solo referente per volta di registrare in tempo reale, durante la partita,
-punti, ace, muri ed errori di ciascun giocatore in campo, con salvataggio condiviso su
+punti, ace, muri ed errori di ciascun giocatore in campo — più un giudizio − / + sui
+fondamentali, per set — con salvataggio condiviso su
 Supabase (non più solo `localStorage`, fix M7) così che tutta la squadra veda lo stato
 aggiornato da qualunque dispositivo.
 
@@ -21,7 +22,8 @@ aggiornato da qualunque dispositivo.
 - `scout_sessioni` — chi ha il controllo dello Scout Live per una partita (una riga per
   `evento_id`, quindi un solo detentore).
 - `scout_live` — stato in corso (azioni non ancora concluse) di una sessione.
-- `scout_partite` — archivio delle partite scoutate concluse (risultato, parziali, azioni),
+- `scout_partite` — archivio delle partite scoutate concluse (risultato, parziali, azioni,
+  valutazioni − / +),
   mai più modificato una volta salvato (solo eliminabile per intero).
 - `cacche_partita` — sondaggio goliardico pre-partita, un voto per giocatore/evento
   (`UNIQUE evento_id, giocatore_id`).
@@ -74,6 +76,21 @@ risposto). Salvataggio automatico su `scout_live` con debounce di 800ms a ogni c
 
 ---
 
+## Valutazioni dei fondamentali (− / +)
+
+Per ogni convocato lo scout può segnare un **−** o un **+** su battuta, ricezione, attacco e muro
+([DD-053](../decisions/DD-053.md)). Non sono punti: restano fuori dal punteggio, dai parziali e dai
+totali P/A/M/E. Si seleziona il giocatore (passo 1) e si tocca − o + sul fondamentale (passo 3);
+accanto a ogni tasto compare il conteggio di quel giocatore **nel set in corso**. «Annulla» nella
+sezione toglie l'ultima valutazione del set in corso (l'«Annulla» in alto resta per le azioni).
+
+Ogni tocco è una riga `Valutazione` (`giocatoreId`, `fondamentale`, `segno`, `set`, `ts`) in una
+lista separata da `azioni`; i conteggi per set si calcolano con `contaValutazioni()`
+(`scout-store.ts`). Lo stato in corso le salva in `scout_live.stato.valutazioni` (assente negli
+stati salvati prima: vale lista vuota); a fine partita finiscono in `scout_partite.valutazioni`.
+
+---
+
 ## Fine partita
 
 `finePartita()` (`scout.tsx`) compone i parziali finali, inserisce la partita in
@@ -85,8 +102,10 @@ e rilascia la sessione.
 ## Export CSV
 
 `scout-export.ts` genera un CSV (separatore `;`, BOM UTF-8) con parziali, riepilogo per
-giocatore e log cronologico delle azioni. Scaricabile dagli admin dalla pagina partita,
-sezione "Report tecnico".
+giocatore e log cronologico delle azioni. Se ci sono valutazioni, aggiunge una tabella per set e giocatore con i
+
+- e i − di ogni fondamentale (solo per chi ne ha). Scaricabile dagli admin dalla pagina partita,
+  sezione "Report tecnico".
 
 ---
 
@@ -127,4 +146,5 @@ calcolati a runtime).
 
 ## Evoluzioni possibili
 
+- Mostrare le valutazioni anche nella pagina della partita (oggi solo nel CSV admin).
 - Realtime (Supabase Realtime) per aggiornare la sessione condivisa senza refresh manuale.

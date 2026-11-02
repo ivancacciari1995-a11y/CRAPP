@@ -88,7 +88,7 @@ Colonne di `giocatori_squadra` che meritano una nota:
 | ---------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `scout_sessioni` | Chi ha il controllo dello Scout Live per una partita (blocco condiviso), una riga per evento. | Letta/scritta da `src/lib/scout-live.ts`.                                                        |
 | `scout_live`     | Stato in corso (azioni non ancora concluse) di una sessione.                                  | Solo per statistiche di squadra, mai classifiche individuali (DD-008). `src/lib/scout-stato.ts`. |
-| `scout_partite`  | Archivio delle partite scoutate concluse (risultato, parziali, azioni).                       | Letta/scritta da `src/lib/scout-store.ts`.                                                       |
+| `scout_partite`  | Archivio delle partite scoutate concluse (risultato, parziali, azioni, valutazioni).          | Letta/scritta da `src/lib/scout-store.ts`. `valutazioni` (M39, DD-053): − / + per fondamentale.  |
 
 ## Votazioni
 

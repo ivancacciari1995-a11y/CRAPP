@@ -3,10 +3,13 @@ import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
 import {
   azioniMeta,
+  contaValutazioni,
+  fondamentali,
   giocatoriConScout,
   totaliPerGiocatore,
   totaliSquadra,
   type Azione,
+  type Valutazione,
   type ScoutMatch,
 } from "@/lib/scout-store";
 
@@ -32,6 +35,7 @@ const match = (
   setLoro,
   parziali: [],
   azioni,
+  valutazioni: [],
 });
 
 // --- totaliPerGiocatore: ace e muri valgono anche come punto ------------------
@@ -84,3 +88,54 @@ for (const [tipo, meta] of Object.entries(azioniMeta)) {
 }
 
 console.log("scout-store: ok");
+
+// --- valutazioni − / +: per giocatore, fondamentale e set; fuori dal punteggio -------
+const v = (
+  giocatoreId: string,
+  fondamentale: Valutazione["fondamentale"],
+  segno: Valutazione["segno"],
+  set = 1,
+): Valutazione => ({
+  id: `${giocatoreId}-${fondamentale}-${segno}-${set}-${Math.random()}`,
+  giocatoreId,
+  fondamentale,
+  segno,
+  set,
+  ts: 0,
+});
+
+assert.deepEqual(
+  fondamentali.map((f) => f.id),
+  ["battuta", "ricezione", "attacco", "muro"],
+);
+const val = [
+  v("g1", "battuta", "+"),
+  v("g1", "battuta", "+"),
+  v("g1", "battuta", "-"),
+  v("g1", "ricezione", "-", 2),
+  v("g1", "muro", "+", 2),
+  v("g2", "attacco", "+"),
+];
+assert.deepEqual(contaValutazioni(val, "g1", 1), {
+  battuta: { piu: 2, meno: 1 },
+  ricezione: { piu: 0, meno: 0 },
+  attacco: { piu: 0, meno: 0 },
+  muro: { piu: 0, meno: 0 },
+});
+assert.deepEqual(
+  contaValutazioni(val, "g1", 2).ricezione,
+  { piu: 0, meno: 1 },
+  "il set 2 è separato",
+);
+assert.deepEqual(
+  contaValutazioni(val, "g1").battuta,
+  { piu: 2, meno: 1 },
+  "senza set: tutta la partita",
+);
+assert.deepEqual(contaValutazioni(val, "g1").ricezione, { piu: 0, meno: 1 });
+assert.deepEqual(
+  contaValutazioni(val, "g3", 1).battuta,
+  { piu: 0, meno: 0 },
+  "giocatore senza valutazioni",
+);
+assert.equal(totaliPerGiocatore([]).size, 0, "le valutazioni non sono azioni: nessun punto");

@@ -29,6 +29,7 @@ const match: ScoutMatch = {
     [25, 18],
   ],
   azioni: [a("attacco", g1.id), a("ace", g1.id, 2), a("errore", g2.id, 2), a("punto_avv")],
+  valutazioni: [],
 };
 
 const csv = csvScoutMatch(match, giocatori);
@@ -78,3 +79,42 @@ const conVirgolette = csvScoutMatch({ ...match, avversario: 'Team "X"' }, giocat
 assert.ok(conVirgolette.includes('"Team ""X"""'));
 
 console.log("scout-export: ok");
+
+// --- valutazioni − / + per set -------------------------------------------------
+assert.ok(!csv.includes("Battuta +"), "senza valutazioni la sezione non c'è");
+const val = (
+  giocatoreId: string,
+  fondamentale: "battuta" | "muro",
+  segno: "+" | "-",
+  set: number,
+) => ({
+  id: `${giocatoreId}-${fondamentale}-${segno}-${set}-${Math.random()}`,
+  giocatoreId,
+  fondamentale,
+  segno,
+  set,
+  ts: 0,
+});
+const conVal = csvScoutMatch(
+  {
+    ...match,
+    valutazioni: [
+      val(g1.id, "battuta", "+", 1),
+      val(g1.id, "battuta", "+", 1),
+      val(g1.id, "battuta", "-", 1),
+      val(g1.id, "muro", "-", 2),
+    ],
+  },
+  giocatori,
+);
+assert.ok(
+  conVal.includes(
+    "Set;Numero;Giocatore;Battuta +;Battuta -;Ricezione +;Ricezione -;Attacco +;Attacco -;Muro +;Muro -",
+  ),
+);
+assert.ok(
+  conVal.includes(`1;${g1.numero};${g1.nome};2;1;0;0;0;0;0;0`),
+  "set 1: 2 più e 1 meno in battuta",
+);
+assert.ok(conVal.includes(`2;${g1.numero};${g1.nome};0;0;0;0;0;0;0;1`), "set 2: 1 meno a muro");
+assert.ok(!conVal.includes(`;${g2.nome};0;0;0;0;0;0;0;0`), "chi non ha valutazioni non ha riga");

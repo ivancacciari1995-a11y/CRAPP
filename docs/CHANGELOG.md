@@ -13,7 +13,13 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
-Quattro migration, da `m35` a `m38`, **non ancora applicate in produzione**.
+Cinque migration, da `m35` a `m39`, **non ancora applicate in produzione**.
+
+### Aggiunto
+
+- Scout live: per ogni convocato si può segnare un − o un + su battuta, ricezione, attacco e muro,
+  separatamente per ogni set e senza toccare il punteggio ([DD-053](decisions/DD-053.md), `m39`). Il
+  CSV admin della partita include una tabella con i conteggi per set.
 
 ### Modificato
 

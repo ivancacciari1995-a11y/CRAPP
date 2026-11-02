@@ -3,7 +3,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Undo2, Save, CheckCircle2, Radio, Lock, CalendarX2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { useAnagraficaRosa } from "@/lib/rosa";
@@ -27,10 +26,14 @@ import {
 } from "@/lib/scout-live";
 import {
   azioniMeta,
+  contaValutazioni,
+  fondamentali,
   useSalvaScoutMatch,
   totaliPerGiocatore,
   type Azione,
   type AzioneTipo,
+  type Fondamentale,
+  type Valutazione,
 } from "@/lib/scout-store";
 
 export const Route = createFileRoute("/scout")({
@@ -51,8 +54,6 @@ export const Route = createFileRoute("/scout")({
   }),
   component: Scout,
 });
-
-const ordineAzioni: AzioneTipo[] = ["attacco", "ace", "muro", "errore"];
 
 function Blocco({
   icona,
@@ -196,10 +197,11 @@ function ScoutBoard({
         .trim() || "Avversario",
       partita.titolo.trim().toLowerCase().startsWith("crap"),
     );
-  const [avversario, setAvversario] = useState(base.avversario);
-  const [casa, setCasa] = useState(base.casa);
+  const [avversario] = useState(base.avversario);
+  const [casa] = useState(base.casa);
   const [setChiusi, setSetChiusi] = useState<Array<[number, number]>>(base.setChiusi);
   const [azioni, setAzioni] = useState<Azione[]>(base.azioni);
+  const [valutazioni, setValutazioni] = useState<Valutazione[]>(base.valutazioni ?? []);
   const [selezionato, setSelezionato] = useState<string | null>(null);
   const salva = useSalvaStatoScout();
   const cancella = useCancellaStatoScout();
@@ -223,37 +225,44 @@ function ScoutBoard({
     const id = window.setTimeout(() => {
       void salva.mutateAsync({
         eventoId: partita.id,
-        stato: { azioni, setChiusi, avversario, casa },
+        stato: { azioni, valutazioni, setChiusi, avversario, casa },
       });
     }, 800);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [azioni, setChiusi, avversario, casa, partita.id]);
+  }, [azioni, valutazioni, setChiusi, avversario, casa, partita.id]);
 
   const setCorrente = setChiusi.length + 1;
   const azioniSet = azioni.filter((a) => a.set === setCorrente);
   const puntiNoi = azioniSet.filter((a) => azioniMeta[a.tipo].nostro).length;
   const puntiLoro = azioniSet.length - puntiNoi;
-  const setNostri = setChiusi.filter(([n, l]) => n > l).length;
-  const setLoro = setChiusi.length - setNostri;
   const totali = useMemo(() => totaliPerGiocatore(azioni), [azioni]);
 
-  function registra(tipo: AzioneTipo) {
-    const meta = azioniMeta[tipo];
-    if (meta.richiedeGiocatore && !selezionato) {
+  function valuta(fondamentale: Fondamentale, segno: Valutazione["segno"]) {
+    if (!selezionato) {
       toast.error("Seleziona prima il giocatore");
       return;
     }
-    setAzioni((prev) => {
-      const nuova: Azione = {
+    setValutazioni((prev) => [
+      ...prev,
+      {
         id: `${Date.now()}-${prev.length}`,
-        tipo,
+        giocatoreId: selezionato,
+        fondamentale,
+        segno,
         set: setCorrente,
         ts: Date.now(),
-        ...(meta.richiedeGiocatore && selezionato ? { giocatoreId: selezionato } : {}),
-      };
-      return [...prev, nuova];
-    });
+      },
+    ]);
+  }
+
+  function annullaValutazione() {
+    const ultima = valutazioni[valutazioni.length - 1];
+    if (!ultima || ultima.set !== setCorrente) {
+      toast.error("Puoi annullare solo le valutazioni del set in corso");
+      return;
+    }
+    setValutazioni((prev) => prev.slice(0, -1));
   }
 
   function annulla() {
@@ -294,6 +303,7 @@ function ScoutBoard({
           setLoro: parziali.length - vinti,
           parziali,
           azioni,
+          valutazioni,
         },
       });
     } catch {
@@ -307,6 +317,10 @@ function ScoutBoard({
     navigate({ to: "/squadra" });
   }
 
+  const giocatoreSel = rosa.find((g) => g.id === selezionato);
+  const contiSelezionato = selezionato
+    ? contaValutazioni(valutazioni, selezionato, setCorrente)
+    : null;
   const ultime = [...azioni].slice(-4).reverse();
 
   return (
@@ -334,35 +348,6 @@ function ScoutBoard({
             </button>
           </div>
         </div>
-
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-          <div className="min-w-0">
-            <p className="truncate text-[13px] uppercase text-primary-foreground/60">CRAP Volley</p>
-            <p className="font-display text-5xl leading-none text-accent">{puntiNoi}</p>
-          </div>
-          <p className="font-display text-2xl leading-none text-primary-foreground/50">
-            {setNostri}-{setLoro}
-          </p>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] uppercase text-primary-foreground/60">
-              {avversario || "Avversario"}
-            </p>
-            <p className="font-display text-5xl leading-none">{puntiLoro}</p>
-          </div>
-        </div>
-
-        {setChiusi.length > 0 ? (
-          <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-            {setChiusi.map((p, i) => (
-              <span
-                key={i}
-                className="rounded-lg bg-primary-foreground/10 px-2 py-0.5 text-[13px] font-semibold tabular-nums"
-              >
-                {p[0]}-{p[1]}
-              </span>
-            ))}
-          </div>
-        ) : null}
       </header>
 
       <section className="px-5 pt-4">
@@ -400,39 +385,55 @@ function ScoutBoard({
       </section>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-          2. Tocca l'azione
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {ordineAzioni.map((tipo) => (
-            <button
-              key={tipo}
-              type="button"
-              onClick={() => registra(tipo)}
-              className={cn(
-                "rounded-2xl py-4 font-display text-xl uppercase tracking-wide shadow-card transition-transform active:scale-95",
-                azioniMeta[tipo].className,
-                !selezionato && "opacity-50",
-              )}
-            >
-              {azioniMeta[tipo].label}
-            </button>
-          ))}
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
+            2. Valuta{giocatoreSel ? ` ${giocatoreSel.cognome} - ${giocatoreSel.numero}` : ""} · Set{" "}
+            {setCorrente}
+          </p>
+          <button
+            type="button"
+            onClick={annullaValutazione}
+            disabled={!valutazioni.some((v) => v.set === setCorrente)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-[13px] font-bold disabled:opacity-40"
+          >
+            <Undo2 className="h-3.5 w-3.5" /> Annulla
+          </button>
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {(["punto_avv", "errore_avv"] as AzioneTipo[]).map((tipo) => (
-            <button
-              key={tipo}
-              type="button"
-              onClick={() => registra(tipo)}
-              className={cn(
-                "rounded-2xl py-3 text-[15px] font-bold uppercase shadow-card transition-transform active:scale-95",
-                azioniMeta[tipo].className,
-              )}
-            >
-              {azioniMeta[tipo].short}
-            </button>
-          ))}
+        <div
+          className={cn(
+            "space-y-2 rounded-3xl bg-card p-3 shadow-card",
+            !selezionato && "opacity-60",
+          )}
+        >
+          {!selezionato ? (
+            <p className="text-[13px] text-muted-foreground">
+              Tocca un giocatore: i + e i − non cambiano il punteggio.
+            </p>
+          ) : null}
+          {fondamentali.map((f) => {
+            const c = contiSelezionato?.[f.id] ?? { piu: 0, meno: 0 };
+            return (
+              <div key={f.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
+                <span className="text-[15px] font-bold">{f.label}</span>
+                <button
+                  type="button"
+                  aria-label={`${f.label}: meno`}
+                  onClick={() => valuta(f.id, "-")}
+                  className="min-w-16 rounded-2xl bg-destructive px-4 py-2.5 font-display text-xl leading-none text-destructive-foreground shadow-card transition-transform active:scale-95"
+                >
+                  − <span className="tabular-nums">{c.meno}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`${f.label}: più`}
+                  onClick={() => valuta(f.id, "+")}
+                  className="min-w-16 rounded-2xl bg-success px-4 py-2.5 font-display text-xl leading-none text-success-foreground shadow-card transition-transform active:scale-95"
+                >
+                  + <span className="tabular-nums">{c.piu}</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -470,35 +471,6 @@ function ScoutBoard({
             </ul>
           )}
         </div>
-      </section>
-
-      <section className="px-5 pt-4">
-        <Card>
-          <label className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-            Avversario
-          </label>
-          <input
-            value={avversario}
-            maxLength={40}
-            onChange={(e) => setAvversario(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-[15px]"
-          />
-          <div className="mt-3 flex rounded-full bg-secondary p-1">
-            {[true, false].map((v) => (
-              <button
-                key={String(v)}
-                type="button"
-                onClick={() => setCasa(v)}
-                className={cn(
-                  "flex-1 rounded-full py-1.5 text-[13px] font-bold uppercase",
-                  casa === v ? "bg-card text-foreground shadow-card" : "text-muted-foreground",
-                )}
-              >
-                {v ? "In casa" : "Trasferta"}
-              </button>
-            ))}
-          </div>
-        </Card>
       </section>
 
       <section className="grid grid-cols-2 gap-2 px-5 pb-4 pt-4">
