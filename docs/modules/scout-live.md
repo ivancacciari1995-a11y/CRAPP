@@ -65,7 +65,7 @@ perché occupava spazio 6 giorni su 7.
 
 ## Cosa registra
 
-La schermata `/scout` ha due passi: **Selezione giocatore** e **2. Valuta** (vedi sotto), seguiti da
+La schermata `/scout` ha due passi: **Selezione giocatore** e **Valuta** (vedi sotto), seguiti da
 «Chiudi set» e «Fine partita».
 
 - **Selezione giocatore:** griglia dei convocati (chi ha risposto "presente"/"ritardo", con fallback

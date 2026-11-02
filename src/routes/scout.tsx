@@ -417,7 +417,7 @@ function ScoutBoard({
       <section className="px-5 pt-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-            2. Valuta{giocatoreSel ? ` ${giocatoreSel.cognome} - ${giocatoreSel.numero}` : ""} · Set{" "}
+            Valuta{giocatoreSel ? ` ${giocatoreSel.cognome} - ${giocatoreSel.numero}` : ""} · Set{" "}
             {setCorrente}
           </p>
           <button
