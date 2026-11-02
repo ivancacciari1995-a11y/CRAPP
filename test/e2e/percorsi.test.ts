@@ -62,10 +62,8 @@ try {
     const csi = (await json(res)) as DatiCsi;
     const noi = csi.classifica.find((r) => isNostraSquadra(r.squadra));
     assert.ok(noi, "la nostra squadra arriva dal portale");
-    assert.ok(
-      csi.partite.some((p) => p.setNostri !== null),
-      "ci sono risultati giocati",
-    );
+    // A inizio stagione il calendario c'è ma nessuna gara è ancora stata giocata.
+    assert.ok(csi.partite.length > 0, "le gare della stagione arrivano dal portale");
 
     const html = await pagina("/classifica");
     assert.match(titolo(html), /Classifica campionato/);

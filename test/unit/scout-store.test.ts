@@ -3,10 +3,16 @@ import assert from "node:assert/strict";
 import { giocatori } from "@/lib/crapp-data";
 import {
   azioniMeta,
+  contaPiuSenzaRicezione,
+  haPunteggio,
+  parzialiFinali,
+  contaValutazioni,
+  fondamentali,
   giocatoriConScout,
   totaliPerGiocatore,
   totaliSquadra,
   type Azione,
+  type Valutazione,
   type ScoutMatch,
 } from "@/lib/scout-store";
 
@@ -32,6 +38,7 @@ const match = (
   setLoro,
   parziali: [],
   azioni,
+  valutazioni: [],
 });
 
 // --- totaliPerGiocatore: ace e muri valgono anche come punto ------------------
@@ -84,3 +91,109 @@ for (const [tipo, meta] of Object.entries(azioniMeta)) {
 }
 
 console.log("scout-store: ok");
+
+// --- valutazioni − / +: per giocatore, fondamentale e set; fuori dal punteggio -------
+const v = (
+  giocatoreId: string,
+  fondamentale: Valutazione["fondamentale"],
+  segno: Valutazione["segno"],
+  set = 1,
+): Valutazione => ({
+  id: `${giocatoreId}-${fondamentale}-${segno}-${set}-${Math.random()}`,
+  giocatoreId,
+  fondamentale,
+  segno,
+  set,
+  ts: 0,
+});
+
+assert.deepEqual(
+  fondamentali.map((f) => f.id),
+  ["battuta", "ricezione", "attacco", "muro"],
+);
+const val = [
+  v("g1", "battuta", "+"),
+  v("g1", "battuta", "+"),
+  v("g1", "battuta", "-"),
+  v("g1", "ricezione", "-", 2),
+  v("g1", "muro", "+", 2),
+  v("g2", "attacco", "+"),
+];
+assert.deepEqual(contaValutazioni(val, "g1", 1), {
+  battuta: { piu: 2, meno: 1 },
+  ricezione: { piu: 0, meno: 0 },
+  attacco: { piu: 0, meno: 0 },
+  muro: { piu: 0, meno: 0 },
+});
+assert.deepEqual(
+  contaValutazioni(val, "g1", 2).ricezione,
+  { piu: 0, meno: 1 },
+  "il set 2 è separato",
+);
+assert.deepEqual(
+  contaValutazioni(val, "g1").battuta,
+  { piu: 2, meno: 1 },
+  "senza set: tutta la partita",
+);
+assert.deepEqual(contaValutazioni(val, "g1").ricezione, { piu: 0, meno: 1 });
+assert.deepEqual(
+  contaValutazioni(val, "g3", 1).battuta,
+  { piu: 0, meno: 0 },
+  "giocatore senza valutazioni",
+);
+assert.equal(totaliPerGiocatore([]).size, 0, "le valutazioni non sono azioni: nessun punto");
+
+// --- + del riquadro giocatore: tutti i fondamentali tranne la ricezione, nel set -------
+const piuVal = [
+  v("g1", "battuta", "+"),
+  v("g1", "attacco", "+"),
+  v("g1", "muro", "+"),
+  v("g1", "ricezione", "+"),
+  v("g1", "attacco", "-"),
+  v("g1", "battuta", "+", 2),
+  v("g2", "attacco", "+"),
+];
+assert.equal(
+  contaPiuSenzaRicezione(piuVal, "g1", 1),
+  3,
+  "niente ricezione, niente −, solo il set 1",
+);
+assert.equal(contaPiuSenzaRicezione(piuVal, "g1", 2), 1);
+assert.equal(contaPiuSenzaRicezione(piuVal, "g3", 1), 0);
+
+// --- parziali finali: il set in corso conta solo se ha dati ------------------------
+assert.deepEqual(
+  parzialiFinali([[25, 20]], [0, 0], true),
+  [
+    [25, 20],
+    [0, 0],
+  ],
+  "set con sole valutazioni",
+);
+assert.deepEqual(
+  parzialiFinali([[25, 20]], [0, 0], false),
+  [[25, 20]],
+  "set vuoto: non si archivia",
+);
+assert.deepEqual(parzialiFinali([], [0, 0], false), [], "nessun set da salvare");
+
+// --- haPunteggio: le partite di sole valutazioni non sono un risultato -------------
+assert.equal(
+  haPunteggio({
+    parziali: [
+      [0, 0],
+      [0, 0],
+    ],
+  }),
+  false,
+);
+assert.equal(haPunteggio({ parziali: [] }), false);
+assert.equal(
+  haPunteggio({
+    parziali: [
+      [0, 0],
+      [25, 18],
+    ],
+  }),
+  true,
+);

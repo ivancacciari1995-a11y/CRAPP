@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Azione } from "./scout-store";
+import type { Azione, Valutazione } from "./scout-store";
 
 /** Stato condiviso di uno scout in corso: chi prende il controllo riparte da qui. */
 export type StatoScout = {
   azioni: Azione[];
+  /** Assente negli stati salvati prima dell'introduzione delle valutazioni. */
+  valutazioni?: Valutazione[];
   setChiusi: Array<[number, number]>;
   avversario: string;
   casa: boolean;
@@ -12,6 +14,7 @@ export type StatoScout = {
 
 export const statoIniziale = (avversario: string, casa: boolean): StatoScout => ({
   azioni: [],
+  valutazioni: [],
   setChiusi: [],
   avversario,
   casa,

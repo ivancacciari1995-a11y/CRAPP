@@ -34,6 +34,8 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 - [x] Collegamento CSI (stagione 2026/27)
 - [x] Classifica automatica (campionato e Coppa)
 - [x] Risultati campionato
+- [x] Calendario ufficiale — le gare future del feed CSI compaiono già nella pagina Campionato:
+      a inizio stagione il calendario c'è prima dei risultati
 - [x] Dettaglio partita — formazioni, storico scontri diretti e probabilità di vittoria
       calcolata dal CSI
 - [x] Ruolo allenatore — gestisce gli eventi e sollecita le presenze, profilo ridotto senza
@@ -54,8 +56,6 @@ Tutto quello che è rilasciato, fino alla versione 1.0.0 (vedi `CHANGELOG.md`).
 
 ## Prossimo
 
-- [ ] Calendario ufficiale — i dati delle gare future arrivano già dal feed CSI, la pagina
-      Campionato usa solo quelle giocate
 - [ ] Database esercizi
 - [ ] AI Allenamenti
 - [ ] Archivio allenamenti

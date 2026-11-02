@@ -60,6 +60,72 @@ export type Azione = {
   ts: number;
 };
 
+/** I fondamentali valutabili con − / + durante lo scout (non toccano il punteggio). */
+export type Fondamentale = "battuta" | "ricezione" | "attacco" | "muro";
+
+export const fondamentali: Array<{ id: Fondamentale; label: string }> = [
+  { id: "battuta", label: "Battuta" },
+  { id: "ricezione", label: "Ricezione" },
+  { id: "attacco", label: "Attacco" },
+  { id: "muro", label: "Muro" },
+];
+
+export type Valutazione = {
+  id: string;
+  giocatoreId: string;
+  fondamentale: Fondamentale;
+  segno: "+" | "-";
+  set: number;
+  ts: number;
+};
+
+export type ConteggioValutazioni = Record<Fondamentale, { piu: number; meno: number }>;
+
+/** Conta i + e i − di un giocatore per fondamentale, in un set (o in tutti se `set` manca). */
+export function contaValutazioni(
+  valutazioni: Valutazione[],
+  giocatoreId: string,
+  set?: number,
+): ConteggioValutazioni {
+  const out = {} as ConteggioValutazioni;
+  for (const f of fondamentali) out[f.id] = { piu: 0, meno: 0 };
+  for (const v of valutazioni) {
+    if (v.giocatoreId !== giocatoreId || (set !== undefined && v.set !== set)) continue;
+    out[v.fondamentale][v.segno === "+" ? "piu" : "meno"] += 1;
+  }
+  return out;
+}
+
+/**
+ * I + di un giocatore in un set, esclusa la ricezione (che qui non vale come punto messo a
+ * terra): quello che compare nel suo riquadro dello scout.
+ */
+export function contaPiuSenzaRicezione(
+  valutazioni: Valutazione[],
+  giocatoreId: string,
+  set: number,
+): number {
+  return valutazioni.filter(
+    (v) =>
+      v.giocatoreId === giocatoreId &&
+      v.set === set &&
+      v.segno === "+" &&
+      v.fondamentale !== "ricezione",
+  ).length;
+}
+
+/**
+ * Parziali da archiviare: i set chiusi più il set in corso, se ha qualcosa dentro (punti o
+ * valutazioni). Senza punteggio un set vale 0-0: serve solo a numerarlo.
+ */
+export function parzialiFinali(
+  setChiusi: Array<[number, number]>,
+  corrente: [number, number],
+  haDati: boolean,
+): Array<[number, number]> {
+  return haDati ? [...setChiusi, corrente] : setChiusi;
+}
+
 export type ScoutMatch = {
   id: string;
   data: string;
@@ -69,6 +135,7 @@ export type ScoutMatch = {
   setLoro: number;
   parziali: Array<[number, number]>;
   azioni: Azione[];
+  valutazioni: Valutazione[];
 };
 
 type RigaScoutPartita = {
@@ -80,6 +147,7 @@ type RigaScoutPartita = {
   set_loro: number;
   parziali: unknown;
   azioni: unknown;
+  valutazioni: unknown;
 };
 
 function daRiga(r: RigaScoutPartita): ScoutMatch {
@@ -92,6 +160,7 @@ function daRiga(r: RigaScoutPartita): ScoutMatch {
     setLoro: r.set_loro,
     parziali: (r.parziali as Array<[number, number]> | null) ?? [],
     azioni: (r.azioni as Azione[] | null) ?? [],
+    valutazioni: (r.valutazioni as Valutazione[] | null) ?? [],
   };
 }
 
@@ -100,7 +169,7 @@ export const SCOUT_MATCHES_KEY = ["scout-partite"] as const;
 async function fetchScoutMatches(): Promise<ScoutMatch[]> {
   const { data, error } = await supabase
     .from("scout_partite")
-    .select("id, data, avversario, casa, set_nostri, set_loro, parziali, azioni")
+    .select("id, data, avversario, casa, set_nostri, set_loro, parziali, azioni, valutazioni")
     .order("creato_il", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(daRiga);
@@ -131,6 +200,7 @@ export function useSalvaScoutMatch() {
         set_loro: input.match.setLoro,
         parziali: JSON.parse(JSON.stringify(input.match.parziali)),
         azioni: JSON.parse(JSON.stringify(input.match.azioni)),
+        valutazioni: JSON.parse(JSON.stringify(input.match.valutazioni)),
       });
       if (error) throw error;
       return input.match;
@@ -157,6 +227,15 @@ export function useEliminaScoutMatch() {
         (prec ?? []).filter((m) => m.id !== id),
       ),
   });
+}
+
+/**
+ * Una partita scoutata ha un risultato solo se ha registrato punti: quelle fatte di sole
+ * valutazioni − / + hanno parziali 0-0 e non devono sostituire il referto ufficiale né
+ * comparire come risultato in Home e Classifica.
+ */
+export function haPunteggio(match: Pick<ScoutMatch, "parziali">): boolean {
+  return match.parziali.some(([n, l]) => n + l > 0);
 }
 
 /** Somma delle azioni di un match per giocatore. */

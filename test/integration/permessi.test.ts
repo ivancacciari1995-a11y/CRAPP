@@ -16,6 +16,7 @@
  */
 import assert from "node:assert/strict";
 import { statoLocale } from "../helpers/locale";
+import { giornoSenzaOraAperto, romaTra } from "../helpers/roma";
 import { prova, riepilogo, salta } from "../helpers/prova";
 
 const locale = statoLocale();
@@ -310,12 +311,47 @@ if (!locale) {
         }),
       });
       assert.ok(!falso.ok, `non si vota a nome di un altro (${falso.status})`);
+    });
 
+    // --- Voto MVP: definitivo (M35), solo tra presenti e dopo 2 ore dall'inizio (M36) ----------
+    let contatoreMvp = 0;
+    /** Crea una partita (o altro tipo) con le presenze indicate; ritorna l'id. */
+    async function eventoMvp(
+      quando: { data: string; ora: string },
+      presenze: Record<string, string>,
+      tipo = "partita",
+    ): Promise<string> {
+      const id = `${PREFISSO}-mvp-${++contatoreMvp}`;
+      const creato = await rest("eventi_app", tokenAdmin, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ id, tipo, titolo: "Voto MVP", luogo: "Palestra", ...quando }),
+      });
+      assert.equal(await righeToccate(creato), 1, "l'evento di prova si crea");
+      for (const [giocatore_id, stato] of Object.entries(presenze)) {
+        const r = await rest("risposte_presenze", SERVIZIO, {
+          method: "POST",
+          body: JSON.stringify({ evento_id: id, giocatore_id, stato }),
+        });
+        assert.ok(r.ok, `presenza di prova ${giocatore_id}: ${r.status}`);
+      }
+      return id;
+    }
+    const votaMvp = (token: string, match_id: string, votante_id: string, votato_id: string) =>
+      rest("mvp_voti", token, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ match_id, votante_id, votato_id, votato_nome: votato_id }),
+      });
+    const passata = romaTra(-3);
+
+    await prova("il voto MVP è uno solo, definitivo e firmato (M35)", async () => {
+      const EVENTO_MVP = await eventoMvp(passata, { g1: "presente", g5: "presente" });
       const mioMvp = await rest("mvp_voti", tokenGiocatore, {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        headers: { Prefer: "return=representation" },
         body: JSON.stringify({
-          match_id: EVENTO,
+          match_id: EVENTO_MVP,
           votante_id: "g1",
           votato_id: "g5",
           votato_nome: "Cinque",
@@ -323,17 +359,320 @@ if (!locale) {
       });
       assert.equal(await righeToccate(mioMvp), 1, "il proprio voto MVP si registra");
 
+      // Il voto MVP è definitivo (M35): né un secondo voto, né una modifica, né la cancellazione.
+      const secondo = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO_MVP,
+          votante_id: "g1",
+          votato_id: "g6",
+          votato_nome: "Sei",
+        }),
+      });
+      assert.ok(
+        !secondo.ok,
+        `un secondo voto MVP sulla stessa partita è rifiutato (${secondo.status})`,
+      );
+      const modifica = await rest(
+        `mvp_voti?match_id=eq.${EVENTO_MVP}&votante_id=eq.g1`,
+        tokenGiocatore,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ votato_id: "g6", votato_nome: "Sei" }),
+        },
+      );
+      assert.equal(await righeToccate(modifica), 0, "il proprio voto MVP non si modifica");
+      const cancella = await rest(
+        `mvp_voti?match_id=eq.${EVENTO_MVP}&votante_id=eq.g1`,
+        tokenGiocatore,
+        {
+          method: "DELETE",
+          headers: { Prefer: "return=representation" },
+        },
+      );
+      assert.equal(await righeToccate(cancella), 0, "il proprio voto MVP non si cancella");
+      const dopo = await rest(
+        `mvp_voti?match_id=eq.${EVENTO_MVP}&votante_id=eq.g1&select=votato_id`,
+        SERVIZIO,
+      );
+      assert.deepEqual(
+        await dopo.json(),
+        [{ votato_id: "g5" }],
+        "il voto è rimasto quello iniziale",
+      );
+
       const mvp = await rest("mvp_voti", tokenGiocatore, {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        headers: { Prefer: "return=representation" },
         body: JSON.stringify({
-          match_id: EVENTO,
+          match_id: EVENTO_MVP,
           votante_id: "g5",
           votato_id: "g1",
           votato_nome: "Uno",
         }),
       });
       assert.ok(!mvp.ok, `vale anche per l'MVP (${mvp.status})`);
+    });
+
+    await prova("il voto MVP vale solo tra presenti (M36)", async () => {
+      const q = passata;
+      // Controllo positivo: presente e in ritardo possono votare e farsi votare.
+      const ok = await eventoMvp(q, { g1: "presente", g5: "ritardo" });
+      assert.equal(await righeToccate(await votaMvp(tokenGiocatore, ok, "g1", "g5")), 1);
+      const okRitardo = await eventoMvp(q, { g1: "ritardo", g5: "presente" });
+      assert.equal(await righeToccate(await votaMvp(tokenGiocatore, okRitardo, "g1", "g5")), 1);
+
+      for (const [stato, nome] of [
+        ["forse", "forse"],
+        ["assente", "assente"],
+        ["infortunato", "infortunato"],
+        [null, "senza risposta"],
+      ] as const) {
+        const votatoNo = await eventoMvp(q, {
+          g1: "presente",
+          ...(stato ? { g5: stato } : {}),
+        });
+        const r = await votaMvp(tokenGiocatore, votatoNo, "g1", "g5");
+        assert.ok(!r.ok, `un votato ${nome} non si può votare (${r.status})`);
+
+        const votanteNo = await eventoMvp(q, {
+          g5: "presente",
+          ...(stato ? { g1: stato } : {}),
+        });
+        const r2 = await votaMvp(tokenGiocatore, votanteNo, "g1", "g5");
+        assert.ok(!r2.ok, `un votante ${nome} non può votare (${r2.status})`);
+      }
+    });
+
+    await prova(
+      "il voto MVP apre 2 ore dopo l'inizio e chiude 24 ore dopo (M36, M37)",
+      async () => {
+        const presenti = { g1: "presente", g5: "presente" };
+        const tre = await eventoMvp(romaTra(-3), presenti);
+        assert.equal(
+          await righeToccate(await votaMvp(tokenGiocatore, tre, "g1", "g5")),
+          1,
+          "3 ore dopo",
+        );
+
+        const una = await eventoMvp(romaTra(-1), presenti);
+        const rUna = await votaMvp(tokenGiocatore, una, "g1", "g5");
+        assert.ok(!rUna.ok, `1 ora dopo l'inizio: ancora chiuso (${rUna.status})`);
+
+        const venticinque = await eventoMvp(romaTra(-25), presenti);
+        assert.equal(
+          await righeToccate(await votaMvp(tokenGiocatore, venticinque, "g1", "g5")),
+          1,
+          "25 ore dopo l'inizio: ancora aperto (chiude a 26)",
+        );
+        const ventisette = await eventoMvp(romaTra(-27), presenti);
+        const rChiuso = await votaMvp(tokenGiocatore, ventisette, "g1", "g5");
+        assert.ok(!rChiuso.ok, `27 ore dopo l'inizio: chiuso (${rChiuso.status})`);
+
+        const futura = await eventoMvp(romaTra(48), presenti);
+        const rFutura = await votaMvp(tokenGiocatore, futura, "g1", "g5");
+        assert.ok(!rFutura.ok, `partita non ancora giocata (${rFutura.status})`);
+
+        // Un'ora vuota vale mezzanotte, come nell'app.
+        const senzaOra = await eventoMvp({ data: giornoSenzaOraAperto(), ora: "" }, presenti);
+        assert.equal(
+          await righeToccate(await votaMvp(tokenGiocatore, senzaOra, "g1", "g5")),
+          1,
+          "senza ora vale mezzanotte",
+        );
+      },
+    );
+
+    await prova("il voto MVP esiste solo per le partite (M36)", async () => {
+      const presenti = { g1: "presente", g5: "presente" };
+      for (const tipo of ["allenamento", "evento"]) {
+        const e = await eventoMvp(passata, presenti, tipo);
+        const r = await votaMvp(tokenGiocatore, e, "g1", "g5");
+        assert.ok(!r.ok, `nessun MVP per ${tipo} (${r.status})`);
+      }
+    });
+
+    await prova("l'admin può registrare un voto MVP anche fuori da queste regole", async () => {
+      const futura = await eventoMvp(romaTra(48), { g1: "assente" });
+      const r = await votaMvp(tokenAdmin, futura, "g1", "g5");
+      assert.equal(await righeToccate(r), 1, "l'admin corregge/inserisce senza vincoli di M36");
+      const chiusa = await eventoMvp(romaTra(-48), { g1: "assente" });
+      const rc = await votaMvp(tokenAdmin, chiusa, "g1", "g5");
+      assert.equal(await righeToccate(rc), 1, "l'admin può votare anche a votazione chiusa");
+    });
+
+    await prova("il voto MVP è segreto: nessuno legge chi ha votato chi (M37)", async () => {
+      const e = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+      assert.equal(await righeToccate(await votaMvp(tokenGiocatore, e, "g1", "g5")), 1);
+      // Un secondo voto di un altro votante (inserito dall'admin) per avere due righe.
+      assert.equal(await righeToccate(await votaMvp(tokenAdmin, e, "g5", "g1")), 1);
+
+      const tabella = await rest(
+        `mvp_voti?match_id=eq.${e}&select=votante_id,votato_id`,
+        tokenGiocatore,
+      );
+      assert.deepEqual(
+        await tabella.json(),
+        [{ votante_id: "g1", votato_id: "g5" }],
+        "dalla tabella un giocatore legge solo il proprio voto",
+      );
+
+      const vista = await rest(`mvp_voti_anonimi?match_id=eq.${e}&select=*`, tokenGiocatore);
+      assert.ok(vista.ok, `la vista dei conteggi si legge (${vista.status})`);
+      const righe = (await vista.json()) as Record<string, string>[];
+      assert.deepEqual(
+        righe.map((r) => r["votato_id"]).sort(),
+        ["g1", "g5"],
+        "ci sono tutti i voti",
+      );
+      assert.ok(
+        righe.every((r) => !("votante_id" in r)),
+        "ma la vista non dice chi li ha dati",
+      );
+
+      const anonimo = await rest(`mvp_voti_anonimi?match_id=eq.${e}`, ANON);
+      assert.ok(!anonimo.ok, `senza account non si legge nemmeno la vista (${anonimo.status})`);
+      const anonimoTabella = await rest(`mvp_voti?match_id=eq.${e}`, ANON);
+      const corpo = anonimoTabella.ok ? ((await anonimoTabella.json()) as unknown[]) : [];
+      assert.equal(corpo.length, 0, "né la tabella");
+
+      const admin = await rest(`mvp_voti?match_id=eq.${e}&select=votante_id`, tokenAdmin);
+      assert.equal(
+        ((await admin.json()) as unknown[]).length,
+        2,
+        "l'admin vede i voti dalla tabella: gli servono per correggerli",
+      );
+    });
+
+    /** Nome in rosa di uno slot, come lo compone il trigger (nome + cognome, senza spazi in testa). */
+    async function nomeInRosa(id: string): Promise<string> {
+      const r = await rest(`giocatori_squadra?id=eq.${id}&select=nome,cognome`, SERVIZIO);
+      const [g] = (await r.json()) as { nome: string; cognome: string }[];
+      return `${g!.nome} ${g!.cognome}`.trim();
+    }
+    const votoNome = (token: string, match_id: string, votato_id: string, resto: object) =>
+      rest("mvp_voti", token, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ match_id, votante_id: "g1", votato_id, ...resto }),
+      });
+    const nomeRiga = async (res: Response) =>
+      ((await res.json()) as { votato_nome: string }[])[0]?.votato_nome;
+
+    await prova("MVP: il nome del votato lo mette il database, non il client (M37)", async () => {
+      const g5 = await nomeInRosa("g5");
+
+      // Nome inventato: ignorato.
+      const falso = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+      assert.equal(
+        await nomeRiga(
+          await votoNome(tokenGiocatore, falso, "g5", { votato_nome: "Nome Inventato" }),
+        ),
+        g5,
+      );
+      const visto = await rest(
+        `mvp_voti_anonimi?match_id=eq.${falso}&select=votato_nome`,
+        tokenGiocatore,
+      );
+      assert.deepEqual(await visto.json(), [{ votato_nome: g5 }], "e così lo vede la squadra");
+
+      // Nome omesso (la colonna è NOT NULL): lo riempie il trigger, il voto passa.
+      const omesso = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+      assert.equal(
+        await nomeRiga(await votoNome(tokenGiocatore, omesso, "g5", {})),
+        g5,
+        "nome omesso",
+      );
+
+      // Nome vuoto, con spazi, con un altro giocatore: sempre quello della rosa.
+      for (const [i, strano] of ["", "   ", await nomeInRosa("g1"), "<b>x</b>"].entries()) {
+        const e = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+        assert.equal(
+          await nomeRiga(await votoNome(tokenGiocatore, e, "g5", { votato_nome: strano })),
+          g5,
+          `caso ${i}`,
+        );
+      }
+
+      // Nome già corretto: resta lo stesso.
+      const giusto = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+      assert.equal(
+        await nomeRiga(await votoNome(tokenGiocatore, giusto, "g5", { votato_nome: g5 })),
+        g5,
+      );
+    });
+
+    await prova(
+      "MVP: l'admin che corregge un voto non può far divergere il nome (M37)",
+      async () => {
+        const [g5, g6] = [await nomeInRosa("g5"), await nomeInRosa("g6")];
+        const e = await eventoMvp(passata, { g1: "presente", g5: "presente", g6: "presente" });
+        await votoNome(tokenGiocatore, e, "g5", {});
+        const filtro = `mvp_voti?match_id=eq.${e}&votante_id=eq.g1`;
+
+        // Cambia solo il nome: torna quello della rosa.
+        const soloNome = await rest(filtro, tokenAdmin, {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ votato_nome: "Falso" }),
+        });
+        assert.equal(await nomeRiga(soloNome), g5, "nome riscritto da solo");
+
+        // Cambia il votato: il nome lo segue.
+        const altro = await rest(filtro, tokenAdmin, {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ votato_id: "g6", votato_nome: "Falso" }),
+        });
+        assert.equal(await nomeRiga(altro), g6, "nome che segue il nuovo votato");
+      },
+    );
+
+    await prova("MVP: un id fuori rosa conserva il nome ricevuto (M37)", async () => {
+      // Solo la service role (come i test sui badge) può scrivere id che non sono in rosa.
+      const e = `${PREFISSO}-mvp-fuori-rosa`;
+      const r = await rest("mvp_voti", SERVIZIO, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          match_id: e,
+          votante_id: "xx1",
+          votato_id: "xx2",
+          votato_nome: "Ospite",
+        }),
+      });
+      assert.equal(await nomeRiga(r), "Ospite", "niente da sostituire: resta il nome ricevuto");
+    });
+
+    await prova("badge social: il nome del votato lo mette il database (M38)", async () => {
+      const g5 = await nomeInRosa("g5");
+      const e = await eventoMvp(passata, { g1: "presente", g5: "presente" });
+      const base = { match_id: e, categoria: "sorriso", votante_id: "g1", votato_id: "g5" };
+      const post = (resto: object) =>
+        rest("badge_social_voti?on_conflict=match_id,categoria,votante_id", tokenGiocatore, {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+          body: JSON.stringify({ ...base, ...resto }),
+        });
+      assert.equal(
+        await nomeRiga(await post({ votato_nome: "Nome Inventato" })),
+        g5,
+        "nome inventato",
+      );
+      // Stesso voto rinviato con un altro nome (upsert): il nome resta quello della rosa.
+      assert.equal(
+        await nomeRiga(await post({ votato_nome: "Un Altro" })),
+        g5,
+        "upsert con altro nome",
+      );
+      const omesso = await rest("badge_social_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ ...base, categoria: "meme" }),
+      });
+      assert.equal(await nomeRiga(omesso), g5, "nome omesso");
     });
 
     await prova("le cacche le dichiara il diretto interessato", async () => {
@@ -455,8 +794,8 @@ if (!locale) {
           id: EVENTO_CON_G1,
           tipo: "partita",
           titolo: "Partita con g1 convocato, g2 no",
-          data: "2026-01-02",
-          ora: "20:00",
+          data: romaTra(-3).data,
+          ora: romaTra(-3).ora,
           luogo: "Palestra",
           convocati: ["g1", "g5"],
         }),
@@ -482,9 +821,17 @@ if (!locale) {
       // Controllo positivo sullo stesso evento: g1 è convocato e vota g5, anche lui
       // convocato — senza questo, il test sopra potrebbe fallire per un altro motivo
       // (es. un evento inesistente) e sembrare comunque corretto.
+      // M36: il voto MVP richiede che votante e votato siano presenti.
+      for (const g of ["g1", "g5"]) {
+        await rest("risposte_presenze", SERVIZIO, {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ evento_id: EVENTO_CON_G1, giocatore_id: g, stato: "presente" }),
+        });
+      }
       const votoValido = await rest("mvp_voti", tokenGiocatore, {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        headers: { Prefer: "return=representation" },
         body: JSON.stringify({
           match_id: EVENTO_CON_G1,
           votante_id: "g1",
@@ -503,8 +850,8 @@ if (!locale) {
           id: EVENTO_CHIUSO,
           tipo: "partita",
           titolo: "Partita con pagelle chiuse",
-          data: "2026-01-03",
-          ora: "20:00",
+          data: romaTra(-3).data,
+          ora: romaTra(-3).ora,
           luogo: "Palestra",
           pagelle_chiuse: true,
         }),
@@ -529,9 +876,17 @@ if (!locale) {
       // Il flag riguarda solo le pagelle: MVP e badge social non hanno un concetto di
       // "chiusura" (mvp.md lo segnala esplicitamente come limite noto), quindi restano
       // votabili sullo stesso evento.
+      // M36: il voto MVP richiede che votante e votato siano presenti.
+      for (const g of ["g1", "g5"]) {
+        await rest("risposte_presenze", SERVIZIO, {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ evento_id: EVENTO_CHIUSO, giocatore_id: g, stato: "presente" }),
+        });
+      }
       const mvpAncoraAperto = await rest("mvp_voti", tokenGiocatore, {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        headers: { Prefer: "return=representation" },
         body: JSON.stringify({
           match_id: EVENTO_CHIUSO,
           votante_id: "g1",

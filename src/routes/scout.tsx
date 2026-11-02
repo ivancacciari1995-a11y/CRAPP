@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Undo2, Save, CheckCircle2, Radio, Lock, CalendarX2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/crapp/ui-bits";
+import { Select } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import type { Evento } from "@/lib/eventi";
 import { useAnagraficaRosa } from "@/lib/rosa";
@@ -27,10 +27,15 @@ import {
 } from "@/lib/scout-live";
 import {
   azioniMeta,
+  contaPiuSenzaRicezione,
+  contaValutazioni,
+  parzialiFinali,
+  fondamentali,
   useSalvaScoutMatch,
-  totaliPerGiocatore,
   type Azione,
   type AzioneTipo,
+  type Fondamentale,
+  type Valutazione,
 } from "@/lib/scout-store";
 
 export const Route = createFileRoute("/scout")({
@@ -51,8 +56,6 @@ export const Route = createFileRoute("/scout")({
   }),
   component: Scout,
 });
-
-const ordineAzioni: AzioneTipo[] = ["attacco", "ace", "muro", "errore"];
 
 function Blocco({
   icona,
@@ -119,7 +122,11 @@ function Scout() {
 
   const attiva = sessione.data && !sessioneScaduta(sessione.data) ? sessione.data : null;
   const occupataDaAltri = !!attiva && attiva.giocatore_id !== io?.id;
-  const ripresa = !!statoSalvato.data && statoSalvato.data.azioni.length > 0;
+  const ripresa =
+    !!statoSalvato.data &&
+    (statoSalvato.data.azioni.length > 0 ||
+      (statoSalvato.data.valutazioni?.length ?? 0) > 0 ||
+      statoSalvato.data.setChiusi.length > 0);
 
   if (!controllo) {
     return (
@@ -196,10 +203,12 @@ function ScoutBoard({
         .trim() || "Avversario",
       partita.titolo.trim().toLowerCase().startsWith("crap"),
     );
-  const [avversario, setAvversario] = useState(base.avversario);
-  const [casa, setCasa] = useState(base.casa);
+  const [avversario] = useState(base.avversario);
+  const [casa] = useState(base.casa);
   const [setChiusi, setSetChiusi] = useState<Array<[number, number]>>(base.setChiusi);
   const [azioni, setAzioni] = useState<Azione[]>(base.azioni);
+  const [valutazioni, setValutazioni] = useState<Valutazione[]>(base.valutazioni ?? []);
+  const [ordine, setOrdine] = useState<"cognome" | "numero">("cognome");
   const [selezionato, setSelezionato] = useState<string | null>(null);
   const salva = useSalvaStatoScout();
   const cancella = useCancellaStatoScout();
@@ -208,52 +217,73 @@ function ScoutBoard({
   // Solo id/nome/numero servono (selezione e display): niente statistiche di squadra.
   const rosa = useAnagraficaRosa();
   const finito = useRef(false);
+  const codaSalvataggio = useRef<Promise<unknown>>(Promise.resolve());
 
   /** In campo solo chi ha confermato la presenza (anche in ritardo). */
   const convocati = useMemo(() => {
     const presenti = rosa.filter(
       (g) => risposte[g.id] === "presente" || risposte[g.id] === "ritardo",
     );
-    return presenti.length > 0 ? presenti : rosa;
-  }, [risposte, rosa]);
+    const elenco = presenti.length > 0 ? presenti : rosa;
+    return [...elenco].sort((a, b) =>
+      ordine === "numero"
+        ? a.numero - b.numero
+        : a.cognome.localeCompare(b.cognome, "it") || a.numero - b.numero,
+    );
+  }, [risposte, rosa, ordine]);
 
   // Salvataggio condiviso: se chi scouta si disconnette, il prossimo riprende da qui.
   useEffect(() => {
     if (finito.current) return;
-    const id = window.setTimeout(() => {
-      void salva.mutateAsync({
-        eventoId: partita.id,
-        stato: { azioni, setChiusi, avversario, casa },
+    // Subito a ogni tocco, non dopo una pausa: così non resta nulla in sospeso se l'app si
+    // chiude. Il salvataggio è sempre lo stato intero, quindi uno riuscito dopo uno fallito
+    // rimette a posto tutto; la coda li tiene in ordine.
+    const stato = { azioni, valutazioni, setChiusi, avversario, casa };
+    codaSalvataggio.current = codaSalvataggio.current
+      .then(() => salva.mutateAsync({ eventoId: partita.id, stato }))
+      .then(() => {
+        toast.dismiss("scout-salvataggio");
+      })
+      .catch(() => {
+        toast.error("Salvataggio non riuscito: controlla la connessione", {
+          id: "scout-salvataggio",
+          duration: Infinity,
+        });
       });
-    }, 800);
-    return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [azioni, setChiusi, avversario, casa, partita.id]);
+  }, [azioni, valutazioni, setChiusi, avversario, casa, partita.id]);
 
   const setCorrente = setChiusi.length + 1;
   const azioniSet = azioni.filter((a) => a.set === setCorrente);
   const puntiNoi = azioniSet.filter((a) => azioniMeta[a.tipo].nostro).length;
   const puntiLoro = azioniSet.length - puntiNoi;
-  const setNostri = setChiusi.filter(([n, l]) => n > l).length;
-  const setLoro = setChiusi.length - setNostri;
-  const totali = useMemo(() => totaliPerGiocatore(azioni), [azioni]);
+  const setHaDati = azioniSet.length > 0 || valutazioni.some((v) => v.set === setCorrente);
 
-  function registra(tipo: AzioneTipo) {
-    const meta = azioniMeta[tipo];
-    if (meta.richiedeGiocatore && !selezionato) {
+  function valuta(fondamentale: Fondamentale, segno: Valutazione["segno"]) {
+    if (!selezionato) {
       toast.error("Seleziona prima il giocatore");
       return;
     }
-    setAzioni((prev) => {
-      const nuova: Azione = {
+    setValutazioni((prev) => [
+      ...prev,
+      {
         id: `${Date.now()}-${prev.length}`,
-        tipo,
+        giocatoreId: selezionato,
+        fondamentale,
+        segno,
         set: setCorrente,
         ts: Date.now(),
-        ...(meta.richiedeGiocatore && selezionato ? { giocatoreId: selezionato } : {}),
-      };
-      return [...prev, nuova];
-    });
+      },
+    ]);
+  }
+
+  function annullaValutazione() {
+    const ultima = valutazioni[valutazioni.length - 1];
+    if (!ultima || ultima.set !== setCorrente) {
+      toast.error("Puoi annullare solo le valutazioni del set in corso");
+      return;
+    }
+    setValutazioni((prev) => prev.slice(0, -1));
   }
 
   function annulla() {
@@ -266,17 +296,16 @@ function ScoutBoard({
   }
 
   function chiudiSet() {
-    if (puntiNoi === 0 && puntiLoro === 0) {
-      toast.error("Set senza azioni");
+    if (!setHaDati) {
+      toast.error("Set senza valutazioni");
       return;
     }
     setSetChiusi((prev) => [...prev, [puntiNoi, puntiLoro]]);
-    toast.success(`Set ${setCorrente} chiuso ${puntiNoi}-${puntiLoro}`);
+    toast.success(`Set ${setCorrente} chiuso`);
   }
 
   async function finePartita() {
-    const parziali: Array<[number, number]> =
-      puntiNoi + puntiLoro > 0 ? [...setChiusi, [puntiNoi, puntiLoro]] : setChiusi;
+    const parziali = parzialiFinali(setChiusi, [puntiNoi, puntiLoro], setHaDati);
     if (parziali.length === 0) {
       toast.error("Nessun set da salvare");
       return;
@@ -294,19 +323,24 @@ function ScoutBoard({
           setLoro: parziali.length - vinti,
           parziali,
           azioni,
+          valutazioni,
         },
       });
     } catch {
       toast.error("Salvataggio non riuscito, riprova");
       return;
     }
-    toast.success("Partita salvata: ora la squadra può votare l'MVP");
+    toast.success("Partita salvata");
     finito.current = true;
     void cancella.mutateAsync(partita.id);
     onFine();
     navigate({ to: "/squadra" });
   }
 
+  const giocatoreSel = rosa.find((g) => g.id === selezionato);
+  const contiSelezionato = selezionato
+    ? contaValutazioni(valutazioni, selezionato, setCorrente)
+    : null;
   const ultime = [...azioni].slice(-4).reverse();
 
   return (
@@ -334,45 +368,28 @@ function ScoutBoard({
             </button>
           </div>
         </div>
-
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-          <div className="min-w-0">
-            <p className="truncate text-[13px] uppercase text-primary-foreground/60">CRAP Volley</p>
-            <p className="font-display text-5xl leading-none text-accent">{puntiNoi}</p>
-          </div>
-          <p className="font-display text-2xl leading-none text-primary-foreground/50">
-            {setNostri}-{setLoro}
-          </p>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] uppercase text-primary-foreground/60">
-              {avversario || "Avversario"}
-            </p>
-            <p className="font-display text-5xl leading-none">{puntiLoro}</p>
-          </div>
-        </div>
-
-        {setChiusi.length > 0 ? (
-          <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-            {setChiusi.map((p, i) => (
-              <span
-                key={i}
-                className="rounded-lg bg-primary-foreground/10 px-2 py-0.5 text-[13px] font-semibold tabular-nums"
-              >
-                {p[0]}-{p[1]}
-              </span>
-            ))}
-          </div>
-        ) : null}
       </header>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-          1. Tocca il giocatore
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
+            Selezione giocatore
+          </p>
+          <div className="w-40 shrink-0">
+            <Select
+              value={ordine}
+              onChange={(e) => setOrdine(e.target.value as "cognome" | "numero")}
+              aria-label="Ordina i giocatori"
+            >
+              <option value="cognome">Per cognome</option>
+              <option value="numero">Per numero</option>
+            </Select>
+          </div>
+        </div>
         <div className="grid grid-cols-4 gap-2">
           {convocati.map((g) => {
             const attivo = selezionato === g.id;
-            const t = totali.get(g.id);
+            const piu = contaPiuSenzaRicezione(valutazioni, g.id, setCorrente);
             return (
               <button
                 key={g.id}
@@ -391,7 +408,7 @@ function ScoutBoard({
                     attivo ? "text-accent-foreground/70" : "text-muted-foreground",
                   )}
                 >
-                  {t ? `${t.punti}p` : "0p"}
+                  +{piu}
                 </p>
               </button>
             );
@@ -400,39 +417,55 @@ function ScoutBoard({
       </section>
 
       <section className="px-5 pt-4">
-        <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-          2. Tocca l'azione
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {ordineAzioni.map((tipo) => (
-            <button
-              key={tipo}
-              type="button"
-              onClick={() => registra(tipo)}
-              className={cn(
-                "rounded-2xl py-4 font-display text-xl uppercase tracking-wide shadow-card transition-transform active:scale-95",
-                azioniMeta[tipo].className,
-                !selezionato && "opacity-50",
-              )}
-            >
-              {azioniMeta[tipo].label}
-            </button>
-          ))}
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
+            2. Valuta{giocatoreSel ? ` ${giocatoreSel.cognome} - ${giocatoreSel.numero}` : ""} · Set{" "}
+            {setCorrente}
+          </p>
+          <button
+            type="button"
+            onClick={annullaValutazione}
+            disabled={!valutazioni.some((v) => v.set === setCorrente)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-[13px] font-bold disabled:opacity-40"
+          >
+            <Undo2 className="h-3.5 w-3.5" /> Annulla
+          </button>
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {(["punto_avv", "errore_avv"] as AzioneTipo[]).map((tipo) => (
-            <button
-              key={tipo}
-              type="button"
-              onClick={() => registra(tipo)}
-              className={cn(
-                "rounded-2xl py-3 text-[15px] font-bold uppercase shadow-card transition-transform active:scale-95",
-                azioniMeta[tipo].className,
-              )}
-            >
-              {azioniMeta[tipo].short}
-            </button>
-          ))}
+        <div
+          className={cn(
+            "space-y-2 rounded-3xl bg-card p-3 shadow-card",
+            !selezionato && "opacity-60",
+          )}
+        >
+          {!selezionato ? (
+            <p className="text-[13px] text-muted-foreground">
+              Tocca un giocatore: i + e i − non cambiano il punteggio.
+            </p>
+          ) : null}
+          {fondamentali.map((f) => {
+            const c = contiSelezionato?.[f.id] ?? { piu: 0, meno: 0 };
+            return (
+              <div key={f.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
+                <span className="text-[15px] font-bold">{f.label}</span>
+                <button
+                  type="button"
+                  aria-label={`${f.label}: meno`}
+                  onClick={() => valuta(f.id, "-")}
+                  className="min-w-16 rounded-2xl bg-destructive px-4 py-2.5 font-display text-xl leading-none text-destructive-foreground shadow-card transition-transform active:scale-95"
+                >
+                  − <span className="tabular-nums">{c.meno}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`${f.label}: più`}
+                  onClick={() => valuta(f.id, "+")}
+                  className="min-w-16 rounded-2xl bg-success px-4 py-2.5 font-display text-xl leading-none text-success-foreground shadow-card transition-transform active:scale-95"
+                >
+                  + <span className="tabular-nums">{c.piu}</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -470,35 +503,6 @@ function ScoutBoard({
             </ul>
           )}
         </div>
-      </section>
-
-      <section className="px-5 pt-4">
-        <Card>
-          <label className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-            Avversario
-          </label>
-          <input
-            value={avversario}
-            maxLength={40}
-            onChange={(e) => setAvversario(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-[15px]"
-          />
-          <div className="mt-3 flex rounded-full bg-secondary p-1">
-            {[true, false].map((v) => (
-              <button
-                key={String(v)}
-                type="button"
-                onClick={() => setCasa(v)}
-                className={cn(
-                  "flex-1 rounded-full py-1.5 text-[13px] font-bold uppercase",
-                  casa === v ? "bg-card text-foreground shadow-card" : "text-muted-foreground",
-                )}
-              >
-                {v ? "In casa" : "Trasferta"}
-              </button>
-            ))}
-          </div>
-        </Card>
       </section>
 
       <section className="grid grid-cols-2 gap-2 px-5 pb-4 pt-4">

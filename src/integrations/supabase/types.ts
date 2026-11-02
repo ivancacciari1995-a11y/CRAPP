@@ -536,6 +536,7 @@ export type Database = {
           parziali: Json;
           set_loro: number;
           set_nostri: number;
+          valutazioni: Json;
         };
         Insert: {
           avversario: string;
@@ -548,6 +549,7 @@ export type Database = {
           parziali?: Json;
           set_loro: number;
           set_nostri: number;
+          valutazioni?: Json;
         };
         Update: {
           avversario?: string;
@@ -560,6 +562,7 @@ export type Database = {
           parziali?: Json;
           set_loro?: number;
           set_nostri?: number;
+          valutazioni?: Json;
         };
         Relationships: [];
       };
@@ -625,7 +628,14 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      mvp_voti_anonimi: {
+        Row: {
+          match_id: string | null;
+          votato_id: string | null;
+          votato_nome: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       has_role: {

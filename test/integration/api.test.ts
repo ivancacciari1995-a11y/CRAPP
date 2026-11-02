@@ -124,9 +124,13 @@ try {
     assert.ok(Date.now() - t0 < 2_000, "risposta immediata");
   });
 
-  await provaCsi(
-    "GET /api/public/csi-partita/$id restituisce formazioni e precedenti",
-    async () => {
+  // A inizio stagione il calendario c'è ma nessuna gara è ancora stata giocata: il test
+  // del dettaglio non ha un bersaglio e si salta, come per il portale non raggiungibile.
+  const nomeDettaglio = "GET /api/public/csi-partita/$id restituisce formazioni e precedenti";
+  if (csiRaggiungibile && !partiteGiocate(csi?.partite ?? [])[0]) {
+    salta(nomeDettaglio, "nessuna gara ancora giocata nella stagione");
+  } else
+    await provaCsi(nomeDettaglio, async () => {
       const primaGiocata = partiteGiocate(csi?.partite ?? [])[0];
       assert.ok(primaGiocata, "serve almeno una gara giocata per testare il dettaglio");
       const res = await fetch(url(`/api/public/csi-partita/${primaGiocata.id}`));
@@ -147,8 +151,7 @@ try {
       const secondo = await fetch(url(`/api/public/csi-partita/${primaGiocata.id}`));
       assert.equal(secondo.status, 200);
       assert.ok(Date.now() - t0 < 2_000, "seconda chiamata dalla cache: risposta immediata");
-    },
-  );
+    });
 
   await provaCsi(
     "GET /api/public/csi-partita/$id con un id davvero inesistente risponde 503, non rompe",

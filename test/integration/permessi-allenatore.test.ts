@@ -8,6 +8,7 @@
  * Stato toccato e ripristinato alla fine: gli utenti creati, lo slot allenatore (cancellato),
  * lo slot g3 reclamato dal giocatore di prova e le righe con il prefisso `test-allenatore`.
  */
+import { romaTra } from "../helpers/roma";
 import assert from "node:assert/strict";
 import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
@@ -259,8 +260,34 @@ if (!locale) {
       // Evento con `convocati` vuoto: tutta la rosa, ma l'allenatore resta fuori comunque.
       await rest(`eventi_app?id=eq.${EVENTO}`, tokenAdmin, {
         method: "PATCH",
-        body: JSON.stringify({ convocati: [] }),
+        // M36-M37: una partita recente, perché il voto sia aperto e il rifiuto dipenda dal ruolo.
+        body: JSON.stringify({ convocati: [], ...romaTra(-3) }),
       });
+      // M36: perché il rifiuto dipenda solo dal ruolo, tutti sono presenti (lo slot dell'allenatore
+      // lo segniamo presente a mano: da sé non potrebbe rispondere) e la partita è passata.
+      for (const g of [GIOCATORE, SLOT, "g5"]) {
+        await rest("risposte_presenze", SERVIZIO, {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ evento_id: EVENTO, giocatore_id: g, stato: "presente" }),
+        });
+      }
+      // Controllo positivo: due giocatori presenti, il voto passa.
+      const valido = await rest("mvp_voti", tokenGiocatore, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          match_id: EVENTO,
+          votante_id: GIOCATORE,
+          votato_id: "g5",
+          votato_nome: "Cinque",
+        }),
+      });
+      assert.equal(
+        await righeToccate(valido),
+        1,
+        `un giocatore vota un giocatore (${valido.status})`,
+      );
       const vota = await rest("mvp_voti", tokenAllenatore, {
         method: "POST",
         body: JSON.stringify({

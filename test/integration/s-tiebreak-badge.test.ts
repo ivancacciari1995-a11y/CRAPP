@@ -20,7 +20,7 @@
  */
 import assert from "node:assert/strict";
 import { badgeSegreti, statoBadge, VOTI_MINIMI_PAGELLA } from "@/lib/badges";
-import { mvpVintiPerGiocatore, type VotoMvp } from "@/lib/mvp-voti";
+import { mvpVintiPerGiocatore, type VotoMvp, type VotoMvpPubblico } from "@/lib/mvp-voti";
 import { mediePagelle, type VotoPagella } from "@/lib/pagelle";
 import { giocatori, type Giocatore } from "@/lib/crapp-data";
 import { statoLocale } from "../helpers/locale";
@@ -67,11 +67,11 @@ if (!locale) {
     if (!res.ok) throw new Error(`upsert su pagelle_voti: ${res.status} ${await res.text()}`);
   }
 
-  async function leggiMvp(): Promise<VotoMvp[]> {
+  async function leggiMvp(): Promise<VotoMvpPubblico[]> {
     const res = await rest(
-      `mvp_voti?match_id=like.${PREFISSO}-*&select=match_id,votante_id,votato_id,votato_nome`,
+      `mvp_voti_anonimi?match_id=like.${PREFISSO}-*&select=match_id,votato_id,votato_nome`,
     );
-    return (await res.json()) as VotoMvp[];
+    return (await res.json()) as VotoMvpPubblico[];
   }
 
   async function leggiPagelle(): Promise<VotoPagella[]> {
