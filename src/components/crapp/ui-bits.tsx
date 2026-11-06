@@ -310,11 +310,14 @@ export function SezioneTendina({
       <button
         type="button"
         onClick={() => setAperta((v) => !v)}
-        className="mb-3 flex min-h-11 w-full items-center justify-between gap-3 text-left active:scale-[0.99]"
+        className={cn(
+          "flex min-h-11 w-full items-center justify-between gap-3 text-left active:scale-[0.99]",
+          (aperta || anteprima) && "mb-3",
+        )}
         aria-expanded={aperta}
         aria-controls={id}
       >
-        <h2 className="font-display-sm text-lg uppercase">{titolo}</h2>
+        <h2 className="font-display-sm text-[20px] uppercase">{titolo}</h2>
         <span className="flex shrink-0 items-center gap-2">
           {azione}
           <ChevronDown

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MapPin, Clock, Users, Trophy, Swords, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, PageHeader, Section } from "@/components/crapp/ui-bits";
+import { Card, PageHeader, Section, SezioneTendina } from "@/components/crapp/ui-bits";
 import { formatData } from "@/lib/crapp-data";
 import { convocatiEvento, useEvento } from "@/lib/eventi";
 import { useRosa } from "@/lib/rosa";
@@ -10,6 +10,7 @@ import { matchDaPartitaCsi, partiteGiocate } from "@/lib/csi-core";
 import { DettaglioCsiEsteso, LogoSquadra, MetaPartitaCsi } from "@/components/crapp/DettaglioCsi";
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
+import { sondaggioAperto } from "@/lib/cacche";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
 import { haPunteggio, useScoutMatches } from "@/lib/scout-store";
 import { ScoutReport } from "@/components/crapp/ScoutReport";
@@ -205,9 +206,16 @@ function PartitaDetail() {
       ) : null}
 
       {csiMatch ? (
-        <Section titolo="Formazioni e scontri diretti">
+        <SezioneTendina
+          titolo="Formazioni e scontri diretti"
+          azione={
+            <span className="text-[13px] font-bold uppercase text-muted-foreground">
+              Livescore CSI
+            </span>
+          }
+        >
           <DettaglioCsiEsteso matchId={csiMatch.id} avversario={avversario} />
-        </Section>
+        </SezioneTendina>
       ) : null}
 
       <Section titolo="MVP eletto dalla squadra">
@@ -219,9 +227,9 @@ function PartitaDetail() {
       {match ? (
         // Badge e cacche non si mostrano all'allenatore (DD-034).
         sonoAllenatore ? null : (
-          <Section titolo="Badge votati dai compagni">
+          <SezioneTendina titolo="Badge votati dai compagni">
             <VotoSocial matchId={match.id} />
-          </Section>
+          </SezioneTendina>
         )
       ) : (
         <Section titolo="In programma">
@@ -237,13 +245,16 @@ function PartitaDetail() {
       </Section>
 
       {sonoAllenatore ? null : (
-        <Section titolo="Sondaggio pre-partita">
+        <SezioneTendina
+          titolo="Sondaggio pre-partita"
+          defaultAperta={sondaggioAperto(evento.data, evento.ora)}
+        >
           <SondaggioCacche eventoId={evento.id} dataEvento={evento.data} oraEvento={evento.ora} />
-        </Section>
+        </SezioneTendina>
       )}
 
       {match ? (
-        <Section titolo="Pagelle di fine partita">
+        <SezioneTendina titolo="Pagelle di fine partita">
           <Pagelle
             matchId={match.id}
             convocati={convocati.filter(
@@ -251,23 +262,32 @@ function PartitaDetail() {
             )}
             chiuse={evento.pagelleChiuse}
           />
-        </Section>
+        </SezioneTendina>
       ) : null}
 
       {scout ? (
-        <Section titolo="Scout">
+        <SezioneTendina
+          titolo="Scout"
+          azione={
+            scout.valutazioni.length > 0 ? (
+              <span className="text-[13px] font-bold tabular-nums text-muted-foreground">
+                {scout.valutazioni.length} valutazioni
+              </span>
+            ) : null
+          }
+        >
           <ScoutReport scout={scout} rosa={rosa} admin={admin} />
-        </Section>
+        </SezioneTendina>
       ) : null}
 
-      <Section titolo="Rosa e presenze">
+      <SezioneTendina titolo="Rosa e presenze" defaultAperta>
         <RosaPresenze
           eventoId={evento.id}
           data={evento.data}
           tipo={evento.tipo}
           convocati={evento.convocati}
         />
-      </Section>
+      </SezioneTendina>
     </>
   );
 }

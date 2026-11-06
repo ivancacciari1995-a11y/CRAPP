@@ -20,6 +20,9 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- Pagina partita: formazioni, badge, sondaggio, pagelle, scout e rosa sono sezioni a scomparsa
+  (aperti all'inizio solo rosa e presenze e, nella sua finestra, il sondaggio). Le formazioni
+  indicano la fonte «Livescore CSI»; lo scout mostra il numero di valutazioni.
 - Sondaggio cacche: la classifica completa è visibile a tutti i giocatori, anche a sondaggio
   chiuso, con posizioni a pari merito senza salti (1°, 1°, 2°) e la propria riga evidenziata.
 - Pagelle di fine partita: non compaiono più i convocati che risultano assenti o infortunati.
