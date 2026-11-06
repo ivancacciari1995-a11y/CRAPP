@@ -13,19 +13,30 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.6.1] - 2026-11-06
+
+Risultati dello scout leggibili nell'app, classifica cacche completa e pagina partita a sezioni
+a scomparsa. Nessuna migration.
+
 ### Aggiunto
 
-- Pagina partita, sezione «Scout»: i risultati dello scout si leggono nell'app (percentuale di +
-  e conteggi per fondamentale, per partita o per set, e tabella per giocatore), non solo nel CSV.
+- Pagina partita, sezione «Scout»: i risultati dello scout si leggono nell'app, non solo nel CSV
+  admin. Per ogni fondamentale: percentuale di +, barra verde/rossa e conteggi di squadra; selettore
+  «Totale» e «Set 1»…«Set 5» e tabella per giocatore con + / −. Il pulsante ⓘ apre una guida su come
+  leggere i dati. Le azioni (punti, ace, muri, errori) restano in un blocco a parte per le partite
+  scoutate col metodo precedente; il CSV resta per gli admin.
 
 ### Modificato
 
+- Sondaggio cacche: la classifica completa è visibile a tutti i giocatori (non più solo il podio),
+  anche a sondaggio chiuso, con posizioni a pari merito senza salti (1°, 1°, 2°), barra
+  proporzionale e la propria riga evidenziata.
 - Pagina partita: formazioni, badge, sondaggio, pagelle, scout e rosa sono sezioni a scomparsa
   (aperti all'inizio solo rosa e presenze e, nella sua finestra, il sondaggio). Le formazioni
-  indicano la fonte «Livescore CSI»; lo scout mostra il numero di valutazioni.
-- Sondaggio cacche: la classifica completa è visibile a tutti i giocatori, anche a sondaggio
-  chiuso, con posizioni a pari merito senza salti (1°, 1°, 2°) e la propria riga evidenziata.
-- Pagelle di fine partita: non compaiono più i convocati che risultano assenti o infortunati.
+  indicano la fonte «Livescore CSI»; lo scout mostra il numero di valutazioni. I titoli delle
+  sezioni a scomparsa hanno la stessa dimensione delle altre e le chiuse non lasciano vuoto sotto.
+- Pagelle di fine partita: non compaiono più i convocati che risultano assenti o infortunati a
+  quella partita (solo filtro di interfaccia).
 - Pagina partita: la sezione «Report tecnico» si chiama «Scout».
 
 ## [1.6.0] - 2026-11-02
