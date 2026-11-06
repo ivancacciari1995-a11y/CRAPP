@@ -244,7 +244,13 @@ function PartitaDetail() {
 
       {match ? (
         <Section titolo="Pagelle di fine partita">
-          <Pagelle matchId={match.id} convocati={convocati} chiuse={evento.pagelleChiuse} />
+          <Pagelle
+            matchId={match.id}
+            convocati={convocati.filter(
+              (g) => risposte[g.id] !== "assente" && risposte[g.id] !== "infortunato",
+            )}
+            chiuse={evento.pagelleChiuse}
+          />
         </Section>
       ) : null}
 

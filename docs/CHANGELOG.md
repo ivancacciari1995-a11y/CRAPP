@@ -22,6 +22,7 @@ versioni `0.y.z` erano pre-release.
 
 - Sondaggio cacche: la classifica completa è visibile a tutti i giocatori, anche a sondaggio
   chiuso, con posizioni a pari merito senza salti (1°, 1°, 2°) e la propria riga evidenziata.
+- Pagelle di fine partita: non compaiono più i convocati che risultano assenti o infortunati.
 - Pagina partita: la sezione «Report tecnico» si chiama «Scout».
 
 ## [1.6.0] - 2026-11-02

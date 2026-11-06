@@ -26,6 +26,8 @@ UI), `UNIQUE (match_id, votante_id, votato_id)`.
   partita (scout salvato o dato CSI).
 - Ogni convocato può votare tutti gli altri convocati, mai se stesso — escluso sia in UI sia
   dal vincolo DB.
+- Nell'elenco da votare non compaiono i convocati che hanno risposto «assente» o «infortunato»
+  alle presenze: solo filtro di interfaccia in `partita.$id.tsx`, il vincolo DB non cambia.
 - `useVotaPagella()` fa un upsert su `(match_id, votante_id, votato_id)`: si può votare più
   volte, l'ultimo voto sovrascrive il precedente.
 - `mediePagelle()` calcola la media aritmetica (arrotondata a un decimale) per giocatore su
