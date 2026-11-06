@@ -13,6 +13,12 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- Sondaggio cacche: la classifica completa è visibile a tutti i giocatori, anche a sondaggio
+  chiuso, con posizioni a pari merito senza salti (1°, 1°, 2°) e la propria riga evidenziata.
+- Pagina partita: la sezione «Report tecnico» si chiama «Scout».
+
 ## [1.6.0] - 2026-11-02
 
 Voto MVP definitivo e segreto, Scout live a valutazioni. Cinque migration, da `m35` a `m39`,

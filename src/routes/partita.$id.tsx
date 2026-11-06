@@ -250,7 +250,7 @@ function PartitaDetail() {
       ) : null}
 
       {scout && totaliTeam ? (
-        <Section titolo="Report tecnico">
+        <Section titolo="Scout">
           <Card>
             <div className="grid grid-cols-4 gap-2 text-center">
               {[

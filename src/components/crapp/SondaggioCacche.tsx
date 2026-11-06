@@ -40,11 +40,15 @@ export function SondaggioCacche({
   const media = mediaPartita(righe, eventoId);
   const classifica = [...dellaPartita]
     .sort((a, b) => b.quantita - a.quantita)
-    .slice(0, 3)
     .map((r) => {
       const g = squadra.find((g) => g.id === r.giocatore_id);
       return { ...r, nome: g ? nomeCompleto(g) : "—" };
-    });
+    })
+    // Pari merito = stessa posizione, senza salti (1°, 1°, 2°).
+    .map((r, _, tutti) => ({
+      ...r,
+      pos: new Set(tutti.filter((t) => t.quantita > r.quantita).map((t) => t.quantita)).size + 1,
+    }));
 
   async function rispondi(quantita: number) {
     if (!io) return;
@@ -89,6 +93,7 @@ export function SondaggioCacche({
             ? "Sondaggio chiuso: era aperto fino al fischio d'inizio."
             : "Apre alle 8:00 del giorno della partita: riceverai una notifica."}
         </p>
+        <Classifica righe={classifica} io={io?.id} media={media} />
       </Card>
     );
   }
@@ -126,19 +131,7 @@ export function SondaggioCacche({
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
-        <span className="rounded-full bg-secondary px-2.5 py-1 font-semibold">
-          Media squadra {media}
-        </span>
-        {classifica.map((r, i) => (
-          <span
-            key={r.giocatore_id}
-            className="rounded-full bg-secondary px-2.5 py-1 font-semibold"
-          >
-            {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {r.nome} · {r.quantita}
-          </span>
-        ))}
-      </div>
+      <Classifica righe={classifica} io={io?.id} media={media} />
 
       {admin ? (
         <button
@@ -152,5 +145,63 @@ export function SondaggioCacche({
         </button>
       ) : null}
     </Card>
+  );
+}
+
+const MEDAGLIE = ["🥇", "🥈", "🥉"];
+
+type RigaClassifica = { giocatore_id: string; nome: string; quantita: number; pos: number };
+
+function Classifica({
+  righe,
+  io,
+  media,
+}: {
+  righe: RigaClassifica[];
+  io: string | undefined;
+  media: number | string;
+}) {
+  if (righe.length === 0) return null;
+  const max = Math.max(...righe.map((r) => r.quantita), 1);
+  return (
+    <div className="mt-4">
+      <div className="mb-2 flex items-center justify-between text-[13px]">
+        <span className="font-bold uppercase tracking-wide text-muted-foreground">Classifica</span>
+        <span className="rounded-full bg-secondary px-2.5 py-1 font-semibold">
+          Media squadra {media}
+        </span>
+      </div>
+      <ol className="divide-y divide-border overflow-hidden rounded-2xl bg-secondary/60">
+        {righe.map((r) => (
+          <li
+            key={r.giocatore_id}
+            className={cn(
+              "relative flex items-center gap-3 px-3 py-2.5",
+              r.giocatore_id === io && "bg-accent/15",
+            )}
+          >
+            <span
+              aria-hidden
+              className="absolute inset-y-0 left-0 bg-accent/10"
+              style={{ width: `${(r.quantita / max) * 100}%` }}
+            />
+            <span className="relative w-7 text-center text-[15px] font-bold tabular-nums text-muted-foreground">
+              {r.pos <= 3 ? MEDAGLIE[r.pos - 1] : `${r.pos}°`}
+            </span>
+            <span className="relative min-w-0 flex-1 truncate text-[15px] font-semibold">
+              {r.nome}
+              {r.giocatore_id === io ? (
+                <span className="ml-1.5 text-[13px] font-bold uppercase text-muted-foreground">
+                  tu
+                </span>
+              ) : null}
+            </span>
+            <span className="relative text-[17px] font-bold tabular-nums">
+              {r.quantita === 5 ? "5+" : r.quantita}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

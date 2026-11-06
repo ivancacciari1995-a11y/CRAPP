@@ -109,7 +109,7 @@ Senza punteggio, `chiudiSet()` chiude il set (come 0-0) se ha almeno una valutaz
 parziali se ha dati (`parzialiFinali()`, `scout-store.ts`). Con nessuna valutazione risponde
 «Nessun set da salvare». Una partita senza punti ha parziali 0-0 e **non è un risultato**:
 `haPunteggio()` la esclude da Home, Classifica e dalla pagina della partita, dove non sostituisce il
-referto CSI; resta visibile il «Report tecnico» con il CSV.
+referto CSI; resta visibile il «Scout» con il CSV.
 
 `finePartita()` (`scout.tsx`) compone i parziali finali, inserisce la partita in
 `scout_partite` (INSERT, non upsert), poi cancella la riga da `scout_live` (stato consumato)
@@ -122,7 +122,7 @@ e rilascia la sessione.
 `scout-export.ts` genera un CSV (separatore `;`, BOM UTF-8) con parziali, riepilogo per giocatore e
 log cronologico delle azioni. Se ci sono valutazioni, aggiunge una tabella per set e giocatore con
 i conteggi di «più» e «meno» di ogni fondamentale (solo per chi ne ha). Scaricabile dagli admin dalla
-pagina partita, sezione "Report tecnico".
+pagina partita, sezione "Scout".
 
 ---
 
@@ -156,7 +156,7 @@ calcolati a runtime).
 - Le valutazioni dei set chiusi e delle partite finite sono salvate ma non si rivedono nell'app: lo
   scout mostra solo il set in corso e l'unica lettura è il CSV admin. Evoluzione: tabella nella
   pagina partita.
-- Il blocco «Report tecnico» della pagina partita mostra ancora Punti/Ace/Muri/Errori (a zero per le
+- Il blocco «Scout» della pagina partita mostra ancora Punti/Ace/Muri/Errori (a zero per le
   partite di sole valutazioni) e non le valutazioni, che sono solo nel CSV admin.
 - Scout aperto a tutta la squadra: nessun filtro su chi può registrare le azioni, l'unica
   garanzia è il lock di sessione (vedi sopra).
