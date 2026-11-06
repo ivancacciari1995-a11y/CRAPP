@@ -6,6 +6,7 @@ import {
   contaPiuSenzaRicezione,
   haPunteggio,
   parzialiFinali,
+  sintesiValutazioni,
   contaValutazioni,
   fondamentali,
   giocatoriConScout,
@@ -197,3 +198,19 @@ assert.equal(
   }),
   true,
 );
+
+// --- sintesi per la lettura nell'app: squadra e giocatori, partita o singolo set -----
+const tutta = sintesiValutazioni(val);
+assert.deepEqual(tutta.squadra.battuta, { piu: 2, meno: 1 });
+assert.deepEqual(tutta.squadra.attacco, { piu: 1, meno: 0 });
+assert.deepEqual(tutta.squadra.ricezione, { piu: 0, meno: 1 });
+assert.deepEqual(tutta.perGiocatore.map((r) => r.giocatoreId).sort(), ["g1", "g2"]);
+const set2 = sintesiValutazioni(val, 2);
+assert.deepEqual(
+  set2.perGiocatore.map((r) => r.giocatoreId),
+  ["g1"],
+);
+assert.deepEqual(set2.squadra.muro, { piu: 1, meno: 0 });
+assert.deepEqual(set2.squadra.battuta, { piu: 0, meno: 0 });
+assert.equal(sintesiValutazioni([]).perGiocatore.length, 0);
+console.log("scout-store sintesi: ok");

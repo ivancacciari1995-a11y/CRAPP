@@ -97,6 +97,24 @@ export function contaValutazioni(
 }
 
 /**
+ * Riepilogo delle valutazioni per la lettura nell'app: totali di squadra e per giocatore,
+ * su tutta la partita o su un solo set. Chi non ha valutazioni nel periodo non compare.
+ */
+export function sintesiValutazioni(valutazioni: Valutazione[], set?: number) {
+  const filtrate = set === undefined ? valutazioni : valutazioni.filter((v) => v.set === set);
+  const squadra = contaValutazioni([], "", undefined);
+  const perGiocatore = [...new Set(filtrate.map((v) => v.giocatoreId))].map((giocatoreId) => {
+    const c = contaValutazioni(filtrate, giocatoreId);
+    for (const f of fondamentali) {
+      squadra[f.id].piu += c[f.id].piu;
+      squadra[f.id].meno += c[f.id].meno;
+    }
+    return { giocatoreId, conteggi: c };
+  });
+  return { squadra, perGiocatore };
+}
+
+/**
  * I + di un giocatore in un set, esclusa la ricezione (che qui non vale come punto messo a
  * terra): quello che compare nel suo riquadro dello scout.
  */

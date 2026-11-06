@@ -13,6 +13,11 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Aggiunto
+
+- Pagina partita, sezione «Scout»: i risultati dello scout si leggono nell'app (percentuale di +
+  e conteggi per fondamentale, per partita o per set, e tabella per giocatore), non solo nel CSV.
+
 ### Modificato
 
 - Sondaggio cacche: la classifica completa è visibile a tutti i giocatori, anche a sondaggio

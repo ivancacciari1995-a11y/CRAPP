@@ -126,6 +126,17 @@ pagina partita, sezione "Scout".
 
 ---
 
+## Lettura nell'app
+
+La sezione «Scout» della pagina partita (`ScoutReport.tsx`, visibile a chi vede la pagina; il CSV
+resta per i soli admin) mostra, per la partita o per un singolo set (selettore in alto, se i set
+sono più di uno): per ciascun fondamentale la percentuale di **+**, una barra verde/rossa e i
+conteggi di squadra; poi la tabella per giocatore con **+ / −** di ogni fondamentale. I totali
+vengono da `sintesiValutazioni()` (`scout-store.ts`). Le azioni (P/A/M/E) compaiono in un blocco a
+parte solo se la partita ne ha, cioè quelle scoutate prima di DD-053. Il pulsante (icona i) apre una guida in linea su valutazioni, percentuale, tabella e set.
+
+---
+
 ## Sondaggio cacche
 
 `SondaggioCacche.tsx` chiede "quante cacche hai fatto prima di questa partita" (0-5+), sempre
@@ -153,11 +164,8 @@ calcolati a runtime).
 
 - Lo stato in corso è raggiungibile solo il giorno della partita: se nessuno preme «Fine partita»
   entro la mezzanotte i dati restano in `scout_live` ma dall'app non si riprendono più.
-- Le valutazioni dei set chiusi e delle partite finite sono salvate ma non si rivedono nell'app: lo
-  scout mostra solo il set in corso e l'unica lettura è il CSV admin. Evoluzione: tabella nella
-  pagina partita.
-- Il blocco «Scout» della pagina partita mostra ancora Punti/Ace/Muri/Errori (a zero per le
-  partite di sole valutazioni) e non le valutazioni, che sono solo nel CSV admin.
+- Lo scout in corso mostra solo il set in corso: le valutazioni dei set chiusi si rivedono solo
+  nella pagina partita, dopo «Fine partita».
 - Scout aperto a tutta la squadra: nessun filtro su chi può registrare le azioni, l'unica
   garanzia è il lock di sessione (vedi sopra).
 - Possibile, per quanto improbabile, doppio "successo" applicativo nel prendere il lock:
@@ -171,6 +179,5 @@ calcolati a runtime).
 
 ## Evoluzioni possibili
 
-- Mostrare le valutazioni per set e giocatore nella pagina della partita (oggi solo nel CSV admin)
-  e, nello scout, in sola lettura quelle dei set chiusi.
+- Nello scout, in sola lettura, le valutazioni dei set chiusi.
 - Realtime (Supabase Realtime) per aggiornare la sessione condivisa senza refresh manuale.

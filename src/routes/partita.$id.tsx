@@ -11,8 +11,8 @@ import { DettaglioCsiEsteso, LogoSquadra, MetaPartitaCsi } from "@/components/cr
 import { Pagelle } from "@/components/crapp/Pagelle";
 import { SondaggioCacche } from "@/components/crapp/SondaggioCacche";
 import { ScoutEntry } from "@/components/crapp/ScoutEntry";
-import { haPunteggio, useScoutMatches, totaliPerGiocatore, totaliSquadra } from "@/lib/scout-store";
-import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
+import { haPunteggio, useScoutMatches } from "@/lib/scout-store";
+import { ScoutReport } from "@/components/crapp/ScoutReport";
 import { useIsAdmin } from "@/lib/ruoli";
 import { useSonoAllenatore } from "@/lib/user-store";
 import { VotazioneMvp } from "@/components/crapp/VotazioneMvp";
@@ -90,7 +90,6 @@ function PartitaDetail() {
       : csiMatch
         ? matchDaPartitaCsi(csiMatch)
         : undefined;
-  const totaliTeam = scout ? totaliSquadra([scout]) : null;
   const avversario = evento.titolo.includes(" vs ")
     ? (evento.titolo.split(" vs ").find((p) => !p.includes("CRAP")) ?? evento.titolo)
     : evento.titolo;
@@ -249,61 +248,9 @@ function PartitaDetail() {
         </Section>
       ) : null}
 
-      {scout && totaliTeam ? (
+      {scout ? (
         <Section titolo="Scout">
-          <Card>
-            <div className="grid grid-cols-4 gap-2 text-center">
-              {[
-                { l: "Punti", v: totaliTeam.punti },
-                { l: "Ace", v: totaliTeam.ace },
-                { l: "Muri", v: totaliTeam.muri },
-                { l: "Errori", v: totaliTeam.errori },
-              ].map((t) => (
-                <div key={t.l} className="rounded-2xl bg-secondary p-2.5">
-                  <p className="font-display text-xl leading-none">{t.v}</p>
-                  <p className="mt-1 text-[13px] font-semibold uppercase text-muted-foreground">
-                    {t.l}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-[13px] font-bold uppercase tracking-wide text-muted-foreground">
-              Dettaglio giocatori (uso interno allenatori)
-            </p>
-            <div className="mt-2 space-y-1">
-              {[...totaliPerGiocatore(scout.azioni).entries()].map(([gid, t]) => {
-                const g = rosa.find((x) => x.id === gid);
-                if (!g) return null;
-                return (
-                  <div
-                    key={gid}
-                    className="flex items-center gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-[13px]"
-                  >
-                    <span className="min-w-0 flex-1 truncate font-semibold">
-                      #{g.numero} {g.nome}
-                    </span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {t.punti}P · {t.ace}A · {t.muri}M · {t.errori}E
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {admin ? (
-              <button
-                type="button"
-                onClick={() =>
-                  scaricaCsv(
-                    `scout-${scout.data}-${scout.avversario}.csv`,
-                    csvScoutMatch(scout, rosa),
-                  )
-                }
-                className="premi mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-[15px] font-bold uppercase text-accent-foreground shadow-pop"
-              >
-                <Download className="h-4 w-4" /> Esporta CSV
-              </button>
-            ) : null}
-          </Card>
+          <ScoutReport scout={scout} rosa={rosa} admin={admin} />
         </Section>
       ) : null}
 
