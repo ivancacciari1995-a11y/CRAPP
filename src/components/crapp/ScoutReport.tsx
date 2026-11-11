@@ -200,7 +200,7 @@ export function ScoutReport({
                 <tbody className="divide-y divide-border">
                   {righe.map(({ g, conteggi }) => (
                     <tr key={g.id}>
-                      <td className="px-2 py-2 font-semibold leading-tight">
+                      <td className="px-2 py-2 font-semibold leading-tight [overflow-wrap:normal]">
                         <span className="mr-1.5 tabular-nums text-muted-foreground">
                           #{g.numero}
                         </span>

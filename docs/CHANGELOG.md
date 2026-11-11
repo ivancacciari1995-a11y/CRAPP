@@ -28,7 +28,8 @@ Profilo. Nessuna migration.
 - Layout su schermi stretti (360-402 px, iPhone e Android): niente più pagina tagliata in
   larghezza. La tabella per giocatore dello scout sta nello schermo (il nome va a capo su due righe), le
   griglie di riquadri non sfondano con nomi ed etichette lunghe, la pagina non scorre in
-  orizzontale e i campi di testo sono a 16 px, così iOS non zooma al tocco.
+  orizzontale e i campi di testo sono a 16 px, così iOS non zooma al tocco. I nomi non si spezzano
+  mai a metà parola; nello scout live i riquadri dei giocatori sono a 3 colonne sotto i 400 px.
 
 ## [1.6.1] - 2026-11-06
 

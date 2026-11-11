@@ -384,7 +384,7 @@ function ScoutBoard({
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2 min-[400px]:grid-cols-4">
           {convocati.map((g) => {
             const attivo = selezionato === g.id;
             const piu = contaPiuSenzaRicezione(valutazioni, g.id, setCorrente);
@@ -394,12 +394,14 @@ function ScoutBoard({
                 type="button"
                 onClick={() => setSelezionato(attivo ? null : g.id)}
                 className={cn(
-                  "rounded-2xl p-2 text-center transition-all active:scale-95",
+                  "rounded-2xl p-1.5 text-center transition-all active:scale-95",
                   attivo ? "bg-accent text-accent-foreground shadow-pop" : "bg-card shadow-card",
                 )}
               >
                 <p className="font-display text-2xl leading-none">{g.numero}</p>
-                <p className="mt-1 text-[13px] font-bold leading-tight">{g.nome}</p>
+                <p className="mt-1 text-[13px] font-bold leading-tight [overflow-wrap:normal]">
+                  {g.nome}
+                </p>
                 <p
                   className={cn(
                     "text-[13px] tabular-nums",
