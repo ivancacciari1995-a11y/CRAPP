@@ -124,7 +124,7 @@ export function ScoutReport({
             <div
               role="tablist"
               aria-label="Periodo"
-              className="mt-3 grid grid-flow-col auto-cols-fr gap-1 rounded-2xl bg-secondary p-1"
+              className="mt-3 grid grid-flow-col auto-cols-fr gap-0.5 rounded-2xl bg-secondary p-1"
             >
               {[undefined, ...sets].map((s) => (
                 <button
@@ -134,7 +134,7 @@ export function ScoutReport({
                   aria-selected={s === set}
                   onClick={() => setSet(s)}
                   className={cn(
-                    "min-w-0 truncate rounded-xl px-1 py-2 text-[13px] font-bold uppercase transition-colors",
+                    "min-w-0 truncate rounded-xl px-0 py-2 text-[13px] font-bold uppercase transition-colors",
                     s === set
                       ? "bg-primary text-primary-foreground shadow-card"
                       : "text-muted-foreground",
@@ -185,13 +185,13 @@ export function ScoutReport({
               Nessuna valutazione in questo set.
             </p>
           ) : (
-            <div className="mt-2 overflow-x-auto rounded-2xl bg-secondary/60">
-              <table className="w-full min-w-[22rem] text-[13px]">
+            <div className="mt-2 overflow-hidden rounded-2xl bg-secondary/60">
+              <table className="w-full table-fixed text-[13px]">
                 <thead>
                   <tr className="text-left text-[13px] uppercase text-muted-foreground">
-                    <th className="px-3 py-2 font-bold">Giocatore</th>
+                    <th className="whitespace-nowrap px-2 py-2 font-bold">Giocatore</th>
                     {fondamentali.map((f) => (
-                      <th key={f.id} className="px-2 py-2 text-center font-bold">
+                      <th key={f.id} className="w-11 px-0 py-2 text-center font-bold">
                         {f.label.slice(0, 3)}
                       </th>
                     ))}
@@ -200,16 +200,16 @@ export function ScoutReport({
                 <tbody className="divide-y divide-border">
                   {righe.map(({ g, conteggi }) => (
                     <tr key={g.id}>
-                      <td className="max-w-40 truncate px-3 py-2 font-semibold">
+                      <td className="px-2 py-2 font-semibold leading-tight">
                         <span className="mr-1.5 tabular-nums text-muted-foreground">
                           #{g.numero}
                         </span>
                         {g.nome}
                       </td>
                       {fondamentali.map((f) => (
-                        <td key={f.id} className="px-2 py-2 text-center font-semibold tabular-nums">
+                        <td key={f.id} className="px-0 py-2 text-center font-semibold tabular-nums">
                           <span className="text-success">{conteggi[f.id].piu}</span>
-                          <span className="text-muted-foreground"> / </span>
+                          <span className="text-muted-foreground">/</span>
                           <span className="text-destructive">{conteggi[f.id].meno}</span>
                         </td>
                       ))}
@@ -238,7 +238,7 @@ export function ScoutReport({
               { l: "Muri", v: totaliAzioni.muri },
               { l: "Errori", v: totaliAzioni.errori },
             ].map((t) => (
-              <div key={t.l} className="rounded-2xl bg-secondary p-2.5">
+              <div key={t.l} className="rounded-2xl bg-secondary px-1 py-2.5">
                 <p className="font-display text-xl leading-none">{t.v}</p>
                 <p className="mt-1 text-[13px] font-semibold uppercase text-muted-foreground">
                   {t.l}

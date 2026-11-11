@@ -339,9 +339,11 @@ export function SezioneTendina({
  * `input[type="date"]` ha al suo interno segmenti e icona nativi che, anche
  * con `appearance-none`, restano un filo più alti di un input di testo a
  * parità di padding — un'altezza esplicita allinea tutti i campi tra loro.
+ * `text-base` (16px) non è estetica: sotto i 16px iOS Safari zooma la pagina al focus e,
+ * dopo il blur, la lascia ingrandita e tagliata in larghezza.
  */
 export const classiInput =
-  "h-10 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-[15px]";
+  "h-10 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-base";
 
 /**
  * Etichetta + controllo di un form. `min-w-0`: dentro `grid-cols-2` questa label

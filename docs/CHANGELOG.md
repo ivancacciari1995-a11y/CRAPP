@@ -13,6 +13,13 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+### Modificato
+
+- Layout su schermi stretti (360-402 px, iPhone e Android): niente più pagina tagliata in
+  larghezza. La tabella per giocatore dello scout sta nello schermo (il nome si accorcia), le
+  griglie di riquadri non sfondano con nomi ed etichette lunghe, la pagina non scorre in
+  orizzontale e i campi di testo sono a 16 px, così iOS non zooma al tocco.
+
 ## [1.6.1] - 2026-11-06
 
 Risultati dello scout leggibili nell'app, classifica cacche completa e pagina partita a sezioni

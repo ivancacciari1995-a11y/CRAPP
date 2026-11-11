@@ -520,11 +520,31 @@
     border-color: var(--color-border);
   }
 
+  /*
+   * Mai scroll orizzontale della pagina (iPhone 360-402 px). `clip` e non `hidden`:
+   * non crea un contenitore di scroll, quindi `position: sticky` continua a funzionare.
+   */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  /*
+   * Gli elementi di una griglia hanno `min-width: auto`: una colonna `1fr` non scende sotto
+   * la parola più lunga e sfonda la riga. Con `min-width: 0` la colonna resta nel suo posto
+   * e `overflow-wrap` spezza solo la parola che davvero non ci sta.
+   */
+  .grid > * {
+    min-width: 0;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     line-height: 1.5;
+    overflow-wrap: break-word;
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     /* Niente pull-to-refresh accidentale né rimbalzo che scopre il fondo. */
