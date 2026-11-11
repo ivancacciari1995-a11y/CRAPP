@@ -13,6 +13,11 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.6.2] - 2026-11-11
+
+Layout corretto sugli schermi stretti e statistiche tecniche dai + dello scout in Squadra e
+Profilo. Nessuna migration.
+
 ### Modificato
 
 - Squadra → Stats: «Punti squadra», «Ace squadra» e «Muri squadra» sommano i + dello scout di
@@ -21,7 +26,7 @@ versioni `0.y.z` erano pre-release.
 - Profilo → Season: al posto di «Turni palloni» compaiono Ace, Attacchi, Muri e Punti (totale)
   del giocatore, somma dei + dello scout di tutte le partite (DD-008: solo informativi).
 - Layout su schermi stretti (360-402 px, iPhone e Android): niente più pagina tagliata in
-  larghezza. La tabella per giocatore dello scout sta nello schermo (il nome si accorcia), le
+  larghezza. La tabella per giocatore dello scout sta nello schermo (il nome va a capo su due righe), le
   griglie di riquadri non sfondano con nomi ed etichette lunghe, la pagina non scorre in
   orizzontale e i campi di testo sono a 16 px, così iOS non zooma al tocco.
 

@@ -9,8 +9,10 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.6.1 su `main`: risultati dello scout leggibili nella pagina
-  partita, classifica cacche completa e pagina partita a sezioni a scomparsa, senza migration. La 1.6.0
+- **Versione:** 1.6.2 su `main`: layout corretto sugli schermi stretti (360-402 px) e
+  Ace, Attacchi, Muri e Punti dai + dello scout in Squadra e Profilo, senza migration. La 1.6.1
+  (tag `v1.6.1`): risultati dello scout leggibili nella pagina partita, classifica cacche
+  completa e pagina partita a sezioni a scomparsa. La 1.6.0
   (tag `v1.6.0`, in produzione dal 02/11/2026): voto MVP definitivo, segreto e a
   tempo (DD-051, DD-052) e Scout live a valutazioni − / + (DD-053). La 1.5.0: campionato CSI sulla stagione 2026/27 (nuovi `project_id` e `team_id`,
   nessuna Coppa). La 1.4.2: ogni evento può avere un link Google Maps del luogo, mostrato come
