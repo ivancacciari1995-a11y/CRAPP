@@ -285,7 +285,15 @@ Sezione già presente. Contiene.
 - Voto medio
 - MVP
 - Serie
+- **Ace, Attacchi, Muri e Punti (totale)**: somma, su tutte le partite scoutate, dei soli **+**
+  assegnati a quel giocatore nello scout live (ace = + di battuta, attacchi = + di attacco,
+  muri = + di muro; punti = ace + attacchi + muri, la ricezione non conta). Le partite scoutate
+  col metodo precedente, senza valutazioni, contano con le azioni registrate; se una partita ha
+  entrambe, valgono solo le valutazioni (`totaliTecnici()` in `scout-store.ts`). Il «Turni
+  palloni» non compare più qui: il turno resta nel banner palloni e nel badge dedicato.
 - Altre statistiche disponibili
+
+Sono numeri informativi: non alimentano badge, obiettivi né classifiche (DD-008).
 
 ### Badge
 

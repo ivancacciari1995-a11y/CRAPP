@@ -15,6 +15,11 @@ versioni `0.y.z` erano pre-release.
 
 ### Modificato
 
+- Squadra → Stats: «Punti squadra», «Ace squadra» e «Muri squadra» sommano i + dello scout di
+  tutte le partite (ace = + di battuta, muri = + di muro, punti = + di attacco, battuta e muro);
+  le partite del metodo precedente contano con le loro azioni.
+- Profilo → Season: al posto di «Turni palloni» compaiono Ace, Attacchi, Muri e Punti (totale)
+  del giocatore, somma dei + dello scout di tutte le partite (DD-008: solo informativi).
 - Layout su schermi stretti (360-402 px, iPhone e Android): niente più pagina tagliata in
   larghezza. La tabella per giocatore dello scout sta nello schermo (il nome si accorcia), le
   griglie di riquadri non sfondano con nomi ed etichette lunghe, la pagina non scorre in

@@ -33,6 +33,7 @@ import {
   type GiocatoreSquadra,
 } from "@/lib/giocatori-squadra";
 import { esci } from "@/lib/auth";
+import { totaliTecnici, useScoutMatches } from "@/lib/scout-store";
 import { useIsAdmin } from "@/lib/ruoli";
 import { useEmailNotifiche } from "@/lib/preferenze-utente";
 import { Reveal } from "@/components/motion/Reveal";
@@ -80,8 +81,11 @@ function ProfiloGiocatore() {
   const votiSocial = useVotiSocial();
   const g = useIo();
   const ultimoMese = usePresenzeUltimoMese(g?.id);
+  const scoutMatches = useScoutMatches();
 
   if (!g) return null;
+
+  const tecnici = totaliTecnici(scoutMatches, g.id);
 
   const percPresenze = g.totaliEventi ? Math.round((g.presenze / g.totaliEventi) * 100) : 0;
 
@@ -122,9 +126,12 @@ function ProfiloGiocatore() {
                     }
                     label="Presenze di fila"
                   />
-                  <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
+                  <StatTile valore={tecnici.attacchi} label="Attacchi" />
+                  <StatTile valore={tecnici.muri} label="Muri" />
+                  <StatTile valore={tecnici.ace} label="Ace" />
+                  <StatTile valore={tecnici.punti} label="Punti" hint="totale" />
                   <StatTile valore={g.mvp} label="MVP" />
-                  <StatTile valore={g.palloni} label="Turni palloni" />
+                  <StatTile valore={g.mediaVoto || "—"} label="Media voto" />
                 </div>
                 <SerieGriglia g={g} />
               </div>

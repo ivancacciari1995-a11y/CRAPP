@@ -291,6 +291,46 @@ export function totaliSquadra(matches: ScoutMatch[]) {
   return out;
 }
 
+export type TotaliTecnici = { punti: number; ace: number; attacchi: number; muri: number };
+
+/**
+ * Somma, su tutte le partite scoutate, delle sole valutazioni **+** (battuta → ace, attacco →
+ * attacchi, muro → muri; punti = ace + attacchi + muri, non la ricezione). Con `giocatoreId`
+ * conta solo quel giocatore, altrimenti tutta la squadra. Una partita senza valutazioni (metodo
+ * precedente) conta con le sue azioni; se ha entrambe valgono solo le valutazioni, per non
+ * contare due volte.
+ */
+export function totaliTecnici(matches: ScoutMatch[], giocatoreId?: string): TotaliTecnici {
+  const out = { punti: 0, ace: 0, attacchi: 0, muri: 0 };
+  for (const m of matches) {
+    if (m.valutazioni.length === 0) {
+      for (const [id, t] of totaliPerGiocatore(m.azioni)) {
+        if (giocatoreId !== undefined && id !== giocatoreId) continue;
+        out.ace += t.ace;
+        out.muri += t.muri;
+        out.attacchi += t.punti - t.ace - t.muri;
+        out.punti += t.punti;
+      }
+      continue;
+    }
+    for (const v of m.valutazioni) {
+      if (v.segno !== "+" || v.fondamentale === "ricezione") continue;
+      if (giocatoreId !== undefined && v.giocatoreId !== giocatoreId) continue;
+      if (v.fondamentale === "battuta") out.ace += 1;
+      if (v.fondamentale === "attacco") out.attacchi += 1;
+      if (v.fondamentale === "muro") out.muri += 1;
+      out.punti += 1;
+    }
+  }
+  return out;
+}
+
+/** Punti, ace e muri di squadra per la tab Stats di `/squadra` (vedi `totaliTecnici`). */
+export function totaliSquadraValutazioni(matches: ScoutMatch[]) {
+  const { punti, ace, muri } = totaliTecnici(matches);
+  return { punti, ace, muri };
+}
+
 /**
  * MVP ricavati dalle partite scoutate (mappa matchId → nome vincitore).
  * Le presenze personali restano su `risposte_presenze`, non sullo scout.

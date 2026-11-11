@@ -23,7 +23,7 @@ import {
   useGiocatoriSquadra,
 } from "@/lib/giocatori-squadra";
 import { useSonoAllenatore } from "@/lib/user-store";
-import { totaliSquadra, useScoutMatches } from "@/lib/scout-store";
+import { totaliSquadraValutazioni, useScoutMatches } from "@/lib/scout-store";
 import { useCsi } from "@/lib/csi";
 import { partiteGiocate } from "@/lib/csi-core";
 import { mediaSquadra, usePagelle } from "@/lib/pagelle";
@@ -110,7 +110,7 @@ function Squadra() {
   const [criterio, setCriterio] = useState<Criterio>("presenze");
   const [filtroAperto, setFiltroAperto] = useState(false);
   const obiettivi = useObiettivi();
-  const team = totaliSquadra(scoutMatches);
+  const team = totaliSquadraValutazioni(scoutMatches);
   const mediaPresenze = rosa.length
     ? Math.round(
         (rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100,

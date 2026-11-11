@@ -82,6 +82,13 @@ successivo non salta — 1, 1, 2, non 1, 1, 3); `dettaglioClassifica()` sceglie 
 sottostatistica mostrare sotto il nome, coerente col criterio selezionato (es. "voti
 pagella" per il criterio media voto, non sempre "presenze consecutive").
 
+In cima alla tab, i riquadri «Punti squadra», «Ace squadra» e «Muri squadra» sommano **tutte le
+partite scoutate** (`totaliSquadraValutazioni()`, che usa `totaliTecnici()`, in `scout-store.ts`), contando solo le valutazioni
+**+** dello scout live: «Ace» = + di battuta, «Muri» = + di muro, «Punti» = + di attacco, battuta e
+muro (la ricezione non è un punto messo a terra, come nel riquadro del giocatore). Le partite
+scoutate col metodo precedente, senza valutazioni, contano con le loro azioni registrate (punti,
+ace, muri); se una partita ha entrambe, valgono solo le valutazioni, così non si conta due volte.
+
 Le altre tab di `/squadra` (Rosa, Obiettivi, Badge) sono viste diverse sugli stessi dati di
 `useRosa()`/`useObiettivi()`/`badges.ts`: non introducono altra logica di dominio, solo
 presentazione — le rispettive specifiche stanno in `badge.md` e `obiettivi-squadra.md`.

@@ -12,6 +12,8 @@ import {
   giocatoriConScout,
   totaliPerGiocatore,
   totaliSquadra,
+  totaliSquadraValutazioni,
+  totaliTecnici,
   type Azione,
   type Valutazione,
   type ScoutMatch,
@@ -66,6 +68,60 @@ assert.deepEqual(totaliSquadra([match("m1", 3, 0, azioni), match("m2", 3, 1, azi
   errori: 2,
 });
 assert.deepEqual(totaliSquadra([]), { punti: 0, ace: 0, muri: 0, errori: 0 });
+
+// --- totaliSquadraValutazioni: solo i + dello scout, fallback sulle azioni ------
+const vl = (fondamentale: Valutazione["fondamentale"], segno: "+" | "-", giocatoreId = "g1") =>
+  ({
+    id: Math.random().toString(),
+    giocatoreId,
+    fondamentale,
+    segno,
+    set: 1,
+    ts: 0,
+  }) as Valutazione;
+const conVal = {
+  ...match("v1", 3, 0),
+  valutazioni: [
+    vl("battuta", "+"),
+    vl("battuta", "+", "g2"),
+    vl("battuta", "-"),
+    vl("muro", "+"),
+    vl("muro", "-"),
+    vl("attacco", "+"),
+    vl("attacco", "+", "g2"),
+    vl("attacco", "-"),
+    vl("ricezione", "+"),
+    vl("ricezione", "+"),
+  ],
+};
+assert.deepEqual(totaliSquadraValutazioni([conVal]), { punti: 5, ace: 2, muri: 1 });
+assert.deepEqual(
+  totaliSquadraValutazioni([conVal, conVal]),
+  { punti: 10, ace: 4, muri: 2 },
+  "somma su più partite",
+);
+assert.deepEqual(
+  totaliSquadraValutazioni([match("a1", 3, 0, azioni)]),
+  { punti: 4, ace: 1, muri: 1 },
+  "senza valutazioni: contano le azioni del metodo precedente",
+);
+assert.deepEqual(
+  totaliSquadraValutazioni([{ ...conVal, azioni }]),
+  { punti: 5, ace: 2, muri: 1 },
+  "con entrambe valgono solo le valutazioni",
+);
+assert.deepEqual(totaliSquadraValutazioni([]), { punti: 0, ace: 0, muri: 0 });
+
+// --- totaliTecnici: per giocatore, con attacchi -------------------------------
+assert.deepEqual(totaliTecnici([conVal], "g1"), { punti: 3, ace: 1, attacchi: 1, muri: 1 });
+assert.deepEqual(totaliTecnici([conVal], "g2"), { punti: 2, ace: 1, attacchi: 1, muri: 0 });
+assert.deepEqual(totaliTecnici([conVal], "assente"), { punti: 0, ace: 0, attacchi: 0, muri: 0 });
+assert.deepEqual(totaliTecnici([conVal, conVal]), { punti: 10, ace: 4, attacchi: 4, muri: 2 });
+assert.deepEqual(
+  totaliTecnici([match("a1", 3, 0, azioni)], "g1"),
+  { punti: 3, ace: 1, attacchi: 1, muri: 1 },
+  "metodo precedente: ace, muro e attacco dalle azioni",
+);
 
 // --- giocatoriConScout: solo MVP da scout, presenze separate -----------------
 const base = giocatori.find((g) => g.id === "g1")!;
