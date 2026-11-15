@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useVotiSocial } from "@/lib/badge-social";
 import { useNotificheSmart } from "@/lib/notifiche-smart";
-import { useGiocatoreCorrente } from "@/lib/user-store";
+import { useGiocatoreCorrente } from "@/lib/rosa";
 import { coriandoli, useMotoRidotto } from "@/lib/motion";
 
 const toni: Record<string, string> = {
