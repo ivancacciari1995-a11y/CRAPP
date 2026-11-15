@@ -50,10 +50,9 @@ In Claude Code: `/graphify query "..."`, oppure leggere `graphify-out/GRAPH_REPO
 Il grafo riporta il commit da cui è stato costruito (`GRAPH_REPORT.md`, sezione «Graph
 Freshness»): confrontalo con `git rev-parse HEAD` per sapere se è vecchio.
 
-Attenzione: `graphify update .` da solo ricostruisce i `.md` come semplici strutture (titoli e
-sezioni) e **sovrascrive** i nodi semantici dei documenti. Dopo averlo lanciato su un grafo
-già completo, rilancia `/graphify . --update` per ripristinarli: la cache evita di pagare di
-nuovo i file invariati.
+Nota: `graphify update .` su un grafo già completo conserva i nodi semantici dei documenti
+(verificato). I `.md` nuovi o modificati entrano però solo come struttura (titoli e sezioni):
+per l'estrazione semantica serve `/graphify . --update`, che rielabora solo quei file.
 
 ## Limiti noti
 
