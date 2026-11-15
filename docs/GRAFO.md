@@ -50,6 +50,22 @@ In Claude Code: `/graphify query "..."`, oppure leggere `graphify-out/GRAPH_REPO
 Il grafo riporta il commit da cui è stato costruito (`GRAPH_REPORT.md`, sezione «Graph
 Freshness»): confrontalo con `git rev-parse HEAD` per sapere se è vecchio.
 
+## Collegamento documenti ↔ codice
+
+L'estrazione semantica dei documenti crea pochissimi archi verso il codice, anche quando il
+documento cita il file. Lo script [scripts/graphify-link-docs.ts](../scripts/graphify-link-docs.ts)
+li aggiunge in modo deterministico: per ogni percorso citato nei `.md` (`src/lib/rosa.ts`)
+crea l'arco `references` dal documento al file, e ai simboli citati tra backtick (`useIo`) se
+stanno in quel file. Sono archi EXTRACTED: il percorso è scritto nel testo.
+
+```bash
+bun scripts/graphify-link-docs.ts   # idempotente, gratis
+```
+
+Va rilanciato dopo ogni `/graphify . --update`, perché rielaborare un documento ne cancella
+gli archi. Sopravvive invece a `graphify update .`. Un documento che cita un file solo per nome
+(`rosa.ts`, senza `src/lib/`) non viene collegato: scrivi il percorso completo.
+
 Nota: `graphify update .` su un grafo già completo conserva i nodi semantici dei documenti
 (verificato). I `.md` nuovi o modificati entrano però solo come struttura (titoli e sezioni):
 per l'estrazione semantica serve `/graphify . --update`, che rielabora solo quei file.
