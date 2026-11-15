@@ -1,8 +1,8 @@
 /**
  * Schema e permessi del Profilo Giocatore: `bun test/integration/schema-profili.test.ts`.
  *
- * Verifica contro un database vero (locale con `npx supabase start`, oppure quello
- * configurato in `.env`) le tre cose che il codice dà per scontate: le colonne della
+ * Verifica contro il database locale (`npx supabase start`, credenziali da
+ * `supabase status`, mai da `.env`) le tre cose che il codice dà per scontate: le colonne della
  * tabella, la chiusura verso l'utente anonimo e il bucket privato.
  *
  * Salta con un motivo esplicito quando mancano le credenziali o quando la migration
@@ -10,13 +10,13 @@
  */
 import assert from "node:assert/strict";
 import { COLONNE_PROFILO } from "@/lib/profili-core";
-import { envDaFile } from "../helpers/server";
+import { statoLocale } from "../helpers/locale";
 import { prova, riepilogo, salta } from "../helpers/prova";
 
-const env = { ...envDaFile(), ...process.env };
-const URL_BASE = env["SUPABASE_URL"];
-const CHIAVE_SERVIZIO = env["SUPABASE_SERVICE_ROLE_KEY"];
-const CHIAVE_PUBBLICA = env["SUPABASE_PUBLISHABLE_KEY"];
+const locale = statoLocale();
+const URL_BASE = locale?.url;
+const CHIAVE_SERVIZIO = locale?.servizio;
+const CHIAVE_PUBBLICA = locale?.anon;
 
 /** Le chiavi nuove sono opache e viaggiano solo in `apikey`; quelle legacy sono JWT. */
 function intestazioni(chiave: string): Record<string, string> {
@@ -37,7 +37,7 @@ const bucketProfili = (chiave: string) =>
 console.log(`schema profili su ${URL_BASE ?? "(non configurato)"}`);
 
 if (!URL_BASE || !CHIAVE_SERVIZIO || !CHIAVE_PUBBLICA) {
-  salta("schema e permessi dei profili", "credenziali Supabase non configurate");
+  salta("schema e permessi dei profili", "stack locale non attivo (npx supabase start)");
   riepilogo("schema profili");
 } else {
   try {
