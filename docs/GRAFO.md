@@ -76,11 +76,17 @@ per l'estrazione semantica serve `/graphify . --update`, che rielabora solo quei
 
 ## Limiti noti
 
-- Il report segnala archi su nodi inesistenti e archi multipli collassati, soprattutto nelle
-  migrazioni SQL e nei template GitHub: il grafo può essere incompleto in quei punti.
+- Gli avvisi di salute del build («archi su nodi inesistenti», «archi collassati») si
+  riferiscono all'estrazione prima dell'unione. Nel `graph.json` finale gli archi su nodi
+  inesistenti sono 0; gli archi tra la stessa coppia di nodi con relazioni diverse (import e
+  chiamata, o più righe) diventano uno solo e conservano le varianti in `also_seen`. I due
+  archi da un nodo a se stesso sono funzioni ricorsive vere. Per ricontrollare:
+  `graphify diagnose multigraph`.
 - La coesione bassa di una community non indica da sola un modulo da dividere: nei test, nei
   documenti-indice e nel file generato `routeTree.gen.ts` è normale. Rilette tutte le
   community da 25 nodi in su, nessuna mescola responsabilità diverse nel codice dell'app.
 - Un file letto solo in parte viene riprovato al giro successivo (`--update`).
-- `src/styles.css` e i file di configurazione (Dockerfile, `.toml`, `.lock`, `.env.example`)
-  non sono nel grafo. `.env.example` non va mai incluso.
+- `src/styles.css` non è nel grafo perché graphify non ha un estrattore per il CSS: l'import
+  in `__root.tsx` produce solo un nodo segnaposto `src_styles` senza file. I file di
+  configurazione (Dockerfile, `.toml`, `.lock`, `.env.example`) restano fuori di proposito:
+  `.env.example` non va mai incluso.
