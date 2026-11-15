@@ -1,0 +1,72 @@
+name: Test
+
+# Suite completa (lint, tipi, unit, integration, e2e) su un database Supabase locale in Docker.
+# Come si esegue a mano: test/README.md. Cosa fa e perché: docs/OPERATIONS.md, «Test in CI».
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Node serve a `npm run dev`, che i test avviano da soli (Vite non parte con Node 18).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      - run: npm run lint
+      - run: npm run typecheck
+
+      # Stack locale: applica tutte le migration e `seed.sql`. Senza, i test di integrazione
+      # si saltano da soli e la CI risulterebbe verde senza aver provato nulla (vedi dopo).
+      # Studio, imgproxy, vector e logflare non servono ai test: si escludono per partire prima.
+      - name: Avvia Supabase locale
+        run: npx --yes supabase start -x studio,imgproxy,vector,logflare
+
+      # I test leggono le credenziali con `supabase status`; le route server e il server di
+      # sviluppo che i test avviano le leggono dall'ambiente, con e senza prefisso VITE_.
+      - name: Variabili d'ambiente verso lo stack locale
+        run: |
+          eval "$(npx supabase status -o env | sed 's/^/export STATUS_/')"
+          {
+            echo "SUPABASE_URL=$STATUS_API_URL"
+            echo "VITE_SUPABASE_URL=$STATUS_API_URL"
+            echo "SUPABASE_PUBLISHABLE_KEY=$STATUS_ANON_KEY"
+            echo "VITE_SUPABASE_PUBLISHABLE_KEY=$STATUS_ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$STATUS_SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Test (unit, integration, e2e)
+        shell: bash # con pipefail: l'uscita di `tee` non deve nascondere un test rosso
+        run: npm run test:all 2>&1 | tee test.log
+
+      # Un test che non trova lo stack si salta e resta verde: in CI è un errore.
+      - name: Nessun test saltato
+        run: |
+          if grep -q "saltato:" test.log; then
+            echo "::error::Test saltati: lo stack locale non era raggiungibile"
+            grep "saltato:" test.log
+            exit 1
+          fi
+
+      - name: Log di Supabase se qualcosa è fallito
+        if: failure()
+        run: docker ps -a && docker logs supabase_db_kfkcldwncxqaixetsjes --tail 100

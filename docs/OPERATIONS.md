@@ -51,6 +51,22 @@ del progetto. Prima di dire «finito» vale la checklist «Fine lavoro» di [AGE
 Per tornare indietro: promuovere il deployment precedente da Vercel; le migration, essendo
 additive, non si annullano ma si correggono con una migration nuova.
 
+## Test in CI
+
+[.github/workflows/test.yml](../.github/workflows/test.yml) esegue, a ogni push e a ogni pull
+request su `develop` (e a mano da «Run workflow»), la suite completa: `npm run lint`,
+`npm run typecheck` e `npm run test:all` (unit, integration, e2e). Gli integration e gli e2e
+girano su uno stack Supabase **locale in Docker** (`npx supabase start`: tutte le migration più
+`seed.sql`, ogni volta da zero), non sul progetto cloud: scrivono e creano utenti.
+
+- Le credenziali dello stack locale finiscono nell'ambiente del job (`SUPABASE_*` e `VITE_SUPABASE_*`),
+  così le route server e il server di sviluppo che i test avviano non toccano mai il cloud.
+- Un test che non trova lo stack si **salta** invece di fallire (vedi [test/README.md](../test/README.md)):
+  in CI sarebbe un falso verde, per questo un passo dedicato fallisce se nel log compare «saltato:».
+- Il workflow non pubblica nulla: il deploy resta quello di Vercel.
+- Per riprodurre in locale: `npx supabase db reset`, poi `npm run test:all`. I test di
+  integrazione presuppongono un database pulito: su uno sporco alcuni falliscono.
+
 ## Allestire un ambiente: autenticazione e primo admin
 
 In produzione su `main`. **Il login è l'unica via d'accesso** (31/08/2026): la selezione
