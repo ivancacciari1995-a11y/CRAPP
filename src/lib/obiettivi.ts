@@ -284,10 +284,10 @@ export function obiettiviSquadra(
     },
     {
       id: "o13",
-      titolo: "200 pagelle compilate",
+      titolo: "1000 pagelle compilate",
       descrizione: "Quanti voti la squadra ha dato nel corso della stagione",
       valore: ctx.pagelle.length,
-      target: 200,
+      target: 1000,
       unita: "voti",
       emoji: "🗳️",
       impatto: "Vota i compagni a fine partita: bastano due minuti.",

@@ -125,39 +125,40 @@ if (!locale) {
     await prova(
       "il badge passa da bronzo a oro con presenze consecutive vere, e un buco lo azzera",
       async () => {
-        // 10 allenamenti passati, tutti presenti per "sa1": bronzo (3), poi argento (6), poi
-        // oro (10) man mano che si rileggono i dati.
-        for (let i = 1; i <= 10; i += 1) {
+        // Tanti allenamenti passati quanti ne chiede l'oro, tutti presenti per "sa1": le prime
+        // `bronzo` presenze valgono bronzo, tutte e `oro` valgono oro.
+        const { bronzo, oro } = serieDef.soglie;
+        for (let i = 1; i <= oro; i += 1) {
           await creaAllenamento(`${PREFISSO}-a${String(i).padStart(2, "0")}`, i);
           await rispondi(`${PREFISSO}-a${String(i).padStart(2, "0")}`, "sa1", "presente");
         }
-        const eventi10 = await leggiEventi();
-        const presenze10 = await leggiPresenze();
-        const serieA3 = serieConsecutiva(
+        const eventiOro = await leggiEventi();
+        const presenzeOro = await leggiPresenze();
+        const serieBronzo = serieConsecutiva(
           "sa1",
-          eventi10.slice(0, 3),
-          presenze10,
+          eventiOro.slice(0, bronzo),
+          presenzeOro,
           "allenamento",
           OGGI,
         );
-        assert.equal(serieA3, 3);
+        assert.equal(serieBronzo, bronzo);
         assert.equal(
-          statoBadge(serieDef, giocatoreAzzerato(serieA3)).grado,
+          statoBadge(serieDef, giocatoreAzzerato(serieBronzo)).grado,
           "bronzo",
-          "3 allenamenti di fila: soglia bronzo",
+          `${bronzo} allenamenti di fila: soglia bronzo`,
         );
 
-        const serieCompleta = serieConsecutiva("sa1", eventi10, presenze10, "allenamento", OGGI);
-        assert.equal(serieCompleta, 10, "presente a tutti e 10, nessun buco");
+        const serieCompleta = serieConsecutiva("sa1", eventiOro, presenzeOro, "allenamento", OGGI);
+        assert.equal(serieCompleta, oro, `presente a tutti e ${oro}, nessun buco`);
         assert.equal(
           statoBadge(serieDef, giocatoreAzzerato(serieCompleta)).grado,
           "oro",
-          "10 allenamenti di fila: soglia oro",
+          `${oro} allenamenti di fila: soglia oro`,
         );
 
-        // Un undicesimo allenamento con un buco (assente) azzera la serie.
-        await creaAllenamento(`${PREFISSO}-a11`, 11);
-        await rispondi(`${PREFISSO}-a11`, "sa1", "assente");
+        // Un allenamento in più con un buco (assente) azzera la serie.
+        await creaAllenamento(`${PREFISSO}-a${oro + 1}`, oro + 1);
+        await rispondi(`${PREFISSO}-a${oro + 1}`, "sa1", "assente");
         const eventiConBuco = await leggiEventi();
         const presenzeConBuco = await leggiPresenze();
         const serieDopoBuco = serieConsecutiva(
@@ -167,7 +168,7 @@ if (!locale) {
           "allenamento",
           OGGI,
         );
-        assert.equal(serieDopoBuco, 0, "un'assenza azzera la serie, anche dopo 10 di fila");
+        assert.equal(serieDopoBuco, 0, `un'assenza azzera la serie, anche dopo ${oro} di fila`);
         assert.equal(
           statoBadge(serieDef, giocatoreAzzerato(serieDopoBuco)).grado,
           null,
@@ -182,7 +183,7 @@ if (!locale) {
       // ripartire da 1.
       const eventi = [`${PREFISSO}-b01`, `${PREFISSO}-b02`, `${PREFISSO}-b03`, `${PREFISSO}-b04`];
       for (let i = 0; i < eventi.length; i += 1) {
-        await creaAllenamento(eventi[i]!, 20 + i);
+        await creaAllenamento(eventi[i]!, serieDef.soglie.oro + 10 + i);
       }
       await rispondi(eventi[0]!, "sa2", "presente");
       await rispondi(eventi[1]!, "sa2", "presente");
@@ -195,8 +196,8 @@ if (!locale) {
       assert.equal(serie, 3, "l'infortunio è saltato: 3 presenze restano consecutive");
       assert.equal(
         statoBadge(serieDef, giocatoreAzzerato(serie)).grado,
-        "bronzo",
-        "3 di fila (infortunio escluso dal conteggio): soglia bronzo",
+        null,
+        "3 di fila: ancora sotto la soglia bronzo, ma la serie non si è azzerata",
       );
     });
   } finally {

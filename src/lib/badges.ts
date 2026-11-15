@@ -100,7 +100,7 @@ export const badgeDefs: BadgeDef[] = [
       "Quante volte ti sei caricato la sacca dei palloni: lavoro oscuro, badge luminoso.",
     unita: "turni palloni",
     icon: CircleDot,
-    soglie: { bronzo: 3, argento: 6, oro: 10 },
+    soglie: { bronzo: 3, argento: 5, oro: 8 },
     valore: (g) => g.palloni,
   },
   {
@@ -109,7 +109,7 @@ export const badgeDefs: BadgeDef[] = [
     descrizione: "Per chi è sempre lì, partita dopo partita, senza tirarsi indietro.",
     unita: "presenze",
     icon: Repeat,
-    soglie: { bronzo: 5, argento: 15, oro: 30 },
+    soglie: { bronzo: 15, argento: 35, oro: 55 },
     valore: (g) => g.presenze,
   },
   {
@@ -119,7 +119,7 @@ export const badgeDefs: BadgeDef[] = [
       "Allenamenti consecutivi a cui sei stato presente: la costanza paga più del talento.",
     unita: "allenamenti di fila",
     icon: Rocket,
-    soglie: { bronzo: 3, argento: 6, oro: 10 },
+    soglie: { bronzo: 5, argento: 10, oro: 20 },
     valore: (g) => g.serieAllenamenti,
   },
 ];

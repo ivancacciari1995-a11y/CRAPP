@@ -47,9 +47,9 @@ assert.equal(segreta.emoji, "⏰");
 assert.equal(segreta.testo, "Forse è il momento di puntare la sveglia 10 minuti prima! 😄");
 
 // --- "sei a un passo": solo entro due unità dalla soglia ---------------------
-assert.ok(ids(g({ presenze: 4 })).some((id) => id.startsWith("quasi:presenze")));
+assert.ok(ids(g({ presenze: 13 })).some((id) => id.startsWith("quasi:presenze")));
 assert.ok(
-  !ids(g({ mvp: 5, presenze: 2 })).some((id) => id.startsWith("quasi:presenze")),
+  !ids(g({ mvp: 5, presenze: 12 })).some((id) => id.startsWith("quasi:presenze")),
   "a 3 di distanza non si notifica",
 );
 

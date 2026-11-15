@@ -106,7 +106,7 @@ if (!locale) {
         // m1-m3: turno confermato esplicitamente a pv1 (3 turni -> soglia bronzo).
         // m4: NESSUN turno confermato -> non deve contare per nessuno, anche se un algoritmo
         //     di rotazione (usato altrove per la UI) proporrebbe qualcuno in automatico.
-        // m5-m7: confermati di nuovo a pv1 (6 turni totali -> soglia argento).
+        // m5-m6: confermati di nuovo a pv1 (5 turni totali -> soglia argento).
         const eventi = [
           [`${PREFISSO}-m1`, "2020-01-01", "pv1"],
           [`${PREFISSO}-m2`, "2020-01-02", "pv1"],
@@ -114,7 +114,6 @@ if (!locale) {
           [`${PREFISSO}-m4`, "2020-01-04", null],
           [`${PREFISSO}-m5`, "2020-01-05", "pv1"],
           [`${PREFISSO}-m6`, "2020-01-06", "pv1"],
-          [`${PREFISSO}-m7`, "2020-01-07", "pv1"],
         ] as const;
 
         for (const [id, data] of eventi.slice(0, 3)) await creaEvento(id, data);
@@ -128,7 +127,7 @@ if (!locale) {
         assert.equal(
           statoBadge(palloniDef, giocatoreAzzerato(conteggioA3["pv1"]!)).grado,
           "bronzo",
-          "3 turni: bronzo, non oltre (soglia argento è 6)",
+          "3 turni: bronzo, non oltre (soglia argento è 5)",
         );
 
         for (const [id, data] of eventi.slice(3)) await creaEvento(id, data);
@@ -136,13 +135,13 @@ if (!locale) {
           if (giocatore) await confermaTurno(id, giocatore);
 
         const eventiLetti = await leggiEventi();
-        assert.equal(eventiLetti.length, 7, "tutti gli eventi scritti si rileggono");
+        assert.equal(eventiLetti.length, 6, "tutti gli eventi scritti si rileggono");
 
         const salvati = await leggiTurniSalvati();
-        assert.equal(Object.keys(salvati).length, 6, "6 turni confermati esplicitamente, m4 no");
+        assert.equal(Object.keys(salvati).length, 5, "5 turni confermati esplicitamente, m4 no");
 
         const conteggio = conteggioTurni(salvati, eventiLetti, OGGI);
-        assert.equal(conteggio["pv1"], 6, "6 turni confermati per pv1");
+        assert.equal(conteggio["pv1"], 5, "5 turni confermati per pv1");
         assert.equal(
           conteggio["pv2"] ?? 0,
           0,
@@ -150,7 +149,7 @@ if (!locale) {
         );
 
         const badgePv1 = statoBadge(palloniDef, giocatoreAzzerato(conteggio["pv1"]!));
-        assert.equal(badgePv1.grado, "argento", "6 turni: soglia argento raggiunta");
+        assert.equal(badgePv1.grado, "argento", "5 turni: soglia argento raggiunta");
 
         const badgePv2 = statoBadge(palloniDef, giocatoreAzzerato(conteggio["pv2"] ?? 0));
         assert.equal(badgePv2.grado, null, "zero turni confermati: nessun badge");
