@@ -13,6 +13,7 @@ import {
   mancanoPer,
   microcopyBadge,
   prossimoTraguardo,
+  quantiAlGrado,
   segretiNascosti,
   statoBadge,
   tuttiBadge,
@@ -246,5 +247,18 @@ assert.equal(
   tuttiBadge.length,
   "gli id dei badge sono unici",
 );
+
+// --- quantiAlGrado: chi ha raggiunto almeno quel grado -----------------------------
+{
+  const def = badgeDefs[0]!;
+  const rosa = [g(), g(), g()];
+  assert.equal(quantiAlGrado(def, [], "bronzo"), 0);
+  const n = (grado: (typeof gradiOrdine)[number]) => quantiAlGrado(def, rosa, grado);
+  assert.ok(
+    n("bronzo") >= n("argento") && n("argento") >= n("oro"),
+    "i gradi alti non superano i bassi",
+  );
+  assert.equal(n("bronzo"), rosa.filter((x) => gradoRaggiunto(def, def.valore(x)) !== null).length);
+}
 
 console.log("badges: ok");

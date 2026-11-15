@@ -194,6 +194,14 @@ export function gradoRaggiunto(def: BadgeDef, valore: number): Grado | null {
   return grado;
 }
 
+/** Quanti giocatori della rosa hanno raggiunto almeno `grado` per il badge `def`. */
+export function quantiAlGrado(def: BadgeDef, rosa: Giocatore[], grado: Grado): number {
+  return rosa.filter((g) => {
+    const raggiunto = gradoRaggiunto(def, def.valore(g));
+    return raggiunto ? gradiOrdine.indexOf(raggiunto) >= gradiOrdine.indexOf(grado) : false;
+  }).length;
+}
+
 export function statoBadge(def: BadgeDef, g: Giocatore): BadgeStato {
   const valore = def.valore(g);
   const grado = gradoRaggiunto(def, valore);

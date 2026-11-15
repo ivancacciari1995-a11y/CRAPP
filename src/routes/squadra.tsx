@@ -7,7 +7,13 @@ import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
 import { formatData, inizialiDa } from "@/lib/crapp-data";
 import { ObiettivoDrawer } from "@/components/crapp/ObiettivoDrawer";
-import { microcopyObiettivo, progressoObiettivo } from "@/lib/obiettivi";
+import {
+  mediaPresenzeRosa,
+  mediaProgressoObiettivi,
+  microcopyObiettivo,
+  obiettiviCompletati,
+  progressoObiettivo,
+} from "@/lib/obiettivi";
 import {
   useRosa,
   useObiettivi,
@@ -45,7 +51,7 @@ import {
   descrizioneSoglie,
   gradiOrdine,
   gradoMeta,
-  gradoRaggiunto,
+  quantiAlGrado,
   collezioneBadge,
 } from "@/lib/badges";
 
@@ -111,20 +117,14 @@ function Squadra() {
   const [filtroAperto, setFiltroAperto] = useState(false);
   const obiettivi = useObiettivi();
   const team = totaliSquadraValutazioni(scoutMatches);
-  const mediaPresenze = rosa.length
-    ? Math.round(
-        (rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100,
-      )
-    : 0;
+  const mediaPresenze = mediaPresenzeRosa(rosa);
   const ordinati = [...rosa].sort((a, b) => valore(b, criterio) - valore(a, criterio));
   const rank = classificaRank(ordinati.map((g) => valore(g, criterio)));
   const max = ordinati[0] ? valore(ordinati[0], criterio) || 1 : 1;
   const { data: csi } = useCsi();
   const matchGiocati = csi ? partiteGiocate(csi.partite).length : scoutMatches.length;
-  const completati = obiettivi.filter((o) => progressoObiettivo(o) >= 100).length;
-  const mediaObiettivi = obiettivi.length
-    ? Math.round(obiettivi.reduce((s, o) => s + progressoObiettivo(o), 0) / obiettivi.length)
-    : 0;
+  const completati = obiettiviCompletati(obiettivi);
+  const mediaObiettivi = mediaProgressoObiettivi(obiettivi);
 
   // Ogni tab è memoizzata: aprire/chiudere una card giocatore (stato `aperto`)
   // non deve ricalcolare badge e obiettivi delle altre sezioni.
@@ -504,12 +504,7 @@ function Squadra() {
                 <div className="mt-2 grid grid-cols-3 gap-1.5">
                   {gradiOrdine.map((grado) => {
                     const meta = gradoMeta[grado];
-                    const quanti = rosa.filter((g) => {
-                      const raggiunto = gradoRaggiunto(b, b.valore(g));
-                      return raggiunto
-                        ? gradiOrdine.indexOf(raggiunto) >= gradiOrdine.indexOf(grado)
-                        : false;
-                    }).length;
+                    const quanti = quantiAlGrado(b, rosa, grado);
                     return (
                       <div
                         key={grado}

@@ -6,7 +6,10 @@ import type { VotoPagella } from "@/lib/pagelle";
 import type { MappaPresenze } from "@/lib/presenze";
 import {
   contestoVuoto,
+  mediaPresenzeRosa,
+  mediaProgressoObiettivi,
   microcopyObiettivo,
+  obiettiviCompletati,
   obiettiviOrdinati,
   obiettiviSquadra,
   progressoObiettivo,
@@ -733,6 +736,24 @@ for (const ob of obiettiviSquadra(giocatori, contestoVuoto)) {
   if (ob.id === "o1" || ob.id === "o7") {
     assert.ok(d.perse && d.perse.length > 0, `${ob.id}: manca «presenza persa»`);
   }
+}
+
+// --- riepiloghi usati dalla pagina Squadra -----------------------------------------
+{
+  const ob = (valore: number): ObiettivoSquadra =>
+    ({ ...obiettiviSquadra(giocatori, contestoVuoto)[0]!, valore, target: 10 }) as ObiettivoSquadra;
+  assert.equal(obiettiviCompletati([]), 0);
+  assert.equal(mediaProgressoObiettivi([]), 0);
+  assert.equal(obiettiviCompletati([ob(10), ob(15), ob(3)]), 2);
+  assert.equal(mediaProgressoObiettivi([ob(10), ob(0)]), 50);
+  assert.equal(mediaPresenzeRosa([]), 0);
+  const p = (presenze: number, totaliEventi: number) => ({
+    ...giocatori[0]!,
+    presenze,
+    totaliEventi,
+  });
+  assert.equal(mediaPresenzeRosa([p(5, 10), p(10, 10)]), 75);
+  assert.equal(mediaPresenzeRosa([p(0, 0)]), 0, "nessun evento: niente divisione per zero");
 }
 
 console.log("obiettivi: ok");

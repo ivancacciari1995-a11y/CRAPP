@@ -96,6 +96,11 @@ export function contaValutazioni(
   return out;
 }
 
+/** Percentuale di + sul totale (+ e −) di un fondamentale; `null` se non ci sono valutazioni. */
+export function percentualePiu(piu: number, meno: number): number | null {
+  return piu + meno === 0 ? null : Math.round((piu / (piu + meno)) * 100);
+}
+
 /**
  * Riepilogo delle valutazioni per la lettura nell'app: totali di squadra e per giocatore,
  * su tutta la partita o su un solo set. Chi non ha valutazioni nel periodo non compare.

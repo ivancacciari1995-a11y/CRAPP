@@ -415,6 +415,25 @@ export function progressoObiettivo(o: ObiettivoSquadra) {
   return Math.min(100, Math.round((o.valore / o.target) * 100));
 }
 
+export function obiettiviCompletati(obiettivi: ObiettivoSquadra[]) {
+  return obiettivi.filter((o) => progressoObiettivo(o) >= 100).length;
+}
+
+export function mediaProgressoObiettivi(obiettivi: ObiettivoSquadra[]) {
+  return obiettivi.length
+    ? Math.round(obiettivi.reduce((s, o) => s + progressoObiettivo(o), 0) / obiettivi.length)
+    : 0;
+}
+
+/** Media, in percentuale, della quota di eventi a cui ogni giocatore della rosa ha partecipato. */
+export function mediaPresenzeRosa(rosa: Giocatore[]) {
+  return rosa.length
+    ? Math.round(
+        (rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100,
+      )
+    : 0;
+}
+
 export function obiettiviOrdinati(rosa?: Giocatore[], ctx?: ContestoObiettivi, oggi?: Date) {
   return obiettiviSquadra(rosa, ctx, oggi).sort((a, b) => {
     const pa = progressoObiettivo(a);
