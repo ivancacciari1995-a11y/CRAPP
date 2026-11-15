@@ -6,3 +6,6 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+
+# Copia fedele della skill graphify: non la riformattiamo
+.claude/skills/graphify/
