@@ -74,6 +74,9 @@ per l'estrazione semantica serve `/graphify . --update`, che rielabora solo quei
 
 - Il report segnala archi su nodi inesistenti e archi multipli collassati, soprattutto nelle
   migrazioni SQL e nei template GitHub: il grafo può essere incompleto in quei punti.
+- La coesione bassa di una community non indica da sola un modulo da dividere: nei test, nei
+  documenti-indice e nel file generato `routeTree.gen.ts` è normale. Rilette tutte le
+  community da 25 nodi in su, nessuna mescola responsabilità diverse nel codice dell'app.
 - Un file letto solo in parte viene riprovato al giro successivo (`--update`).
 - `src/styles.css` e i file di configurazione (Dockerfile, `.toml`, `.lock`, `.env.example`)
   non sono nel grafo. `.env.example` non va mai incluso.
