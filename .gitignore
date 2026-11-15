@@ -51,3 +51,6 @@ backups/*
 !backups/README.md
 # Automazioni operative locali (backup cifrati, playbook con dati sensibili)
 ops/
+
+# Grafo graphify: locale, si rigenera (docs/GRAFO.md)
+graphify-out/
