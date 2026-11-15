@@ -2,7 +2,8 @@
  * Collega i documenti al codice nel grafo graphify: dove un `.md` cita un file (`src/lib/rosa.ts`)
  * aggiunge l'arco `references` dal documento al file, e dal documento ai simboli che cita in
  * backtick (`useIo`) se stanno in uno dei file citati. Gli archi sono EXTRACTED: il percorso è
- * scritto nel testo. Idempotente: rimuove i propri archi e li rifà. Va rilanciato dopo ogni
+ * scritto nel testo. Collega anche i documenti alle RFC che nominano (`RFC 8188/8291`) e i
+ * concetti dei documenti che hanno lo stesso nome di un simbolo (`mediePagelle()`). Idempotente: rimuove i propri archi e li rifà. Va rilanciato dopo ogni
  * `/graphify . --update` (rielabora i documenti e perde gli archi di quelli cambiati).
  *
  *   bun scripts/graphify-link-docs.ts            # aggiorna graphify-out/graph.json
@@ -12,7 +13,12 @@ import { join } from "node:path";
 
 const MARCA = "graphify-link-docs";
 
-type Nodo = { id: string; label?: string; source_file?: string; source_location?: string };
+type Nodo = {
+  id: string;
+  label?: string;
+  source_file?: string;
+  source_location?: string;
+} & Record<string, unknown>;
 type Arco = Record<string, unknown> & { source: string; target: string; _via?: string };
 type Grafo = { nodes: Nodo[]; links: Arco[] } & Record<string, unknown>;
 
@@ -42,10 +48,21 @@ export function idDocumento(percorso: string): string {
     .replace(/^_|_$/g, "");
 }
 
+/**
+ * Il nodo che rappresenta il documento. Di solito ha l'id derivato dal percorso, ma
+ * l'estrazione ne dà a volte uno diverso (`docs_decisions_dd_026_dd_026`): in quel caso vale il
+ * nodo `document` di quel file, e se ce ne sono più d'uno il primo.
+ */
+export function idNodoDocumento(grafo: Grafo, doc: string): string | undefined {
+  const id = idDocumento(doc);
+  if (grafo.nodes.some((n) => n.id === id)) return id;
+  return grafo.nodes.find((n) => n.source_file === doc && n["file_type"] === "document")?.id;
+}
+
 /** Archi `references` da un documento ai file e ai simboli di codice che cita. */
 export function archiDocumento(grafo: Grafo, doc: string, testo: string): Arco[] {
-  const idDoc = idDocumento(doc);
-  if (!grafo.nodes.some((n) => n.id === idDoc)) return [];
+  const idDoc = idNodoDocumento(grafo, doc);
+  if (!idDoc) return [];
   const archi: Arco[] = [];
   const base = (target: string, riga: number): Arco => ({
     source: idDoc,
@@ -68,6 +85,78 @@ export function archiDocumento(grafo: Grafo, doc: string, testo: string): Arco[]
       if (n.source_file !== percorso || n.id === file.id) continue;
       if (n.label && simboli.has(n.label.replace(/\(\)$/, ""))) archi.push(base(n.id, riga));
     }
+  }
+  return archi;
+}
+
+/** Numeri di RFC nominati nel testo: «RFC 8291», «RFC-8291», «RFC 8188/8291». */
+export function estraiRfc(testo: string): Set<string> {
+  const numeri = new Set<string>();
+  for (const m of testo.matchAll(/RFC[ -]?(\d{4}(?:\/\d{4})*)/g))
+    for (const n of (m[1] as string).split("/")) numeri.add(n);
+  return numeri;
+}
+
+const senzaParentesi = (etichetta: string) => etichetta.replace(/\(\)$/, "");
+const arcoDa = (
+  source: string,
+  target: string,
+  doc: string,
+  extra: Record<string, unknown>,
+): Arco => ({
+  source,
+  target,
+  weight: 1.0,
+  _origin: "semantic",
+  _via: MARCA,
+  source_file: doc,
+  ...extra,
+});
+
+/** Archi dal documento ai nodi-RFC che nomina (le RFC sono nodi creati dall'estrazione). */
+export function archiRfc(grafo: Grafo, doc: string, testo: string): Arco[] {
+  const idDoc = idNodoDocumento(grafo, doc);
+  if (!idDoc) return [];
+  const numeri = estraiRfc(testo);
+  return grafo.nodes
+    .filter((n) => n.label?.startsWith("RFC-") && numeri.has(n.label.slice(4)))
+    .map((n) =>
+      arcoDa(idDoc, n.id, doc, {
+        relation: "references",
+        confidence: "EXTRACTED",
+        confidence_score: 1.0,
+      }),
+    );
+}
+
+/**
+ * Concetti dei documenti con lo stesso nome di un simbolo del codice (`mediePagelle()` nel
+ * modulo, `mediePagelle` in `pagelle.ts`): l'arco `describes` li unisce. Solo corrispondenze
+ * esatte e uniche; è un'inferenza sul nome, quindi INFERRED.
+ */
+export function archiConcetti(
+  grafo: Grafo & { nodes: Array<Nodo & Record<string, unknown>> },
+): Arco[] {
+  const codice = new Map<string, Nodo[]>();
+  for (const n of grafo.nodes)
+    if (n["_origin"] === "ast" && n["file_type"] === "code" && n.label) {
+      const k = senzaParentesi(n.label);
+      codice.set(k, [...(codice.get(k) ?? []), n]);
+    }
+  const archi: Arco[] = [];
+  for (const n of grafo.nodes) {
+    if (n["_origin"] === "ast" || !n.label || !n.source_file?.endsWith(".md")) continue;
+    if (!["concept", "rationale", "code"].includes(n["file_type"] as string)) continue;
+    const trovati = codice.get(senzaParentesi(n.label));
+    if (trovati?.length !== 1) continue;
+    archi.push(
+      arcoDa(n.id, (trovati[0] as Nodo).id, n.source_file, {
+        relation: "describes",
+        confidence: "INFERRED",
+        confidence_score: 0.95,
+        source_location: n.source_location ?? "L1",
+      }),
+    );
   }
   return archi;
 }
@@ -96,13 +185,20 @@ if (import.meta.main) {
   let aggiunti = 0;
   let conArchi = 0;
   for (const doc of elenco) {
-    const nuovi = archiDocumento(grafo, doc, readFileSync(doc, "utf8")).filter(
+    const testo = readFileSync(doc, "utf8");
+    const nuovi = [...archiDocumento(grafo, doc, testo), ...archiRfc(grafo, doc, testo)].filter(
       (a) => !gia.has(`${a.source}>${a.target}`),
     );
     for (const a of nuovi) gia.add(`${a.source}>${a.target}`);
     if (nuovi.length) conArchi++;
     grafo.links.push(...nuovi);
     aggiunti += nuovi.length;
+  }
+  for (const a of archiConcetti(grafo)) {
+    if (gia.has(`${a.source}>${a.target}`)) continue;
+    gia.add(`${a.source}>${a.target}`);
+    grafo.links.push(a);
+    aggiunti++;
   }
   writeFileSync(file, JSON.stringify(grafo));
   console.log(`graphify-link-docs: ${aggiunti} archi da ${conArchi}/${elenco.length} documenti`);

@@ -62,6 +62,10 @@ stanno in quel file. Sono archi EXTRACTED: il percorso è scritto nel testo.
 bun scripts/graphify-link-docs.ts   # idempotente, gratis
 ```
 
+Collega anche i documenti alle RFC che nominano (`RFC 8188/8291`) e unisce i concetti dei
+documenti che hanno lo stesso nome esatto di un simbolo del codice (`mediePagelle()`): questi
+ultimi sono archi `describes` INFERRED, perché si basano solo sul nome.
+
 Va rilanciato dopo ogni `/graphify . --update`, perché rielaborare un documento ne cancella
 gli archi. Sopravvive invece a `graphify update .`. Un documento che cita un file solo per nome
 (`rosa.ts`, senza `src/lib/`) non viene collegato: scrivi il percorso completo.
