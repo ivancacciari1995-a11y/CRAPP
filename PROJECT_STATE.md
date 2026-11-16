@@ -9,7 +9,8 @@ schema in [docs/DATABASE.md](docs/DATABASE.md), le procedure in
 
 ## Stato generale
 
-- **Versione:** 1.6.2 su `main`: layout corretto sugli schermi stretti (360-402 px) e
+- **Versione:** 1.6.3: soglie di badge e obiettivi ricalibrate su ~71 eventi a stagione,
+  senza migration. La 1.6.2 su `main`: layout corretto sugli schermi stretti (360-402 px) e
   Ace, Attacchi, Muri e Punti dai + dello scout in Squadra e Profilo, senza migration. La 1.6.1
   (tag `v1.6.1`): risultati dello scout leggibili nella pagina partita, classifica cacche
   completa e pagina partita a sezioni a scomparsa. La 1.6.0

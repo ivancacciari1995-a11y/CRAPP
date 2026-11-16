@@ -13,6 +13,10 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.6.3] - 2026-11-16
+
+Soglie di badge e obiettivi ricalibrate e calcoli spostati in `src/lib/`. Nessuna migration.
+
 ### Modificato
 
 - Badge: nuove soglie calibrate su circa 71 eventi a stagione. «Presenza fissa» passa a
