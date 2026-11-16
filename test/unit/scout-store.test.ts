@@ -6,6 +6,7 @@ import {
   contaPiuSenzaRicezione,
   haPunteggio,
   parzialiFinali,
+  percentualePiu,
   sintesiValutazioni,
   contaValutazioni,
   fondamentali,
@@ -269,4 +270,8 @@ assert.deepEqual(
 assert.deepEqual(set2.squadra.muro, { piu: 1, meno: 0 });
 assert.deepEqual(set2.squadra.battuta, { piu: 0, meno: 0 });
 assert.equal(sintesiValutazioni([]).perGiocatore.length, 0);
+assert.equal(percentualePiu(0, 0), null);
+assert.equal(percentualePiu(3, 1), 75);
+assert.equal(percentualePiu(0, 4), 0);
+
 console.log("scout-store sintesi: ok");

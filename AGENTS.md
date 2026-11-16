@@ -18,7 +18,11 @@ usabile dallo smartphone anche da chi non è pratico.
    [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) vanno lette prima di toccare codice o schema.
 2. Verifica lo stato attuale del repository: commit recenti, modifiche non committate, lavoro
    introdotto da altri collaboratori o da altri assistenti.
-3. Non presumere che il progetto sia come l'hai lasciato nell'ultima sessione: la fonte di
+3. Se esiste `graphify-out/` (locale, non versionato), usalo per orientarti prima di cercare a
+   tappeto: `graphify query "..."` e `GRAPH_REPORT.md`. Non è fonte di verità e può essere
+   vecchio: controlla il commit riportato nel report e, se serve, rigeneralo
+   (vedi [docs/GRAFO.md](docs/GRAFO.md)).
+4. Non presumere che il progetto sia come l'hai lasciato nell'ultima sessione: la fonte di
    verità è il repository, non la cronologia della conversazione.
 
 Non implementare funzionalità non documentate: prima si documenta

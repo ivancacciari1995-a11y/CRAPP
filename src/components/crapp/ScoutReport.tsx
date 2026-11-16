@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BarChart3, Download, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, percentuale } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import type { Giocatore } from "@/lib/crapp-data";
 import { csvScoutMatch, scaricaCsv } from "@/lib/scout-export";
@@ -10,10 +10,8 @@ import {
   totaliPerGiocatore,
   totaliSquadra,
   type ScoutMatch,
+  percentualePiu,
 } from "@/lib/scout-store";
-
-const pct = (piu: number, meno: number) =>
-  piu + meno === 0 ? null : Math.round((piu / (piu + meno)) * 100);
 
 /** Lettura dello scout di una partita: squadra per fondamentale, set per set, dettaglio per giocatore. */
 export function ScoutReport({
@@ -149,7 +147,7 @@ export function ScoutReport({
           <div className="mt-3 grid grid-cols-2 gap-2">
             {fondamentali.map((f) => {
               const { piu, meno } = squadra[f.id];
-              const p = pct(piu, meno);
+              const p = percentualePiu(piu, meno);
               return (
                 <div key={f.id} className="rounded-2xl bg-secondary p-3">
                   <div className="flex items-baseline justify-between">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BellRing, HelpCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, percentuale } from "@/lib/utils";
 import { Card } from "@/components/crapp/ui-bits";
 import { Avatar } from "@/components/crapp/Avatar";
 import { Barra } from "@/components/motion/Barra";
@@ -44,7 +44,7 @@ export function RosaPresenze({
 
   const mancanti = rosa.filter((g) => !risposte[g.id]);
   const risposteN = rosa.length - mancanti.length;
-  const perc = rosa.length ? Math.round((risposteN / rosa.length) * 100) : 0;
+  const perc = percentuale(risposteN, rosa.length);
   const daSollecitare = mancanti.length + rosa.filter((g) => risposte[g.id] === "forse").length;
   const ordineVisibile = tipo === "evento" ? ordine.filter((s) => s !== "infortunato") : ordine;
 

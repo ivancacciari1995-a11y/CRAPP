@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn, percentuale } from "@/lib/utils";
 import type { Giocatore } from "@/lib/crapp-data";
 import {
   collezioneBadge,
@@ -134,7 +134,7 @@ export function CollezioneBadge({
   const vicino = prossimoTraguardo(g);
   const social = badgeSocialVinti(votiSocial, g.id);
   const socialVinti = categorieSocial.filter((cat) => social[cat.id]);
-  const pct = Math.round((c.ottenuti / c.totali) * 100);
+  const pct = percentuale(c.ottenuti, c.totali);
 
   return (
     <div className="space-y-3">

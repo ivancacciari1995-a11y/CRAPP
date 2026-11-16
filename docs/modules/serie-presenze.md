@@ -243,10 +243,10 @@ fastidio, va distinto lì — il calcolo non sa differenziare "mai partito" da "
 
 Toccare la regola di calcolo muove anche questi, che non hanno logica propria:
 
-| Dove                            | Cosa                                                           | Soglie                      |
-| ------------------------------- | -------------------------------------------------------------- | --------------------------- |
-| `badges.ts` `serie-allenamenti` | "Sempre in palestra", su `serieAllenamenti`                    | bronzo 3, argento 6, oro 10 |
-| `obiettivi.ts` `o11`            | "Continuità di squadra": giocatori con `serieAllenamenti >= 3` | target 12                   |
+| Dove                            | Cosa                                                           | Soglie                       |
+| ------------------------------- | -------------------------------------------------------------- | ---------------------------- |
+| `badges.ts` `serie-allenamenti` | "Sempre in palestra", su `serieAllenamenti`                    | bronzo 5, argento 10, oro 20 |
+| `obiettivi.ts` `o11`            | "Continuità di squadra": giocatori con `serieAllenamenti >= 3` | target 12                    |
 
 ---
 

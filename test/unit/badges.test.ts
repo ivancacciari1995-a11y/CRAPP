@@ -13,6 +13,7 @@ import {
   mancanoPer,
   microcopyBadge,
   prossimoTraguardo,
+  quantiAlGrado,
   segretiNascosti,
   statoBadge,
   tuttiBadge,
@@ -110,39 +111,39 @@ assert.equal(
   "valore azzerato dal gate: progresso azzerato anch'esso, non ingannevole",
 );
 
-// --- palloni: soglie 3 / 6 / 10 -----------------------------------------------
+// --- palloni: soglie 3 / 5 / 8 -----------------------------------------------
 const palloniDef = badgeDefs.find((b) => b.id === "palloni")!;
 assert.equal(gradoRaggiunto(palloniDef, 2), null, "sotto la prima soglia nessun grado");
 assert.equal(gradoRaggiunto(palloniDef, 3), "bronzo", "la soglia è inclusiva");
-assert.equal(gradoRaggiunto(palloniDef, 5), "bronzo");
-assert.equal(gradoRaggiunto(palloniDef, 6), "argento");
-assert.equal(gradoRaggiunto(palloniDef, 9), "argento");
-assert.equal(gradoRaggiunto(palloniDef, 10), "oro");
+assert.equal(gradoRaggiunto(palloniDef, 4), "bronzo");
+assert.equal(gradoRaggiunto(palloniDef, 5), "argento");
+assert.equal(gradoRaggiunto(palloniDef, 7), "argento");
+assert.equal(gradoRaggiunto(palloniDef, 8), "oro");
 assert.equal(gradoRaggiunto(palloniDef, 99), "oro", "oltre l'oro resta oro");
 assert.equal(
-  statoBadge(palloniDef, g({ palloni: 5 })).progresso,
-  83,
-  "5 turni su 6 per l'argento: 83%",
+  statoBadge(palloniDef, g({ palloni: 4 })).progresso,
+  80,
+  "4 turni su 5 per l'argento: 80%",
 );
 
-// --- presenze: soglie 5 / 15 / 30 ---------------------------------------------
+// --- presenze: soglie 15 / 35 / 55 ---------------------------------------------
 const presenzeDef = badgeDefs.find((b) => b.id === "presenze")!;
-assert.equal(gradoRaggiunto(presenzeDef, 4), null, "sotto la prima soglia nessun grado");
-assert.equal(gradoRaggiunto(presenzeDef, 5), "bronzo", "la soglia è inclusiva");
-assert.equal(gradoRaggiunto(presenzeDef, 14), "bronzo");
-assert.equal(gradoRaggiunto(presenzeDef, 15), "argento");
-assert.equal(gradoRaggiunto(presenzeDef, 29), "argento");
-assert.equal(gradoRaggiunto(presenzeDef, 30), "oro");
+assert.equal(gradoRaggiunto(presenzeDef, 14), null, "sotto la prima soglia nessun grado");
+assert.equal(gradoRaggiunto(presenzeDef, 15), "bronzo", "la soglia è inclusiva");
+assert.equal(gradoRaggiunto(presenzeDef, 34), "bronzo");
+assert.equal(gradoRaggiunto(presenzeDef, 35), "argento");
+assert.equal(gradoRaggiunto(presenzeDef, 54), "argento");
+assert.equal(gradoRaggiunto(presenzeDef, 55), "oro");
 assert.equal(gradoRaggiunto(presenzeDef, 999), "oro", "oltre l'oro resta oro");
 
-// --- serie-allenamenti: soglie 3 / 6 / 10 -------------------------------------
+// --- serie-allenamenti: soglie 5 / 10 / 20 -------------------------------------
 const serieAllenamentiDef = badgeDefs.find((b) => b.id === "serie-allenamenti")!;
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 2), null, "sotto la prima soglia nessun grado");
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 3), "bronzo", "la soglia è inclusiva");
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 5), "bronzo");
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 6), "argento");
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 9), "argento");
-assert.equal(gradoRaggiunto(serieAllenamentiDef, 10), "oro");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 4), null, "sotto la prima soglia nessun grado");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 5), "bronzo", "la soglia è inclusiva");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 9), "bronzo");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 10), "argento");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 19), "argento");
+assert.equal(gradoRaggiunto(serieAllenamentiDef, 20), "oro");
 assert.equal(gradoRaggiunto(serieAllenamentiDef, 50), "oro", "oltre l'oro resta oro");
 
 // --- badgeGiocatore ----------------------------------------------------------
@@ -199,7 +200,7 @@ assert.equal(vuota.inProgresso.length, badgeDefs.length);
 assert.equal(vuota.nascosti, badgeSegreti.length);
 
 const piena = collezioneBadge(
-  g({ mvp: 5, mediaVoto: 8, votiPagella: 5, presenze: 30, infortuni: 3 }),
+  g({ mvp: 5, mediaVoto: 8, votiPagella: 5, presenze: 55, infortuni: 3 }),
 );
 assert.equal(
   piena.ottenuti,
@@ -218,9 +219,9 @@ assert.equal(
       mvp: 5,
       mediaVoto: 10,
       votiPagella: 5,
-      palloni: 10,
-      presenze: 30,
-      serieAllenamenti: 10,
+      palloni: 8,
+      presenze: 55,
+      serieAllenamenti: 20,
     }),
   ),
   null,
@@ -246,5 +247,18 @@ assert.equal(
   tuttiBadge.length,
   "gli id dei badge sono unici",
 );
+
+// --- quantiAlGrado: chi ha raggiunto almeno quel grado -----------------------------
+{
+  const def = badgeDefs[0]!;
+  const rosa = [g(), g(), g()];
+  assert.equal(quantiAlGrado(def, [], "bronzo"), 0);
+  const n = (grado: (typeof gradiOrdine)[number]) => quantiAlGrado(def, rosa, grado);
+  assert.ok(
+    n("bronzo") >= n("argento") && n("argento") >= n("oro"),
+    "i gradi alti non superano i bassi",
+  );
+  assert.equal(n("bronzo"), rosa.filter((x) => gradoRaggiunto(def, def.valore(x)) !== null).length);
+}
 
 console.log("badges: ok");

@@ -90,9 +90,9 @@ soglia raggiunta o superata (soglie inclusive), oltre l'oro resta oro.
 | ------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
 | `mvp`               | MVP                | partite vinte nettamente al voto MVP dei compagni (`g.mvp`, vedi pipeline sopra)                                                     | 1 / 3 / 5       |
 | `pagella`           | Pagellone          | media dei voti pagella ricevuti dai compagni a fine partita (`g.mediaVoto`), solo se ne ha ricevuti almeno `VOTI_MINIMI_PAGELLA` (5) | 6.5 / 7.5 / 8.5 |
-| `palloni`           | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano               | 3 / 6 / 10      |
-| `presenze`          | Presenza fissa     | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`)                     | 5 / 15 / 30     |
-| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì                            | 3 / 6 / 10      |
+| `palloni`           | Sherpa dei palloni | quante volte hai confermato il turno palloni (`g.palloni`) — le proposte automatiche non ancora confermate non contano               | 3 / 5 / 8       |
+| `presenze`          | Presenza fissa     | totale presenze (presente o ritardo) a eventi/partite di sempre, non solo della stagione in corso (`g.presenze`)                     | 15 / 35 / 55    |
+| `serie-allenamenti` | Sempre in palestra | allenamenti consecutivi presenti (`g.serieAllenamenti`); un infortunio non spezza la serie, un'assenza sì                            | 5 / 10 / 20     |
 
 ### Badge segreti (booleani, nascosti finché non sbloccati)
 

@@ -164,6 +164,14 @@ export function useIo(): Giocatore | null {
   return rosa.find((g) => g.id === id) ?? null;
 }
 
+/**
+ * Giocatore corrente con statistiche calcolate da dati reali (presenze, MVP, badge, …).
+ * Sta qui e non in `user-store` per non chiudere il ciclo `rosa` ↔ `user-store`.
+ */
+export function useGiocatoreCorrente(): Giocatore | null {
+  return useIo();
+}
+
 /** Obiettivi collaborativi calcolati sui dati reali già in cache. */
 export function useObiettivi() {
   const rosa = useRosa();

@@ -13,6 +13,22 @@ versioni `0.y.z` erano pre-release.
 
 ## [Non rilasciato]
 
+## [1.6.3] - 2026-11-16
+
+Soglie di badge e obiettivi ricalibrate e calcoli spostati in `src/lib/`. Nessuna migration.
+
+### Modificato
+
+- Badge: nuove soglie calibrate su circa 71 eventi a stagione. «Presenza fissa» passa a
+  15/35/55 presenze, «Sempre in palestra» a 5/10/20 allenamenti di fila, «Sherpa dei palloni»
+  a 3/5/8 turni. I badge si calcolano a runtime: chi ha già un grado può scendere.
+- Obiettivi: «pagelle compilate» passa da 200 a 1000 voti (con 90-150 voti a partita, 200 si
+  raggiungevano dopo 2-3 partite).
+- Nessun cambio di logica: i calcoli di badge e obiettivi sono stati spostati in `src/lib/`
+  (`percentuale`, `quantiAlGrado`, `mediaPresenzeRosa`, …) e le soglie dei badge segreti sono
+  costanti usate anche nei testi. Cambia solo il testo della celebrazione di «Aspettate,
+  arrivo!», che non ripete più la descrizione.
+
 ## [1.6.2] - 2026-11-11
 
 Layout corretto sugli schermi stretti e statistiche tecniche dai + dello scout in Squadra e

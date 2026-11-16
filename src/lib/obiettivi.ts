@@ -124,6 +124,37 @@ function percentualeRisposte(ctx: ContestoObiettivi, rosaSize: number) {
   return Math.round((risposte / posti) * 100);
 }
 
+/** Percentuale di presenze (e di risposte) da raggiungere negli obiettivi o1, o2 e o7. */
+const TARGET_PRESENZE = 90;
+
+/** Obiettivi a vittorie: stessa spiegazione, cambiano solo target e testi. */
+function obiettivoVittorie(
+  vittorie: number,
+  o: Pick<ObiettivoSquadra, "id" | "titolo" | "descrizione" | "emoji" | "impatto" | "target"> & {
+    completaCon: string;
+  },
+): ObiettivoSquadra {
+  const { completaCon, ...base } = o;
+  return {
+    ...base,
+    valore: Math.min(vittorie, o.target),
+    unita: "vittorie",
+    dettaglio: {
+      comeSiCalcola: `Si contano le partite di campionato vinte dalla squadra: vince chi si aggiudica più set. L'obiettivo si completa con ${completaCon}.`,
+      conta: ["Ogni partita ufficiale di campionato in cui abbiamo vinto più set degli avversari."],
+      nonConta: [
+        "Le sconfitte e le partite non ancora giocate.",
+        "Amichevoli e allenamenti.",
+        "Le vittorie oltre il target: il contatore si ferma al traguardo.",
+      ],
+      periodo: "Tutta la stagione di campionato. Non si azzera.",
+      fonte:
+        "Risultati ufficiali del portale CSI Bologna. Si aggiorna quando il portale pubblica il risultato, quindi può esserci un ritardo.",
+      esempio: "Un 3-1 è una vittoria. Un 2-3 non lo è, anche se abbiamo vinto due set.",
+    },
+  };
+}
+
 /** Obiettivi collaborativi: si muovono con il contributo di tutta la rosa. */
 export function obiettiviSquadra(
   rosa: Giocatore[] = giocatori,
@@ -136,10 +167,10 @@ export function obiettiviSquadra(
   return [
     {
       id: "o1",
-      titolo: `90% di presenze ${aMese(oggi)}`,
+      titolo: `${TARGET_PRESENZE}% di presenze ${aMese(oggi)}`,
       descrizione: "Media presenze su partite e allenamenti del mese",
       valore: percentualePresenze(ctx, rosa, (e) => e.data.startsWith(mese)),
-      target: 90,
+      target: TARGET_PRESENZE,
       unita: "%",
       scadenza: fineMese(oggi),
       emoji: "📣",
@@ -173,7 +204,7 @@ export function obiettiviSquadra(
       titolo: "Tutti rispondono alle convocazioni",
       descrizione: "Percentuale di risposte date sugli eventi in programma",
       valore: percentualeRisposte(ctx, rosa.length),
-      target: 90,
+      target: TARGET_PRESENZE,
       unita: "%",
       scadenza: fineMese(oggi),
       emoji: "⚡",
@@ -201,7 +232,7 @@ export function obiettiviSquadra(
       titolo: "Presenze collettive",
       descrizione: "Presenze di tutta la rosa su allenamenti e partite definiti in stagione",
       valore: percentualePresenze(ctx, rosa),
-      target: 90,
+      target: TARGET_PRESENZE,
       unita: "%",
       emoji: "🤝",
       impatto: "Ogni allenamento a cui vieni vale +1 per il gruppo.",
@@ -253,10 +284,10 @@ export function obiettiviSquadra(
     },
     {
       id: "o13",
-      titolo: "200 pagelle compilate",
+      titolo: "1000 pagelle compilate",
       descrizione: "Quanti voti la squadra ha dato nel corso della stagione",
       valore: ctx.pagelle.length,
-      target: 200,
+      target: 1000,
       unita: "voti",
       emoji: "🗳️",
       impatto: "Vota i compagni a fine partita: bastano due minuti.",
@@ -296,84 +327,33 @@ export function obiettiviSquadra(
           "Il target è 12 perché è il numero minimo per un allenamento 6 contro 6. Con 9 giocatori in serie ne mancano 3.",
       },
     },
-    {
+    obiettivoVittorie(vittorie, {
       id: "o3",
+      target: 1,
       titolo: "Prima vittoria del campionato",
       descrizione: "Sbloccare la stagione con i primi 3 punti",
-      valore: Math.min(vittorie, 1),
-      target: 1,
-      unita: "vittorie",
       emoji: "🎉",
       impatto: "Una prestazione di gruppo e il primo passo è fatto.",
-      dettaglio: {
-        comeSiCalcola:
-          "Si contano le partite di campionato vinte dalla squadra: vince chi si aggiudica più set. L'obiettivo si completa con la prima vittoria.",
-        conta: [
-          "Ogni partita ufficiale di campionato in cui abbiamo vinto più set degli avversari.",
-        ],
-        nonConta: [
-          "Le sconfitte e le partite non ancora giocate.",
-          "Amichevoli e allenamenti.",
-          "Le vittorie oltre il target: il contatore si ferma al traguardo.",
-        ],
-        periodo: "Tutta la stagione di campionato. Non si azzera.",
-        fonte:
-          "Risultati ufficiali del portale CSI Bologna. Si aggiorna quando il portale pubblica il risultato, quindi può esserci un ritardo.",
-        esempio: "Un 3-1 è una vittoria. Un 2-3 non lo è, anche se abbiamo vinto due set.",
-      },
-    },
-    {
+      completaCon: "la prima vittoria",
+    }),
+    obiettivoVittorie(vittorie, {
       id: "o4",
+      target: 5,
       titolo: "5 vittorie in campionato",
       descrizione: "Metà strada verso la zona playoff",
-      valore: Math.min(vittorie, 5),
-      target: 5,
-      unita: "vittorie",
       emoji: "🔥",
       impatto: "Ogni vittoria ci avvicina ai playoff.",
-      dettaglio: {
-        comeSiCalcola:
-          "Si contano le partite di campionato vinte dalla squadra: vince chi si aggiudica più set. L'obiettivo si completa con 5 vittorie.",
-        conta: [
-          "Ogni partita ufficiale di campionato in cui abbiamo vinto più set degli avversari.",
-        ],
-        nonConta: [
-          "Le sconfitte e le partite non ancora giocate.",
-          "Amichevoli e allenamenti.",
-          "Le vittorie oltre il target: il contatore si ferma al traguardo.",
-        ],
-        periodo: "Tutta la stagione di campionato. Non si azzera.",
-        fonte:
-          "Risultati ufficiali del portale CSI Bologna. Si aggiorna quando il portale pubblica il risultato, quindi può esserci un ritardo.",
-        esempio: "Un 3-1 è una vittoria. Un 2-3 non lo è, anche se abbiamo vinto due set.",
-      },
-    },
-    {
+      completaCon: "5 vittorie",
+    }),
+    obiettivoVittorie(vittorie, {
       id: "o5",
+      target: 10,
       titolo: "10 vittorie in campionato",
       descrizione: "Obiettivo stagionale per il podio",
-      valore: Math.min(vittorie, 10),
-      target: 10,
-      unita: "vittorie",
       emoji: "🏆",
       impatto: "L'obiettivo grande: serve tutta la stagione insieme.",
-      dettaglio: {
-        comeSiCalcola:
-          "Si contano le partite di campionato vinte dalla squadra: vince chi si aggiudica più set. L'obiettivo si completa con 10 vittorie.",
-        conta: [
-          "Ogni partita ufficiale di campionato in cui abbiamo vinto più set degli avversari.",
-        ],
-        nonConta: [
-          "Le sconfitte e le partite non ancora giocate.",
-          "Amichevoli e allenamenti.",
-          "Le vittorie oltre il target: il contatore si ferma al traguardo.",
-        ],
-        periodo: "Tutta la stagione di campionato. Non si azzera.",
-        fonte:
-          "Risultati ufficiali del portale CSI Bologna. Si aggiorna quando il portale pubblica il risultato, quindi può esserci un ritardo.",
-        esempio: "Un 3-1 è una vittoria. Un 2-3 non lo è, anche se abbiamo vinto due set.",
-      },
-    },
+      completaCon: "10 vittorie",
+    }),
     {
       id: "o6",
       titolo: "1 evento di squadra al mese",
@@ -413,6 +393,25 @@ export function obiettiviSquadra(
 
 export function progressoObiettivo(o: ObiettivoSquadra) {
   return Math.min(100, Math.round((o.valore / o.target) * 100));
+}
+
+export function obiettiviCompletati(obiettivi: ObiettivoSquadra[]) {
+  return obiettivi.filter((o) => progressoObiettivo(o) >= 100).length;
+}
+
+export function mediaProgressoObiettivi(obiettivi: ObiettivoSquadra[]) {
+  return obiettivi.length
+    ? Math.round(obiettivi.reduce((s, o) => s + progressoObiettivo(o), 0) / obiettivi.length)
+    : 0;
+}
+
+/** Media, in percentuale, della quota di eventi a cui ogni giocatore della rosa ha partecipato. */
+export function mediaPresenzeRosa(rosa: Giocatore[]) {
+  return rosa.length
+    ? Math.round(
+        (rosa.reduce((s, g) => s + g.presenze / (g.totaliEventi || 1), 0) / rosa.length) * 100,
+      )
+    : 0;
 }
 
 export function obiettiviOrdinati(rosa?: Giocatore[], ctx?: ContestoObiettivi, oggi?: Date) {

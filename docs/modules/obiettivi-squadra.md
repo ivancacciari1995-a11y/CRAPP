@@ -44,7 +44,7 @@ corrente dinamico (vedi sotto).
 | `o2`  | Tutti rispondono alle convocazioni | risposte totali / eventi possibili (esclusi i compleanni)                                                                                                 | 90%                   | `risposte_presenze`                |
 | `o7`  | Presenze collettive                | % di presenze (presente/ritardo) su tutti gli allenamenti e le partite definiti, passati e futuri; posti = convocati dell'evento (tutta la rosa se vuoto) | 90                    | `eventi_app` + `risposte_presenze` |
 | `o12` | Media pagelle da 7.5               | media di tutti i voti, arrotondata a una cifra decimale                                                                                                   | 7.5                   | `pagelle_voti`                     |
-| `o13` | 200 pagelle compilate              | conteggio voti                                                                                                                                            | 200                   | `pagelle_voti`                     |
+| `o13` | 1000 pagelle compilate             | conteggio voti                                                                                                                                            | 1000                  | `pagelle_voti`                     |
 | `o11` | Continuità di squadra              | giocatori con ≥3 allenamenti consecutivi                                                                                                                  | 12 (min. per un 6vs6) | `serieAllenamenti`                 |
 | `o3`  | Prima vittoria del campionato      | `min(vittorie, 1)`                                                                                                                                        | 1                     | JSON partite CSI (vedi sotto)      |
 | `o4`  | 5 vittorie in campionato           | `min(vittorie, 5)`                                                                                                                                        | 5                     | JSON partite CSI                   |
@@ -58,7 +58,7 @@ badge) con stato attuale, come si calcola, cosa conta e cosa no, quando vale, da
 dati e un esempio con numeri. Per le due percentuali di presenze (`o1`, `o7`) la card distingue «Presenza persa» (assente, forse, infortunato, nessuna risposta: il posto resta vuoto) da «Non entra nel calcolo» (cene, eventi di squadra, compleanni). I testi stanno nel campo `dettaglio` di ogni obiettivo in
 `obiettivi.ts`: chi cambia il calcolo o il target di un obiettivo aggiorna anche il suo
 `dettaglio`, altrimenti la card mente. Un obiettivo che supera il 90% genera anche una notifica
-smart (`notifiche-smart.ts`). I target fissi (200 pagelle, 7.5 di media, 1/5/10
+smart (`notifiche-smart.ts`). I target fissi (1000 pagelle, 7.5 di media, 1/5/10
 vittorie) sono scelte editoriali da rivedere a mano a ogni stagione — nessuna configurazione o
 UI per farlo, si cambia il numero in `obiettivi.ts`. Fa eccezione "Continuità di squadra"
 (vedi sotto): il suo target ha un significato specifico, non va scalato come gli altri.

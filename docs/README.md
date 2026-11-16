@@ -17,6 +17,7 @@ ancora e va **prima documentata** (vedi [DD-002](decisions/DD-002.md)).
 | [GLOSSARIO.md](GLOSSARIO.md)               | Cosa significano i termini del dominio (slot, rosa, convocati, CSI, pagelle…)                                       |
 | [OPERATIONS.md](OPERATIONS.md)             | Ambienti, variabili d'ambiente, migration, rilascio e allestimento di un ambiente nuovo (login Google, primo admin) |
 | [WORKER_EMAIL.md](WORKER_EMAIL.md)         | Come si installa, si gestisce e si diagnostica il worker che invia le notifiche per email                           |
+| [GRAFO.md](GRAFO.md)                       | Come orientarsi nel codice con il grafo graphify: uso, rigenerazione, limiti                                        |
 | [CHANGELOG.md](CHANGELOG.md)               | Cosa è cambiato e quando                                                                                            |
 | [archive/](archive/README.md)              | Materiale storico non più in uso: non è fonte di verità                                                             |
 | [modules/](modules/)                       | Specifica funzionale di ogni modulo, una per file                                                                   |

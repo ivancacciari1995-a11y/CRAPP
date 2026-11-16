@@ -62,6 +62,16 @@ export type BadgeDef = {
  */
 export const VOTI_MINIMI_PAGELLA = 5;
 
+/** Soglie dei badge segreti: usate sia per sbloccarli sia nei loro testi. */
+const SEGRETO_TIEBREAK_MVP = 2;
+const SEGRETO_TIEBREAK_MEDIA = 8;
+const SEGRETO_INFORTUNI = 3;
+const SEGRETO_RITARDI = 5;
+const SEGRETO_CACCHE_PARTITE = 3;
+
+/** I badge segreti sono tutto-o-niente: una sola soglia, uguale per i tre gradi. */
+const unaSoglia: Record<Grado, number> = { bronzo: 1, argento: 1, oro: 1 };
+
 export const badgeDefs: BadgeDef[] = [
   {
     id: "mvp",
@@ -90,7 +100,7 @@ export const badgeDefs: BadgeDef[] = [
       "Quante volte ti sei caricato la sacca dei palloni: lavoro oscuro, badge luminoso.",
     unita: "turni palloni",
     icon: CircleDot,
-    soglie: { bronzo: 3, argento: 6, oro: 10 },
+    soglie: { bronzo: 3, argento: 5, oro: 8 },
     valore: (g) => g.palloni,
   },
   {
@@ -99,7 +109,7 @@ export const badgeDefs: BadgeDef[] = [
     descrizione: "Per chi è sempre lì, partita dopo partita, senza tirarsi indietro.",
     unita: "presenze",
     icon: Repeat,
-    soglie: { bronzo: 5, argento: 15, oro: 30 },
+    soglie: { bronzo: 15, argento: 35, oro: 55 },
     valore: (g) => g.presenze,
   },
   {
@@ -109,7 +119,7 @@ export const badgeDefs: BadgeDef[] = [
       "Allenamenti consecutivi a cui sei stato presente: la costanza paga più del talento.",
     unita: "allenamenti di fila",
     icon: Rocket,
-    soglie: { bronzo: 3, argento: 6, oro: 10 },
+    soglie: { bronzo: 5, argento: 10, oro: 20 },
     valore: (g) => g.serieAllenamenti,
   },
 ];
@@ -119,57 +129,57 @@ export const badgeSegreti: BadgeDef[] = [
   {
     id: "s-tiebreak",
     nome: "Uomo tie-break",
-    descrizione:
-      "Sbloccato da chi ha almeno 2 MVP e una media voto alta: nei momenti caldi ci sei sempre.",
+    descrizione: `Sbloccato da chi ha almeno ${SEGRETO_TIEBREAK_MVP} MVP e una media voto alta: nei momenti caldi ci sei sempre.`,
     unita: "MVP con media alta",
     icon: Ghost,
     segreto: true,
-    soglie: { bronzo: 1, argento: 1, oro: 1 },
+    soglie: unaSoglia,
     // Stessa soglia minima di voti del badge Pagellone: sotto VOTI_MINIMI_PAGELLA la media
     // non è statisticamente significativa, non deve poter sbloccare nemmeno questo segreto.
-    valore: (g) => (g.mvp >= 2 && g.votiPagella >= VOTI_MINIMI_PAGELLA && g.mediaVoto >= 8 ? 1 : 0),
+    valore: (g) =>
+      g.mvp >= SEGRETO_TIEBREAK_MVP &&
+      g.votiPagella >= VOTI_MINIMI_PAGELLA &&
+      g.mediaVoto >= SEGRETO_TIEBREAK_MEDIA
+        ? 1
+        : 0,
     celebrazione: "Nei momenti caldi ci sei sempre.",
   },
   {
     id: "s-infermeria",
     nome: "Cliente VIP dell'Infermeria",
-    descrizione:
-      "Hai saltato almeno 3 allenamenti o partite per infortunio. L'infermeria ormai ti aspetta con il caffè pronto ☕😂",
+    descrizione: `Hai saltato almeno ${SEGRETO_INFORTUNI} allenamenti o partite per infortunio. L'infermeria ormai ti aspetta con il caffè pronto ☕😂`,
     unita: "eventi da infortunato",
     icon: Stethoscope,
     segreto: true,
     emoji: "🩺",
-    soglie: { bronzo: 1, argento: 1, oro: 1 },
-    valore: (g) => (g.infortuni >= 3 ? 1 : 0),
+    soglie: unaSoglia,
+    valore: (g) => (g.infortuni >= SEGRETO_INFORTUNI ? 1 : 0),
     celebrazione: "L'infermeria ormai ti aspetta con il caffè pronto ☕😂",
     notificaPush: "Speriamo che sia l'ultimo! 😅",
   },
   {
     id: "s-ritardi",
     nome: "Aspettate, arrivo!",
-    descrizione:
-      "Hai collezionato almeno 5 ritardi. Il tuo messaggio preferito è: 'Aspettate, arrivo!' 😅",
+    descrizione: `Hai collezionato almeno ${SEGRETO_RITARDI} ritardi. Il tuo messaggio preferito è: 'Aspettate, arrivo!' 😅`,
     unita: "eventi in ritardo",
     icon: AlarmClock,
     segreto: true,
     emoji: "⏰",
-    soglie: { bronzo: 1, argento: 1, oro: 1 },
-    valore: (g) => (g.ritardi >= 5 ? 1 : 0),
-    celebrazione:
-      "Hai collezionato almeno 5 ritardi. Il tuo messaggio preferito è: 'Aspettate, arrivo!' 😅",
+    soglie: unaSoglia,
+    valore: (g) => (g.ritardi >= SEGRETO_RITARDI ? 1 : 0),
+    celebrazione: "Il tuo messaggio preferito è: 'Aspettate, arrivo!' 😅",
     notificaPush: "Forse è il momento di puntare la sveglia 10 minuti prima! 😄",
   },
   {
     id: "s-cacche",
     nome: "Trono di ferro",
-    descrizione:
-      "Almeno 3 partite affrontate con 3 o più cacche pre-gara (campionato o amichevole, qui non si fanno sconti). Il bagno del PalaCRAP porta il tuo nome 🚽😂",
+    descrizione: `Almeno ${SEGRETO_CACCHE_PARTITE} partite affrontate con 3 o più cacche pre-gara (campionato o amichevole, qui non si fanno sconti). Il bagno del PalaCRAP porta il tuo nome 🚽😂`,
     unita: "partite da record",
     icon: Toilet,
     segreto: true,
     emoji: "🚽",
-    soglie: { bronzo: 1, argento: 1, oro: 1 },
-    valore: (g) => (g.cacche >= 3 ? 1 : 0),
+    soglie: unaSoglia,
+    valore: (g) => (g.cacche >= SEGRETO_CACCHE_PARTITE ? 1 : 0),
     celebrazione: "Il bagno del PalaCRAP porta ufficialmente il tuo nome 🚽😂",
     notificaPush: "Scarico completo: badge segreto sbloccato! 😄",
   },
@@ -192,6 +202,14 @@ export function gradoRaggiunto(def: BadgeDef, valore: number): Grado | null {
   let grado: Grado | null = null;
   for (const g of gradiOrdine) if (valore >= def.soglie[g]) grado = g;
   return grado;
+}
+
+/** Quanti giocatori della rosa hanno raggiunto almeno `grado` per il badge `def`. */
+export function quantiAlGrado(def: BadgeDef, rosa: Giocatore[], grado: Grado): number {
+  return rosa.filter((g) => {
+    const raggiunto = gradoRaggiunto(def, def.valore(g));
+    return raggiunto ? gradiOrdine.indexOf(raggiunto) >= gradiOrdine.indexOf(grado) : false;
+  }).length;
 }
 
 export function statoBadge(def: BadgeDef, g: Giocatore): BadgeStato {

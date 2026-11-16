@@ -122,54 +122,63 @@ if (!locale) {
     await prova(
       "il badge presenze passa da bronzo a oro con presenze vere lette dal database",
       async () => {
-        // 30 allenamenti passati. "pp1" risponde a tutti e 30 (i primi 5 "presente", un
-        // "ritardo" nel mezzo per verificare che conti come presenza, il resto "presente"),
-        // così una sola scrittura basta a verificare le tre soglie 5/15/30.
-        for (let i = 1; i <= 30; i += 1) {
+        // Tanti allenamenti passati quanti ne chiede l'oro. "pp1" risponde a tutti (un "ritardo"
+        // nel mezzo per verificare che conti come presenza), così una sola scrittura basta a
+        // verificare le tre soglie.
+        const { bronzo, argento, oro } = presenzeDef.soglie;
+        for (let i = 1; i <= oro; i += 1) {
           await creaEvento(`${PREFISSO}-a${String(i).padStart(2, "0")}`, i);
         }
-        for (let i = 1; i <= 30; i += 1) {
+        for (let i = 1; i <= oro; i += 1) {
           const stato = i === 10 ? "ritardo" : "presente";
           await rispondi(`${PREFISSO}-a${String(i).padStart(2, "0")}`, "pp1", stato);
         }
-        // "pp2" risponde solo ai primi 5: resta a bronzo, non oltre.
-        for (let i = 1; i <= 5; i += 1) {
+        // "pp2" risponde solo ai primi `bronzo`: resta a bronzo, non oltre.
+        for (let i = 1; i <= bronzo; i += 1) {
           await rispondi(`${PREFISSO}-a${String(i).padStart(2, "0")}`, "pp2", "presente");
         }
         // "pp2" risponde anche "assente" a un evento: non deve contare.
-        await rispondi(`${PREFISSO}-a06`, "pp2", "assente");
+        await rispondi(`${PREFISSO}-a${String(bronzo + 1).padStart(2, "0")}`, "pp2", "assente");
 
         const eventi = await leggiEventi();
-        assert.equal(eventi.length, 30, "tutti gli eventi scritti si rileggono");
+        assert.equal(eventi.length, oro, "tutti gli eventi scritti si rileggono");
         const presenze = await leggiPresenze();
 
         const contoPp1 = contaPresenzeGiocatore("pp1", eventi, presenze, OGGI);
-        assert.equal(contoPp1, 30, "30 risposte, incluso un ritardo contato come presenza");
+        assert.equal(
+          contoPp1,
+          oro,
+          "una risposta per evento, incluso un ritardo contato come presenza",
+        );
         assert.equal(
           statoBadge(presenzeDef, giocatoreAzzerato(contoPp1)).grado,
           "oro",
-          "30 presenze: soglia oro raggiunta",
+          `${oro} presenze: soglia oro raggiunta`,
         );
 
         const contoPp2 = contaPresenzeGiocatore("pp2", eventi, presenze, OGGI);
-        assert.equal(contoPp2, 5, "5 presenti, l'assente su a06 non conta");
+        assert.equal(contoPp2, bronzo, "solo i presenti contano, l'assente su a-extra no");
         const badgePp2 = statoBadge(presenzeDef, giocatoreAzzerato(contoPp2));
-        assert.equal(badgePp2.grado, "bronzo", "5 presenze: soglia bronzo raggiunta, non oltre");
+        assert.equal(
+          badgePp2.grado,
+          "bronzo",
+          `${bronzo} presenze: soglia bronzo raggiunta, non oltre`,
+        );
         assert.equal(badgePp2.prossimo, "argento");
-        assert.equal(badgePp2.prossimaSoglia, 15);
+        assert.equal(badgePp2.prossimaSoglia, argento);
 
-        // Un pp2 a metà strada (15 presenze) sblocca l'argento.
-        for (let i = 7; i <= 16; i += 1) {
+        // Un pp2 a metà strada (`argento` presenze) sblocca l'argento.
+        for (let i = bronzo + 2; i <= argento + 1; i += 1) {
           await rispondi(`${PREFISSO}-a${String(i).padStart(2, "0")}`, "pp2", "presente");
         }
         const eventiDopo = await leggiEventi();
         const presenzeDopo = await leggiPresenze();
         const contoPp2Dopo = contaPresenzeGiocatore("pp2", eventiDopo, presenzeDopo, OGGI);
-        assert.equal(contoPp2Dopo, 15, "5 + 10 nuove presenze");
+        assert.equal(contoPp2Dopo, argento, "bronzo + nuove presenze fino all'argento");
         assert.equal(
           statoBadge(presenzeDef, giocatoreAzzerato(contoPp2Dopo)).grado,
           "argento",
-          "15 presenze: soglia argento raggiunta",
+          `${argento} presenze: soglia argento raggiunta`,
         );
       },
     );

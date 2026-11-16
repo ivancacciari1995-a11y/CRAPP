@@ -1,7 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Giocatore } from "./crapp-data";
 import { isAllenatore, useGiocatoriSquadra, type GiocatoreSquadra } from "./giocatori-squadra";
-import { useIo } from "./rosa";
 
 const KEY = "crapp-user-v1";
 const listeners = new Set<() => void>();
@@ -71,9 +69,4 @@ export function useSonoAllenatore(): boolean {
 export function useGiocatoreInCampo(): GiocatoreSquadra | null {
   const g = useGiocatoreBase();
   return g && !isAllenatore(g) ? g : null;
-}
-
-/** Giocatore corrente con statistiche calcolate da dati reali (presenze, MVP, badge, …). */
-export function useGiocatoreCorrente(): Giocatore | null {
-  return useIo();
 }

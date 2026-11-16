@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Flame, Trash2, Bell, Mail, LogOut, ShieldCheck, Bug, Lightbulb } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, percentuale } from "@/lib/utils";
 import { Card, PageHeader, StatTile, TeamLogo } from "@/components/crapp/ui-bits";
 import { BarraSottosezioni } from "@/components/crapp/BarraSottosezioni";
 import { Avatar } from "@/components/crapp/Avatar";
@@ -87,7 +87,7 @@ function ProfiloGiocatore() {
 
   const tecnici = totaliTecnici(scoutMatches, g.id);
 
-  const percPresenze = g.totaliEventi ? Math.round((g.presenze / g.totaliEventi) * 100) : 0;
+  const percPresenze = percentuale(g.presenze, g.totaliEventi);
 
   return (
     <>
